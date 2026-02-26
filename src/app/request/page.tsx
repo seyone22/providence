@@ -1,11 +1,22 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Loader2, ArrowLeft, CheckCircle2 } from "lucide-react";
 import MinimalHeader from "@/app/components/MinimalHeader";
 import { submitCarRequest } from "@/actions/request-actions";
 
 const TOTAL_STEPS = 4;
+
+// Comprehensive list of global & premium makes for instant loading
+const CAR_MAKES = [
+    "Acura", "Alfa Romeo", "Aston Martin", "Audi", "Bentley", "BMW", "Bugatti",
+    "Buick", "Cadillac", "Chevrolet", "Chrysler", "Dodge", "Ferrari", "Fiat",
+    "Ford", "Genesis", "GMC", "Honda", "Hyundai", "Infiniti", "Jaguar", "Jeep",
+    "Kia", "Koenigsegg", "Lamborghini", "Land Rover", "Lexus", "Lincoln", "Lotus",
+    "Lucid", "Maserati", "Maybach", "Mazda", "McLaren", "Mercedes-Benz", "Mini",
+    "Mitsubishi", "Nissan", "Pagani", "Peugeot", "Polestar", "Porsche", "Ram",
+    "Rivian", "Rolls-Royce", "Subaru", "Suzuki", "Tesla", "Toyota", "Volkswagen", "Volvo"
+].sort();
 
 export default function RequestCar() {
     const [step, setStep] = useState(1);
@@ -13,11 +24,15 @@ export default function RequestCar() {
     const [successMsg, setSuccessMsg] = useState("");
     const [errorMsg, setErrorMsg] = useState("");
 
+    // Dynamic Models State
+    const [availableModels, setAvailableModels] = useState<string[]>([]);
+    const [isLoadingModels, setIsLoadingModels] = useState(false);
+
     // Updated Form State
     const [formData, setFormData] = useState({
         make: "",
         vehicle_model: "",
-        condition: "New", // Default to New
+        condition: "New",
         yearFrom: "",
         yearTo: "",
         mileage: "",
@@ -29,8 +44,48 @@ export default function RequestCar() {
         countryOfImport: ""
     });
 
+    // Fetch models from NHTSA API when a Make is selected or typed
+    useEffect(() => {
+        // If empty or too short, clear models
+        if (!formData.make || formData.make.length < 2) {
+            setAvailableModels([]);
+            return;
+        }
+
+        // Debounce: Wait 500ms after the user stops typing before calling the API
+        const delayDebounceFn = setTimeout(async () => {
+            setIsLoadingModels(true);
+            try {
+                const res = await fetch(`https://vpic.nhtsa.dot.gov/api/vehicles/GetModelsForMake/${formData.make}?format=json`);
+                const data = await res.json();
+
+                if (data.Results) {
+                    const models = data.Results.map((item: any) => {
+                        return item.Model_Name.toLowerCase().replace(/\b\w/g, (c: string) => c.toUpperCase());
+                    });
+                    const uniqueModels = Array.from(new Set(models)).sort() as string[];
+                    setAvailableModels(uniqueModels);
+                }
+            } catch (err) {
+                console.error("Failed to fetch models", err);
+            } finally {
+                setIsLoadingModels(false);
+            }
+        }, 500);
+
+        // Cleanup timer on every keystroke
+        return () => clearTimeout(delayDebounceFn);
+    }, [formData.make]);
+
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
-        setFormData({ ...formData, [e.target.id]: e.target.value });
+        const { id, value } = e.target;
+
+        // If they change the Make, reset the Model so they don't submit a "Porsche F-150"
+        if (id === "make") {
+            setFormData(prev => ({ ...prev, make: value, vehicle_model: "" }));
+        } else {
+            setFormData(prev => ({ ...prev, [id]: value }));
+        }
     };
 
     const handleConditionSelect = (condition: "New" | "Used") => {
@@ -38,9 +93,8 @@ export default function RequestCar() {
     };
 
     const handleNext = () => {
-        // Validation per step
         if (step === 1 && (!formData.make || !formData.vehicle_model)) {
-            setErrorMsg("Please fill in the required vehicle details.");
+            setErrorMsg("Please provide a make and model.");
             return;
         }
         if (step === 2 && formData.condition === "Used" && (!formData.yearFrom || !formData.mileage)) {
@@ -60,7 +114,6 @@ export default function RequestCar() {
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
 
-        // Final validation
         if (!formData.name || !formData.email || !formData.phone || !formData.countryOfImport) {
             setErrorMsg("Please fill in all contact and import details.");
             return;
@@ -104,10 +157,7 @@ export default function RequestCar() {
                     </p>
                 </div>
 
-                {/* UPDATED: Increased the white/grey shadow opacity and spread so it glows visibly against the black background */}
                 <div className="w-full max-w-3xl bg-white rounded-2xl shadow-[0_0_50px_rgba(255,255,255,0.15)] overflow-hidden relative text-black">
-
-                    {/* UPDATED: Changed the track to gray-200 and the active bar to gray-600 for a visible grey finish */}
                     <div className="w-full h-1.5 bg-gray-200 absolute top-0 left-0">
                         <div
                             className="h-full bg-gray-600 transition-all duration-500 ease-out"
@@ -146,17 +196,57 @@ export default function RequestCar() {
                                 </div>
                             )}
 
-                            {/* STEP 1: Make & Model */}
+                            {/* --- STEP 1: HYBRID DATALIST INPUTS --- */}
                             {step === 1 && (
                                 <div className="space-y-8 animate-in fade-in slide-in-from-right-4 duration-500">
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+
+                                        {/* Make Field */}
                                         <div>
-                                            <input id="make" required value={formData.make} onChange={handleChange} placeholder="Make / Brand (e.g. Porsche)" className={minimalInput} autoFocus />
+                                            <input
+                                                id="make"
+                                                list="car-makes"
+                                                required
+                                                value={formData.make}
+                                                onChange={handleChange}
+                                                placeholder="Make / Brand (e.g. Porsche)"
+                                                className={minimalInput}
+                                                autoComplete="off"
+                                            />
+                                            <datalist id="car-makes">
+                                                {CAR_MAKES.map(make => (
+                                                    <option key={make} value={make} />
+                                                ))}
+                                            </datalist>
                                         </div>
-                                        <div>
-                                            <input id="vehicle_model" required value={formData.vehicle_model} onChange={handleChange} placeholder="Model (e.g. 911 Carrera)" className={minimalInput} />
+
+                                        {/* Model Field */}
+                                        <div className="relative">
+                                            <input
+                                                id="vehicle_model"
+                                                list="car-models"
+                                                required
+                                                value={formData.vehicle_model}
+                                                onChange={handleChange}
+                                                placeholder={isLoadingModels ? "Loading Models..." : "Model (e.g. 911 Carrera)"}
+                                                className={minimalInput}
+                                                autoComplete="off"
+                                            />
+                                            <datalist id="car-models">
+                                                {availableModels.map(model => (
+                                                    <option key={model} value={model} />
+                                                ))}
+                                            </datalist>
+
+                                            {isLoadingModels && (
+                                                <Loader2 className="absolute right-0 top-4 animate-spin text-gray-400" size={18} />
+                                            )}
                                         </div>
+
                                     </div>
+                                    <p className="text-sm text-gray-500 mt-2">
+                                        Type to search or enter a custom brand. Data powered by NHTSA.
+                                    </p>
                                 </div>
                             )}
 
@@ -164,32 +254,15 @@ export default function RequestCar() {
                             {step === 2 && (
                                 <div className="space-y-8 animate-in fade-in slide-in-from-right-4 duration-500">
                                     <div className="flex gap-4">
-                                        <button
-                                            onClick={() => handleConditionSelect("New")}
-                                            className={`flex-1 py-4 border rounded-xl font-medium transition-all ${formData.condition === "New" ? "border-black bg-black text-white" : "border-gray-200 text-gray-500 hover:border-gray-300"}`}
-                                        >
-                                            Brand New
-                                        </button>
-                                        <button
-                                            onClick={() => handleConditionSelect("Used")}
-                                            className={`flex-1 py-4 border rounded-xl font-medium transition-all ${formData.condition === "Used" ? "border-black bg-black text-white" : "border-gray-200 text-gray-500 hover:border-gray-300"}`}
-                                        >
-                                            Pre-Owned
-                                        </button>
+                                        <button onClick={() => handleConditionSelect("New")} className={`flex-1 py-4 border rounded-xl font-medium transition-all ${formData.condition === "New" ? "border-black bg-black text-white" : "border-gray-200 text-gray-500 hover:border-gray-300"}`}>Brand New</button>
+                                        <button onClick={() => handleConditionSelect("Used")} className={`flex-1 py-4 border rounded-xl font-medium transition-all ${formData.condition === "Used" ? "border-black bg-black text-white" : "border-gray-200 text-gray-500 hover:border-gray-300"}`}>Pre-Owned</button>
                                     </div>
 
-                                    {/* Conditionally reveal fields if 'Used' is selected */}
                                     {formData.condition === "Used" && (
                                         <div className="grid grid-cols-1 md:grid-cols-3 gap-8 animate-in fade-in slide-in-from-top-2 duration-300">
-                                            <div>
-                                                <input id="yearFrom" type="number" value={formData.yearFrom} onChange={handleChange} placeholder="Year From" className={minimalInput} />
-                                            </div>
-                                            <div>
-                                                <input id="yearTo" type="number" value={formData.yearTo} onChange={handleChange} placeholder="Year To" className={minimalInput} />
-                                            </div>
-                                            <div>
-                                                <input id="mileage" value={formData.mileage} onChange={handleChange} placeholder="Max Mileage (e.g. 30k)" className={minimalInput} />
-                                            </div>
+                                            <div><input id="yearFrom" type="number" value={formData.yearFrom} onChange={handleChange} placeholder="Year From" className={minimalInput} /></div>
+                                            <div><input id="yearTo" type="number" value={formData.yearTo} onChange={handleChange} placeholder="Year To" className={minimalInput} /></div>
+                                            <div><input id="mileage" value={formData.mileage} onChange={handleChange} placeholder="Max Mileage (e.g. 30k)" className={minimalInput} /></div>
                                         </div>
                                     )}
                                 </div>
@@ -199,12 +272,7 @@ export default function RequestCar() {
                             {step === 3 && (
                                 <div className="space-y-8 animate-in fade-in slide-in-from-right-4 duration-500">
                                     <div>
-                                        <textarea
-                                            id="specs" value={formData.specs} onChange={handleChange}
-                                            placeholder="Specify preferred colors, interior trims, must-have packages, or any other special requirements..."
-                                            className={`${minimalInput} resize-none min-h-[140px]`}
-                                            autoFocus
-                                        />
+                                        <textarea id="specs" value={formData.specs} onChange={handleChange} placeholder="Specify preferred colors, interior trims, must-have packages, or any other special requirements..." className={`${minimalInput} resize-none min-h-[140px]`} autoFocus />
                                     </div>
                                 </div>
                             )}
@@ -213,12 +281,8 @@ export default function RequestCar() {
                             {step === 4 && (
                                 <div className="space-y-8 animate-in fade-in slide-in-from-right-4 duration-500">
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                                        <div>
-                                            <input id="name" required value={formData.name} onChange={handleChange} placeholder="Full Name" className={minimalInput} autoFocus />
-                                        </div>
-                                        <div>
-                                            <input id="email" type="email" required value={formData.email} onChange={handleChange} placeholder="Email Address" className={minimalInput} />
-                                        </div>
+                                        <div><input id="name" required value={formData.name} onChange={handleChange} placeholder="Full Name" className={minimalInput} autoFocus /></div>
+                                        <div><input id="email" type="email" required value={formData.email} onChange={handleChange} placeholder="Email Address" className={minimalInput} /></div>
                                     </div>
                                     <div className="grid grid-cols-1 md:grid-cols-12 gap-8">
                                         <div className="md:col-span-3">
