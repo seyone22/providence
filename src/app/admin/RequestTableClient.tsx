@@ -1,44 +1,65 @@
 "use client";
 
 import { useState } from "react";
-import { MoreHorizontal, Trash, CheckCircle, Truck, Wrench, Loader2, FileText } from "lucide-react";
+import { MoreHorizontal, Trash, Loader2, FileText, ExternalLink, ArrowRight } from "lucide-react";
 import { updateRequestStatus, deleteRequest } from "@/actions/admin-actions";
-import {
-    Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
-} from "@/app/components/ui/table";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/app/components/ui/table";
 import { Badge } from "@/app/components/ui/badge";
 import { Button } from "@/app/components/ui/button";
 import { Input } from "@/app/components/ui/input";
 import { Label } from "@/app/components/ui/label";
-import {
-    DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger,
-} from "@/app/components/ui/dropdown-menu";
-import {
-    Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle,
-} from "@/app/components/ui/dialog";
+import { Textarea } from "@/app/components/ui/textarea";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/app/components/ui/dropdown-menu";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/app/components/ui/dialog";
 import Link from "next/link";
-import { ExternalLink } from "lucide-react"; // add this to your existing lucide-react imports
+
+// The official workflow stages
+const PIPELINE_STAGES = [
+    "New",
+    "Vehicle Selection",
+    "Price Agreement",
+    "Deposit Collected",
+    "Vehicle Purchased",
+    "Preparation",
+    "Shipped",
+    "Arrived at Port",
+    "Cleared Customs"
+];
 
 type ActionModalState = {
     isOpen: boolean;
-    type: "delete" | "processing" | "shipped" | "specs" | null;
+    type: "advance" | "delete" | "specs" | null;
     request: any | null;
+    targetStage: string | null;
 };
 
 export default function RequestTableClient({ initialRequests }: { initialRequests: any[] }) {
     const [isProcessing, setIsProcessing] = useState(false);
-    const [modal, setModal] = useState<ActionModalState>({ isOpen: false, type: null, request: null });
+    const [modal, setModal] = useState<ActionModalState>({ isOpen: false, type: null, request: null, targetStage: null });
 
-    // Form states for modals
-    const [trackingNumber, setTrackingNumber] = useState("");
-    const [garageNotes, setGarageNotes] = useState("");
+    // Universal payload state for the form fields
+    const [payload, setPayload] = useState<any>({});
 
-    const closeDialog = () => setModal({ isOpen: false, type: null, request: null });
+    const closeDialog = () => {
+        setModal({ isOpen: false, type: null, request: null, targetStage: null });
+        setPayload({}); // Reset form
+    };
 
-    const handleQuickStatus = async (id: string, status: string) => {
-        setIsProcessing(true);
-        await updateRequestStatus(id, status);
-        setIsProcessing(false);
+    const handlePayloadChange = (key: string, value: string) => {
+        setPayload((prev: any) => ({ ...prev, [key]: value }));
+    };
+
+    const getNextStage = (currentStatus: string) => {
+        const currentIndex = PIPELINE_STAGES.indexOf(currentStatus || "New");
+        if (currentIndex === -1 || currentIndex === PIPELINE_STAGES.length - 1) return null;
+        return PIPELINE_STAGES[currentIndex + 1];
+    };
+
+    const openAdvanceModal = (req: any) => {
+        const next = getNextStage(req.status || "New");
+        if (next) {
+            setModal({ isOpen: true, type: "advance", request: req, targetStage: next });
+        }
     };
 
     const handleActionSubmit = async () => {
@@ -47,209 +68,241 @@ export default function RequestTableClient({ initialRequests }: { initialRequest
 
         if (modal.type === "delete") {
             await deleteRequest(modal.request._id);
-        } else if (modal.type === "processing") {
-            await updateRequestStatus(modal.request._id, "Processing", { garageNotes });
-        } else if (modal.type === "shipped") {
-            await updateRequestStatus(modal.request._id, "Shipped", { trackingNumber });
+        } else if (modal.type === "advance" && modal.targetStage) {
+            await updateRequestStatus(modal.request._id, modal.targetStage, payload);
         }
 
         setIsProcessing(false);
         closeDialog();
-        setTrackingNumber("");
-        setGarageNotes("");
     };
 
     if (initialRequests.length === 0) {
         return (
-            <div className="p-12 text-center text-gray-500 font-medium bg-black/20 rounded-xl border border-white/5">
-                No requests found. When a client submits a form, it will appear here.
+            <div className="p-16 text-center text-zinc-500 font-medium bg-white">
+                No active requests found. When a client submits an inquiry, it will appear here.
             </div>
         );
     }
 
-    const glassInputClasses = "bg-black/40 border-white/10 text-white placeholder:text-gray-600 focus-visible:ring-white/20 focus-visible:border-white/30 transition-all";
+    const inputClasses = "bg-zinc-50 border-black/10 text-black placeholder:text-zinc-400 focus-visible:ring-black/5 focus-visible:border-black/30 transition-all rounded-xl";
+
+    // Helper to generate dynamic badges based on pipeline progress
+    const getStatusBadge = (status: string) => {
+        const current = status || "New";
+        const isEarly = ["New", "Vehicle Selection", "Price Agreement"].includes(current);
+        const isMiddle = ["Deposit Collected", "Vehicle Purchased", "Preparation"].includes(current);
+        const isShipping = ["Shipped", "Arrived at Port"].includes(current);
+        const isDone = current === "Cleared Customs";
+
+        if (isDone) return <Badge className="bg-emerald-50 text-emerald-600 border-emerald-200 hover:bg-emerald-100 rounded-full px-3">{current}</Badge>;
+        if (isShipping) return <Badge className="bg-blue-50 text-blue-600 border-blue-200 hover:bg-blue-100 rounded-full px-3">{current}</Badge>;
+        if (isMiddle) return <Badge className="bg-purple-50 text-purple-600 border-purple-200 hover:bg-purple-100 rounded-full px-3">{current}</Badge>;
+        return <Badge className="bg-zinc-100 text-zinc-600 border-zinc-200 hover:bg-zinc-200 rounded-full px-3">{current}</Badge>;
+    };
 
     return (
-        <div className="rounded-xl border border-white/10 overflow-hidden bg-black/40 backdrop-blur-md">
+        <div className="overflow-x-auto">
             <Table>
-                <TableHeader>
-                    <TableRow className="hover:bg-transparent border-white/10">
-                        <TableHead className="text-gray-400">Date</TableHead>
-                        <TableHead className="text-gray-400">Client</TableHead>
-                        <TableHead className="text-gray-400">Contact</TableHead>
-                        <TableHead className="text-gray-400">Requested Vehicle</TableHead>
-                        <TableHead className="text-gray-400">Requirements</TableHead>
-                        <TableHead className="text-gray-400">Status</TableHead>
-                        <TableHead className="w-[50px]"></TableHead>
+                <TableHeader className="bg-zinc-50">
+                    <TableRow className="border-black/5">
+                        <TableHead className="text-zinc-500 font-semibold py-4 pl-6">Client</TableHead>
+                        <TableHead className="text-zinc-500 font-semibold">Contact</TableHead>
+                        <TableHead className="text-zinc-500 font-semibold">Requested Vehicle</TableHead>
+                        <TableHead className="text-zinc-500 font-semibold">Stage</TableHead>
+                        <TableHead className="w-[80px] pr-6"></TableHead>
                     </TableRow>
                 </TableHeader>
                 <TableBody>
-                    {initialRequests.map((req: any) => (
-                        <TableRow key={req._id} className="border-b border-white/5 hover:bg-white/5 transition-colors">
-                            <TableCell className="text-sm text-gray-400 whitespace-nowrap">
-                                {new Date(req.createdAt).toLocaleDateString()}
-                            </TableCell>
-                            <TableCell className="font-medium text-white">
-                                {req.name}<br />
-                                <span className="text-xs text-gray-500 font-normal">Import to: {req.countryOfImport}</span>
-                            </TableCell>
-                            <TableCell className="text-sm text-gray-300">
-                                {req.email}<br />
-                                <span className="text-gray-400">{req.countryCode} {req.phone}</span>
-                            </TableCell>
-                            <TableCell>
-                                <span className="font-medium text-white">{req.make} {req.vehicle_model}</span><br />
-                                <span className="text-xs text-gray-500 flex items-center gap-1 mt-0.5">
-                                    {req.condition === "Used" ? (
-                                        <>
-                                            <Badge variant="outline" className="text-[10px] h-4 px-1 py-0 bg-white/5 border-white/10 text-gray-300 rounded">Pre-Owned</Badge>
-                                            {req.yearFrom || "Any"} - {req.yearTo || "Any"} | Max {req.mileage || "Any"} mi
-                                        </>
-                                    ) : (
-                                        <Badge variant="outline" className="text-[10px] h-4 px-1 py-0 bg-white/10 border-white/20 text-white rounded">Brand New</Badge>
-                                    )}
-                                </span>
-                            </TableCell>
-                            <TableCell className="text-sm text-gray-400 max-w-[200px]">
-                                {req.specs ? (
-                                    <div className="truncate cursor-pointer hover:text-white transition-colors" title={req.specs} onClick={() => setModal({ isOpen: true, type: "specs", request: req })}>
-                                        {req.specs}
-                                    </div>
-                                ) : (
-                                    <span className="text-gray-600 italic">None specified</span>
-                                )}
-                            </TableCell>
-                            <TableCell>
-                                <Badge
-                                    variant="outline"
-                                    className={`
-                                        bg-black/40 backdrop-blur-md
-                                        ${req.status === "New" ? "border-blue-500/50 text-blue-400" : ""}
-                                        ${req.status === "Processing" ? "border-orange-500/50 text-orange-400" : ""}
-                                        ${req.status === "Shipped" ? "border-green-500/50 text-green-400" : ""}
-                                        ${req.status === "Accepted" ? "border-emerald-500/50 text-emerald-400" : ""}
-                                    `}
-                                >
-                                    {req.status}
-                                </Badge>
-                            </TableCell>
-                            <TableCell>
-                                <DropdownMenu>
-                                    <DropdownMenuTrigger asChild>
-                                        <Button variant="ghost" className="h-8 w-8 p-0 text-gray-400 hover:text-white hover:bg-white/10 focus-visible:ring-0 focus-visible:ring-offset-0 outline-none border-0">
-                                            <span className="sr-only">Open menu</span>
-                                            <MoreHorizontal className="h-4 w-4" />
-                                        </Button>
-                                    </DropdownMenuTrigger>
-                                    <DropdownMenuContent align="end" className="bg-[#111] border-white/10 text-white shadow-2xl">
-                                        <DropdownMenuLabel className="text-gray-400">Actions</DropdownMenuLabel>
+                    {initialRequests.map((req: any) => {
+                        const nextStage = getNextStage(req.status || "New");
 
-                                        {/* NEW: Permalink Tracker Button */}
-                                        <DropdownMenuItem asChild className="hover:bg-white/10 focus:bg-white/10 cursor-pointer">
-                                            <Link href={`/track/${req._id}`} target="_blank">
-                                                <ExternalLink className="mr-2 h-4 w-4 text-purple-400" /> View Live Tracker
-                                            </Link>
-                                        </DropdownMenuItem>
-
-                                        <DropdownMenuSeparator className="bg-white/10" />
-
-
-                                        <DropdownMenuLabel className="text-gray-400">Actions</DropdownMenuLabel>
-
-                                        {req.specs && (
-                                            <DropdownMenuItem onClick={() => setModal({ isOpen: true, type: "specs", request: req })} className="hover:bg-white/10 focus:bg-white/10 cursor-pointer">
-                                                <FileText className="mr-2 h-4 w-4 text-gray-300" /> View Full Specs
-                                            </DropdownMenuItem>
+                        return (
+                            <TableRow key={req._id} className="border-b border-black/5 hover:bg-zinc-50/50 transition-colors">
+                                <TableCell className="py-4 pl-6">
+                                    <div className="font-bold text-black">{req.name}</div>
+                                    <div className="text-xs text-zinc-500 font-medium mt-0.5">Import to: {req.countryOfImport}</div>
+                                    <div className="text-[10px] text-zinc-400 mt-1">{new Date(req.createdAt).toLocaleDateString()}</div>
+                                </TableCell>
+                                <TableCell>
+                                    <div className="text-sm font-medium text-zinc-800">{req.email}</div>
+                                    <div className="text-sm text-zinc-500">{req.countryCode} {req.phone}</div>
+                                </TableCell>
+                                <TableCell>
+                                    <span className="font-bold text-black">{req.make} {req.vehicle_model}</span><br />
+                                    <span className="text-xs text-zinc-500 flex items-center gap-2 mt-1">
+                                        {req.condition === "Used" ? (
+                                            <>
+                                                <span className="px-2 py-0.5 bg-zinc-100 border border-black/5 rounded-md text-zinc-600 font-medium">Pre-Owned</span>
+                                                {req.yearFrom || "Any"} - {req.yearTo || "Any"} | Max {req.mileage || "Any"} mi
+                                            </>
+                                        ) : (
+                                            <span className="px-2 py-0.5 bg-black/5 border border-black/10 rounded-md text-black font-medium">Brand New</span>
                                         )}
+                                    </span>
+                                </TableCell>
+                                <TableCell>
+                                    {getStatusBadge(req.status)}
+                                </TableCell>
+                                <TableCell className="pr-6">
+                                    <DropdownMenu>
+                                        <DropdownMenuTrigger asChild>
+                                            <Button variant="ghost" className="h-8 w-8 p-0 text-zinc-400 hover:text-black hover:bg-black/5 border-0 rounded-lg">
+                                                <MoreHorizontal className="h-4 w-4" />
+                                            </Button>
+                                        </DropdownMenuTrigger>
+                                        <DropdownMenuContent align="end" className="bg-white border-black/5 text-black shadow-xl rounded-xl w-48 p-2">
 
-                                        <DropdownMenuSeparator className="bg-white/10" />
+                                            {nextStage && (
+                                                <DropdownMenuItem onClick={() => openAdvanceModal(req)} className="font-bold text-black hover:bg-black/5 focus:bg-black/5 cursor-pointer rounded-lg mb-1 py-2">
+                                                    <ArrowRight className="mr-2 h-4 w-4" /> Advance to: {nextStage}
+                                                </DropdownMenuItem>
+                                            )}
 
-                                        <DropdownMenuItem onClick={() => handleQuickStatus(req._id, "Accepted")} className="hover:bg-white/10 focus:bg-white/10 cursor-pointer">
-                                            <CheckCircle className="mr-2 h-4 w-4 text-emerald-400" /> Mark as Accepted
-                                        </DropdownMenuItem>
-                                        <DropdownMenuItem onClick={() => setModal({ isOpen: true, type: "processing", request: req })} className="hover:bg-white/10 focus:bg-white/10 cursor-pointer">
-                                            <Wrench className="mr-2 h-4 w-4 text-orange-400" /> Move to Processing
-                                        </DropdownMenuItem>
-                                        <DropdownMenuItem onClick={() => setModal({ isOpen: true, type: "shipped", request: req })} className="hover:bg-white/10 focus:bg-white/10 cursor-pointer">
-                                            <Truck className="mr-2 h-4 w-4 text-blue-400" /> Mark as Shipped
-                                        </DropdownMenuItem>
-                                        <DropdownMenuSeparator className="bg-white/10" />
-                                        <DropdownMenuItem onClick={() => setModal({ isOpen: true, type: "delete", request: req })} className="text-red-400 focus:text-red-400 hover:bg-red-500/10 focus:bg-red-500/10 cursor-pointer">
-                                            <Trash className="mr-2 h-4 w-4" /> Delete Request
-                                        </DropdownMenuItem>
-                                    </DropdownMenuContent>
-                                </DropdownMenu>
-                            </TableCell>
-                        </TableRow>
-                    ))}
+                                            <DropdownMenuItem asChild className="hover:bg-black/5 focus:bg-black/5 cursor-pointer rounded-lg">
+                                                <Link href={`/track/${req._id}`} target="_blank">
+                                                    <ExternalLink className="mr-2 h-4 w-4 text-blue-500" /> Live Tracker
+                                                </Link>
+                                            </DropdownMenuItem>
+
+                                            {req.specs && (
+                                                <DropdownMenuItem onClick={() => setModal({ isOpen: true, type: "specs", request: req } as any)} className="hover:bg-black/5 focus:bg-black/5 cursor-pointer rounded-lg">
+                                                    <FileText className="mr-2 h-4 w-4 text-zinc-400" /> View User Specs
+                                                </DropdownMenuItem>
+                                            )}
+
+                                            <DropdownMenuSeparator className="bg-black/5 my-2" />
+
+                                            <DropdownMenuItem onClick={() => setModal({ isOpen: true, type: "delete", request: req } as any)} className="text-red-500 focus:text-red-600 hover:bg-red-50 focus:bg-red-50 cursor-pointer rounded-lg">
+                                                <Trash className="mr-2 h-4 w-4" /> Delete Lead
+                                            </DropdownMenuItem>
+                                        </DropdownMenuContent>
+                                    </DropdownMenu>
+                                </TableCell>
+                            </TableRow>
+                        );
+                    })}
                 </TableBody>
             </Table>
 
-            {/* Dark/Glass Modal Dialog */}
+            {/* ACTION MODAL */}
             <Dialog open={modal.isOpen} onOpenChange={closeDialog}>
-                <DialogContent className="bg-[#0f0f0f] border-white/10 text-white shadow-2xl sm:rounded-2xl max-w-md">
+                <DialogContent className="bg-white border-black/5 text-black shadow-2xl sm:rounded-[2rem] max-w-md p-8">
                     <DialogHeader>
-                        <DialogTitle className="text-xl font-bold">
-                            {modal.type === "delete" && "Delete Request"}
-                            {modal.type === "processing" && "Update to Processing"}
-                            {modal.type === "shipped" && "Update to Shipped"}
+                        <DialogTitle className="text-2xl font-bold tracking-tight">
+                            {modal.type === "delete" && "Delete Lead"}
                             {modal.type === "specs" && "Special Requirements"}
+                            {modal.type === "advance" && `Advance to ${modal.targetStage}`}
                         </DialogTitle>
-                        <DialogDescription className="text-gray-400">
-                            {modal.type === "delete" && `Are you sure you want to delete the request for ${modal.request?.name}? This cannot be undone.`}
-                            {modal.type === "processing" && "Enter preliminary garage notes or preparation details for this vehicle."}
-                            {modal.type === "shipped" && "Enter the shipping details to notify the client."}
-                            {modal.type === "specs" && `Requirements requested by ${modal.request?.name} for the ${modal.request?.make} ${modal.request?.vehicle_model}.`}
+                        <DialogDescription className="text-zinc-500 font-light mt-2">
+                            {modal.type === "delete" && `Are you sure you want to delete ${modal.request?.name}'s inquiry? This cannot be undone.`}
+                            {modal.type === "specs" && `Requested by ${modal.request?.name} for the ${modal.request?.make} ${modal.request?.vehicle_model}.`}
+                            {modal.type === "advance" && "Please provide the required details to move this lead to the next stage."}
                         </DialogDescription>
                     </DialogHeader>
 
-                    {/* View Specs Modal Content */}
+                    {/* Content: Specs */}
                     {modal.type === "specs" && (
-                        <div className="py-4 text-gray-300 leading-relaxed whitespace-pre-wrap bg-white/5 p-4 rounded-xl border border-white/10 mt-2">
+                        <div className="py-4 text-black leading-relaxed whitespace-pre-wrap bg-zinc-50 p-5 rounded-2xl border border-black/5 mt-4 text-sm">
                             {modal.request?.specs}
                         </div>
                     )}
 
-                    {modal.type === "processing" && (
-                        <div className="grid gap-4 py-4">
-                            <div className="grid grid-cols-4 items-center gap-4">
-                                <Label htmlFor="notes" className="text-right text-gray-300">Garage Notes</Label>
-                                <Input id="notes" value={garageNotes} onChange={(e) => setGarageNotes(e.target.value)} className={`col-span-3 ${glassInputClasses}`} placeholder="e.g. Awaiting inspection..." />
-                            </div>
-                            <div className="grid grid-cols-4 items-center gap-4">
-                                <Label htmlFor="photo" className="text-right text-gray-300">Photos</Label>
-                                <Input id="photo" type="file" className={`col-span-3 ${glassInputClasses} pt-2`} disabled placeholder="File upload coming soon" />
-                            </div>
+                    {/* Content: Dynamic Form Fields based on Next Stage */}
+                    {modal.type === "advance" && (
+                        <div className="grid gap-5 py-6">
+
+                            {modal.targetStage === "Vehicle Selection" && (
+                                <div className="space-y-2">
+                                    <Label className="text-zinc-600 font-bold">Proposed Options / Links</Label>
+                                    <Textarea onChange={(e) => handlePayloadChange("options", e.target.value)} className={inputClasses} placeholder="Paste links to cars or list options sent to the client..." />
+                                </div>
+                            )}
+
+                            {modal.targetStage === "Price Agreement" && (
+                                <div className="space-y-2">
+                                    <Label className="text-zinc-600 font-bold">Agreed Price (USD)</Label>
+                                    <Input type="number" onChange={(e) => handlePayloadChange("agreedPrice", e.target.value)} className={inputClasses} placeholder="e.g. 125000" />
+                                </div>
+                            )}
+
+                            {modal.targetStage === "Deposit Collected" && (
+                                <>
+                                    <div className="space-y-2">
+                                        <Label className="text-zinc-600 font-bold">Deposit Amount Collected</Label>
+                                        <Input type="number" onChange={(e) => handlePayloadChange("depositAmount", e.target.value)} className={inputClasses} placeholder="e.g. 5000" />
+                                    </div>
+                                    <div className="space-y-2">
+                                        <Label className="text-zinc-600 font-bold">Transaction / Receipt ID</Label>
+                                        <Input onChange={(e) => handlePayloadChange("transactionId", e.target.value)} className={inputClasses} placeholder="e.g. TXN-998231" />
+                                    </div>
+                                </>
+                            )}
+
+                            {modal.targetStage === "Vehicle Purchased" && (
+                                <div className="space-y-2">
+                                    <Label className="text-zinc-600 font-bold">Internal Invoice / Purchase #</Label>
+                                    <Input onChange={(e) => handlePayloadChange("invoiceNumber", e.target.value)} className={inputClasses} placeholder="e.g. INV-2023-A4" />
+                                </div>
+                            )}
+
+                            {modal.targetStage === "Preparation" && (
+                                <div className="space-y-2">
+                                    <Label className="text-zinc-600 font-bold">Inspection & Prep Notes</Label>
+                                    <Textarea onChange={(e) => handlePayloadChange("inspectionNotes", e.target.value)} className={inputClasses} placeholder="e.g. Car received at garage. Export physical checks passed..." />
+                                </div>
+                            )}
+
+                            {modal.targetStage === "Shipped" && (
+                                <>
+                                    <div className="space-y-2">
+                                        <Label className="text-zinc-600 font-bold">Shipping Tracking Number</Label>
+                                        <Input onChange={(e) => handlePayloadChange("trackingNumber", e.target.value)} className={inputClasses} placeholder="e.g. MSCU1234567" />
+                                    </div>
+                                    <div className="space-y-2">
+                                        <Label className="text-zinc-600 font-bold">Vessel Name</Label>
+                                        <Input onChange={(e) => handlePayloadChange("vesselName", e.target.value)} className={inputClasses} placeholder="e.g. Ever Given" />
+                                    </div>
+                                    <div className="space-y-2">
+                                        <Label className="text-zinc-600 font-bold">Estimated Arrival (ETA)</Label>
+                                        <Input type="date" onChange={(e) => handlePayloadChange("eta", e.target.value)} className={inputClasses} />
+                                    </div>
+                                </>
+                            )}
+
+                            {modal.targetStage === "Arrived at Port" && (
+                                <div className="space-y-2">
+                                    <Label className="text-zinc-600 font-bold">Port of Arrival</Label>
+                                    <Input onChange={(e) => handlePayloadChange("portName", e.target.value)} className={inputClasses} placeholder="e.g. Port of Los Angeles" />
+                                </div>
+                            )}
+
+                            {modal.targetStage === "Cleared Customs" && (
+                                <div className="space-y-2">
+                                    <Label className="text-zinc-600 font-bold">Final Notes / Delivery Instructions</Label>
+                                    <Textarea onChange={(e) => handlePayloadChange("customsNotes", e.target.value)} className={inputClasses} placeholder="e.g. Duties paid, ready for flatbed pickup." />
+                                </div>
+                            )}
                         </div>
                     )}
 
-                    {modal.type === "shipped" && (
-                        <div className="grid gap-4 py-4">
-                            <div className="grid grid-cols-4 items-center gap-4">
-                                <Label htmlFor="tracking" className="text-right text-gray-300">Tracking #</Label>
-                                <Input id="tracking" value={trackingNumber} onChange={(e) => setTrackingNumber(e.target.value)} className={`col-span-3 ${glassInputClasses}`} placeholder="e.g. MSCU1234567" />
-                            </div>
-                        </div>
-                    )}
-
-                    <DialogFooter className="mt-4">
+                    <DialogFooter className="mt-6 border-t border-black/5 pt-6">
                         {modal.type === "specs" ? (
-                            <Button variant="default" onClick={closeDialog} className="bg-white text-black hover:bg-gray-200">
+                            <Button variant="default" onClick={closeDialog} className="bg-black text-white hover:bg-zinc-800 rounded-xl px-8">
                                 Close
                             </Button>
                         ) : (
                             <>
-                                <Button variant="outline" onClick={closeDialog} disabled={isProcessing} className="border-white/20 text-white hover:bg-white/10 hover:text-white bg-transparent">
+                                <Button variant="outline" onClick={closeDialog} disabled={isProcessing} className="border-black/10 text-zinc-600 hover:bg-zinc-50 hover:text-black rounded-xl px-6">
                                     Cancel
                                 </Button>
                                 <Button
                                     variant={modal.type === "delete" ? "destructive" : "default"}
                                     onClick={handleActionSubmit}
                                     disabled={isProcessing}
-                                    className={modal.type !== "delete" ? "bg-white text-black hover:bg-gray-200" : ""}
+                                    className={modal.type !== "delete" ? "bg-black text-white hover:bg-zinc-800 rounded-xl px-8" : "rounded-xl px-8"}
                                 >
                                     {isProcessing && <Loader2 className="mr-2 h-4 w-4 animate-spin text-current" />}
-                                    {modal.type === "delete" ? "Delete" : "Confirm Update"}
+                                    {modal.type === "delete" ? "Delete Lead" : `Update to ${modal.targetStage}`}
                                 </Button>
                             </>
                         )}

@@ -1,27 +1,29 @@
-import MinimalHeader from "@/app/components/MinimalHeader";
 import { getRequests } from "@/actions/admin-actions";
-import { Card, CardContent, CardHeader, CardTitle } from "@/app/components/ui/card";
-import { LayoutDashboard } from "lucide-react";
+import { LayoutDashboard, Car, Ship, CheckCircle2, AlertCircle } from "lucide-react";
 import RequestTableClient from "./RequestTableClient";
 
 export default async function AdminDashboard() {
     // Fetch data directly on the server
     const requests = await getRequests();
 
-    return (
-        <div className="min-h-screen bg-[#0a0a0a] text-white flex flex-col font-sans relative overflow-x-hidden">
-            {/* Dark background glow */}
-            <div className="absolute top-0 left-0 w-full h-[500px] bg-gradient-to-b from-blue-900/10 to-[#0a0a0a] z-0 pointer-events-none" />
+    // Calculate Dashboard Statistics
+    const totalInquiries = requests.length;
+    const pendingAction = requests.filter((r: any) => !r.status || r.status === "New" || r.status === "Vehicle Selection").length;
+    const inTransit = requests.filter((r: any) => ["Shipped", "Arrived at Port"].includes(r.status)).length;
+    const completed = requests.filter((r: any) => r.status === "Cleared Customs").length;
 
-            <header className="border-b border-white/10 bg-black/50 backdrop-blur-md sticky top-0 z-50">
+    return (
+        <div className="min-h-screen bg-zinc-50 text-black flex flex-col font-sans relative overflow-x-hidden selection:bg-black/10 selection:text-black">
+
+            <header className="border-b border-black/5 bg-white/80 backdrop-blur-xl sticky top-0 z-50 shadow-sm">
                 <div className="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                        <div className="bg-white/10 border border-white/20 p-2 rounded-xl text-white">
-                            <LayoutDashboard size={20} />
+                    <div className="flex items-center gap-4">
+                        <div className="bg-black/5 border border-black/10 p-2.5 rounded-2xl text-black">
+                            <LayoutDashboard size={22} />
                         </div>
                         <div>
-                            <h1 className="font-bold text-lg tracking-tight">Providence Auto</h1>
-                            <p className="text-xs text-blue-400 font-medium tracking-widest uppercase">Command Center</p>
+                            <h1 className="font-bold text-xl tracking-tight text-black">Providence Auto</h1>
+                            <p className="text-xs text-zinc-500 font-bold tracking-[0.2em] uppercase">Command Center</p>
                         </div>
                     </div>
                 </div>
@@ -29,22 +31,58 @@ export default async function AdminDashboard() {
 
             <main className="flex-1 py-12 px-4 md:px-8 relative z-10">
                 <div className="max-w-7xl mx-auto">
-                    <div className="mb-8">
-                        <h2 className="font-sans text-3xl font-bold text-white tracking-tight mb-2">
+
+                    <div className="mb-10">
+                        <h2 className="text-3xl md:text-4xl font-bold text-black tracking-tight mb-3">
                             Operations Overview
                         </h2>
-                        <p className="text-gray-400">Manage incoming vehicle requests and client inquiries.</p>
+                        <p className="text-zinc-500 text-lg font-light">Manage incoming vehicle requests and track active global shipments.</p>
                     </div>
 
-                    <Card className="bg-white/5 backdrop-blur-xl border border-white/10 shadow-2xl rounded-2xl overflow-hidden">
-                        <CardHeader className="border-b border-white/5 pb-4 bg-white/[0.02]">
-                            <CardTitle className="text-lg font-medium text-white">Recent Vehicle Requests</CardTitle>
-                        </CardHeader>
-                        <CardContent className="p-0">
-                            {/* Render the Client Component and pass the fetched data to it */}
+                    {/* STATS GRID */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
+                        <div className="bg-white border border-black/5 rounded-[2rem] p-6 shadow-[0_10px_40px_rgba(0,0,0,0.03)] flex flex-col justify-between">
+                            <div className="flex justify-between items-start mb-4">
+                                <p className="text-zinc-500 font-medium">Total Inquiries</p>
+                                <div className="p-2 bg-black/5 rounded-xl"><Car size={18} className="text-black" /></div>
+                            </div>
+                            <h3 className="text-4xl font-bold text-black">{totalInquiries}</h3>
+                        </div>
+
+                        <div className="bg-white border border-black/5 rounded-[2rem] p-6 shadow-[0_10px_40px_rgba(0,0,0,0.03)] flex flex-col justify-between">
+                            <div className="flex justify-between items-start mb-4">
+                                <p className="text-zinc-500 font-medium">Action Required</p>
+                                <div className="p-2 bg-red-50 rounded-xl"><AlertCircle size={18} className="text-red-500" /></div>
+                            </div>
+                            <h3 className="text-4xl font-bold text-black">{pendingAction}</h3>
+                        </div>
+
+                        <div className="bg-white border border-black/5 rounded-[2rem] p-6 shadow-[0_10px_40px_rgba(0,0,0,0.03)] flex flex-col justify-between">
+                            <div className="flex justify-between items-start mb-4">
+                                <p className="text-zinc-500 font-medium">In Transit</p>
+                                <div className="p-2 bg-blue-50 rounded-xl"><Ship size={18} className="text-blue-500" /></div>
+                            </div>
+                            <h3 className="text-4xl font-bold text-black">{inTransit}</h3>
+                        </div>
+
+                        <div className="bg-white border border-black/5 rounded-[2rem] p-6 shadow-[0_10px_40px_rgba(0,0,0,0.03)] flex flex-col justify-between">
+                            <div className="flex justify-between items-start mb-4">
+                                <p className="text-zinc-500 font-medium">Completed</p>
+                                <div className="p-2 bg-emerald-50 rounded-xl"><CheckCircle2 size={18} className="text-emerald-500" /></div>
+                            </div>
+                            <h3 className="text-4xl font-bold text-black">{completed}</h3>
+                        </div>
+                    </div>
+
+                    {/* TABLE CARD */}
+                    <div className="bg-white border border-black/5 shadow-[0_20px_60px_rgba(0,0,0,0.04)] rounded-[2rem] overflow-hidden">
+                        <div className="border-b border-black/5 p-6 bg-zinc-50/50">
+                            <h3 className="text-xl font-bold text-black tracking-tight">Active Pipeline</h3>
+                        </div>
+                        <div className="p-0">
                             <RequestTableClient initialRequests={requests} />
-                        </CardContent>
-                    </Card>
+                        </div>
+                    </div>
                 </div>
             </main>
         </div>
