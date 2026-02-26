@@ -38,30 +38,38 @@ export default function B2CLanding() {
         <main className="min-h-screen bg-white text-black selection:bg-black/10 selection:text-black font-sans overflow-x-hidden">
             <MinimalHeader />
 
-            {/* SECTION 1: The Cinematic Dark Hero */}
-            {/* Note the bg-black here to keep this section dark */}
-            <section ref={heroRef} className="relative min-h-screen flex flex-col justify-center items-center px-6 pt-20 bg-black overflow-hidden">
+            {/* SECTION 1: The Cinematic Light Hero */}
+            {/* Note the bg-white here to seamlessly blend into Section 2 */}
+            <section ref={heroRef} className="relative min-h-screen flex flex-col justify-center items-center px-6 pt-20 bg-white overflow-hidden">
+
                 {/* Background Image Wrapper */}
                 <motion.div
                     initial={{ scale: 1.05, opacity: 0 }}
                     animate={{ scale: 1, opacity: 1 }}
                     transition={{ duration: 1.5, ease: appleEase }}
-                    className="absolute inset-0 z-0"
+                    className="absolute inset-0 z-0 pointer-events-none"
                 >
-                    <Image
-                        src="/black-car.avif" // Back to the dark, sexy car
+                    <img
+                        src="https://images.unsplash.com/photo-1614162692292-7ac56d7f7f1e?q=80&w=3000&auto=format&fit=crop"
                         alt="Providence Auto Premium Sourcing"
-                        fill
-                        priority
                         className="object-cover object-center"
                     />
-                    {/* Dark Gradients to make the white text pop */}
-                    <div className="absolute inset-0 bg-black/40" />
-                    <div className="absolute inset-0 bg-gradient-to-b from-black/90 via-black/20 to-transparent h-1/2" />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-transparent" />
+
+                    {/* === THE NEW, SURGICAL OVERLAYS === */}
+                    {/* 1. Extremely subtle base wash just to catch the blur. Down from 30% to 10% */}
+                    <div className="absolute inset-0 bg-white/10 backdrop-blur-[2px]" />
+
+                    {/* 2. Top fade strictly for the very top edge. Down from 90% to 40% */}
+                    <div className="absolute inset-0 bg-gradient-to-b from-white/40 to-transparent h-[30%]" />
+
+                    {/* 3. Bottom fade to blend into the next section. Down from 80% to 30% */}
+                    <div className="absolute top-1/2 bottom-0 w-full bg-gradient-to-t from-white via-white/30 to-transparent" />
+
+                    {/* 4. Localized text glow: Only bright in the dead center behind the text, fading to completely transparent at the edges so the car pops */}
+                    <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,rgba(255,255,255,0.7)_0%,transparent_50%)]" />
                 </motion.div>
 
-                {/* SCROLL-BOUND CONTAINER: This shrinks and fades as you scroll down */}
+                {/* SCROLL-BOUND CONTAINER */}
                 <motion.div
                     style={{ scale: heroScale, opacity: heroOpacity, y: heroY }}
                     className="relative z-10 text-center max-w-5xl mx-auto flex flex-col items-center mt-12"
@@ -70,7 +78,7 @@ export default function B2CLanding() {
                         initial={{ y: 20, opacity: 0 }}
                         animate={{ y: 0, opacity: 1 }}
                         transition={{ duration: 0.8, delay: 0.2, ease: appleEase }}
-                        className="text-sm font-bold tracking-[0.4em] text-zinc-400 uppercase mb-8"
+                        className="text-sm font-bold tracking-[0.4em] text-zinc-500 uppercase mb-8"
                     >
                         Direct Import Network
                     </motion.p>
@@ -79,7 +87,7 @@ export default function B2CLanding() {
                         initial={{ y: 30, opacity: 0, scale: 0.95 }}
                         animate={{ y: 0, opacity: 1, scale: 1 }}
                         transition={{ duration: 1, delay: 0.3, ease: appleEase }}
-                        className="text-4xl md:text-6xl lg:text-7xl font-bold tracking-tighter mb-6 bg-clip-text text-transparent bg-gradient-to-b from-white via-white/90 to-white/40 leading-[1.1]"
+                        className="text-4xl md:text-6xl lg:text-7xl font-bold tracking-tighter mb-6 bg-clip-text text-transparent bg-gradient-to-b from-black via-black/80 to-black/50 leading-[1.1] drop-shadow-[0_0_15px_rgba(255,255,255,1)]"
                     >
                         The Global Shortcut to<br />Your Dream Car.
                     </motion.h1>
@@ -88,7 +96,7 @@ export default function B2CLanding() {
                         initial={{ y: 20, opacity: 0 }}
                         animate={{ y: 0, opacity: 1 }}
                         transition={{ duration: 0.8, delay: 0.5, ease: appleEase }}
-                        className="text-xl md:text-3xl text-zinc-300 font-medium tracking-tight mb-12 max-w-2xl"
+                        className="text-xl md:text-3xl text-zinc-600 font-medium tracking-tight mb-12 max-w-2xl drop-shadow-[0_0_10px_rgba(255,255,255,1)]"
                     >
                         Don't settle for what's on the lot.
                     </motion.p>
@@ -98,10 +106,10 @@ export default function B2CLanding() {
                         animate={{ y: 0, opacity: 1 }}
                         transition={{ duration: 0.8, delay: 0.6, ease: appleEase }}
                     >
-                        <Link href="/request" className="group relative inline-flex items-center justify-center px-10 py-5 text-lg font-bold text-black bg-white rounded-full overflow-hidden transition-transform hover:scale-105 shadow-[0_0_40px_rgba(255,255,255,0.15)]">
-                            <span className="relative z-10 flex items-center gap-2">
-                                Begin Your Inquiry <ArrowRight size={18} className="group-hover:translate-x-1 transition-transform" />
-                            </span>
+                        <Link href="/request" className="group relative inline-flex items-center justify-center px-10 py-5 text-lg font-bold text-white bg-black rounded-full overflow-hidden transition-transform hover:scale-105 shadow-[0_10px_40px_rgba(0,0,0,0.1)]">
+                <span className="relative z-10 flex items-center gap-2">
+                    Begin Your Inquiry <ArrowRight size={18} className="group-hover:translate-x-1 transition-transform" />
+                </span>
                         </Link>
                     </motion.div>
                 </motion.div>
