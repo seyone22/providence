@@ -92,22 +92,6 @@ export default function B2BLanding() {
                 </div>
             </section>
 
-            {/* SECTION 3: The Pitch / Financial Optimizer */}
-            <section className="py-32 px-6 relative bg-white">
-                <motion.div
-                    initial={{ y: 40, opacity: 0 }}
-                    whileInView={{ y: 0, opacity: 1 }}
-                    viewport={{ once: false, amount: 0.5 }}
-                    transition={{ duration: 0.8, ease: appleEase }}
-                    className="max-w-4xl mx-auto text-center"
-                >
-                    <h2 className="text-sm font-bold tracking-[0.3em] text-zinc-400 uppercase mb-8">The Strategy</h2>
-                    <p className="text-xl md:text-2xl text-zinc-500 leading-relaxed font-light">
-                        Stop fighting over high local auction prices and limited stock variety. We aren't just a shipper; we are a <span className="font-semibold text-black">financial optimizer</span>. We find where a specific vehicle is cheapest globally, factoring in local market saturation and currency fluctuations to bypass heavy local markups.
-                    </p>
-                </motion.div>
-            </section>
-
             {/* SECTION 4: The Bento Box (Uniform Grid) */}
             <section className="py-24 px-6 max-w-7xl mx-auto bg-white relative z-10">
                 <motion.div
