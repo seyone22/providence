@@ -1,18 +1,24 @@
-import { Car } from "lucide-react";
 import Link from "next/link";
 
 export default function MinimalHeader() {
     return (
-        <header className="absolute top-0 w-full p-6 flex justify-between items-center z-50">
+        <header className="fixed top-0 w-full px-6 py-4 flex justify-between items-center z-50 bg-gray-500/20 backdrop-blur-md border-b border-gray-500/30 shadow-sm transition-colors duration-300">
             <Link href="/" className="flex items-center gap-3">
-                <div className="">
-                    <img src={'logo.png'} width={'40px'} />
+                <div>
+                    {/* Note: Updated to use a leading slash for the public folder path and standardized the width prop */}
+                    <img src="/logo.png" width={40} alt="Providence Auto Logo" />
                 </div>
                 <div>
-                    <h1 className="font-sans text-lg font-bold tracking-tight text-white">Providence Auto</h1>
+                    <h1 className="font-sans text-lg font-bold tracking-tight text-white drop-shadow-md">
+                        Providence Auto
+                    </h1>
                 </div>
             </Link>
-            {/* Optional: A subtle, non-navigational contact button or just leave empty */}
+
+            {/* The "Begin Inquiry" button from your screenshot with a matching glass effect */}
+            <button className="px-6 py-2 text-sm font-medium text-white bg-black/30 hover:bg-black/50 backdrop-blur-md rounded-full border border-white/10 transition-all duration-200">
+                Begin Inquiry
+            </button>
         </header>
     );
 }
