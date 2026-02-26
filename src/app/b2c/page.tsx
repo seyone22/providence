@@ -1,4 +1,5 @@
-import MinimalHeader from "@/app/components/MinimalHeader"; // Ensure the path matches your project structure
+import MinimalHeader from "@/app/components/MinimalHeader";
+import Image from "next/image";
 import Link from "next/link";
 import { Landmark, Compass, Ship, ShieldCheck, ArrowRight } from "lucide-react";
 
@@ -9,17 +10,36 @@ export default function B2CLanding() {
 
             {/* SECTION 1: The Cinematic Hero */}
             <section className="relative min-h-screen flex flex-col justify-center items-center px-6 pt-20">
-                {/* Subtle top spotlight */}
-                <div className="absolute top-[-10%] w-full h-[800px] bg-[radial-gradient(ellipse_at_top,rgba(255,255,255,0.08)_0%,rgba(0,0,0,1)_70%)] pointer-events-none" />
 
-                <div className="relative z-10 text-center max-w-5xl mx-auto flex flex-col items-center">
-                    <p className="text-sm font-bold tracking-[0.4em] text-zinc-500 uppercase mb-8">
+                {/* Background Image Wrapper */}
+                <div className="absolute inset-0 z-0">
+                    <Image
+                        src="/black-car.avif" // Put your dark, sexy car image in the public folder
+                        alt="Providence Auto Premium Sourcing"
+                        fill
+                        priority
+                        className="object-cover object-center"
+                    />
+                    {/* The "Dark & Sexy" Gradient Overlays */}
+                    {/* 1. Base darkening to ensure white text always pops */}
+                    <div className="absolute inset-0 bg-black/40" />
+                    {/* 2. Top fade so the MinimalHeader is legible */}
+                    <div className="absolute inset-0 bg-gradient-to-b from-black/90 via-black/20 to-transparent h-1/2" />
+                    {/* 3. Bottom fade to blend seamlessly into Section 2 */}
+                    <div className="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-transparent" />
+                </div>
+
+                {/* Subtle top spotlight over the image */}
+                <div className="absolute top-[-10%] w-full h-[800px] bg-[radial-gradient(ellipse_at_top,rgba(255,255,255,0.08)_0%,rgba(0,0,0,0)_70%)] pointer-events-none z-0" />
+
+                <div className="relative z-10 text-center max-w-5xl mx-auto flex flex-col items-center mt-12">
+                    <p className="text-sm font-bold tracking-[0.4em] text-zinc-400 uppercase mb-8 drop-shadow-md">
                         Direct Import Network
                     </p>
-                    <h1 className="text-5xl md:text-7xl lg:text-8xl font-bold tracking-tighter mb-6 bg-clip-text text-transparent bg-gradient-to-b from-white via-white/90 to-white/30 leading-[1.1]">
+                    <h1 className="text-5xl md:text-7xl lg:text-8xl font-bold tracking-tighter mb-6 bg-clip-text text-transparent bg-gradient-to-b from-white via-white/90 to-white/30 leading-[1.1] drop-shadow-xl">
                         The Global Shortcut to<br />Your Dream Car.
                     </h1>
-                    <p className="text-xl md:text-3xl text-zinc-400 font-medium tracking-tight mb-12 max-w-2xl">
+                    <p className="text-xl md:text-3xl text-zinc-300 font-medium tracking-tight mb-12 max-w-2xl drop-shadow-md">
                         Don't settle for what's on the lot.
                     </p>
 
@@ -33,16 +53,16 @@ export default function B2CLanding() {
             </section>
 
             {/* SECTION 2: The Manifesto (The "Aha" Moment) */}
-            <section className="py-32 md:py-48 px-6 bg-zinc-950 border-y border-white/5 relative">
+            <section className="py-32 md:py-48 px-6 bg-black border-y border-white/5 relative z-10">
                 <div className="max-w-5xl mx-auto text-center">
                     <p className="text-3xl md:text-5xl lg:text-6xl font-medium tracking-tight leading-tight text-zinc-500">
-                        For the last 12 years, we’ve supplied the top car dealers in your country. For the first time ever, we are <span className="text-white">cutting out the middleman</span> and offering our global sourcing network <span className="text-white">directly to you</span>.
+                        For the last 12 years, we’ve supplied the top car dealers in your country. For the first time ever, we are <span className="text-white drop-shadow-sm">cutting out the middleman</span> and offering our global sourcing network <span className="text-white drop-shadow-sm">directly to you</span>.
                     </p>
                 </div>
             </section>
 
             {/* SECTION 3: The Architecture of the Service (Features) */}
-            <section className="py-32 px-6 max-w-7xl mx-auto">
+            <section className="py-32 px-6 max-w-7xl mx-auto bg-black relative z-10">
                 <div className="text-center mb-24">
                     <h2 className="text-4xl md:text-6xl font-bold tracking-tighter text-white mb-6">
                         Never compromise again.
@@ -52,7 +72,6 @@ export default function B2CLanding() {
                     </p>
                 </div>
 
-                {/* Elegant, breathable grid instead of a cramped list */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-16">
                     {/* Feature 1 */}
                     <div className="flex flex-col items-start p-8 rounded-[2rem] hover:bg-white/[0.02] transition-colors border border-transparent hover:border-white/5">
@@ -101,16 +120,16 @@ export default function B2CLanding() {
             </section>
 
             {/* SECTION 4: The Final Ask (The Concierge Prompt) */}
-            <section className="py-32 px-6 relative flex flex-col justify-center items-center bg-zinc-950 border-t border-white/5">
+            <section className="py-32 px-6 relative flex flex-col justify-center items-center bg-black border-t border-white/5 z-10">
                 {/* Subtle background glow */}
                 <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[400px] bg-white/[0.03] blur-[120px] rounded-full pointer-events-none" />
 
                 <div className="relative z-10 text-center max-w-4xl mx-auto">
-                    <h2 className="text-4xl md:text-5xl lg:text-6xl font-bold tracking-tighter text-white mb-8">
+                    <h2 className="text-4xl md:text-5xl lg:text-6xl font-bold tracking-tighter text-white mb-8 drop-shadow-md">
                         Tell us exactly what you want.
                     </h2>
                     <p className="text-xl md:text-2xl text-zinc-400 font-light mb-12">
-                        Like a <span className="text-white font-medium">2023 Defender in Fuji White</span>. Our team will generate a fully-landed Sourcing Quote within 24 hours.
+                        Like a <span className="text-white font-medium drop-shadow-sm">2023 Defender in Fuji White</span>. Our team will generate a fully-landed Sourcing Quote within 24 hours.
                     </p>
 
                     <Link href="/request" className="inline-flex items-center justify-center px-12 py-6 text-xl font-bold text-black bg-white rounded-full transition-transform hover:scale-105 shadow-[0_0_60px_rgba(255,255,255,0.2)]">

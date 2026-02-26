@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
+import Footer from "@/app/components/Footer";
 
 const geistSans = Geist({
     variable: "--font-geist-sans",
@@ -70,10 +71,20 @@ export default function RootLayout({
 }>) {
     return (
         <html lang="en">
-        <body
-            className={`${geistSans.variable} ${geistMono.variable} antialiased`}
-        >
-        {children}
+        {/* Added 'flex flex-col min-h-screen' to the body.
+        This ensures that even if a page has very little content,
+        the footer is pushed perfectly to the absolute bottom of the screen.
+      */}
+        <body className={`${geistSans.variable} ${geistMono.variable} antialiased flex flex-col min-h-screen`}>
+
+        {/* Main Content Area */}
+        <div className="flex-1">
+            {children}
+        </div>
+
+        {/* Global Footer */}
+        <Footer />
+
         </body>
         </html>
     );

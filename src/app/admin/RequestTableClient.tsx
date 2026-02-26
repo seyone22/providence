@@ -16,6 +16,8 @@ import {
 import {
     Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle,
 } from "@/app/components/ui/dialog";
+import Link from "next/link";
+import { ExternalLink } from "lucide-react"; // add this to your existing lucide-react imports
 
 type ActionModalState = {
     isOpen: boolean;
@@ -142,11 +144,25 @@ export default function RequestTableClient({ initialRequests }: { initialRequest
                                     <DropdownMenuContent align="end" className="bg-[#111] border-white/10 text-white shadow-2xl">
                                         <DropdownMenuLabel className="text-gray-400">Actions</DropdownMenuLabel>
 
+                                        {/* NEW: Permalink Tracker Button */}
+                                        <DropdownMenuItem asChild className="hover:bg-white/10 focus:bg-white/10 cursor-pointer">
+                                            <Link href={`/track/${req._id}`} target="_blank">
+                                                <ExternalLink className="mr-2 h-4 w-4 text-purple-400" /> View Live Tracker
+                                            </Link>
+                                        </DropdownMenuItem>
+
+                                        <DropdownMenuSeparator className="bg-white/10" />
+
+
+                                        <DropdownMenuLabel className="text-gray-400">Actions</DropdownMenuLabel>
+
                                         {req.specs && (
                                             <DropdownMenuItem onClick={() => setModal({ isOpen: true, type: "specs", request: req })} className="hover:bg-white/10 focus:bg-white/10 cursor-pointer">
                                                 <FileText className="mr-2 h-4 w-4 text-gray-300" /> View Full Specs
                                             </DropdownMenuItem>
                                         )}
+
+                                        <DropdownMenuSeparator className="bg-white/10" />
 
                                         <DropdownMenuItem onClick={() => handleQuickStatus(req._id, "Accepted")} className="hover:bg-white/10 focus:bg-white/10 cursor-pointer">
                                             <CheckCircle className="mr-2 h-4 w-4 text-emerald-400" /> Mark as Accepted
