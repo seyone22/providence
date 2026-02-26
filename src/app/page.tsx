@@ -2,6 +2,7 @@
 
 import MinimalHeader from "@/app/components/MinimalHeader";
 import Link from "next/link";
+import Image from "next/image"; // Added for optimized logo rendering
 import { ArrowRight, User, Building } from "lucide-react";
 import { motion } from "framer-motion";
 
@@ -19,14 +20,13 @@ export default function Home() {
             transition={{ duration: 1.5, ease: appleEase }}
             className="absolute inset-0 z-0 pointer-events-none"
         >
-          {/* High-quality light luxury car image (Update URL to a light theme car) */}
+          {/* High-quality light luxury car image */}
           <div
               className="absolute inset-0 bg-cover bg-center bg-no-repeat opacity-100"
               style={{ backgroundImage: "url('https://images.unsplash.com/photo-1603584173870-7f23fdae1b7a?q=100&w=3000&auto=format&fit=crop')" }}
           />
           {/* Bottom-to-top gradient to seamlessly blend the image into the white background below */}
           <div className="absolute inset-0 bg-gradient-to-t from-white via-white/80 to-transparent" />
-          {/* Vignette effect to focus the eye on the center text */}
         </motion.div>
 
         <MinimalHeader />
@@ -112,6 +112,39 @@ export default function Home() {
             </motion.div>
 
           </div>
+
+          {/* === NEW PARTNERS/AFFILIATES SECTION === */}
+          <motion.div
+              initial={{ y: 40, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              transition={{ duration: 1, delay: 0.8, ease: appleEase }}
+              className="mt-32 max-w-5xl mx-auto w-full text-center"
+          >
+            <p className="text-xs md:text-sm font-bold tracking-[0.3em] text-zinc-400 uppercase mb-10 drop-shadow-sm">
+              Trusted by our global partners
+            </p>
+
+            {/* Logo Grid/Flex */}
+            <div className="flex flex-wrap justify-center items-center gap-10 md:gap-16">
+              {[1, 2, 3, 4, 5, 6, 7].map((num, index) => (
+                  <motion.div
+                      key={num}
+                      initial={{ opacity: 0, scale: 0.95 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      transition={{ duration: 0.8, delay: 0.9 + index * 0.1, ease: appleEase }}
+                      className="relative h-10 w-24 md:h-24 md:w-48 opacity-50 grayscale hover:grayscale-0 hover:opacity-100 hover:scale-105 transition-all duration-500 cursor-pointer"
+                  >
+                    <Image
+                        src={`/affiliate/${num}.png`}
+                        alt={`Global Partner ${num}`}
+                        fill
+                        className="object-cover"
+                    />
+                  </motion.div>
+              ))}
+            </div>
+          </motion.div>
+
         </div>
       </main>
   );
