@@ -5,7 +5,6 @@ export default function MinimalHeader() {
         <header className="fixed top-0 w-full px-6 py-4 flex justify-between items-center z-50 bg-gray-500/20 backdrop-blur-md border-b border-gray-500/30 shadow-sm transition-colors duration-300">
             <Link href="/" className="flex items-center gap-3">
                 <div>
-                    {/* Note: Updated to use a leading slash for the public folder path and standardized the width prop */}
                     <img src="/logo.png" width={40} alt="Providence Auto Logo" />
                 </div>
                 <div>
@@ -15,10 +14,12 @@ export default function MinimalHeader() {
                 </div>
             </Link>
 
-            {/* The "Begin Inquiry" button from your screenshot with a matching glass effect */}
-            <button className="px-6 py-2 text-sm font-medium text-white bg-black/30 hover:bg-black/50 backdrop-blur-md rounded-full border border-white/10 transition-all duration-200">
-                Begin Inquiry
-            </button>
+            {/* FIXED: Wrapped the button in a Link component to navigate to your request page */}
+            <Link href="/request">
+                <button className="px-6 py-2 text-sm font-medium text-white bg-black/30 hover:bg-black/50 backdrop-blur-md rounded-full border border-white/10 transition-all duration-200">
+                    Begin Inquiry
+                </button>
+            </Link>
         </header>
     );
 }
