@@ -25,7 +25,7 @@ const RequestSchema: Schema = new Schema(
         country: { type: String, required: true },
         city: { type: String, required: true },
         make: { type: String, required: true },
-        model: { type: String, required: true },
+        vehicle_model: { type: String, required: true },
         yearFrom: { type: Number },
         yearTo: { type: Number },
         budget: { type: String, required: true },

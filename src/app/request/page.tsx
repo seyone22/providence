@@ -1,54 +1,66 @@
 "use client";
 
 import { useState } from "react";
-import { User, Car, Loader2 } from "lucide-react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/app/components/ui/card";
-import { Label } from "@/app/components/ui/label";
-import { Input } from "@/app/components/ui/input";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/app/components/ui/select";
-import { Textarea } from "@/app/components/ui/textarea";
-import { Button } from "@/app/components/ui/button";
-import Navbar from "@/app/components/Navbar";
-import { submitCarRequest } from "@/actions/request-actions"; // Import the Server Action
+import { Loader2, ArrowRight, ArrowLeft, CheckCircle2 } from "lucide-react";
+import MinimalHeader from "@/app/components/MinimalHeader"; // Adjust path if needed
+import { submitCarRequest } from "@/actions/request-actions"; // Adjust path if needed
+
+const TOTAL_STEPS = 4;
 
 export default function RequestCar() {
+    const [step, setStep] = useState(1);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [successMsg, setSuccessMsg] = useState("");
     const [errorMsg, setErrorMsg] = useState("");
 
     // Form State
     const [formData, setFormData] = useState({
-        name: "", email: "", phone: "", country: "", city: "",
-        make: "", vehicle_model: "", yearFrom: "", yearTo: "",
-        budget: "", currency: "usd", specs: ""
+        make: "", vehicle_model: "",
+        yearFrom: "", yearTo: "", specs: "",
+        budget: "", currency: "usd",
+        name: "", email: "", phone: "", country: "", city: ""
     });
 
-    const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
         setFormData({ ...formData, [e.target.id]: e.target.value });
     };
 
-    const handleSelectChange = (field: string, value: string) => {
-        setFormData({ ...formData, [field]: value });
+    const handleNext = () => {
+        // Basic validation before advancing
+        if (step === 1 && (!formData.make || !formData.vehicle_model)) {
+            setErrorMsg("Please fill in the required vehicle details.");
+            return;
+        }
+        if (step === 3 && !formData.budget) {
+            setErrorMsg("Please provide your maximum budget.");
+            return;
+        }
+        setErrorMsg("");
+        setStep((prev) => Math.min(prev + 1, TOTAL_STEPS));
+    };
+
+    const handlePrev = () => {
+        setErrorMsg("");
+        setStep((prev) => Math.max(prev - 1, 1));
     };
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
+
+        // Final validation
+        if (!formData.name || !formData.email || !formData.phone || !formData.country || !formData.city) {
+            setErrorMsg("Please fill in all contact details.");
+            return;
+        }
+
         setIsSubmitting(true);
-        setSuccessMsg("");
         setErrorMsg("");
 
         try {
-            // Call the Server Action directly
             const response = await submitCarRequest(formData);
 
             if (response.success) {
-                setSuccessMsg("Your request has been sent! Our team will contact you shortly.");
-                // Reset form
-                setFormData({
-                    name: "", email: "", phone: "", country: "", city: "",
-                    make: "", vehicle_model: "", yearFrom: "", yearTo: "",
-                    budget: "", currency: "usd", specs: ""
-                });
+                setSuccessMsg("Your inquiry has been received. Our concierge team will contact you shortly.");
             } else {
                 setErrorMsg(`Error: ${response.message}`);
             }
@@ -60,139 +72,242 @@ export default function RequestCar() {
         }
     };
 
-    return (
-        <div className="min-h-screen bg-gray-50 flex flex-col">
-            <Navbar />
+    // Styling for the minimal, Apple-like input fields
+    const minimalInput = "w-full bg-transparent border-b border-gray-300 text-black placeholder:text-gray-400 focus:outline-none focus:border-black transition-colors rounded-none px-0 py-3 text-lg";
+    const minimalSelect = "w-full bg-transparent border-b border-gray-300 text-black focus:outline-none focus:border-black transition-colors rounded-none px-0 py-3 text-lg appearance-none cursor-pointer";
 
-            <main className="flex-1 py-12 px-4 md:px-8">
-                <div className="max-w-5xl mx-auto text-center mb-12">
-                    <p className="text-sm font-bold tracking-widest text-gray-400 uppercase mb-3">Start Your Journey</p>
-                    <h2 className="font-serif text-4xl md:text-5xl font-bold text-gray-900 mb-4">Request Your Dream Car</h2>
-                    <p className="text-gray-600 max-w-2xl mx-auto">
-                        Fill out the form below with your requirements and our team will contact you via WhatsApp to discuss your perfect vehicle.
+    return (
+        <div className="min-h-screen bg-[#0a0a0a] text-white flex flex-col relative overflow-x-hidden font-sans">
+            {/* Dark cinematic background */}
+            <div className="absolute top-0 left-0 w-full h-[800px] bg-[radial-gradient(ellipse_at_top,rgba(40,40,40,0.8)_0%,rgba(0,0,0,1)_70%)] z-0 pointer-events-none" />
+
+            <MinimalHeader />
+
+            <main className="flex-1 flex flex-col items-center justify-center py-24 px-4 relative z-10 w-full">
+
+                {/* Titles */}
+                <div className="text-center mb-12 mt-10">
+                    <h2 className="text-4xl md:text-5xl font-bold tracking-tighter text-white mb-4">
+                        Create your inquiry.
+                    </h2>
+                    <p className="text-gray-400 text-lg max-w-xl mx-auto font-light">
+                        Provide your exact specifications, and we will handle the rest.
                     </p>
                 </div>
 
-                <form onSubmit={handleSubmit} className="max-w-5xl mx-auto">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
-                        {/* Your Details Column */}
-                        <Card className="shadow-sm border-gray-100">
-                            <CardHeader>
-                                <CardTitle className="flex items-center gap-2 font-serif text-2xl">
-                                    <User className="text-gray-400" /> Your Details
-                                </CardTitle>
-                            </CardHeader>
-                            <CardContent className="space-y-6">
-                                <div className="space-y-2">
-                                    <Label htmlFor="name">Full Name *</Label>
-                                    <Input id="name" required value={formData.name} onChange={handleChange} placeholder="John Smith" className="bg-gray-50/50" />
-                                </div>
-                                <div className="space-y-2">
-                                    <Label htmlFor="email">Email Address *</Label>
-                                    <Input id="email" type="email" required value={formData.email} onChange={handleChange} placeholder="john@example.com" className="bg-gray-50/50" />
-                                </div>
-                                <div className="space-y-2">
-                                    <Label htmlFor="phone">Phone Number *</Label>
-                                    <Input id="phone" type="tel" required value={formData.phone} onChange={handleChange} placeholder="+44 7123 456789" className="bg-gray-50/50" />
-                                </div>
-                                <div className="space-y-2">
-                                    <Label>Country *</Label>
-                                    <Select required value={formData.country} onValueChange={(val: any) => handleSelectChange("country", val)}>
-                                        <SelectTrigger className="bg-gray-50/50">
-                                            <SelectValue placeholder="Select your country" />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            <SelectItem value="uk">United Kingdom</SelectItem>
-                                            <SelectItem value="uae">UAE</SelectItem>
-                                            <SelectItem value="sl">Sri Lanka</SelectItem>
-                                        </SelectContent>
-                                    </Select>
-                                </div>
-                                <div className="space-y-2">
-                                    <Label htmlFor="city">City *</Label>
-                                    <Input id="city" required value={formData.city} onChange={handleChange} placeholder="London" className="bg-gray-50/50" />
-                                </div>
-                            </CardContent>
-                        </Card>
+                {/* Form Card (Stark White for high contrast luxury feel) */}
+                <div className="w-full max-w-3xl bg-white rounded-2xl shadow-[0_0_60px_rgba(255,255,255,0.05)] overflow-hidden relative text-black">
 
-                        {/* Car Details Column */}
-                        <Card className="shadow-sm border-gray-100">
-                            <CardHeader>
-                                <CardTitle className="flex items-center gap-2 font-serif text-2xl">
-                                    <Car className="text-gray-400" /> Car Details
-                                </CardTitle>
-                            </CardHeader>
-                            <CardContent className="space-y-6">
-                                <div className="grid grid-cols-2 gap-4">
-                                    <div className="space-y-2">
-                                        <Label htmlFor="make">Make *</Label>
-                                        <Input id="make" required value={formData.make} onChange={handleChange} placeholder="Mercedes-Benz" className="bg-gray-50/50" />
-                                    </div>
-                                    <div className="space-y-2">
-                                        <Label htmlFor="vehicle_model">vehicle_model *</Label>
-                                        <Input id="vehicle_model" required value={formData.vehicle_model} onChange={handleChange} placeholder="S-Class" className="bg-gray-50/50" />
-                                    </div>
-                                </div>
-
-                                <div className="grid grid-cols-2 gap-4">
-                                    <div className="space-y-2">
-                                        <Label htmlFor="yearFrom">Year From</Label>
-                                        <Input id="yearFrom" type="number" value={formData.yearFrom} onChange={handleChange} placeholder="2020" className="bg-gray-50/50" />
-                                    </div>
-                                    <div className="space-y-2">
-                                        <Label htmlFor="yearTo">Year To</Label>
-                                        <Input id="yearTo" type="number" value={formData.yearTo} onChange={handleChange} placeholder="2024" className="bg-gray-50/50" />
-                                    </div>
-                                </div>
-
-                                <div className="grid grid-cols-[2fr_1fr] gap-4">
-                                    <div className="space-y-2">
-                                        <Label htmlFor="budget">Maximum Budget *</Label>
-                                        <Input id="budget" required value={formData.budget} onChange={handleChange} placeholder="50,000" className="bg-gray-50/50" />
-                                    </div>
-                                    <div className="space-y-2">
-                                        <Label>Currency</Label>
-                                        <Select value={formData.currency} onValueChange={(val: any) => handleSelectChange("currency", val)}>
-                                            <SelectTrigger className="bg-gray-50/50">
-                                                <SelectValue />
-                                            </SelectTrigger>
-                                            <SelectContent>
-                                                <SelectItem value="usd">USD</SelectItem>
-                                                <SelectItem value="gbp">GBP</SelectItem>
-                                                <SelectItem value="eur">EUR</SelectItem>
-                                            </SelectContent>
-                                        </Select>
-                                    </div>
-                                </div>
-
-                                <div className="space-y-2">
-                                    <Label htmlFor="specs">Specifications</Label>
-                                    <Textarea id="specs" value={formData.specs} onChange={handleChange} placeholder="Color, mileage, features, etc." className="min-h-[120px] bg-gray-50/50" />
-                                </div>
-                            </CardContent>
-                        </Card>
+                    {/* Top Progress Bar */}
+                    <div className="w-full h-1.5 bg-gray-100 absolute top-0 left-0">
+                        <div
+                            className="h-full bg-black transition-all duration-500 ease-out"
+                            style={{ width: `${(step / TOTAL_STEPS) * 100}%` }}
+                        />
                     </div>
 
-                    <div className="flex flex-col items-center gap-4">
-                        <Button type="submit" size="lg" disabled={isSubmitting} className="w-full md:w-auto px-12 py-6 text-lg bg-[#1a2b4c] hover:bg-[#121f3a] text-white">
-                            {isSubmitting ? (
-                                <>
-                                    <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-                                    Submitting Request...
-                                </>
-                            ) : (
-                                "Submit Vehicle Request"
+                    {successMsg ? (
+                        // Success State
+                        <div className="p-12 md:p-20 text-center flex flex-col items-center justify-center min-h-[400px]">
+                            <div className="h-20 w-20 bg-green-50 rounded-full flex items-center justify-center mb-6">
+                                <CheckCircle2 className="h-10 w-10 text-green-600" />
+                            </div>
+                            <h3 className="text-3xl font-bold mb-4 tracking-tight">Inquiry Received.</h3>
+                            <p className="text-gray-500 text-lg mb-8 max-w-md">
+                                {successMsg}
+                            </p>
+                            <button onClick={() => window.location.reload()} className="text-sm font-medium border-b border-black pb-1 hover:text-gray-600 hover:border-gray-600 transition-colors">
+                                Submit another inquiry
+                            </button>
+                        </div>
+                    ) : (
+                        // The Multi-step Form
+                        <div className="p-8 md:p-14 min-h-[450px] flex flex-col">
+
+                            {/* Step Header */}
+                            <div className="flex justify-between items-end border-b border-gray-100 pb-6 mb-8">
+                                <h3 className="text-2xl font-bold tracking-tight">
+                                    {step === 1 && "1. Vehicle Selection"}
+                                    {step === 2 && "2. Specifications"}
+                                    {step === 3 && "3. Financials"}
+                                    {step === 4 && "4. Your Details"}
+                                </h3>
+                                <span className="text-gray-400 text-sm font-medium">
+                                    Step {step} of {TOTAL_STEPS}
+                                </span>
+                            </div>
+
+                            {errorMsg && (
+                                <div className="mb-6 p-4 bg-red-50 text-red-600 rounded-lg text-sm font-medium border border-red-100">
+                                    {errorMsg}
+                                </div>
                             )}
-                        </Button>
 
-                        {successMsg && (
-                            <p className="text-green-600 font-medium bg-green-50 border border-green-200 px-4 py-2 rounded-md">{successMsg}</p>
-                        )}
-                        {errorMsg && (
-                            <p className="text-red-600 font-medium bg-red-50 border border-red-200 px-4 py-2 rounded-md">{errorMsg}</p>
-                        )}
-                    </div>
-                </form>
+                            {/* --- STEP 1: Vehicle Selection --- */}
+                            {step === 1 && (
+                                <div className="space-y-8 animate-in fade-in slide-in-from-right-4 duration-500">
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                                        <div>
+                                            <input
+                                                id="make" required value={formData.make} onChange={handleChange}
+                                                placeholder="Make / Brand (e.g. Porsche)"
+                                                className={minimalInput} autoFocus
+                                            />
+                                        </div>
+                                        <div>
+                                            <input
+                                                id="vehicle_model" required value={formData.vehicle_model} onChange={handleChange}
+                                                placeholder="Model (e.g. 911 Carrera)"
+                                                className={minimalInput}
+                                            />
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
+
+                            {/* --- STEP 2: Specifications --- */}
+                            {step === 2 && (
+                                <div className="space-y-8 animate-in fade-in slide-in-from-right-4 duration-500">
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                                        <div>
+                                            <input
+                                                id="yearFrom" type="number" value={formData.yearFrom} onChange={handleChange}
+                                                placeholder="Year From (Optional)"
+                                                className={minimalInput} autoFocus
+                                            />
+                                        </div>
+                                        <div>
+                                            <input
+                                                id="yearTo" type="number" value={formData.yearTo} onChange={handleChange}
+                                                placeholder="Year To (Optional)"
+                                                className={minimalInput}
+                                            />
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <textarea
+                                            id="specs" value={formData.specs} onChange={handleChange}
+                                            placeholder="Colors, trims, mileage, specific packages..."
+                                            className={`${minimalInput} resize-none min-h-[100px]`}
+                                        />
+                                    </div>
+                                </div>
+                            )}
+
+                            {/* --- STEP 3: Financials --- */}
+                            {step === 3 && (
+                                <div className="space-y-8 animate-in fade-in slide-in-from-right-4 duration-500">
+                                    <div className="grid grid-cols-[2fr_1fr] gap-8">
+                                        <div>
+                                            <input
+                                                id="budget" required value={formData.budget} onChange={handleChange}
+                                                placeholder="Maximum Budget (e.g. 150,000)"
+                                                className={minimalInput} autoFocus
+                                            />
+                                        </div>
+                                        <div className="relative">
+                                            <select
+                                                id="currency" value={formData.currency} onChange={handleChange}
+                                                className={minimalSelect}
+                                            >
+                                                <option value="usd">USD ($)</option>
+                                                <option value="gbp">GBP (£)</option>
+                                                <option value="eur">EUR (€)</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <p className="text-gray-500 text-sm">
+                                        Providing an accurate budget allows us to source the best possible spec and calculate landed customs duties efficiently.
+                                    </p>
+                                </div>
+                            )}
+
+                            {/* --- STEP 4: Contact Details --- */}
+                            {step === 4 && (
+                                <div className="space-y-8 animate-in fade-in slide-in-from-right-4 duration-500">
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                                        <div>
+                                            <input
+                                                id="name" required value={formData.name} onChange={handleChange}
+                                                placeholder="Full Name" className={minimalInput} autoFocus
+                                            />
+                                        </div>
+                                        <div>
+                                            <input
+                                                id="email" type="email" required value={formData.email} onChange={handleChange}
+                                                placeholder="Email Address" className={minimalInput}
+                                            />
+                                        </div>
+                                    </div>
+                                    <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+                                        <div>
+                                            <input
+                                                id="phone" type="tel" required value={formData.phone} onChange={handleChange}
+                                                placeholder="Phone Number" className={minimalInput}
+                                            />
+                                        </div>
+                                        <div>
+                                            <select
+                                                id="country" required value={formData.country} onChange={handleChange}
+                                                className={minimalSelect}
+                                            >
+                                                <option value="" disabled>Select Country</option>
+                                                <option value="uk">United Kingdom</option>
+                                                <option value="uae">UAE</option>
+                                                <option value="sl">Sri Lanka</option>
+                                            </select>
+                                        </div>
+                                        <div>
+                                            <input
+                                                id="city" required value={formData.city} onChange={handleChange}
+                                                placeholder="City" className={minimalInput}
+                                            />
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
+
+                            {/* Navigation Buttons */}
+                            <div className="mt-auto pt-12 flex items-center justify-between">
+                                {step > 1 ? (
+                                    <button
+                                        type="button"
+                                        onClick={handlePrev}
+                                        className="text-gray-400 hover:text-black transition-colors flex items-center gap-2 font-medium"
+                                    >
+                                        <ArrowLeft size={18} /> Back
+                                    </button>
+                                ) : (
+                                    <div /> // Empty div to keep 'Continue' button on the right
+                                )}
+
+                                {step < TOTAL_STEPS ? (
+                                    <button
+                                        type="button"
+                                        onClick={handleNext}
+                                        className="bg-[#111] hover:bg-black text-white px-8 py-4 rounded-full font-medium transition-all flex items-center gap-2"
+                                    >
+                                        Continue
+                                    </button>
+                                ) : (
+                                    <button
+                                        type="button"
+                                        onClick={handleSubmit}
+                                        disabled={isSubmitting}
+                                        className="bg-[#111] hover:bg-black text-white px-10 py-4 rounded-full font-medium transition-all flex items-center gap-2 disabled:opacity-70"
+                                    >
+                                        {isSubmitting ? (
+                                            <><Loader2 className="animate-spin" size={18} /> Processing</>
+                                        ) : (
+                                            "Submit Inquiry"
+                                        )}
+                                    </button>
+                                )}
+                            </div>
+
+                        </div>
+                    )}
+                </div>
             </main>
         </div>
     );
