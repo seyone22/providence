@@ -132,7 +132,7 @@ export default function Home() {
                       initial={{ opacity: 0, scale: 0.95 }}
                       animate={{ opacity: 1, scale: 1 }}
                       transition={{ duration: 0.8, delay: 0.9 + index * 0.1, ease: appleEase }}
-                      className="relative h-10 w-24 md:h-24 md:w-48 opacity-50 grayscale hover:grayscale-0 hover:opacity-100 hover:scale-105 transition-all duration-500 cursor-pointer"
+                      className="relative h-10 w-24 md:h-24 md:w-36 opacity-50 grayscale hover:grayscale-0 hover:opacity-100 hover:scale-105 transition-all duration-500 cursor-pointer"
                   >
                     <Image
                         src={`/affiliate/${num}.png`}
