@@ -1,120 +1,215 @@
-import MinimalHeader from "@/app/components/MinimalHeader"; // Ensure path is correct
+"use client";
+
+import MinimalHeader from "@/app/components/MinimalHeader";
 import Link from "next/link";
 import { Layers, ShieldCheck, Globe, Zap } from "lucide-react";
+import { motion } from "framer-motion";
+import Image from "next/image";
+
+// Apple-style smooth easing curve
+const appleEase: any = [0.16, 1, 0.3, 1];
 
 export default function B2BLanding() {
     return (
-        <main className="min-h-screen bg-black text-white selection:bg-white/30 selection:text-white font-sans overflow-x-hidden">
+        <main className="min-h-screen bg-white text-black selection:bg-black/10 selection:text-black font-sans overflow-x-hidden">
             <MinimalHeader />
 
             {/* SECTION 1: The Hero */}
-            <section className="relative min-h-screen flex flex-col justify-center items-center px-6 pt-20">
-                {/* Subtle top light leak */}
-                <div className="absolute top-0 w-full h-full bg-[radial-gradient(ellipse_at_top,rgba(50,50,70,0.3)_0%,rgba(0,0,0,1)_70%)] pointer-events-none" />
+            <section className="relative min-h-screen flex flex-col justify-center items-center px-6 pt-20 overflow-hidden">
 
-                <div className="relative z-10 text-center max-w-5xl mx-auto flex flex-col items-center">
-                    <h1 className="text-6xl md:text-8xl lg:text-9xl font-bold tracking-tighter mb-6 bg-clip-text text-transparent bg-gradient-to-b from-white via-white/90 to-white/20">
-                        Inventory.<br />On Demand.
-                    </h1>
-                    <p className="text-2xl md:text-3xl text-zinc-400 font-medium tracking-tight mb-12 max-w-2xl">
+                {/* === NEW BACKGROUND IMAGE LAYER === */}
+                <motion.div
+                    initial={{ scale: 1.05, opacity: 0 }}
+                    animate={{ scale: 1, opacity: 1 }}
+                    transition={{ duration: 1.5, ease: appleEase }}
+                    className="absolute inset-0 z-0 pointer-events-none"
+                >
+                    <img
+                        src="https://images.unsplash.com/photo-1494976388531-d1058494cdd8?q=80&w=3000&auto=format&fit=crop"
+                        alt="Premium automotive inventory"
+                        className="object-cover object-center"
+                    />
+                    {/* Drastically reduced the white wash and added a slight blur for text readability */}
+                    <div className="absolute inset-0 bg-white/20 backdrop-blur-[1px]" />
+                    <div className="absolute inset-0 bg-linear-to-t from-white via-white/20 to-transparent" />
+                    <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(255,255,255,0)_0%,rgba(255,255,255,0.7)_100%)]" />
+                </motion.div>
+
+                {/* Subtle top light gradient to give depth */}
+                <div className="absolute top-0 w-full h-[800px] bg-[radial-gradient(ellipse_at_top,rgba(0,0,0,0.05)_0%,rgba(255,255,255,0)_70%)] pointer-events-none z-0" />
+
+                <div className="relative z-10 text-center max-w-5xl mx-auto flex flex-col items-center mt-12">
+                    <motion.div
+                        initial={{ y: 30, opacity: 0, scale: 0.95 }}
+                        whileInView={{ y: 0, opacity: 1, scale: 1 }}
+                        viewport={{ once: false, amount: 0.2 }} // Animate on scroll up AND down
+                        transition={{ duration: 1, ease: appleEase }}
+                    >
+                        <h1 className="text-6xl md:text-7xl lg:text-8xl font-bold tracking-tighter mb-6 bg-clip-text text-transparent bg-gradient-to-b from-black via-black/80 to-black/60 leading-[1.05] drop-shadow-[0_0_15px_rgba(255,255,255,0.8)]">
+                            Inventory.<br />On Demand.
+                        </h1>
+                    </motion.div>
+
+                    <motion.p
+                        initial={{ y: 20, opacity: 0 }}
+                        whileInView={{ y: 0, opacity: 1 }}
+                        viewport={{ once: false, amount: 0.2 }}
+                        transition={{ duration: 0.8, ease: appleEase }}
+                        className="text-2xl md:text-3xl text-black font-medium tracking-tight mb-12 max-w-2xl drop-shadow-[0_0_10px_rgba(255,255,255,1)]"
+                    >
                         Scale your lot without the overhead.
-                    </p>
+                    </motion.p>
 
-                    <div className="flex flex-col sm:flex-row gap-6 w-full justify-center">
-                        <Link href="/request" className="group relative inline-flex items-center justify-center px-8 py-4 text-lg font-bold text-black bg-white rounded-full overflow-hidden transition-transform hover:scale-105">
+                    <motion.div
+                        initial={{ y: 20, opacity: 0 }}
+                        whileInView={{ y: 0, opacity: 1 }}
+                        viewport={{ once: false, amount: 0.2 }}
+                        transition={{ duration: 0.8, ease: appleEase }}
+                        className="flex flex-col sm:flex-row gap-6 w-full justify-center"
+                    >
+                        <Link href="/request" className="group relative inline-flex items-center justify-center px-8 py-4 text-lg font-bold text-white bg-black rounded-full overflow-hidden transition-transform hover:scale-105 shadow-[0_10px_40px_rgba(0,0,0,0.1)]">
                             <span className="relative z-10">Request a Car Now</span>
-                            <div className="absolute inset-0 bg-gradient-to-r from-gray-200 to-white opacity-0 group-hover:opacity-100 transition-opacity" />
                         </Link>
-                        <Link href="/saas" className="group relative inline-flex items-center justify-center px-8 py-4 text-lg font-bold text-white bg-white/5 border border-white/10 rounded-full backdrop-blur-xl transition-all hover:bg-white/10 hover:border-white/20">
+                        <Link href="/saas" className="group relative inline-flex items-center justify-center px-8 py-4 text-lg font-bold text-black bg-white border border-black/10 rounded-full backdrop-blur-xl transition-all hover:bg-black hover:text-white shadow-md">
                             Sign Up for the Platform
                         </Link>
-                    </div>
+                    </motion.div>
                 </div>
             </section>
 
             {/* SECTION 2: The Cinematic Statement */}
-            <section className="py-32 md:py-48 px-6 bg-zinc-950 relative">
+            <section className="py-32 md:py-48 px-6 bg-zinc-50 relative border-y border-black/5">
                 <div className="max-w-5xl mx-auto text-center">
-                    <p className="text-3xl md:text-5xl lg:text-6xl font-medium tracking-tight leading-tight text-zinc-500">
-                        We act as your <span className="text-white">Virtual Warehouse</span>, giving your dealership the inventory power of a global conglomerate. Access over <span className="text-white">100 global markets</span> to find the exact trims your customers are begging for.
-                    </p>
+                    <motion.p
+                        initial={{ y: 40, opacity: 0, scale: 0.98 }}
+                        whileInView={{ y: 0, opacity: 1, scale: 1 }}
+                        viewport={{ once: false, amount: 0.5 }} // Triggers again when scrolling back up
+                        transition={{ duration: 1, ease: appleEase }}
+                        className="text-3xl md:text-5xl lg:text-6xl font-medium tracking-tight leading-tight text-zinc-400"
+                    >
+                        We act as your <span className="text-black drop-shadow-sm">Virtual Warehouse</span>, giving your dealership the inventory power of a global conglomerate. Access over <span className="text-black drop-shadow-sm">100 global markets</span> to find the exact trims your customers are begging for.
+                    </motion.p>
                 </div>
             </section>
 
             {/* SECTION 3: The Pitch / Financial Optimizer */}
-            <section className="py-24 px-6 relative">
-                <div className="max-w-4xl mx-auto text-center">
-                    <h2 className="text-sm font-bold tracking-[0.3em] text-zinc-500 uppercase mb-8">The Strategy</h2>
-                    <p className="text-xl md:text-2xl text-zinc-300 leading-relaxed font-light">
-                        Stop fighting over high local auction prices and limited stock variety. We aren't just a shipper; we are a <span className="font-semibold text-white">financial optimizer</span>. We find where a specific vehicle is cheapest globally, factoring in local market saturation and currency fluctuations to bypass heavy local markups.
+            <section className="py-32 px-6 relative bg-white">
+                <motion.div
+                    initial={{ y: 40, opacity: 0 }}
+                    whileInView={{ y: 0, opacity: 1 }}
+                    viewport={{ once: false, amount: 0.5 }}
+                    transition={{ duration: 0.8, ease: appleEase }}
+                    className="max-w-4xl mx-auto text-center"
+                >
+                    <h2 className="text-sm font-bold tracking-[0.3em] text-zinc-400 uppercase mb-8">The Strategy</h2>
+                    <p className="text-xl md:text-2xl text-zinc-500 leading-relaxed font-light">
+                        Stop fighting over high local auction prices and limited stock variety. We aren't just a shipper; we are a <span className="font-semibold text-black">financial optimizer</span>. We find where a specific vehicle is cheapest globally, factoring in local market saturation and currency fluctuations to bypass heavy local markups.
                     </p>
-                </div>
+                </motion.div>
             </section>
 
-            {/* SECTION 4: The Bento Box (Advantages Grid) */}
-            <section className="py-24 px-6 max-w-7xl mx-auto">
-                <div className="mb-16">
-                    <h2 className="text-4xl md:text-6xl font-bold tracking-tighter text-white">
+            {/* SECTION 4: The Bento Box (Uniform Grid) */}
+            <section className="py-24 px-6 max-w-7xl mx-auto bg-white relative z-10">
+                <motion.div
+                    initial={{ y: 40, opacity: 0 }}
+                    whileInView={{ y: 0, opacity: 1 }}
+                    viewport={{ once: false, amount: 0.5 }}
+                    transition={{ duration: 0.8, ease: appleEase }}
+                    className="mb-16 text-center lg:text-left"
+                >
+                    <h2 className="text-4xl md:text-6xl font-bold tracking-tighter text-black">
                         Your Power Advantages.
                     </h2>
-                </div>
+                </motion.div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 auto-rows-[250px]">
+                {/* Uniform Grid: 1 column on mobile, 2 columns on medium screens and up */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-8 auto-rows-[280px]">
 
-                    {/* Bento Item 1 (Spans 2 columns on large screens) */}
-                    <div className="lg:col-span-2 bg-gradient-to-br from-zinc-900 to-black border border-white/10 rounded-[2rem] p-10 flex flex-col justify-end relative overflow-hidden group">
-                        <div className="absolute top-8 left-8 p-3 bg-white/5 border border-white/10 rounded-2xl backdrop-blur-md">
-                            <Globe className="text-white h-6 w-6" />
+                    {/* Uniform Item 1 */}
+                    <motion.div
+                        initial={{ y: 40, opacity: 0 }}
+                        whileInView={{ y: 0, opacity: 1 }}
+                        viewport={{ once: false, amount: 0.2 }}
+                        transition={{ duration: 0.8, ease: appleEase }} // No delay, animates with the others
+                        className="bg-zinc-50 border border-black/5 rounded-[2rem] p-10 flex flex-col justify-end relative overflow-hidden group hover:shadow-[0_20px_40px_rgba(0,0,0,0.06)] hover:border-black/10 transition-all duration-500 hover:-translate-y-1"
+                    >
+                        <div className="absolute top-8 left-8 p-4 bg-white border border-black/5 rounded-2xl shadow-sm group-hover:bg-black transition-colors duration-500">
+                            <Globe className="text-black h-6 w-6 group-hover:text-white transition-colors duration-500" />
                         </div>
-                        <h3 className="text-2xl md:text-3xl font-bold text-white mb-2">Sell Beyond Your Lot</h3>
-                        <p className="text-zinc-400 text-lg max-w-md">We allow you to sell cars you don't even physically have on your lot. Borderless inventory.</p>
-                        {/* Subtle background glow on hover */}
-                        <div className="absolute -bottom-20 -right-20 w-64 h-64 bg-blue-600/20 blur-[100px] group-hover:bg-blue-600/40 transition-colors" />
-                    </div>
+                        <h3 className="text-2xl font-bold text-black mb-2 relative z-10">Sell Beyond Your Lot</h3>
+                        <p className="text-zinc-500 text-lg relative z-10 font-light">We allow you to sell cars you don't physically have. Borderless inventory.</p>
+                        <div className="absolute -bottom-20 -right-20 w-64 h-64 bg-black/5 rounded-full blur-[80px] group-hover:bg-blue-600/10 transition-colors duration-500" />
+                    </motion.div>
 
-                    {/* Bento Item 2 */}
-                    <div className="bg-gradient-to-br from-zinc-900 to-black border border-white/10 rounded-[2rem] p-10 flex flex-col justify-end relative overflow-hidden group">
-                        <div className="absolute top-8 left-8 p-3 bg-white/5 border border-white/10 rounded-2xl backdrop-blur-md">
-                            <ShieldCheck className="text-white h-6 w-6" />
+                    {/* Uniform Item 2 */}
+                    <motion.div
+                        initial={{ y: 40, opacity: 0 }}
+                        whileInView={{ y: 0, opacity: 1 }}
+                        viewport={{ once: false, amount: 0.2 }}
+                        transition={{ duration: 0.8, ease: appleEase }}
+                        className="bg-zinc-50 border border-black/5 rounded-[2rem] p-10 flex flex-col justify-end relative overflow-hidden group hover:shadow-[0_20px_40px_rgba(0,0,0,0.06)] hover:border-black/10 transition-all duration-500 hover:-translate-y-1"
+                    >
+                        <div className="absolute top-8 left-8 p-4 bg-white border border-black/5 rounded-2xl shadow-sm group-hover:bg-black transition-colors duration-500">
+                            <ShieldCheck className="text-black h-6 w-6 group-hover:text-white transition-colors duration-500" />
                         </div>
-                        <h3 className="text-2xl font-bold text-white mb-2">We Handle the Hard Stuff</h3>
-                        <p className="text-zinc-400">Bill of Lading, HS Codes, and Marine Insurance? Done.</p>
-                    </div>
+                        <h3 className="text-2xl font-bold text-black mb-2 relative z-10">We Handle the Hard Stuff</h3>
+                        <p className="text-zinc-500 text-lg relative z-10 font-light">Bill of Lading, HS Codes, and Marine Insurance? Entirely done.</p>
+                        <div className="absolute -bottom-20 -right-20 w-64 h-64 bg-black/5 rounded-full blur-[80px] group-hover:bg-blue-600/10 transition-colors duration-500" />
+                    </motion.div>
 
-                    {/* Bento Item 3 */}
-                    <div className="bg-gradient-to-br from-zinc-900 to-black border border-white/10 rounded-[2rem] p-10 flex flex-col justify-end relative overflow-hidden group">
-                        <div className="absolute top-8 left-8 p-3 bg-white/5 border border-white/10 rounded-2xl backdrop-blur-md">
-                            <Layers className="text-white h-6 w-6" />
+                    {/* Uniform Item 3 */}
+                    <motion.div
+                        initial={{ y: 40, opacity: 0 }}
+                        whileInView={{ y: 0, opacity: 1 }}
+                        viewport={{ once: false, amount: 0.2 }}
+                        transition={{ duration: 0.8, ease: appleEase }}
+                        className="bg-zinc-50 border border-black/5 rounded-[2rem] p-10 flex flex-col justify-end relative overflow-hidden group hover:shadow-[0_20px_40px_rgba(0,0,0,0.06)] hover:border-black/10 transition-all duration-500 hover:-translate-y-1"
+                    >
+                        <div className="absolute top-8 left-8 p-4 bg-white border border-black/5 rounded-2xl shadow-sm group-hover:bg-black transition-colors duration-500">
+                            <Layers className="text-black h-6 w-6 group-hover:text-white transition-colors duration-500" />
                         </div>
-                        <h3 className="text-2xl font-bold text-white mb-2">Virtual Warehouse</h3>
-                        <p className="text-zinc-400">Your custom-branded dashboard keeps everything tracked.</p>
-                    </div>
+                        <h3 className="text-2xl font-bold text-black mb-2 relative z-10">Virtual Warehouse</h3>
+                        <p className="text-zinc-500 text-lg relative z-10 font-light">Your custom-branded dashboard keeps everything tracked.</p>
+                        <div className="absolute -bottom-20 -right-20 w-64 h-64 bg-black/5 rounded-full blur-[80px] group-hover:bg-blue-600/10 transition-colors duration-500" />
+                    </motion.div>
 
-                    {/* Bento Item 4 (Spans 2 columns on large screens) */}
-                    <div className="lg:col-span-2 bg-gradient-to-br from-zinc-900 to-black border border-white/10 rounded-[2rem] p-10 flex flex-col justify-end relative overflow-hidden group">
-                        <div className="absolute top-8 left-8 p-3 bg-white/5 border border-white/10 rounded-2xl backdrop-blur-md">
-                            <Zap className="text-white h-6 w-6" />
+                    {/* Uniform Item 4 */}
+                    <motion.div
+                        initial={{ y: 40, opacity: 0 }}
+                        whileInView={{ y: 0, opacity: 1 }}
+                        viewport={{ once: false, amount: 0.2 }}
+                        transition={{ duration: 0.8, ease: appleEase }}
+                        className="bg-zinc-50 border border-black/5 rounded-[2rem] p-10 flex flex-col justify-end relative overflow-hidden group hover:shadow-[0_20px_40px_rgba(0,0,0,0.06)] hover:border-black/10 transition-all duration-500 hover:-translate-y-1"
+                    >
+                        <div className="absolute top-8 left-8 p-4 bg-white border border-black/5 rounded-2xl shadow-sm group-hover:bg-black transition-colors duration-500">
+                            <Zap className="text-black h-6 w-6 group-hover:text-white transition-colors duration-500" />
                         </div>
-                        <h3 className="text-2xl md:text-3xl font-bold text-white mb-2">Global Power</h3>
-                        <p className="text-zinc-400 text-lg max-w-md">We give a small, local dealer the operational and inventory power of a massive global conglomerate.</p>
-                        <div className="absolute top-0 right-0 w-full h-full bg-[radial-gradient(circle_at_top_right,rgba(255,255,255,0.05)_0%,transparent_60%)] pointer-events-none" />
-                    </div>
+                        <h3 className="text-2xl font-bold text-black mb-2 relative z-10">Global Power</h3>
+                        <p className="text-zinc-500 text-lg relative z-10 font-light">Give your local lot the operational power of a global conglomerate.</p>
+                        <div className="absolute -bottom-20 -right-20 w-64 h-64 bg-black/5 rounded-full blur-[80px] group-hover:bg-blue-600/10 transition-colors duration-500" />
+                    </motion.div>
 
                 </div>
             </section>
 
             {/* SECTION 5: Final Call to Action */}
-            <section className="py-32 px-6 flex justify-center border-t border-white/5 bg-black">
-                <Link href="/saas" className="group flex flex-col items-center">
-                    <p className="text-zinc-500 font-medium mb-4 group-hover:text-white transition-colors">Ready to scale?</p>
-                    <h2 className="text-4xl md:text-6xl font-bold tracking-tighter text-white flex items-center gap-4">
-                        Join the Network
-                        <span className="bg-white text-black rounded-full p-2 group-hover:rotate-45 transition-transform">
-                            {/* Simple SVG Arrow */}
-                            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
-                        </span>
-                    </h2>
-                </Link>
+            <section className="py-32 px-6 flex justify-center border-t border-black/5 bg-zinc-50 overflow-hidden">
+                <motion.div
+                    initial={{ y: 40, opacity: 0, scale: 0.95 }}
+                    whileInView={{ y: 0, opacity: 1, scale: 1 }}
+                    viewport={{ once: false, amount: 0.5 }}
+                    transition={{ duration: 1, ease: appleEase }}
+                >
+                    <Link href="/saas" className="group flex flex-col items-center">
+                        <p className="text-zinc-400 font-medium mb-4 group-hover:text-black transition-colors">Ready to scale?</p>
+                        <h2 className="text-4xl md:text-6xl font-bold tracking-tighter text-black flex items-center gap-4">
+                            Join the Network
+                            <span className="bg-black text-white rounded-full p-3 group-hover:rotate-45 group-hover:scale-110 transition-transform duration-300 shadow-md">
+                                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
+                            </span>
+                        </h2>
+                    </Link>
+                </motion.div>
             </section>
         </main>
     );

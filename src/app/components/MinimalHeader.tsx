@@ -7,10 +7,13 @@ export default function MinimalHeader() {
                 <div>
                     <img src="/logo.png" width={40} alt="Providence Auto Logo" />
                 </div>
-                <div>
-                    <h1 className="font-sans text-lg font-bold tracking-tight text-white drop-shadow-md">
-                        Providence Auto
-                    </h1>
+                <div className="flex flex-col items-start gap-0 margin-0 padding-0">
+                    <p className="font-sans text-lg font-bold tracking-tight text-black drop-shadow-md">
+                        Providence
+                    </p>
+                    <p className="font-sans text-lg font-bold tracking-tight text-black drop-shadow-md">
+                        Auto
+                    </p>
                 </div>
             </Link>
 
