@@ -4,11 +4,11 @@ import { useState } from "react";
 import Link from "next/link";
 import { toast } from "sonner";
 import { Loader2, Mail, ArrowLeft } from "lucide-react";
-import { authClient } from "@/src/lib/auth-client";
-import { Button } from "@/src/components/ui/button";
-import { Input } from "@/src/components/ui/input";
-import { Label } from "@/src/components/ui/label";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/src/components/ui/card";
+import {Button} from "@/app/components/ui/button";
+import {authClient} from "@/lib/auth-client";
+import {Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle} from "@/app/components/ui/card";
+import {Label} from "@/app/components/ui/label";
+import {Input} from "@/app/components/ui/input";
 
 export default function ForgotPasswordPage() {
     const [email, setEmail] = useState("");

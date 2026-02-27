@@ -3,13 +3,13 @@
 import {useState} from "react";
 import Link from "next/link";
 import {useRouter} from "next/navigation";
-import {signUp} from "@/src/lib/auth-client";
-import {AuthLayout} from "@/src/components/auth/authLayout";
-import {Button} from "@/src/components/ui/button";
-import {Input} from "@/src/components/ui/input";
-import {Label} from "@/src/components/ui/label";
 import {Loader2} from "lucide-react";
 import {toast} from "sonner";
+import {signUp} from "@/lib/auth-client";
+import { AuthLayout } from "@/app/components/authLayout";
+import { Label } from "@/app/components/ui/label";
+import { Input } from "@/app/components/ui/input";
+import {Button} from "@/app/components/ui/button";
 
 export default function SignUp() {
     const router = useRouter();
@@ -27,10 +27,10 @@ export default function SignUp() {
                 email,
                 password,
                 name,
-                callbackURL: "/profile",
+                callbackURL: "/admin",
             }, {
                 onSuccess: () => {
-                    router.push("/profile");
+                    router.push("/admin");
                     toast.success("Account created successfully!");
                 },
                 onError: (ctx) => {

@@ -1,8 +1,22 @@
-import { getRequests } from "@/actions/admin-actions";
 import { LayoutDashboard, Car, Ship, CheckCircle2, AlertCircle } from "lucide-react";
 import RequestTableClient from "./RequestTableClient";
+import { headers } from "next/headers";
+import { redirect } from "next/navigation";
+import {auth} from "@/utils/auth";
+import {getRequests} from "@/actions/admin-actions";
+import {LogoutButton} from "@/app/components/LogoutButton";
 
 export default async function AdminDashboard() {
+    // 1. Authenticate the user on the server
+    const session = await auth.api.getSession({
+        headers: await headers()
+    });
+
+    // 2. Protect the route
+    if (!session) {
+        redirect("/auth/sign-in");
+    }
+
     // Fetch data directly on the server
     const requests = await getRequests();
 
@@ -26,6 +40,8 @@ export default async function AdminDashboard() {
                             <p className="text-xs text-zinc-500 font-bold tracking-[0.2em] uppercase">Command Center</p>
                         </div>
                     </div>
+                    {/* Inject the Logout Button here */}
+                    <LogoutButton />
                 </div>
             </header>
 

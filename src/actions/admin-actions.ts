@@ -2,10 +2,26 @@
 
 import connectToDatabase from "@/lib/mongoose";
 import Request from "@/models/Request";
-import {revalidatePath} from "next/cache";
+import { revalidatePath } from "next/cache";
+import { auth } from "@/utils/auth";
+import { headers } from "next/headers";
+
+// Helper function to guard your server actions
+async function requireAuth() {
+    const session = await auth.api.getSession({
+        headers: await headers()
+    });
+
+    if (!session) {
+        throw new Error("Unauthorized action. Please sign in.");
+    }
+
+    return session;
+}
 
 export async function getRequests() {
     try {
+        await requireAuth(); // Protect endpoint
         await connectToDatabase();
 
         // Fetch all requests, sort by newest first, and convert to plain JavaScript objects (.lean())
@@ -22,25 +38,37 @@ export async function getRequests() {
 
 export async function deleteRequest(id: string) {
     try {
+        await requireAuth(); // Protect endpoint
         await connectToDatabase();
+
         await Request.findByIdAndDelete(id);
         revalidatePath("/admin"); // Refresh the page data
+
         return { success: true };
     } catch (error) {
         console.error("Failed to delete request:", error);
-        return { success: false, message: "Failed to delete" };
+        return {
+            success: false,
+            message: error instanceof Error ? error.message : "Failed to delete"
+        };
     }
 }
 
 export async function updateRequestStatus(id: string, status: string, additionalData?: any) {
     try {
+        await requireAuth(); // Protect endpoint
         await connectToDatabase();
-        // In a full app, you might save additionalData (like tracking numbers) to the DB schema
+
+        // Update the status and spread any additional contextual data (tracking numbers, garage notes, etc.)
         await Request.findByIdAndUpdate(id, { status, ...additionalData });
         revalidatePath("/admin"); // Refresh the page data
+
         return { success: true };
     } catch (error) {
         console.error("Failed to update status:", error);
-        return { success: false, message: "Failed to update status" };
+        return {
+            success: false,
+            message: error instanceof Error ? error.message : "Failed to update status"
+        };
     }
 }
