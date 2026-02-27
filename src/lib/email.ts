@@ -1,14 +1,14 @@
 import { Resend } from 'resend';
 import { ReactElement } from 'react';
-import AccountAlertEmail from "@/emails/account-alerts";
-import TicketConfirmedEmail from "@/emails/ticket-confirmed";
+import CustomerConfirmationEmail from "@/emails/customer-confirmation";
+import StaffAlertEmail from "@/emails/staff-alert";
 import AuthActionEmail from "@/emails/auth-action";
 
-
 const resend = new Resend(process.env.RESEND_API_KEY);
-const FROM_EMAIL = "Anime.lk Events <events@partnerprogram.anime.lk>"; // Ensure you have verified this domain on Resend
 
-// Generic Send Wrapper
+// IMPORTANT: Ensure this domain is verified in your Resend dashboard
+const FROM_EMAIL = "Providence Auto <hello@your-domain.com>";
+
 async function sendEmail({ to, subject, component }: { to: string, subject: string, component: ReactElement }) {
     if (!process.env.RESEND_API_KEY) {
         console.warn(`[EMAIL MOCK] To: ${to} | Subject: ${subject}`);
@@ -30,11 +30,8 @@ async function sendEmail({ to, subject, component }: { to: string, subject: stri
         return data;
     } catch (e) {
         console.error("Email System Exception:", e);
-        // Don't crash the app if email fails, just log it
     }
 }
-
-// --- EXPORTED ACTIONS ---
 
 export const emailService = {
     /**
@@ -48,25 +45,19 @@ export const emailService = {
         });
     },
 
-    /**
-     * Send Ticket Confirmation
-     */
-    sendTicketReceipt: async (to: string, data: { userName: string, eventTitle: string, ticketId: string, eventDate: string }) => {
+    sendCustomerConfirmation: async (to: string, data: { userName: string, make: string, model: string, requestId: string }) => {
         await sendEmail({
             to,
-            subject: `You're going to ${data.eventTitle}!`,
-            component: TicketConfirmedEmail(data)
+            subject: `Inquiry Received: ${data.make} ${data.model}`,
+            component: CustomerConfirmationEmail(data)
         });
     },
 
-    /**
-     * Send Ban/Unban notices
-     */
-    sendAccountStatus: async (to: string, type: 'ban' | 'unban', reason?: string) => {
+    sendStaffAlert: async (to: string, data: any, requestId: string) => {
         await sendEmail({
             to,
-            subject: type === 'ban' ? 'Important: Account Suspended' : 'Account Access Restored',
-            component: AccountAlertEmail({ type, reason })
+            subject: `🚨 New Lead: ${data.make} ${data.vehicle_model} (${data.name})`,
+            component: StaffAlertEmail({ data, requestId })
         });
     }
 };
