@@ -53,7 +53,7 @@ export default function B2CLanding() {
                         src="https://images.unsplash.com/photo-1614162692292-7ac56d7f7f1e?q=80&w=3000&auto=format&fit=cover"
                         alt="Providence Auto Premium Sourcing"
                         className="object-cover object-center"
-                        style={{height:'100vh', objectFit: 'cover'}}
+                        style={{height:'100vh', width:'100vw', objectFit: 'cover'}}
                     />
 
                     {/* === THE NEW, SURGICAL OVERLAYS === */}
