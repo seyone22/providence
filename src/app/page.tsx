@@ -2,7 +2,7 @@
 
 import MinimalHeader from "@/app/components/MinimalHeader";
 import Link from "next/link";
-import Image from "next/image"; // Added for optimized logo rendering
+import Image from "next/image";
 import { ArrowRight, User, Building } from "lucide-react";
 import { motion } from "framer-motion";
 
@@ -34,7 +34,7 @@ export default function Home() {
         {/* === CONTENT LAYER === */}
         <div className="relative z-10 flex-1 flex flex-col justify-center max-w-7xl mx-auto px-6 py-32 w-full">
 
-          <div className="text-center max-w-4xl mx-auto mb-24">
+          <div className="text-center max-w-4xl mx-auto mb-20">
             <motion.h1
                 initial={{ y: 30, opacity: 0, scale: 0.95 }}
                 animate={{ y: 0, opacity: 1, scale: 1 }}
@@ -48,9 +48,19 @@ export default function Home() {
                 initial={{ y: 20, opacity: 0 }}
                 animate={{ y: 0, opacity: 1 }}
                 transition={{ duration: 0.8, delay: 0.4, ease: appleEase }}
-                className="text-2xl md:text-3xl text-zinc-500 font-medium tracking-tight mt-8"
+                className="text-2xl md:text-3xl text-zinc-500 font-medium tracking-tight mt-8 mb-6"
             >
               Any Car. Any Country. Any Port.
+            </motion.p>
+
+            {/* === NEW VALUE PROPOSITION BLURB === */}
+            <motion.p
+                initial={{ y: 20, opacity: 0 }}
+                animate={{ y: 0, opacity: 1 }}
+                transition={{ duration: 0.8, delay: 0.5, ease: appleEase }}
+                className="text-lg md:text-xl text-zinc-500 font-light max-w-3xl mx-auto leading-relaxed"
+            >
+              Whether you are a car enthusiast looking for your dream car or a dealership wanting to scale up, we provide the exact vehicle you desire. We source vehicles from the most tax-efficient markets on earth. Then, we deliver them right to your doorstep with zero logistical friction.
             </motion.p>
           </div>
 
@@ -61,7 +71,7 @@ export default function Home() {
             <motion.div
                 initial={{ y: 40, opacity: 0 }}
                 animate={{ y: 0, opacity: 1 }}
-                transition={{ duration: 0.8, delay: 0.5, ease: appleEase }}
+                transition={{ duration: 0.8, delay: 0.6, ease: appleEase }}
             >
               <Link href="/b2c" className="group relative bg-black/[0.02] backdrop-blur-xl border border-black/5 rounded-[2.5rem] p-10 flex flex-col justify-between h-full hover:bg-white hover:shadow-[0_20px_40px_rgba(0,0,0,0.06)] hover:border-black/10 transition-all duration-500 overflow-hidden">
 
@@ -88,7 +98,7 @@ export default function Home() {
             <motion.div
                 initial={{ y: 40, opacity: 0 }}
                 animate={{ y: 0, opacity: 1 }}
-                transition={{ duration: 0.8, delay: 0.6, ease: appleEase }}
+                transition={{ duration: 0.8, delay: 0.7, ease: appleEase }}
             >
               <Link href="/b2b" className="group relative bg-black/[0.02] backdrop-blur-xl border border-black/5 rounded-[2.5rem] p-10 flex flex-col justify-between h-full hover:bg-white hover:shadow-[0_20px_40px_rgba(0,0,0,0.06)] hover:border-black/10 transition-all duration-500 overflow-hidden">
 
@@ -117,7 +127,7 @@ export default function Home() {
           <motion.div
               initial={{ y: 40, opacity: 0 }}
               animate={{ y: 0, opacity: 1 }}
-              transition={{ duration: 1, delay: 0.8, ease: appleEase }}
+              transition={{ duration: 1, delay: 0.9, ease: appleEase }}
               className="mt-32 max-w-5xl mx-auto w-full text-center"
           >
             <p className="text-xs md:text-sm font-bold tracking-[0.3em] text-zinc-400 uppercase mb-10 drop-shadow-sm">
@@ -131,7 +141,7 @@ export default function Home() {
                       key={num}
                       initial={{ opacity: 0, scale: 0.95 }}
                       animate={{ opacity: 1, scale: 1 }}
-                      transition={{ duration: 0.8, delay: 0.9 + index * 0.1, ease: appleEase }}
+                      transition={{ duration: 0.8, delay: 1.0 + index * 0.1, ease: appleEase }}
                       className="relative h-10 w-24 md:h-24 md:w-36 opacity-50 grayscale hover:grayscale-0 hover:opacity-100 hover:scale-105 transition-all duration-500 cursor-pointer"
                   >
                     <Image
