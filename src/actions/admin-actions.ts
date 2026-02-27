@@ -5,8 +5,8 @@ import Request from "@/models/Request";
 import { revalidatePath } from "next/cache";
 import { auth } from "@/utils/auth";
 import { headers } from "next/headers";
+import mongoose from "mongoose";
 
-// Helper function to guard your server actions
 async function requireAuth() {
     const session = await auth.api.getSession({
         headers: await headers()
@@ -21,14 +21,10 @@ async function requireAuth() {
 
 export async function getRequests() {
     try {
-        await requireAuth(); // Protect endpoint
+        await requireAuth();
         await connectToDatabase();
 
-        // Fetch all requests, sort by newest first, and convert to plain JavaScript objects (.lean())
         const requests = await Request.find({}).sort({ createdAt: -1 }).lean();
-
-        // Next.js requires plain objects to be passed from Server to Client components.
-        // JSON parse/stringify is a quick way to sanitize MongoDB ObjectIDs and Dates.
         return JSON.parse(JSON.stringify(requests));
     } catch (error) {
         console.error("Failed to fetch requests:", error);
@@ -36,13 +32,33 @@ export async function getRequests() {
     }
 }
 
+// NEW: Fetch staff users directly from the Better Auth database
+export async function getStaffUsers() {
+    try {
+        await requireAuth();
+        await connectToDatabase();
+
+        // Better Auth stores its users in the 'user' collection
+        const users = await mongoose.connection.db?.collection('user').find({}).toArray();
+
+        return (users || []).map((u: any) => ({
+            id: u._id.toString(),
+            name: u.name,
+            email: u.email
+        }));
+    } catch (error) {
+        console.error("Failed to fetch staff:", error);
+        return [];
+    }
+}
+
 export async function deleteRequest(id: string) {
     try {
-        await requireAuth(); // Protect endpoint
+        await requireAuth();
         await connectToDatabase();
 
         await Request.findByIdAndDelete(id);
-        revalidatePath("/admin"); // Refresh the page data
+        revalidatePath("/admin");
 
         return { success: true };
     } catch (error) {
@@ -56,12 +72,11 @@ export async function deleteRequest(id: string) {
 
 export async function updateRequestStatus(id: string, status: string, additionalData?: any) {
     try {
-        await requireAuth(); // Protect endpoint
+        await requireAuth();
         await connectToDatabase();
 
-        // Update the status and spread any additional contextual data (tracking numbers, garage notes, etc.)
         await Request.findByIdAndUpdate(id, { status, ...additionalData });
-        revalidatePath("/admin"); // Refresh the page data
+        revalidatePath("/admin");
 
         return { success: true };
     } catch (error) {

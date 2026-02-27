@@ -28,8 +28,12 @@ export interface IRequest extends Document {
     portName?: string;
     customsNotes?: string;
 
-    // NEW: Internal Admin Notes
+    // Internal Admin Notes
     adminNotes?: string;
+
+    // NEW: Assignment Fields
+    assignedToId?: string;
+    assignedToName?: string;
 
     createdAt: Date;
     updatedAt: Date;
@@ -63,8 +67,11 @@ const RequestSchema: Schema = new Schema(
         portName: { type: String },
         customsNotes: { type: String },
 
-        // NEW: Internal Admin Notes
         adminNotes: { type: String },
+
+        // NEW: Assignment Fields
+        assignedToId: { type: String },
+        assignedToName: { type: String },
     },
     { timestamps: true }
 );

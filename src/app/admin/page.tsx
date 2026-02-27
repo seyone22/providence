@@ -2,9 +2,9 @@ import { LayoutDashboard, Car, Ship, CheckCircle2, AlertCircle } from "lucide-re
 import RequestTableClient from "./RequestTableClient";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
-import {auth} from "@/utils/auth";
-import {getRequests} from "@/actions/admin-actions";
-import {LogoutButton} from "@/app/components/LogoutButton";
+import { auth } from "@/utils/auth";
+import { getRequests, getStaffUsers } from "@/actions/admin-actions";
+import { LogoutButton } from "@/app/components/LogoutButton";
 
 export default async function AdminDashboard() {
     // 1. Authenticate the user on the server
@@ -19,6 +19,9 @@ export default async function AdminDashboard() {
 
     // Fetch data directly on the server
     const requests = await getRequests();
+
+    // NEW: Fetch staff users
+    const staffUsers = await getStaffUsers();
 
     // Calculate Dashboard Statistics
     const totalInquiries = requests.length;
@@ -96,7 +99,12 @@ export default async function AdminDashboard() {
                             <h3 className="text-xl font-bold text-black tracking-tight">Active Pipeline</h3>
                         </div>
                         <div className="p-0">
-                            <RequestTableClient initialRequests={requests} />
+                            {/* NEW: Passing down the newly fetched data */}
+                            <RequestTableClient
+                                initialRequests={requests}
+                                staffUsers={staffUsers}
+                                currentUserId={session.user.id}
+                            />
                         </div>
                     </div>
                 </div>
