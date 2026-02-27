@@ -1,7 +1,6 @@
 import mongoose, { Schema, Document } from 'mongoose';
 
 export interface IRequest extends Document {
-    // Original Fields
     make: string;
     vehicle_model: string;
     condition: string;
@@ -16,7 +15,7 @@ export interface IRequest extends Document {
     countryOfImport: string;
     status: string;
 
-    // === NEW PIPELINE FIELDS ===
+    // Pipeline Fields
     options?: string;
     agreedPrice?: number;
     depositAmount?: number;
@@ -29,13 +28,15 @@ export interface IRequest extends Document {
     portName?: string;
     customsNotes?: string;
 
+    // NEW: Internal Admin Notes
+    adminNotes?: string;
+
     createdAt: Date;
     updatedAt: Date;
 }
 
 const RequestSchema: Schema = new Schema(
     {
-        // Original Fields
         make: { type: String, required: true },
         vehicle_model: { type: String, required: true },
         condition: { type: String, required: true, default: 'New' },
@@ -50,7 +51,6 @@ const RequestSchema: Schema = new Schema(
         countryOfImport: { type: String, required: true },
         status: { type: String, default: 'New' },
 
-        // === NEW PIPELINE FIELDS ===
         options: { type: String },
         agreedPrice: { type: Number },
         depositAmount: { type: Number },
@@ -62,6 +62,9 @@ const RequestSchema: Schema = new Schema(
         eta: { type: Date },
         portName: { type: String },
         customsNotes: { type: String },
+
+        // NEW: Internal Admin Notes
+        adminNotes: { type: String },
     },
     { timestamps: true }
 );

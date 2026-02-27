@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { MoreHorizontal, Trash, Loader2, FileText, ExternalLink, ArrowRight } from "lucide-react";
+import { MoreHorizontal, Trash, Loader2, FileText, ExternalLink, ArrowRight, Eye } from "lucide-react";
 import { updateRequestStatus, deleteRequest } from "@/actions/admin-actions";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/app/components/ui/table";
 import { Badge } from "@/app/components/ui/badge";
@@ -28,7 +28,7 @@ const PIPELINE_STAGES = [
 
 type ActionModalState = {
     isOpen: boolean;
-    type: "advance" | "delete" | "specs" | null;
+    type: "advance" | "delete" | "specs" | "details" | null;
     request: any | null;
     targetStage: string | null;
 };
@@ -62,6 +62,11 @@ export default function RequestTableClient({ initialRequests }: { initialRequest
         }
     };
 
+    const openDetailsModal = (req: any) => {
+        setPayload({ adminNotes: req.adminNotes || "" }); // Pre-fill existing notes
+        setModal({ isOpen: true, type: "details", request: req, targetStage: null });
+    };
+
     const handleActionSubmit = async () => {
         if (!modal.request) return;
         setIsProcessing(true);
@@ -70,6 +75,9 @@ export default function RequestTableClient({ initialRequests }: { initialRequest
             await deleteRequest(modal.request._id);
         } else if (modal.type === "advance" && modal.targetStage) {
             await updateRequestStatus(modal.request._id, modal.targetStage, payload);
+        } else if (modal.type === "details") {
+            // Re-saving the existing status, just patching the adminNotes
+            await updateRequestStatus(modal.request._id, modal.request.status, { adminNotes: payload.adminNotes });
         }
 
         setIsProcessing(false);
@@ -86,7 +94,6 @@ export default function RequestTableClient({ initialRequests }: { initialRequest
 
     const inputClasses = "bg-zinc-50 border-black/10 text-black placeholder:text-zinc-400 focus-visible:ring-black/5 focus-visible:border-black/30 transition-all rounded-xl";
 
-    // Helper to generate dynamic badges based on pipeline progress
     const getStatusBadge = (status: string) => {
         const current = status || "New";
         const isEarly = ["New", "Vehicle Selection", "Price Agreement"].includes(current);
@@ -150,13 +157,17 @@ export default function RequestTableClient({ initialRequests }: { initialRequest
                                                 <MoreHorizontal className="h-4 w-4" />
                                             </Button>
                                         </DropdownMenuTrigger>
-                                        <DropdownMenuContent align="end" className="bg-white border-black/5 text-black shadow-xl rounded-xl w-48 p-2">
+                                        <DropdownMenuContent align="end" className="bg-white border-black/5 text-black shadow-xl rounded-xl w-56 p-2">
 
                                             {nextStage && (
                                                 <DropdownMenuItem onClick={() => openAdvanceModal(req)} className="font-bold text-black hover:bg-black/5 focus:bg-black/5 cursor-pointer rounded-lg mb-1 py-2">
                                                     <ArrowRight className="mr-2 h-4 w-4" /> Advance to: {nextStage}
                                                 </DropdownMenuItem>
                                             )}
+
+                                            <DropdownMenuItem onClick={() => openDetailsModal(req)} className="hover:bg-black/5 focus:bg-black/5 cursor-pointer rounded-lg">
+                                                <Eye className="mr-2 h-4 w-4 text-zinc-500" /> View Details & Notes
+                                            </DropdownMenuItem>
 
                                             <DropdownMenuItem asChild className="hover:bg-black/5 focus:bg-black/5 cursor-pointer rounded-lg">
                                                 <Link href={`/track/${req._id}`} target="_blank">
@@ -186,17 +197,19 @@ export default function RequestTableClient({ initialRequests }: { initialRequest
 
             {/* ACTION MODAL */}
             <Dialog open={modal.isOpen} onOpenChange={closeDialog}>
-                <DialogContent className="bg-white border-black/5 text-black shadow-2xl sm:rounded-[2rem] max-w-md p-8">
+                <DialogContent className="bg-white border-black/5 text-black shadow-2xl sm:rounded-[2rem] max-w-lg p-8 max-h-[90vh] overflow-y-auto">
                     <DialogHeader>
                         <DialogTitle className="text-2xl font-bold tracking-tight">
                             {modal.type === "delete" && "Delete Lead"}
                             {modal.type === "specs" && "Special Requirements"}
                             {modal.type === "advance" && `Advance to ${modal.targetStage}`}
+                            {modal.type === "details" && "Lead Details & Notes"}
                         </DialogTitle>
                         <DialogDescription className="text-zinc-500 font-light mt-2">
                             {modal.type === "delete" && `Are you sure you want to delete ${modal.request?.name}'s inquiry? This cannot be undone.`}
                             {modal.type === "specs" && `Requested by ${modal.request?.name} for the ${modal.request?.make} ${modal.request?.vehicle_model}.`}
                             {modal.type === "advance" && "Please provide the required details to move this lead to the next stage."}
+                            {modal.type === "details" && `Review collected data and internal notes for ${modal.request?.name}.`}
                         </DialogDescription>
                     </DialogHeader>
 
@@ -204,6 +217,42 @@ export default function RequestTableClient({ initialRequests }: { initialRequest
                     {modal.type === "specs" && (
                         <div className="py-4 text-black leading-relaxed whitespace-pre-wrap bg-zinc-50 p-5 rounded-2xl border border-black/5 mt-4 text-sm">
                             {modal.request?.specs}
+                        </div>
+                    )}
+
+                    {/* Content: Details & Notes (NEW) */}
+                    {modal.type === "details" && modal.request && (
+                        <div className="space-y-6 mt-4">
+                            {/* Read-Only Pipeline Data Grid */}
+                            <div className="bg-zinc-50 border border-black/5 rounded-2xl p-5 space-y-4 text-sm">
+                                <h4 className="font-bold text-black border-b border-black/5 pb-2">Collected Pipeline Data</h4>
+                                <div className="grid grid-cols-2 gap-x-4 gap-y-3">
+                                    {modal.request.agreedPrice && <div><span className="block text-zinc-500 text-xs uppercase tracking-wider mb-1">Agreed Price</span><span className="font-medium">${modal.request.agreedPrice}</span></div>}
+                                    {modal.request.depositAmount && <div><span className="block text-zinc-500 text-xs uppercase tracking-wider mb-1">Deposit</span><span className="font-medium">${modal.request.depositAmount}</span></div>}
+                                    {modal.request.transactionId && <div><span className="block text-zinc-500 text-xs uppercase tracking-wider mb-1">Receipt ID</span><span className="font-medium">{modal.request.transactionId}</span></div>}
+                                    {modal.request.invoiceNumber && <div><span className="block text-zinc-500 text-xs uppercase tracking-wider mb-1">Invoice #</span><span className="font-medium">{modal.request.invoiceNumber}</span></div>}
+                                    {modal.request.trackingNumber && <div><span className="block text-zinc-500 text-xs uppercase tracking-wider mb-1">Tracking #</span><span className="font-medium">{modal.request.trackingNumber}</span></div>}
+                                    {modal.request.vesselName && <div><span className="block text-zinc-500 text-xs uppercase tracking-wider mb-1">Vessel</span><span className="font-medium">{modal.request.vesselName}</span></div>}
+                                    {modal.request.portName && <div><span className="block text-zinc-500 text-xs uppercase tracking-wider mb-1">Arrival Port</span><span className="font-medium">{modal.request.portName}</span></div>}
+                                    {modal.request.eta && <div><span className="block text-zinc-500 text-xs uppercase tracking-wider mb-1">ETA</span><span className="font-medium">{new Date(modal.request.eta).toLocaleDateString()}</span></div>}
+                                </div>
+
+                                {/* Full width text areas */}
+                                {modal.request.options && <div className="pt-2"><span className="block text-zinc-500 text-xs uppercase tracking-wider mb-1">Options Sent</span><span className="font-medium whitespace-pre-wrap">{modal.request.options}</span></div>}
+                                {modal.request.inspectionNotes && <div className="pt-2"><span className="block text-zinc-500 text-xs uppercase tracking-wider mb-1">Inspection Notes</span><span className="font-medium whitespace-pre-wrap">{modal.request.inspectionNotes}</span></div>}
+                                {modal.request.customsNotes && <div className="pt-2"><span className="block text-zinc-500 text-xs uppercase tracking-wider mb-1">Customs Notes</span><span className="font-medium whitespace-pre-wrap">{modal.request.customsNotes}</span></div>}
+                            </div>
+
+                            {/* Editable Internal Notes */}
+                            <div className="space-y-2">
+                                <Label className="text-zinc-600 font-bold">Internal Admin Notes</Label>
+                                <Textarea
+                                    value={payload.adminNotes || ""}
+                                    onChange={(e) => handlePayloadChange("adminNotes", e.target.value)}
+                                    className={`${inputClasses} min-h-[120px] resize-none`}
+                                    placeholder="Add private internal notes about this client or vehicle..."
+                                />
+                            </div>
                         </div>
                     )}
 
@@ -302,7 +351,7 @@ export default function RequestTableClient({ initialRequests }: { initialRequest
                                     className={modal.type !== "delete" ? "bg-black text-white hover:bg-zinc-800 rounded-xl px-8" : "rounded-xl px-8"}
                                 >
                                     {isProcessing && <Loader2 className="mr-2 h-4 w-4 animate-spin text-current" />}
-                                    {modal.type === "delete" ? "Delete Lead" : `Update to ${modal.targetStage}`}
+                                    {modal.type === "delete" ? "Delete Lead" : modal.type === "details" ? "Save Notes" : `Update to ${modal.targetStage}`}
                                 </Button>
                             </>
                         )}
