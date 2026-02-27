@@ -1,9 +1,10 @@
 import mongoose, { Schema, Document } from 'mongoose';
 
 export interface IRequest extends Document {
+    // Original Fields
     make: string;
     vehicle_model: string;
-    condition: string; // 'New' or 'Used'
+    condition: string;
     yearFrom?: number;
     yearTo?: number;
     mileage?: string;
@@ -14,11 +15,27 @@ export interface IRequest extends Document {
     phone: string;
     countryOfImport: string;
     status: string;
+
+    // === NEW PIPELINE FIELDS ===
+    options?: string;
+    agreedPrice?: number;
+    depositAmount?: number;
+    transactionId?: string;
+    invoiceNumber?: string;
+    inspectionNotes?: string;
+    trackingNumber?: string;
+    vesselName?: string;
+    eta?: Date;
+    portName?: string;
+    customsNotes?: string;
+
     createdAt: Date;
+    updatedAt: Date;
 }
 
 const RequestSchema: Schema = new Schema(
     {
+        // Original Fields
         make: { type: String, required: true },
         vehicle_model: { type: String, required: true },
         condition: { type: String, required: true, default: 'New' },
@@ -32,6 +49,19 @@ const RequestSchema: Schema = new Schema(
         phone: { type: String, required: true },
         countryOfImport: { type: String, required: true },
         status: { type: String, default: 'New' },
+
+        // === NEW PIPELINE FIELDS ===
+        options: { type: String },
+        agreedPrice: { type: Number },
+        depositAmount: { type: Number },
+        transactionId: { type: String },
+        invoiceNumber: { type: String },
+        inspectionNotes: { type: String },
+        trackingNumber: { type: String },
+        vesselName: { type: String },
+        eta: { type: Date },
+        portName: { type: String },
+        customsNotes: { type: String },
     },
     { timestamps: true }
 );

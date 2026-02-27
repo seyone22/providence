@@ -122,6 +122,14 @@ export default async function TrackingPage({ params }: { params: Promise<{ id: s
                                         {(isActive || isCompleted) && (
                                             <div className="space-y-3 mt-4">
 
+                                                {step.id === "Vehicle Selection" && requestData.options && (
+                                                    <div className="p-5 rounded-2xl bg-zinc-50 border border-black/5 text-sm leading-relaxed">
+                                                        <span className="block text-zinc-800 font-bold mb-2">Proposed Options & Links:</span>
+                                                        {/* Using whitespace-pre-wrap so if the admin pasted multiple lines/links, they format correctly */}
+                                                        <span className="text-zinc-600 font-light whitespace-pre-wrap">{requestData.options}</span>
+                                                    </div>
+                                                )}
+
                                                 {step.id === "Price Agreement" && requestData.agreedPrice && (
                                                     <div className="p-4 rounded-2xl bg-zinc-50 border border-black/5 text-sm font-medium flex justify-between items-center">
                                                         <span className="text-zinc-500">Agreed Landed Price:</span>
