@@ -113,7 +113,7 @@ export default function RequestForm() {
             const response = await submitCarRequest(formData);
 
             if (response.success) {
-                setSuccessMsg("Your inquiry has been received. Our concierge team will contact you shortly.");
+                setSuccessMsg("Your inquiry has been received. Please check your email for confirmation, and our concierge team will contact you shortly.");
             } else {
                 setErrorMsg(`Error: ${response.message}`);
             }
