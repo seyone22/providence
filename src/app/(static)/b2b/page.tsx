@@ -28,6 +28,7 @@ export default function B2BLanding() {
                         src="https://images.unsplash.com/photo-1494976388531-d1058494cdd8?q=80&w=3000&auto=format&fit=crop"
                         alt="Premium automotive inventory"
                         className="object-cover object-center"
+                        style={{height:'100vh', objectFit: 'cover'}}
                     />
                     {/* Drastically reduced the white wash and added a slight blur for text readability */}
                     <div className="absolute inset-0 bg-white/20 backdrop-blur-[1px]" />
