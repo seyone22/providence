@@ -85,7 +85,7 @@ export default function B2CLanding() {
                         transition={{ duration: 0.8, delay: 0.6, ease: appleEase }}
                     >
                         {/* UPDATED: Changed from Link to a anchor tag to scroll down smoothly to the form */}
-                        <a href="#inquiry" className="group relative inline-flex items-center justify-center px-10 py-5 text-lg font-bold text-white bg-black rounded-full overflow-hidden transition-transform hover:scale-105 shadow-[0_10px_40px_rgba(0,0,0,0.1)]">
+                        <a href="#inquiry" className="group relative inline-flex items-center justify-center px-10 py-5 text-lg font-bold text-white bg-sky-500 rounded-full overflow-hidden transition-transform hover:scale-105 shadow-[0_10px_40px_rgba(0,0,0,0.1)]">
                             <span className="relative z-10 flex items-center gap-2">
                                 Begin Your Inquiry <ArrowRight size={18} className="group-hover:translate-x-1 transition-transform" />
                             </span>
