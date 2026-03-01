@@ -41,7 +41,7 @@ export default function Home() {
         {/* === CONTENT LAYER === */}
         <div className="relative z-10 flex-1 flex flex-col justify-center max-w-7xl mx-auto px-6 py-32 w-full">
 
-          <div className="text-center max-w-5xl mx-auto mb-20">
+          <div className="text-center max-w-5xl mx-auto">
             <motion.h1
                 initial={{ y: 30, opacity: 0, scale: 0.95 }}
                 animate={{ y: 0, opacity: 1, scale: 1 }}
@@ -64,7 +64,7 @@ export default function Home() {
                 initial={{ y: 20, opacity: 0 }}
                 animate={{ y: 0, opacity: 1 }}
                 transition={{ duration: 0.8, delay: 0.5, ease: appleEase }}
-                className="text-lg md:text-xl text-zinc-500 font-light max-w-3xl mx-auto leading-relaxed"
+                className="text-lg md:text-xl text-zinc-500 font-light max-w-3xl mx-auto leading-relaxed mt-20"
             >
               Welcome to Providence Auto. We are building the world’s largest borderless showroom.
 
@@ -72,7 +72,7 @@ export default function Home() {
             </motion.p>
           </div>
 
-          <section ref={manifestoRef} className="bg-transparent border-y border-black/5 relative z-10 overflow-hidden">
+          <section ref={manifestoRef} className="bg-transparent border-black/5 relative z-10 overflow-hidden">
             <div className="max-w-5xl mx-auto text-center">
               <motion.p
                   style={{ scale: manifestoScale, opacity: manifestoOpacity }}
@@ -176,7 +176,7 @@ export default function Home() {
 
                 <div className="relative z-10 flex items-center justify-between mt-auto pt-6">
                   <span className="text-black font-bold text-lg">Find My Dream Car</span>
-                  <div className="h-14 w-14 bg-black text-white rounded-full flex items-center justify-center group-hover:scale-110 transition-transform duration-500 shadow-xl">
+                  <div className="h-14 w-14 bg-white border border-black/10 text-black rounded-full flex items-center justify-center group-hover:bg-black group-hover:text-white group-hover:scale-110 transition-all duration-500 shadow-lg">
                     <ArrowRight size={24} />
                   </div>
                 </div>
