@@ -19,7 +19,7 @@ export const metadata: Metadata = {
         default: "Providence Auto | Premium Pre-Owned Vehicles",
         template: "%s | Providence Auto",
     },
-    description: "Find your next high-quality vehicle at Providence Auto. Browse our extensive inventory of premium cars, trucks, and SUVs with competitive financing options.",
+    description: "Find your  next high-quality vehicle at Providence Auto. Browse our extensive inventory of premium cars, trucks, and SUVs with competitive financing options.",
     keywords: ["Providence Auto", "car dealership", "used cars", "premium vehicles", "auto sales", "financing"],
     authors: [{ name: "Providence Auto" }],
     creator: "Providence Auto",
