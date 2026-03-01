@@ -165,7 +165,7 @@ export default function B2CLanding() {
                         Tell us exactly what you want.
                     </h2>
                     <p className="text-xl md:text-2xl text-zinc-500 font-light max-w-2xl mx-auto">
-                        Like a <span className="text-black font-medium">2023 Defender in Fuji White</span>. Our team will generate a fully-landed Sourcing Quote within 24 hours.
+                        Like a <span className="text-black font-medium">2023 Defender in Fuji White</span>. Our team will find that version in the global markets where it costs you the least.
                     </p>
                 </motion.div>
 
