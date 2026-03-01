@@ -4,11 +4,21 @@ import MinimalHeader from "@/app/components/MinimalHeader";
 import Link from "next/link";
 import Image from "next/image";
 import {ArrowRight, User, Building, Globe, Ship} from "lucide-react";
-import { motion } from "framer-motion";
+import {motion, useScroll, useTransform} from "framer-motion";
+import {useRef} from "react";
 
 const appleEase: any = [0.16, 1, 0.3, 1];
 
 export default function Home() {
+  const manifestoRef = useRef(null);
+  const { scrollYProgress: manifestoScroll } = useScroll({
+    target: manifestoRef,
+    offset: ["start end", "center center"]
+  });
+
+  const manifestoScale = useTransform(manifestoScroll, [0, 1], [0.85, 1]);
+  const manifestoOpacity = useTransform(manifestoScroll, [0, 1], [0.3, 1]);
+
   return (
       <main className="min-h-screen bg-white text-black relative flex flex-col selection:bg-black/10 selection:text-black font-sans overflow-hidden">
 
@@ -57,11 +67,22 @@ export default function Home() {
                 className="text-lg md:text-xl text-zinc-500 font-light max-w-3xl mx-auto leading-relaxed"
             >
               Welcome to Providence Auto. We are building the world’s largest borderless showroom.
-              Whether you are a car enthusiast looking for your dream car or a dealership wanting to scale up,
-              we provide the exact vehicle you desire. We source vehicles from the most tax-efficient markets
-              on earth and deliver them right to your doorstep with zero logistical friction.
+
+
             </motion.p>
           </div>
+
+          <section ref={manifestoRef} className="bg-transparent border-y border-black/5 relative z-10 overflow-hidden">
+            <div className="max-w-5xl mx-auto text-center">
+              <motion.p
+                  style={{ scale: manifestoScale, opacity: manifestoOpacity }}
+                  className="text-3xl md:text-5xl lg:text-6xl font-medium tracking-tight leading-tight text-black"
+              >
+                Whether you are a car enthusiast looking for your dream car or a dealership wanting to scale up,
+                we provide the exact vehicle you desire. We source vehicles from the most tax-efficient markets
+                on earth and deliver them right to your country with zero logistical friction.              </motion.p>
+            </div>
+          </section>
 
 
           {/* === SECTION: HOW IT WORKS === */}
@@ -83,19 +104,19 @@ export default function Home() {
                 {
                   step: "01",
                   title: "Request",
-                  icon: <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>,
+                  icon: <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>,
                   desc: "Tell us the car you want. Model, colour, trim — as specific as you like. We'll come back with a full global sourcing quote within 24 hours. No commitment required."
                 },
                 {
                   step: "02",
                   title: "Source",
-                  icon: <Globe className="h-6 w-6" />,
+                  icon: <Globe className="h-10 w-10" />,
                   desc: "We search 40+ global markets to find your exact spec at the most tax-efficient price. Currency, supply, and timing all factored in. You approve the quote. We handle everything from there."
                 },
                 {
                   step: "03",
                   title: "Shipping",
-                  icon: <Ship className="h-6 w-6" />,
+                  icon: <Ship className="h-10 w-10" />,
                   desc: "Your car is purchased, quality checked, fully documented, and shipped. You get real-time updates at every stage. It arrives cleared, compliant, and ready to register."
                 }
               ].map((item, index) => (
@@ -109,10 +130,10 @@ export default function Home() {
                   >
                     {/* ICON & STEP */}
                     <div className="flex justify-between items-start mb-12">
-                      <div className="h-14 w-14 bg-white border border-black/5 rounded-2xl flex items-center justify-center text-black shadow-sm group-hover:bg-black group-hover:text-white transition-all duration-500">
+                      <div className="h-14 w-14 bg-white  rounded-2xl flex items-center justify-center  group-hover:bg-black group-hover:text-white transition-all duration-500">
                         {item.icon}
                       </div>
-                      <span className="text-4xl font-bold text-black/5 group-hover:text-black/10 transition-colors duration-500">
+                      <span className="text-4xl font-bold text-black/60 group-hover:text-black/100 transition-colors duration-500">
                         {item.step}
                     </span>
                     </div>
