@@ -138,10 +138,16 @@ export default function B2CLanding() {
                         >
                             <div className={`absolute -bottom-24 -right-24 w-64 h-64 rounded-full blur-[80px] bg-transparent transition-colors duration-700 ${feature.glowColor}`} />
                             <div className="relative z-10">
-                                <div className="p-4 bg-black/5 border border-black/10 rounded-2xl mb-6 inline-flex group-hover:bg-black transition-colors duration-500">
-                                    <feature.icon className="text-black h-8 w-8 group-hover:text-white transition-colors duration-500" />
+                                {/* Container: Turns blue on hover */}
+                                <div className="p-4 bg-black/5 border border-black/10 rounded-2xl mb-6 inline-flex group-hover:bg-sky-500 group-hover:border-sky-500 transition-colors duration-500">
+                                    {/* Icon: Starts blue, turns white on hover */}
+                                    <feature.icon className="text-sky-500 h-8 w-8 group-hover:text-white transition-colors duration-500" />
                                 </div>
-                                <h3 className="text-2xl font-bold text-black mb-4">{feature.title}</h3>
+
+                                <h3 className="text-2xl font-bold text-black mb-4 group-hover:text-sky-500 transition-colors duration-500">
+                                    {feature.title}
+                                </h3>
+
                                 <p className="text-zinc-500 text-lg leading-relaxed font-light">
                                     {feature.desc}
                                 </p>

@@ -4,10 +4,9 @@ import { useState, useEffect } from "react";
 import { Loader2, ArrowLeft, CheckCircle2, ChevronDown } from "lucide-react";
 import { submitCarRequest } from "@/actions/request-actions";
 import { motion, AnimatePresence } from "framer-motion";
-import {customList} from "country-codes-list";
 
 const appleEase: any = [0.16, 1, 0.3, 1];
-const TOTAL_STEPS = 3; // Reduced steps for better conversion flow
+const TOTAL_STEPS = 3;
 
 const CAR_MAKES = [
     "Acura", "Alfa Romeo", "Aston Martin", "Audi", "Bentley", "BMW", "Bugatti",
@@ -81,11 +80,6 @@ const COUNTRIES = [
     { n: "Zambia", c: "+260" }, { n: "Zimbabwe", c: "+263" }
 ].sort((a, b) => a.n.localeCompare(b.n));
 
-// customList returns an object by default, so we convert it to a sorted array
-const countriesArray = Object.values(COUNTRIES).sort((a, b) =>
-    a.n.localeCompare(b.n)
-);
-
 const initialFormState = {
     make: "", vehicle_model: "", condition: "New",
     yearRange: "2024-2026",
@@ -150,22 +144,22 @@ export default function RequestForm() {
         } catch (error) { setErrorMsg("Submission failed. Please try again."); } finally { setIsSubmitting(false); }
     };
 
-    const minimalInput = "w-full bg-transparent border-b border-black/20 text-black placeholder:text-zinc-400 focus:outline-none focus:border-black transition-colors rounded-none px-0 py-3 text-lg";
-    const minimalSelect = "w-full bg-transparent border-b border-black/20 text-black focus:outline-none focus:border-black transition-colors rounded-none px-0 py-3 text-lg appearance-none cursor-pointer pr-8";
+    const minimalInput = "w-full bg-transparent border-b border-black/10 text-black placeholder:text-zinc-400 focus:outline-none focus:border-sky-500 transition-colors rounded-none px-0 py-3 text-lg";
+    const minimalSelect = "w-full bg-transparent border-b border-black/10 text-black focus:outline-none focus:border-sky-500 transition-colors rounded-none px-0 py-3 text-lg appearance-none cursor-pointer pr-8";
 
     return (
         <motion.div className="w-full max-w-3xl bg-white/80 backdrop-blur-xl rounded-[2.5rem] border border-black/5 shadow-[0_40px_100px_rgba(0,0,0,0.08)] overflow-hidden relative text-black mx-auto">
-            {/* Progress Bar */}
-            <div className="w-full h-1.5 bg-black/5 absolute top-0 left-0">
-                <motion.div className="h-full bg-black" animate={{ width: `${(step / TOTAL_STEPS) * 100}%` }} transition={{ duration: 0.5 }} />
+            {/* Progress Bar - Updated to 0EA5E9 (sky-500) */}
+            <div className="w-full h-1.5 bg-sky-500/10 absolute top-0 left-0">
+                <motion.div className="h-full bg-sky-500" animate={{ width: `${(step / TOTAL_STEPS) * 100}%` }} transition={{ duration: 0.5 }} />
             </div>
 
             {successMsg ? (
                 <div className="p-12 text-center flex flex-col items-center justify-center min-h-[500px]">
-                    <CheckCircle2 className="h-16 w-16 text-green-600 mb-6" />
+                    <CheckCircle2 className="h-16 w-16 text-sky-500 mb-6" />
                     <h3 className="text-3xl font-bold mb-4">Confirmed.</h3>
                     <p className="text-zinc-500 text-lg mb-8">{successMsg}</p>
-                    <button onClick={() => {setStep(1); setSuccessMsg(""); setFormData(initialFormState);}} className="text-black border-b border-black font-bold">New Inquiry</button>
+                    <button onClick={() => {setStep(1); setSuccessMsg(""); setFormData(initialFormState);}} className="text-sky-500 border-b border-sky-500 font-bold">New Inquiry</button>
                 </div>
             ) : (
                 <div className="p-8 md:p-14 min-h-[550px] flex flex-col">
@@ -175,12 +169,12 @@ export default function RequestForm() {
                             {step === 2 && "2. Condition & Availability"}
                             {step === 3 && "3. Delivery Details"}
                         </h3>
-                        <span className="text-zinc-400 text-xs font-bold uppercase tracking-widest">Step {step}/{TOTAL_STEPS}</span>
+                        {/* Step counter updated to sky-500 */}
+                        <span className="text-sky-500 text-xs font-bold uppercase tracking-widest">Step {step}/{TOTAL_STEPS}</span>
                     </div>
 
                     <AnimatePresence mode="wait">
                         <motion.div key={step} initial={{ opacity: 0, x: 10 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -10 }} className="space-y-8 flex-1">
-                            {/* STEP 1: MAKE, MODEL, SPECS */}
                             {step === 1 && (
                                 <>
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
@@ -199,42 +193,60 @@ export default function RequestForm() {
                                 </>
                             )}
 
-                            {/* STEP 2: CONDITION, YEAR RANGE, MILEAGE RANGE */}
                             {step === 2 && (
                                 <>
                                     <div className="flex gap-4">
                                         {["New", "Used"].map((cond) => (
-                                            <button key={cond} onClick={() => setFormData({...formData, condition: cond as any})} className={`flex-1 py-4 rounded-2xl font-bold border transition-all ${formData.condition === cond ? "bg-black text-white border-black" : "bg-transparent text-zinc-400 border-black/10"}`}>
+                                            <button
+                                                key={cond}
+                                                onClick={() => setFormData({...formData, condition: cond as any})}
+                                                className={`flex-1 py-4 rounded-2xl font-bold border transition-all ${formData.condition === cond ? "bg-sky-500 text-white border-sky-500" : "bg-transparent text-zinc-400 border-black/10 hover:border-sky-500/30"}`}
+                                            >
                                                 {cond === "New" ? "Brand New" : "Pre-Owned"}
                                             </button>
                                         ))}
                                     </div>
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                                        <div className="relative">
-                                            <label className="text-xs font-bold text-zinc-400 uppercase">Year Range</label>
-                                            <select id="yearRange" value={formData.yearRange} onChange={handleChange} className={minimalSelect}>
-                                                <option>2024-2026</option>
-                                                <option>2021-2023</option>
-                                                <option>2018-2020</option>
-                                                <option>Vintage / Classic</option>
-                                            </select>
-                                            <ChevronDown className="absolute right-0 bottom-4 text-zinc-400" size={16} />
-                                        </div>
-                                        <div className="relative">
-                                            <label className="text-xs font-bold text-zinc-400 uppercase">Maximum Mileage</label>
-                                            <select id="mileageRange" value={formData.mileageRange} onChange={handleChange} className={minimalSelect}>
-                                                <option>Delivery Miles Only</option>
-                                                <option>Under 5,000</option>
-                                                <option>Under 20,000</option>
-                                                <option>Under 50,000</option>
-                                            </select>
-                                            <ChevronDown className="absolute right-0 bottom-4 text-zinc-400" size={16} />
-                                        </div>
-                                    </div>
+
+                                    <AnimatePresence>
+                                        {formData.condition === "Used" && (
+                                            <motion.div
+                                                initial={{ opacity: 0, height: 0 }}
+                                                animate={{ opacity: 1, height: "auto" }}
+                                                exit={{ opacity: 0, height: 0 }}
+                                                className="grid grid-cols-1 md:grid-cols-2 gap-8 overflow-hidden"
+                                            >
+                                                <div className="relative">
+                                                    <label className="text-xs font-bold text-sky-500 uppercase">Year Range</label>
+                                                    <select id="yearRange" value={formData.yearRange} onChange={handleChange} className={minimalSelect}>
+                                                        <option>2024-2026</option>
+                                                        <option>2021-2023</option>
+                                                        <option>2018-2020</option>
+                                                        <option>Vintage / Classic</option>
+                                                    </select>
+                                                    <ChevronDown className="absolute right-0 bottom-4 text-zinc-400" size={16} />
+                                                </div>
+                                                <div className="relative">
+                                                    <label className="text-xs font-bold text-sky-500 uppercase">Maximum Mileage</label>
+                                                    <select id="mileageRange" value={formData.mileageRange} onChange={handleChange} className={minimalSelect}>
+                                                        <option>Delivery Miles Only</option>
+                                                        <option>Under 5,000</option>
+                                                        <option>Under 20,000</option>
+                                                        <option>Under 50,000</option>
+                                                    </select>
+                                                    <ChevronDown className="absolute right-0 bottom-4 text-zinc-400" size={16} />
+                                                </div>
+                                            </motion.div>
+                                        )}
+                                    </AnimatePresence>
+
+                                    {formData.condition === "New" && (
+                                        <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-zinc-500 italic text-center py-4">
+                                            New vehicles will be sourced with 2025/2026 factory specifications.
+                                        </motion.p>
+                                    )}
                                 </>
                             )}
 
-                            {/* STEP 3: CONTACT & IMPORT */}
                             {step === 3 && (
                                 <div className="space-y-8">
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
@@ -248,7 +260,7 @@ export default function RequestForm() {
                                             </select>
                                             <ChevronDown className="absolute right-0 bottom-4 text-zinc-400" size={16} />
                                         </div>
-                                        <input id="phone" className="md:col-span-8 w-full bg-transparent border-b border-black/20 px-0 py-3 text-lg focus:outline-none focus:border-black" placeholder="Phone Number" value={formData.phone} onChange={handleChange} />
+                                        <input id="phone" className="md:col-span-8 w-full bg-transparent border-b border-black/10 px-0 py-3 text-lg focus:outline-none focus:border-sky-500" placeholder="Phone Number" value={formData.phone} onChange={handleChange} />
                                     </div>
                                     <div className="relative">
                                         <select id="countryOfImport" value={formData.countryOfImport} onChange={handleChange} className={minimalSelect}>
@@ -263,13 +275,13 @@ export default function RequestForm() {
                     </AnimatePresence>
 
                     <div className="mt-12 pt-8 flex items-center justify-between border-t border-black/5">
-                        <button onClick={handlePrev} className={`flex items-center gap-2 font-bold transition-opacity ${step === 1 ? "opacity-0 pointer-events-none" : "opacity-100"}`}>
+                        <button onClick={handlePrev} className={`flex items-center gap-2 font-bold transition-all ${step === 1 ? "opacity-0 pointer-events-none" : "opacity-100 text-zinc-500 hover:text-sky-500"}`}>
                             <ArrowLeft size={18} /> Back
                         </button>
                         {step < TOTAL_STEPS ? (
-                            <button onClick={handleNext} className="bg-black text-white px-10 py-4 rounded-full font-bold hover:scale-105 transition-transform shadow-lg">Continue</button>
+                            <button onClick={handleNext} className="bg-sky-500 text-white px-10 py-4 rounded-full font-bold hover:bg-sky-600 hover:scale-105 transition-all shadow-[0_10px_20px_rgba(14,165,233,0.3)]">Continue</button>
                         ) : (
-                            <button onClick={handleSubmit} disabled={isSubmitting} className="bg-black text-white px-10 py-4 rounded-full font-bold hover:scale-105 transition-transform shadow-lg disabled:opacity-50">
+                            <button onClick={handleSubmit} disabled={isSubmitting} className="bg-sky-500 text-white px-10 py-4 rounded-full font-bold hover:bg-sky-600 hover:scale-105 transition-all shadow-[0_10px_20px_rgba(14,165,233,0.3)] disabled:opacity-50">
                                 {isSubmitting ? "Processing..." : "Submit Inquiry"}
                             </button>
                         )}
