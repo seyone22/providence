@@ -240,10 +240,10 @@ export default function Home() {
                   {
                     step: "",
                     title: "Request",
+                    glowColor: "group-hover:bg-blue-500/15",
                     icon: (
                         <svg
-                            width="36"
-                            height="36"
+                            className="text-sky-500 h-8 w-8 group-hover:text-white transition-colors duration-500"
                             viewBox="0 0 24 24"
                             fill="none"
                             stroke="currentColor"
@@ -260,45 +260,59 @@ export default function Home() {
                   {
                     step: "",
                     title: "Source",
-                    icon: <Globe className="h-10 w-10" />,
+                    glowColor: "group-hover:bg-emerald-500/15",
+                    icon: (
+                        <Globe className="text-sky-500 h-8 w-8 group-hover:text-white transition-colors duration-500" />
+                    ),
                     desc: "We search 40+ global markets to find your exact spec at the most tax-efficient price. Currency, supply, and timing all factored in. You approve the quote. We handle everything from there.",
                   },
                   {
                     step: "",
                     title: "Shipping",
-                    icon: <Ship className="h-10 w-10" />,
+                    glowColor: "group-hover:bg-indigo-500/15",
+                    icon: (
+                        <Ship className="text-sky-500 h-8 w-8 group-hover:text-white transition-colors duration-500" />
+                    ),
                     desc: "Your car is purchased, quality checked, fully documented, and shipped. You get real-time updates at every stage. It arrives cleared, compliant, and ready to register.",
                   },
                 ].map((item, index) => (
                     <motion.div
                         key={index}
-                        initial={{ y: 40, opacity: 0 }}
-                        whileInView={{ y: 0, opacity: 1 }}
-                        viewport={{ once: true }}
-                        transition={{
-                          duration: 0.8,
-                          delay: index * 0.1,
-                          ease: appleEase,
-                        }}
-                        className="group relative bg-zinc-50 border border-black/5 rounded-[2.5rem] p-10 hover:bg-white hover:shadow-[0_30px_60px_rgba(0,0,0,0.06)] transition-all duration-500"
+                        initial={{ y: 40, opacity: 0, scale: 0.95 }}
+                        whileInView={{ y: 0, opacity: 1, scale: 1 }}
+                        viewport={{ once: true, margin: "-50px" }}
+                        transition={{ duration: 0.8, delay: index * 0.1, ease: appleEase }}
+                        className="relative overflow-hidden group flex flex-col items-start p-10 rounded-[2.5rem] bg-transparent hover:bg-zinc-50 transition-all duration-500 border border-transparent hover:border-black/5 hover:shadow-[0_20px_40px_rgba(0,0,0,0.04)]"
                     >
-                      <div className="flex justify-between items-start mb-12">
-                        <div className="h-14 w-14 bg-white rounded-2xl flex items-center justify-center group-hover:bg-black group-hover:text-white transition-all duration-500">
-                          {item.icon}
+                      {/* Subtle Glow Orb Effect */}
+                      <div
+                          className={`absolute -bottom-24 -right-24 w-64 h-64 rounded-full blur-[80px] bg-transparent transition-colors duration-700 ${item.glowColor}`}
+                      />
+
+                      <div className="relative z-10 w-full">
+                        {/* ICON & STEP */}
+                        <div className="flex justify-between items-start mb-8 w-full">
+                          <div className="p-4 bg-black/5 border border-black/10 rounded-2xl inline-flex group-hover:bg-sky-500 group-hover:border-sky-500 transition-colors duration-500">
+                            {item.icon}
+                          </div>
+
+                          {/* Renders only if you decide to populate the 'step' property later */}
+                          {item.step && (
+                              <span className="text-4xl font-bold text-black/60 group-hover:text-black/100 transition-colors duration-500">
+              {item.step}
+            </span>
+                          )}
                         </div>
-                        <span className="text-4xl font-bold text-black/60 group-hover:text-black/100 transition-colors duration-500">
-                    {item.step}
-                  </span>
+
+                        {/* CONTENT */}
+                        <h3 className="text-2xl font-bold text-black mb-4 tracking-tight group-hover:text-sky-500 transition-colors duration-500">
+                          {item.title}
+                        </h3>
+
+                        <p className="text-zinc-500 text-lg leading-relaxed font-light">
+                          {item.desc}
+                        </p>
                       </div>
-
-                      <h3 className="text-2xl font-bold text-black mb-4 tracking-tight">
-                        {item.title}
-                      </h3>
-                      <p className="text-zinc-500 text-lg leading-relaxed font-light">
-                        {item.desc}
-                      </p>
-
-                      <div className="absolute -bottom-10 -right-10 w-40 h-40 bg-black/5 blur-[50px] rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
                     </motion.div>
                 ))}
               </div>
