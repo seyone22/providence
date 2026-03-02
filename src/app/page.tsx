@@ -172,32 +172,15 @@ export default function Home() {
               </div>
             </motion.div>
 
-            <motion.p
-                initial={{ y: 20, opacity: 0 }}
-                animate={{ y: 0, opacity: 1 }}
-                transition={{ duration: 0.8, delay: 0.5, ease: appleEase }}
-                className="text-lg md:text-xl text-zinc-500 font-light max-w-3xl mx-auto leading-relaxed mt-20"
-            >
-              Welcome to Providence Auto. We are building the world’s largest
-              borderless showroom.
-            </motion.p>
-
-            {/* === INFINITE LOGO CAROUSEL === */}
-            <motion.div
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.8, delay: 0.45, ease: appleEase }}
-                className="carousel-container my-12"
-            >
-              <div className="carousel-track">
-                {/* Mapping through the array twice to create the 34 items needed for the infinite loop */}
-                {[...flagLogos, ...flagLogos].map((logo, index) => (
-                    <div key={index} className="carousel-item">
-                      <img src={`country/${logo.src}`} alt={logo.alt} />
-                    </div>
-                ))}
-              </div>
-            </motion.div>
+            <div className="max-w-5xl mx-auto text-center">
+              <motion.p
+                  style={{ scale: manifestoScale, opacity: manifestoOpacity }}
+                  className="text-3xl md:text-5xl lg:text-6xl font-medium tracking-tight leading-tight text-black"
+              >
+                Welcome to Providence Auto. We are building the world’s largest
+                borderless showroom.
+              </motion.p>
+            </div>
           </div>
 
           <section
@@ -207,7 +190,7 @@ export default function Home() {
             <div className="max-w-5xl mx-auto text-center">
               <motion.p
                   style={{ scale: manifestoScale, opacity: manifestoOpacity }}
-                  className="text-3xl md:text-5xl lg:text-6xl font-medium tracking-tight leading-tight text-black mt-20"
+                  className="text-xl md:text-xl lg:text-xl font-medium tracking-tight leading-tight text-black mt-20"
               >
                 Whether you are a car enthusiast looking for your dream car or a
                 dealership wanting to scale up, we provide the exact vehicle you
@@ -218,8 +201,27 @@ export default function Home() {
             </div>
           </section>
 
+          <div>
+            {/* === INFINITE LOGO CAROUSEL === */}
+            <motion.div
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.8, delay: 0.45, ease: appleEase }}
+                className="carousel-container my-12"
+            >
+              {/* add the inline style here */}
+              <div className="carousel-track" style={{ animationDirection: "reverse" }}>
+                {[...flagLogos, ...flagLogos].map((logo, index) => (
+                    <div key={index} className="carousel-item">
+                      <img src={`country/${logo.src}`} alt={logo.alt} />
+                    </div>
+                ))}
+              </div>
+            </motion.div>
+          </div>
+
           {/* === SECTION: HOW IT WORKS === */}
-          <section className="py-32 px-6 max-w-7xl mx-auto w-full relative z-10">
+          <section className="pt-12 pb-32 px-6 max-w-7xl mx-auto w-full relative z-10">
             <motion.div
                 initial={{ y: 40, opacity: 0 }}
                 whileInView={{ y: 0, opacity: 1 }}
