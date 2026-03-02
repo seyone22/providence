@@ -155,7 +155,7 @@ export default function Home() {
                   initial={{ y: 20, opacity: 0 }}
                   animate={{ y: 0, opacity: 1 }}
                   transition={{ duration: 0.8, delay: 0.4, ease: appleEase }}
-                  className="text-2xl md:text-3xl text-black font-medium tracking-tight mt-8 mb-6"
+                  className="text-2xl md:text-3xl text-zinc-700 font-medium tracking-tight mt-8 mb-6"
               >
                 Any Car. Any Country. Any Port.
               </motion.p>
@@ -331,14 +331,14 @@ export default function Home() {
                     className="group relative bg-zinc-50 border border-black/5 rounded-[2.5rem] p-10 flex flex-col justify-between h-full hover:bg-white hover:shadow-[0_30px_60px_rgba(0,0,0,0.08)] hover:border-black/10 transition-all duration-500 overflow-hidden min-h-[400px]"
                 >
                   <div className="relative z-10">
-                    <div className="h-12 w-12 bg-black/5 rounded-2xl flex items-center justify-center mb-8 border border-black/10 group-hover:bg-sky-400 group-hover:text-white transition-all duration-500">
+                    <div className="h-12 w-12 bg-black/5 rounded-2xl flex items-center justify-center mb-8 border border-black/10 group-hover:bg-black  group-hover:text-white transition-all duration-500">
                       <User className="h-6 w-6" />
                     </div>
                     <h3 className="text-3xl font-bold text-black mb-4 tracking-tight">
                       For Direct Buyers
                     </h3>
                     <p className="text-zinc-500 text-lg leading-relaxed mb-12 font-light">
-                      For the past 12 years, we have supplied the top car dealers in
+                      For the past 15 years, we have supplied the top car dealers in
                       your country. For the first time, we are offering our service
                       directly to consumers. Cut out the middleman and save a ton
                       when you directly import with us.
@@ -346,10 +346,10 @@ export default function Home() {
                   </div>
 
                   <div className="relative z-10 flex items-center justify-between mt-auto pt-6">
-                <span className="text-black font-bold text-lg">
+                <span className="text-black group-hover:text-sky-400 font-bold text-lg">
                   Find My Dream Car
                 </span>
-                    <div className="h-14 w-14 bg-white border border-black/10 text-black rounded-full flex items-center justify-center group-hover:bg-black group-hover:text-white group-hover:scale-110 transition-all duration-500 shadow-lg">
+                    <div className="h-14 w-14 bg-white border border-black/10 text-black rounded-full flex items-center justify-center group-hover:bg-sky-400 group-hover:text-white group-hover:scale-110 transition-all duration-500 shadow-lg">
                       <ArrowRight size={24} />
                     </div>
                   </div>
@@ -367,10 +367,10 @@ export default function Home() {
                     className="group relative bg-zinc-50 border border-black/5 rounded-[2.5rem] p-10 flex flex-col justify-between h-full hover:bg-white hover:shadow-[0_30px_60px_rgba(0,0,0,0.08)] hover:border-black/10 transition-all duration-500 overflow-hidden min-h-[400px]"
                 >
                   <div className="relative z-10">
-                    <div className="h-12 w-12 bg-black/5 rounded-2xl flex items-center justify-center mb-8 border border-black/10 group-hover:bg-sky-400 group-hover:text-white transition-all duration-500">
+                    <div className="h-12 w-12 bg-black/5 rounded-2xl flex items-center justify-center mb-8 border border-black/10 group-hover:bg-black group-hover:text-white transition-all duration-500">
                       <Building className="h-6 w-6" />
                     </div>
-                    <h3 className="text-3xl font-bold text-black mb-4 tracking-tight">
+                    <h3 className="text-3xl font-bold  text-black mb-4 tracking-tight">
                       For Dealerships
                     </h3>
                     <p className="text-zinc-500 text-lg leading-relaxed mb-12 font-light">
@@ -382,10 +382,10 @@ export default function Home() {
                   </div>
 
                   <div className="relative z-10 flex items-center justify-between mt-auto pt-6">
-                <span className="text-black font-bold text-lg">
+                <span className="text-black group-hover:text-sky-400 font-bold text-lg">
                   Scale Your Dealership
                 </span>
-                    <div className="h-14 w-14 bg-white border border-black/10 text-black rounded-full flex items-center justify-center group-hover:bg-black group-hover:text-white group-hover:scale-110 transition-all duration-500 shadow-lg">
+                    <div className="h-14 w-14 bg-white border border-black/10 text-black rounded-full flex items-center justify-center group-hover:bg-sky-400 group-hover:text-white group-hover:scale-110 transition-all duration-500 shadow-lg">
                       <ArrowRight size={24} />
                     </div>
                   </div>

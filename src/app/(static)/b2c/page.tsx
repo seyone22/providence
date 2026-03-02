@@ -32,7 +32,7 @@ export default function B2CLanding() {
         <main className="min-h-screen bg-white text-black selection:bg-black/10 selection:text-black font-sans overflow-x-hidden">
             <MinimalHeader />
 
-            <section ref={heroRef} className="relative min-h-screen flex flex-col justify-center items-center px-6 pt-20 bg-white overflow-hidden">
+            <section ref={heroRef} className="relative min-h-screen flex flex-col justify-center items-start px-6 pt-20 bg-white overflow-hidden">
                 <motion.div
                     initial={{ scale: 1.05, opacity: 0 }}
                     animate={{ scale: 1, opacity: 1 }}
@@ -53,7 +53,7 @@ export default function B2CLanding() {
 
                 <motion.div
                     style={{ scale: heroScale, opacity: heroOpacity, y: heroY }}
-                    className="relative z-10 text-center max-w-5xl mx-auto flex flex-col items-center mt-12"
+                    className="relative z-10 text-center max-w-5xl mx-auto flex flex-col items-center mt-0"
                 >
                     <motion.p
                         initial={{ y: 20, opacity: 0 }}
@@ -67,9 +67,9 @@ export default function B2CLanding() {
                         initial={{ y: 30, opacity: 0, scale: 0.95 }}
                         animate={{ y: 0, opacity: 1, scale: 1 }}
                         transition={{ duration: 1, delay: 0.3, ease: appleEase }}
-                        className="text-4xl md:text-6xl lg:text-7xl font-bold tracking-tighter mb-6 bg-clip-text text-transparent bg-gradient-to-b from-black via-black/80 to-black/50 leading-[1.1] drop-shadow-[0_0_15px_rgba(255,255,255,1)]"
+                        className="text-4xl md:text-8xl lg:text-12xl font-bold tracking-tighter mb-6 bg-clip-text text-transparent bg-gradient-to-b from-black via-black/80 to-black/50 leading-[1.1] drop-shadow-[0_0_15px_rgba(255,255,255,1)]"
                     >
-                        The Global Shortcut to<br />Your Dream Car.
+                        The Global<br/> Shortcut to<br />Your Dream Car.
                     </motion.h1>
                     <motion.p
                         initial={{ y: 20, opacity: 0 }}
@@ -85,7 +85,7 @@ export default function B2CLanding() {
                         transition={{ duration: 0.8, delay: 0.6, ease: appleEase }}
                     >
                         {/* UPDATED: Changed from Link to a anchor tag to scroll down smoothly to the form */}
-                        <a href="#inquiry" className="group relative inline-flex items-center justify-center px-10 py-5 text-lg font-bold text-white bg-sky-500 rounded-full overflow-hidden transition-transform hover:scale-105 shadow-[0_10px_40px_rgba(0,0,0,0.1)]">
+                        <a href="#inquiry" className="group relative inline-flex items-center justify-center px-10 py-5 text-lg font-bold  text-white bg-black rounded-full overflow-hidden transition-transform hover:scale-105 shadow-[0_10px_40px_rgba(0,0,0,0.1)]">
                             <span className="relative z-10 flex items-center gap-2">
                                 Begin Your Inquiry <ArrowRight size={18} className="group-hover:translate-x-1 transition-transform" />
                             </span>
@@ -100,7 +100,7 @@ export default function B2CLanding() {
                         style={{ scale: manifestoScale, opacity: manifestoOpacity }}
                         className="text-3xl md:text-5xl lg:text-6xl font-medium tracking-tight leading-tight text-zinc-400"
                     >
-                        For the last 12 years, we’ve supplied the top car dealers in your country. For the first time ever, we are <span className="text-black drop-shadow-sm">cutting out the middleman</span> and offering our global sourcing network <span className="text-black drop-shadow-sm">directly to you</span>.
+                        For the last 15 years, we’ve supplied the top car dealers in your country. For the first time ever, we are <span className="text-black drop-shadow-sm">cutting out the middleman</span> and offering our global sourcing network <span className="text-black drop-shadow-sm">directly to you</span>.
                     </motion.p>
                 </div>
             </section>
@@ -126,7 +126,7 @@ export default function B2CLanding() {
                         { icon: Compass, title: "Currency & Market Optimization", desc: "We don't just find the car; we analyze global markets to optimize currency conversions, ensuring you buy from the most financially efficient country at that exact moment.", glowColor: "group-hover:bg-blue-500/15" },
                         { icon: Landmark, title: "Mastery of Tax Law", desc: "Importing luxury vehicles requires navigating complex tax codes. We know every loophole, tariff, and regulation to legally minimize your import duties.", glowColor: "group-hover:bg-emerald-500/15" },
                         { icon: Ship, title: "White-Glove Logistics", desc: "From the showroom floor in Germany to your driveway. We handle every single form, marine insurance policy, and freight mile for you. Zero friction.", glowColor: "group-hover:bg-indigo-500/15" },
-                        { icon: ShieldCheck, title: "12 Years of Heritage", desc: "We aren't a startup guessing how to ship cars. We have over a decade of established infrastructure, delivering the most reliable service in the industry.", glowColor: "group-hover:bg-amber-500/15" }
+                        { icon: ShieldCheck, title: "15 Years of Heritage", desc: "We aren't a startup guessing how to ship cars. We have over a decade of established infrastructure, delivering the most reliable service in the industry.", glowColor: "group-hover:bg-amber-500/15" }
                     ].map((feature, index) => (
                         <motion.div
                             key={index}
