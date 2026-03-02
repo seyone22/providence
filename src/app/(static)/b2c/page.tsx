@@ -69,7 +69,7 @@ export default function B2CLanding() {
                         transition={{ duration: 1, delay: 0.3, ease: appleEase }}
                         className="text-4xl md:text-8xl lg:text-12xl font-bold tracking-tighter mb-6 bg-clip-text text-transparent bg-gradient-to-b from-black via-black/80 to-black/50 leading-[1.1] drop-shadow-[0_0_15px_rgba(255,255,255,1)]"
                     >
-                        The Global<br/> Shortcut to<br />Your Dream Car.
+                        The Global<br/> Shortcut to <br/>Your Dream Car.
                     </motion.h1>
                     <motion.p
                         initial={{ y: 20, opacity: 0 }}
