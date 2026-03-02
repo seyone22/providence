@@ -21,10 +21,10 @@ export default function MinimalHeader() {
 
                 <Link href="/request">
                     <button className="px-6 py-2 text-sm font-medium text-white
-                        bg-sky-500/20 backdrop-blur-xl
+                        bg-sky-400/60 backdrop-blur-xl
                         border border-sky-400/30
                         shadow-[0_8px_32px_rgba(14,165,233,0.25)]
-                        hover:bg-sky-500/30 hover:shadow-[0_8px_32px_rgba(14,165,233,0.4)]
+                        hover:bg-sky-500/60 hover:shadow-[0_8px_12px_rgba(a,165,233,0.4)]
                         rounded-full transition-all duration-300 active:scale-95">
                         Begin Inquiry
                     </button>
