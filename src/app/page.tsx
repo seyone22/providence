@@ -319,7 +319,7 @@ export default function Home() {
                   className="group relative bg-white/40 backdrop-blur-xl border border-black/5 rounded-[2.5rem] p-10 flex flex-col justify-between h-full hover:bg-white hover:shadow-[0_30px_60px_rgba(0,0,0,0.08)] hover:border-black/10 transition-all duration-500 overflow-hidden min-h-[400px]"
               >
                 <div className="relative z-10">
-                  <div className="h-12 w-12 bg-black/5 rounded-2xl flex items-center justify-center mb-8 border border-black/10 group-hover:bg-black group-hover:text-white transition-all duration-500">
+                  <div className="h-12 w-12 bg-black/5 rounded-2xl flex items-center justify-center mb-8 border border-black/10 group-hover:bg-sky-400 group-hover:text-white transition-all duration-500">
                     <User className="h-6 w-6" />
                   </div>
                   <h3 className="text-3xl font-bold text-black mb-4 tracking-tight">
@@ -355,7 +355,7 @@ export default function Home() {
                   className="group relative bg-white/40 backdrop-blur-xl border border-black/5 rounded-[2.5rem] p-10 flex flex-col justify-between h-full hover:bg-white hover:shadow-[0_30px_60px_rgba(0,0,0,0.08)] hover:border-black/10 transition-all duration-500 overflow-hidden min-h-[400px]"
               >
                 <div className="relative z-10">
-                  <div className="h-12 w-12 bg-black/5 rounded-2xl flex items-center justify-center mb-8 border border-black/10 group-hover:bg-blue-600 group-hover:text-white transition-all duration-500">
+                  <div className="h-12 w-12 bg-black/5 rounded-2xl flex items-center justify-center mb-8 border border-black/10 group-hover:bg-sky-400 group-hover:text-white transition-all duration-500">
                     <Building className="h-6 w-6" />
                   </div>
                   <h3 className="text-3xl font-bold text-black mb-4 tracking-tight">
