@@ -43,7 +43,7 @@ export default function B2CLanding() {
                         src="https://images.unsplash.com/photo-1614162692292-7ac56d7f7f1e?q=80&w=3000&auto=format&fit=cover"
                         alt="Providence Auto Premium Sourcing"
                         className="object-cover object-center"
-                        style={{height:'100vh', width:'100vw', objectFit: 'cover'}}
+                        style={{ height: '100vh', width: '100vw', objectFit: 'cover' }}
                     />
                     <div className="absolute inset-0 bg-white/10 backdrop-blur-[2px]" />
                     <div className="absolute inset-0 bg-gradient-to-b from-white/40 to-transparent h-[30%]" />
@@ -69,7 +69,7 @@ export default function B2CLanding() {
                         transition={{ duration: 1, delay: 0.3, ease: appleEase }}
                         className="text-4xl md:text-8xl lg:text-12xl font-bold tracking-tighter mb-6 bg-clip-text text-transparent bg-gradient-to-b from-black via-black/80 to-black/50 leading-[1.1] drop-shadow-[0_0_15px_rgba(255,255,255,1)]"
                     >
-                        The Global<br/> Shortcut to <br/>Your Dream Car.
+                        The Global<br /> Shortcut to <br />Your Dream Car.
                     </motion.h1>
                     <motion.p
                         initial={{ y: 20, opacity: 0 }}
@@ -125,7 +125,7 @@ export default function B2CLanding() {
                     {[
                         { icon: Compass, title: "Currency & Market Optimization", desc: "We don't just find the car; we analyze global markets to optimize currency conversions, ensuring you buy from the most financially efficient country at that exact moment.", glowColor: "group-hover:bg-blue-500/15" },
                         { icon: Landmark, title: "Mastery of Tax Law", desc: "Importing luxury vehicles requires navigating complex tax codes. We know every loophole, tariff, and regulation to legally minimize your import duties.", glowColor: "group-hover:bg-emerald-500/15" },
-                        { icon: Ship, title: "White-Glove Logistics", desc: "From the showroom floor in Germany to your driveway. We handle every single form, marine insurance policy, and freight mile for you. Zero friction.", glowColor: "group-hover:bg-indigo-500/15" },
+                        { icon: Ship, title: "White-Glove Logistics", desc: "From 100+ global markets to your country. We handle every single form, marine insurance policy, and freight mile for you. Zero friction.", glowColor: "group-hover:bg-indigo-500/15" },
                         { icon: ShieldCheck, title: "15 Years of Heritage", desc: "We aren't a startup guessing how to ship cars. We have over a decade of established infrastructure, delivering the most reliable service in the industry.", glowColor: "group-hover:bg-amber-500/15" }
                     ].map((feature, index) => (
                         <motion.div
