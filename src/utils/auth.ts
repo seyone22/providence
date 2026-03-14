@@ -59,7 +59,7 @@ export const auth = betterAuth({
     basePath: '/api/v1/auth',
     user: {
         additionalFields: {
-            role: { type: "string", defaultValue: "attendee" },
+            role: { type: "string", defaultValue: "user" },
             isBanned: { type: "boolean", defaultValue: false },
             badges: { type: "string[]", defaultValue: [] }
         }
