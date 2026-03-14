@@ -18,6 +18,7 @@ import {usePathname} from "next/navigation";
 const navItems = [
     {title: "Dashboard", url: "/admin", icon: LayoutDashboard},
     {title: "Inventory", url: "/admin/inventory", icon: Car},
+    {title: "Specs", url: "/admin/specs", icon: Car},
     {title: "Users", url: "/admin/users", icon: Users},
     {title: "Settings", url: "/admin/settings", icon: Settings},
 ];

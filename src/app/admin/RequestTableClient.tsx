@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { MoreHorizontal, Trash, Loader2, FileText, ExternalLink, ArrowRight, Eye, UserPlus, User } from "lucide-react";
+import { MoreHorizontal, Trash, Loader2, ExternalLink, ArrowRight, Eye, UserPlus, User, Paperclip, File, Image as ImageIcon } from "lucide-react";
 import { updateRequestStatus, deleteRequest } from "@/actions/admin-actions";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/app/components/ui/table";
 import { Badge } from "@/app/components/ui/badge";
@@ -9,9 +9,11 @@ import { Button } from "@/app/components/ui/button";
 import { Input } from "@/app/components/ui/input";
 import { Label } from "@/app/components/ui/label";
 import { Textarea } from "@/app/components/ui/textarea";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/app/components/ui/dropdown-menu";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/app/components/ui/dropdown-menu";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/app/components/ui/dialog";
 import Link from "next/link";
+import DynamicFileUploader, {PendingFile} from "@/app/components/dynamicFileUploader";
+import {uploadToR2} from "@/lib/file-actions";
 
 const PIPELINE_STAGES = [
     "New",
@@ -44,10 +46,12 @@ export default function RequestTableClient({
     const [isProcessing, setIsProcessing] = useState(false);
     const [modal, setModal] = useState<ActionModalState>({ isOpen: false, type: null, request: null, targetStage: null });
     const [payload, setPayload] = useState<any>({});
+    const [pendingFiles, setPendingFiles] = useState<PendingFile[]>([]);
 
     const closeDialog = () => {
         setModal({ isOpen: false, type: null, request: null, targetStage: null });
         setPayload({});
+        setPendingFiles([]); // Reset files on close
     };
 
     const handlePayloadChange = (key: string, value: string) => {
@@ -84,16 +88,52 @@ export default function RequestTableClient({
         if (!modal.request) return;
         setIsProcessing(true);
 
-        if (modal.type === "delete") {
-            await deleteRequest(modal.request._id);
-        } else if (modal.type === "advance" && modal.targetStage) {
-            await updateRequestStatus(modal.request._id, modal.targetStage, payload);
-        } else if (modal.type === "details" || modal.type === "assign") {
-            await updateRequestStatus(modal.request._id, modal.request.status, payload);
-        }
+        try {
+            if (modal.type === "delete") {
+                await deleteRequest(modal.request._id);
+            } else if (modal.type === "advance" && modal.targetStage) {
 
-        setIsProcessing(false);
-        closeDialog();
+                let uploadedDocuments = [];
+
+                // 1. Process File Uploads First
+                const validFiles = pendingFiles.filter(pf => pf.file !== null);
+                if (validFiles.length > 0) {
+                    const formData = new FormData();
+                    validFiles.forEach(pf => {
+                        formData.append("files", pf.file as File);
+                        formData.append("fieldNames", pf.fieldName || "Unnamed Document");
+                        formData.append("fileTypes", pf.fileType);
+                    });
+
+                    const uploadRes: any = await uploadToR2(formData);
+                    if (!uploadRes.success) {
+                        throw new Error(uploadRes.message);
+                    }
+
+                    uploadedDocuments = uploadRes.uploadedFiles.map((file: any) => ({
+                        ...file,
+                        stageAdded: modal.targetStage
+                    }));
+                }
+
+                // 2. Update Database
+                const finalPayload = {
+                    ...payload,
+                    documents: uploadedDocuments
+                };
+
+                await updateRequestStatus(modal.request._id, modal.targetStage, finalPayload);
+
+            } else if (modal.type === "details" || modal.type === "assign") {
+                await updateRequestStatus(modal.request._id, modal.request.status, payload);
+            }
+        } catch (error) {
+            console.error("Action failed:", error);
+            alert(error instanceof Error ? error.message : "An error occurred.");
+        } finally {
+            setIsProcessing(false);
+            closeDialog();
+        }
     };
 
     if (initialRequests.length === 0) {
@@ -229,12 +269,12 @@ export default function RequestTableClient({
                         <DialogDescription className="text-zinc-500 font-light mt-2">
                             {modal.type === "delete" && `Are you sure you want to delete ${modal.request?.name}'s inquiry? This cannot be undone.`}
                             {modal.type === "advance" && "Please provide the required details to move this lead to the next stage."}
-                            {modal.type === "details" && `Review collected data and internal notes for ${modal.request?.name}.`}
+                            {modal.type === "details" && `Review collected data, documents, and notes for ${modal.request?.name}.`}
                             {modal.type === "assign" && `Assign this request to a team member.`}
                         </DialogDescription>
                     </DialogHeader>
 
-                    {/* Content: Assign Staff (NEW) */}
+                    {/* Content: Assign Staff */}
                     {modal.type === "assign" && (
                         <div className="py-6 space-y-4">
                             <Label className="text-zinc-600 font-bold">Select Staff Member</Label>
@@ -257,7 +297,6 @@ export default function RequestTableClient({
                                 </select>
                             </div>
 
-                            {/* Quick Action: Assign to Me */}
                             {payload.assignedToId !== currentUserId && (
                                 <button
                                     type="button"
@@ -276,9 +315,11 @@ export default function RequestTableClient({
                         </div>
                     )}
 
-                    {/* Content: Details & Notes */}
+                    {/* Content: Details & Notes & Documents */}
+                    {/* Content: Details & Notes & Documents */}
                     {modal.type === "details" && modal.request && (
                         <div className="space-y-6 mt-4">
+                            {/* PIPELINE DATA CARD */}
                             <div className="bg-zinc-50 border border-black/5 rounded-2xl p-5 space-y-4 text-sm">
                                 <h4 className="font-bold text-black border-b border-black/5 pb-2">Collected Pipeline Data</h4>
                                 <div className="grid grid-cols-2 gap-x-4 gap-y-3">
@@ -291,19 +332,56 @@ export default function RequestTableClient({
                                     {modal.request.portName && <div><span className="block text-zinc-500 text-xs uppercase tracking-wider mb-1">Arrival Port</span><span className="font-medium">{modal.request.portName}</span></div>}
                                     {modal.request.eta && <div><span className="block text-zinc-500 text-xs uppercase tracking-wider mb-1">ETA</span><span className="font-medium">{new Date(modal.request.eta).toLocaleDateString()}</span></div>}
                                 </div>
-
-                                {modal.request.options && <div className="pt-2"><span className="block text-zinc-500 text-xs uppercase tracking-wider mb-1">Options Sent</span><span className="font-medium whitespace-pre-wrap">{modal.request.options}</span></div>}
-                                {modal.request.inspectionNotes && <div className="pt-2"><span className="block text-zinc-500 text-xs uppercase tracking-wider mb-1">Inspection Notes</span><span className="font-medium whitespace-pre-wrap">{modal.request.inspectionNotes}</span></div>}
-                                {modal.request.customsNotes && <div className="pt-2"><span className="block text-zinc-500 text-xs uppercase tracking-wider mb-1">Customs Notes</span><span className="font-medium whitespace-pre-wrap">{modal.request.customsNotes}</span></div>}
-                                {modal.request.specs && <div className="pt-2"><span className="block text-zinc-500 text-xs uppercase tracking-wider mb-1">Original User Specs</span><span className="font-medium whitespace-pre-wrap">{modal.request.specs}</span></div>}
                             </div>
 
+                            {/* DOCUMENT LEDGER (R2 FILES) */}
+                            <div className="space-y-3">
+                                <Label className="text-zinc-600 font-bold flex items-center gap-2">
+                                    <Paperclip size={16} /> Attached Documents
+                                </Label>
+
+                                {modal.request.documents && modal.request.documents.length > 0 ? (
+                                    <div className="grid gap-2">
+                                        {modal.request.documents.map((doc: any, i: number) => (
+                                            <a
+                                                key={i}
+                                                href={doc.fileUrl}
+                                                target="_blank"
+                                                rel="noopener noreferrer"
+                                                className="flex items-center gap-3 p-3 bg-white border border-black/5 rounded-xl hover:bg-zinc-50 hover:border-black/10 transition-all group"
+                                            >
+                                                <div className="p-2 bg-zinc-100 rounded-lg text-zinc-500 group-hover:text-black group-hover:bg-black/5 transition-colors">
+                                                    {doc.fileType === "pdf" ? <File size={18} /> : <ImageIcon size={18} />}
+                                                </div>
+                                                <div className="flex-1 min-w-0">
+                                                    <p className="text-sm font-semibold text-black truncate">{doc.fieldName}</p>
+                                                    <div className="flex items-center gap-2 mt-0.5">
+                                                        <Badge variant="outline" className="text-[9px] uppercase tracking-tighter py-0 px-1.5 h-4 bg-zinc-100 border-none text-zinc-500">
+                                                            {doc.stageAdded}
+                                                        </Badge>
+                                                        <span className="text-[10px] text-zinc-400">
+                                        {new Date(doc.uploadedAt).toLocaleDateString()}
+                                    </span>
+                                                    </div>
+                                                </div>
+                                                <ExternalLink size={14} className="text-zinc-300 group-hover:text-black mr-2 transition-colors" />
+                                            </a>
+                                        ))}
+                                    </div>
+                                ) : (
+                                    <div className="py-4 text-center border border-dashed border-black/10 rounded-xl">
+                                        <p className="text-xs text-zinc-400 italic">No files have been uploaded for this lead yet.</p>
+                                    </div>
+                                )}
+                            </div>
+
+                            {/* ADMIN NOTES */}
                             <div className="space-y-2">
                                 <Label className="text-zinc-600 font-bold">Internal Admin Notes</Label>
                                 <Textarea
                                     value={payload.adminNotes || ""}
                                     onChange={(e) => handlePayloadChange("adminNotes", e.target.value)}
-                                    className={`${inputClasses} min-h-[120px] resize-none`}
+                                    className={`${inputClasses} min-h-[100px] resize-none`}
                                     placeholder="Add private internal notes about this client or vehicle..."
                                 />
                             </div>
@@ -385,6 +463,11 @@ export default function RequestTableClient({
                                     <Textarea onChange={(e) => handlePayloadChange("customsNotes", e.target.value)} className={inputClasses} placeholder="e.g. Duties paid, ready for flatbed pickup." />
                                 </div>
                             )}
+
+                            {/* Drop in the Uploader */}
+                            <div className="mt-2 border-t border-black/5 pt-6">
+                                <DynamicFileUploader onFilesChange={setPendingFiles} />
+                            </div>
                         </div>
                     )}
 

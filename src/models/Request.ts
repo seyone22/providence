@@ -1,5 +1,15 @@
 import mongoose, { Schema, Document } from 'mongoose';
 
+// 1. Define the shape of a single document object
+export interface IRequestDocument {
+    fieldName: string;
+    fileType: 'image' | 'pdf';
+    fileUrl: string;
+    stageAdded: string;
+    uploadedAt?: Date;
+}
+
+// 2. Update your main interface to include the array of documents
 export interface IRequest extends Document {
     make: string;
     vehicle_model: string;
@@ -31,9 +41,12 @@ export interface IRequest extends Document {
     // Internal Admin Notes
     adminNotes?: string;
 
-    // NEW: Assignment Fields
+    // Assignment Fields
     assignedToId?: string;
     assignedToName?: string;
+
+    // The fixed documents array type
+    documents: IRequestDocument[];
 
     createdAt: Date;
     updatedAt: Date;
@@ -69,9 +82,17 @@ const RequestSchema: Schema = new Schema(
 
         adminNotes: { type: String },
 
-        // NEW: Assignment Fields
         assignedToId: { type: String },
         assignedToName: { type: String },
+
+        // The Mongoose schema definition for the documents
+        documents: [{
+            fieldName: { type: String, required: true },
+            fileType: { type: String, enum: ['image', 'pdf'], required: true },
+            fileUrl: { type: String, required: true },
+            stageAdded: { type: String, required: true },
+            uploadedAt: { type: Date, default: Date.now }
+        }]
     },
     { timestamps: true }
 );

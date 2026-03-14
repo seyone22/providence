@@ -75,16 +75,24 @@ export async function updateRequestStatus(id: string, status: string, additional
         await requireAuth();
         await connectToDatabase();
 
-        await Request.findByIdAndUpdate(id, { status, ...additionalData });
+        const updatePayload: any = { status };
+
+        // Handle dynamically pushing new documents to the array
+        if (additionalData?.documents && additionalData.documents.length > 0) {
+            updatePayload.$push = { documents: { $each: additionalData.documents } };
+            delete additionalData.documents; // Remove from root payload
+        }
+
+        // Merge any remaining scalar fields (agreedPrice, invoiceNumber, etc.)
+        Object.assign(updatePayload, additionalData);
+
+        await Request.findByIdAndUpdate(id, updatePayload);
         revalidatePath("/admin");
 
         return { success: true };
     } catch (error) {
         console.error("Failed to update status:", error);
-        return {
-            success: false,
-            message: error instanceof Error ? error.message : "Failed to update status"
-        };
+        return { success: false, message: error instanceof Error ? error.message : "Failed to update status" };
     }
 }
 
