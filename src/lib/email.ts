@@ -7,7 +7,7 @@ import AuthActionEmail from "@/emails/auth-action";
 const resend = new Resend(process.env.RESEND_API_KEY);
 
 // IMPORTANT: Ensure this domain is verified in your Resend dashboard
-const FROM_EMAIL = "Providence Auto <hello@your-domain.com>";
+const FROM_EMAIL = "Providence Auto <hello@inquiry.providenceauto.co.uk>";
 
 async function sendEmail({ to, subject, component }: { to: string, subject: string, component: ReactElement }) {
     if (!process.env.RESEND_API_KEY) {

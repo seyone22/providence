@@ -16,7 +16,7 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
     title: {
-        default: "Providence Auto | Premium Pre-Owned Vehicles",
+        default: "Providence Auto | World's largest borderless showroom ",
         template: "%s | Providence Auto",
     },
     description: "Find your next high-quality vehicle at Providence Auto. Browse our extensive inventory of premium cars, trucks, and SUVs with competitive financing options.",
