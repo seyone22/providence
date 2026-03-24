@@ -13,7 +13,7 @@ export const AuthActionEmail = ({ type, url }: AuthActionEmailProps) => {
     const actionText = isReset ? 'Reset Password' : 'Verify Account';
     const content = isReset
         ? "We received a request to reset your password. If you didn't ask for this, you can ignore this email."
-        : "Welcome to Anime.lk! Please verify your email address to activate your account.";
+        : "Welcome to Providence Auto! Please verify your email address to activate your account.";
 
     return (
         <EmailLayout preview={title} heading={title}>

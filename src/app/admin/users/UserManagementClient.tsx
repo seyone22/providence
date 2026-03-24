@@ -199,39 +199,63 @@ export default function UserManagementClient({ initialUsers }: { initialUsers: U
 
             {/* 1. Create User Sheet */}
             <Sheet open={isCreateOpen} onOpenChange={setIsCreateOpen}>
-                <SheetContent className="sm:max-w-md border-l border-zinc-200">
-                    <SheetHeader>
+                <SheetContent className="sm:max-w-md border-l border-zinc-200 p-6 flex flex-col h-full">
+
+                    <SheetHeader className="pb-4">
                         <SheetTitle>Add New User</SheetTitle>
-                        <SheetDescription>Create a new staff or admin account. They will receive an email to set their password.</SheetDescription>
+                        <SheetDescription>
+                            Create a new staff or admin account. They will receive an email to set their password.
+                        </SheetDescription>
                     </SheetHeader>
-                    <div className="py-6 space-y-4">
+
+                    {/* Added flex-1 to push the footer to the bottom gracefully */}
+                    <div className="flex-1 space-y-4 py-4">
                         <div className="space-y-2">
-                            <label className="text-sm font-medium">Full Name</label>
-                            <Input placeholder="John Doe" className="rounded-xl" value={newName} onChange={(e) => setNewName(e.target.value)} disabled={isPending} />
+                            <label className="text-sm font-medium text-zinc-700">Full Name</label>
+                            <Input
+                                placeholder="John Doe"
+                                className="rounded-xl h-11"
+                                value={newName}
+                                onChange={(e) => setNewName(e.target.value)}
+                                disabled={isPending}
+                            />
                         </div>
+
                         <div className="space-y-2">
-                            <label className="text-sm font-medium">Email Address</label>
-                            <Input type="email" placeholder="john@providenceauto.com" className="rounded-xl" value={newEmail} onChange={(e) => setNewEmail(e.target.value)} disabled={isPending} />
+                            <label className="text-sm font-medium text-zinc-700">Email Address</label>
+                            <Input
+                                type="email"
+                                placeholder="john@providenceauto.co.uk"
+                                className="rounded-xl h-11"
+                                value={newEmail}
+                                onChange={(e) => setNewEmail(e.target.value)}
+                                disabled={isPending}
+                                autoComplete="email" // Helps browsers not trip over autofill
+                            />
                         </div>
+
                         <div className="space-y-2">
-                            <label className="text-sm font-medium">System Role</label>
+                            <label className="text-sm font-medium text-zinc-700">System Role</label>
                             <Select value={newRole} onValueChange={setNewRole} disabled={isPending}>
-                                <SelectTrigger className="rounded-xl">
+                                <SelectTrigger className="rounded-xl h-11">
                                     <SelectValue placeholder="Select a role" />
                                 </SelectTrigger>
-                                <SelectContent>
+                                <SelectContent className="rounded-xl">
                                     <SelectItem value="Admin">Admin</SelectItem>
+                                    <SelectItem value="Sales">Sales</SelectItem>
                                     <SelectItem value="Staff">Staff</SelectItem>
-                                    <SelectItem value="User">User</SelectItem>
                                 </SelectContent>
                             </Select>
                         </div>
                     </div>
-                    <SheetFooter>
-                        <Button className="w-full rounded-xl" onClick={handleCreateUser} disabled={isPending}>
+
+                    {/* Footer with padding to distance itself from the bottom edges */}
+                    <SheetFooter className="pt-4 border-t border-zinc-100">
+                        <Button className="w-full rounded-xl h-11" onClick={handleCreateUser} disabled={isPending}>
                             {isPending ? <Loader2 className="animate-spin" size={18} /> : "Create Account"}
                         </Button>
                     </SheetFooter>
+
                 </SheetContent>
             </Sheet>
 

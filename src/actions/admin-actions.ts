@@ -6,6 +6,7 @@ import { revalidatePath } from "next/cache";
 import { auth } from "@/utils/auth";
 import { headers } from "next/headers";
 import mongoose from "mongoose";
+import {emailService} from "@/lib/email";
 
 async function requireAuth() {
     const session = await auth.api.getSession({
@@ -133,17 +134,13 @@ export async function createAdminUser(data: { name: string; email: string; role:
         await requireAuth();
         await connectToDatabase();
 
-        // Check if user already exists
         const existingUser = await mongoose.connection.db?.collection('user').findOne({ email: data.email });
         if (existingUser) {
             return { success: false, message: "A user with this email already exists." };
         }
 
-        // Generate a random placeholder password (they will reset it)
         const placeholderPassword = Math.random().toString(36).slice(-12) + "A1!";
 
-        // Use Better Auth's internal API to create the user properly (hashes password, etc.)
-        // Note: We use auth.api directly on the server
         const newUser = await auth.api.signUpEmail({
             body: {
                 name: data.name,
@@ -152,12 +149,18 @@ export async function createAdminUser(data: { name: string; email: string; role:
             } as any
         });
 
-        // If you have a custom 'role' field, update the newly created record
         if (newUser && newUser.user) {
             await mongoose.connection.db?.collection('user').updateOne(
                 { email: data.email },
                 { $set: { role: data.role, status: "Active" } }
             );
+
+            // 👉 DISPATCH EMAIL HERE
+            await emailService.sendAdminInvitation(data.email, {
+                name: data.name,
+                role: data.role,
+                password: placeholderPassword
+            });
         }
 
         revalidatePath("/admin/users");
