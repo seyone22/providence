@@ -26,7 +26,7 @@ export async function submitCarRequest(data: {
         const requestId = newRequest._id.toString();
 
         // 2. Fire off the emails concurrently (won't block the UI return if it takes a second)
-        const staffEmail = "admin@providenceauto.com"; // Hardcoded staff email for now
+        const staffEmail = "leads@providenceauto.co.uk"; // Hardcoded staff email for now
 
         await Promise.all([
             emailService.sendCustomerConfirmation(data.email, {
