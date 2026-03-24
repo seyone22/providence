@@ -21,8 +21,8 @@ import {
     Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/app/components/ui/select";
 
-// Import your server actions here
-import { createAdminUser, deleteAdminUser, sendPasswordResetAdmin } from "@/actions/admin-actions";
+import { createAdminUser, deleteAdminUser, sendPasswordResetAdmin, updateAdminUser } from "@/actions/admin-actions";
+import { Edit } from "lucide-react"; // Grab the Edit icon
 
 type User = {
     id: string;
@@ -46,6 +46,12 @@ export default function UserManagementClient({ initialUsers }: { initialUsers: U
     const [newEmail, setNewEmail] = useState("");
     const [newRole, setNewRole] = useState("Staff");
 
+    const [isEditOpen, setIsEditOpen] = useState(false);
+    const [editUserId, setEditUserId] = useState("");
+    const [editName, setEditName] = useState("");
+    const [editEmail, setEditEmail] = useState("");
+    const [editRole, setEditRole] = useState("Staff");
+
     // Action Sheet State
     const [selectedUser, setSelectedUser] = useState<User | null>(null);
     const [actionType, setActionType] = useState<"reset" | "delete" | null>(null);
@@ -62,6 +68,34 @@ export default function UserManagementClient({ initialUsers }: { initialUsers: U
     };
 
     // --- SERVER ACTION HANDLERS ---
+
+    // Call this when clicking "Edit Profile" in your Dropdown
+    const handleOpenEdit = (user: User) => {
+        setEditUserId(user.id);
+        setEditName(user.name);
+        setEditEmail(user.email);
+        setEditRole(user.role);
+        setIsEditOpen(true);
+    };
+
+    const handleUpdateUser = async () => {
+        if (!editName || !editEmail) return alert("Name and Email are required");
+        setIsPending(true);
+
+        const res = await updateAdminUser(editUserId, {
+            name: editName,
+            email: editEmail,
+            role: editRole
+        });
+
+        if (res.success) {
+            setIsEditOpen(false);
+            router.refresh();
+        } else {
+            alert(res.message);
+        }
+        setIsPending(false);
+    };
 
     const handleCreateUser = async () => {
         if (!newName || !newEmail) return alert("Name and Email are required");
@@ -177,6 +211,13 @@ export default function UserManagementClient({ initialUsers }: { initialUsers: U
                                             <DropdownMenuContent align="end" className="rounded-xl w-48">
                                                 <DropdownMenuLabel>Manage User</DropdownMenuLabel>
                                                 <DropdownMenuSeparator />
+
+                                                {/* 👉 ADD THIS EDIT BUTTON */}
+                                                <DropdownMenuItem onClick={() => handleOpenEdit(user)} className="gap-2 cursor-pointer">
+                                                    <Edit size={16} className="text-zinc-500" />
+                                                    Edit Details
+                                                </DropdownMenuItem>
+
                                                 <DropdownMenuItem onClick={() => { setSelectedUser(user); setActionType("reset"); }} className="gap-2 cursor-pointer">
                                                     <KeyRound size={16} className="text-zinc-500" />
                                                     Reset Password
@@ -196,6 +237,66 @@ export default function UserManagementClient({ initialUsers }: { initialUsers: U
             </div>
 
             {/* --- SIDEBARS (SHEETS) --- */}
+
+            {/* 3. Edit User Sheet */}
+            <Sheet open={isEditOpen} onOpenChange={setIsEditOpen}>
+                <SheetContent className="sm:max-w-md border-l border-zinc-200 p-6 flex flex-col h-full">
+
+                    <SheetHeader className="pb-4">
+                        <SheetTitle>Edit User Profile</SheetTitle>
+                        <SheetDescription>
+                            Update staff role designations or name modifications.
+                        </SheetDescription>
+                    </SheetHeader>
+
+                    <div className="flex-1 space-y-4 py-4">
+                        <div className="space-y-2">
+                            <label className="text-sm font-medium text-zinc-700">Full Name</label>
+                            <Input
+                                placeholder="John Doe"
+                                className="rounded-xl h-11"
+                                value={editName}
+                                onChange={(e) => setEditName(e.target.value)}
+                                disabled={isPending}
+                            />
+                        </div>
+
+                        <div className="space-y-2">
+                            <label className="text-sm font-medium text-zinc-700">Email Address</label>
+                            <Input
+                                type="email"
+                                placeholder="john@providenceauto.co.uk"
+                                className="rounded-xl h-11"
+                                value={editEmail}
+                                onChange={(e) => setEditEmail(e.target.value)}
+                                disabled={isPending}
+                                autoComplete="email"
+                            />
+                        </div>
+
+                        <div className="space-y-2">
+                            <label className="text-sm font-medium text-zinc-700">System Role</label>
+                            <Select value={editRole} onValueChange={(val: any) => setEditRole(val)} disabled={isPending}>
+                                <SelectTrigger className="rounded-xl h-11">
+                                    <SelectValue placeholder="Select a role" />
+                                </SelectTrigger>
+                                <SelectContent className="rounded-xl">
+                                    <SelectItem value="Admin">Admin</SelectItem>
+                                    <SelectItem value="Sales">Sales</SelectItem>
+                                    <SelectItem value="Staff">Staff</SelectItem>
+                                </SelectContent>
+                            </Select>
+                        </div>
+                    </div>
+
+                    <SheetFooter className="pt-4 border-t border-zinc-100">
+                        <Button className="w-full rounded-xl h-11" onClick={handleUpdateUser} disabled={isPending}>
+                            {isPending ? <Loader2 className="animate-spin" size={18} /> : "Save Changes"}
+                        </Button>
+                    </SheetFooter>
+
+                </SheetContent>
+            </Sheet>
 
             {/* 1. Create User Sheet */}
             <Sheet open={isCreateOpen} onOpenChange={setIsCreateOpen}>

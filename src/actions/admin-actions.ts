@@ -7,6 +7,7 @@ import { auth } from "@/utils/auth";
 import { headers } from "next/headers";
 import mongoose from "mongoose";
 import {emailService} from "@/lib/email";
+import {ObjectId} from "bson";
 
 async function requireAuth() {
     const session = await auth.api.getSession({
@@ -171,18 +172,106 @@ export async function createAdminUser(data: { name: string; email: string; role:
     }
 }
 
-// --- DELETE USER ---
+// --- RESET PASSWORD ---
+export async function sendPasswordResetAdmin(email: string) {
+    try {
+        await requireAuth();
+
+        // 👉 Triggers Better Auth's forgot password flow and sends the Resend email
+        await auth.api.requestPasswordReset({
+            body: {
+                email,
+                redirectTo: `${process.env.NEXT_PUBLIC_BASE_URL}/auth/reset-password`,
+            }
+        });
+
+        return { success: true };
+    } catch (error) {
+        console.error("Failed to send reset link:", error);
+        return {
+            success: false,
+            message: error instanceof Error ? error.message : "Failed to send reset link."
+        };
+    }
+}
+
+// --- ✂️ UPDATE USER ACTION ---
+export async function updateAdminUser(userId: string, data: { name: string; email: string; role: string }) {
+    try {
+        await requireAuth();
+        await connectToDatabase();
+
+        // 1. Safely parse the query target
+        let targetId: any = userId;
+        try {
+            targetId = new ObjectId(userId);
+        } catch {
+            // If it's a Better Auth custom string ID (UUID/NanoID), leave it as a string
+            targetId = userId;
+        }
+
+        const query = { _id: targetId };
+
+        // 2. Check if the new email is already taken by someone else
+        const emailExists = await mongoose.connection.db?.collection('user').findOne({
+            email: data.email,
+            _id: { $ne: targetId } as any
+        });
+
+        if (emailExists) {
+            return { success: false, message: "This email is already taken by another user." };
+        }
+
+        // 3. Update the user
+        const updateResult = await mongoose.connection.db?.collection('user').updateOne(
+            query,
+            {
+                $set: {
+                    name: data.name,
+                    email: data.email,
+                    role: data.role
+                }
+            }
+        );
+
+        if (updateResult?.matchedCount === 0) {
+            return { success: false, message: "User not found in the database. No changes applied." };
+        }
+
+        // 4. Security measure: Wipe sessions if Email/Role changed so they must re-log
+        await mongoose.connection.db?.collection('session').deleteMany({ userId });
+
+        revalidatePath("/admin/users");
+        return { success: true };
+    } catch (error) {
+        console.error("Failed to update user:", error);
+        return { success: false, message: error instanceof Error ? error.message : "Failed to update user profile." };
+    }
+}
+
+
+// --- ✂️ DELETE USER ACTION ---
 export async function deleteAdminUser(userId: string) {
     try {
         await requireAuth();
         await connectToDatabase();
 
-        // Better Auth might use string IDs or ObjectIds depending on your config.
-        // If your IDs are ObjectIds, wrap userId in `new mongoose.Types.ObjectId(userId)`
-        const query = { _id: userId }; // Adjust if using ObjectId
+        let targetId: any = userId;
+        try {
+            targetId = new ObjectId(userId);
+        } catch {
+            targetId = userId; // Fallback to raw string
+        }
+
+        const query = { _id: targetId };
 
         // Cascade delete: Remove user, their accounts, and active sessions
-        await mongoose.connection.db?.collection('user').deleteOne(query as any);
+        const userDeleted = await mongoose.connection.db?.collection('user').deleteOne(query);
+
+        if (userDeleted?.deletedCount === 0) {
+            return { success: false, message: "User was not found in the database to delete." };
+        }
+
         await mongoose.connection.db?.collection('account').deleteMany({ userId });
         await mongoose.connection.db?.collection('session').deleteMany({ userId });
 
@@ -191,25 +280,5 @@ export async function deleteAdminUser(userId: string) {
     } catch (error) {
         console.error("Failed to delete user:", error);
         return { success: false, message: "Failed to delete user." };
-    }
-}
-
-// --- RESET PASSWORD ---
-export async function sendPasswordResetAdmin(email: string) {
-    try {
-        await requireAuth();
-
-        // Trigger Better Auth's forget password flow
-        await auth.api.changePassword({
-            body: {
-                email,
-                redirectTo: "/auth/reset-password", // Change this to your actual reset UI route
-            } as any
-        });
-
-        return { success: true };
-    } catch (error) {
-        console.error("Failed to send reset link:", error);
-        return { success: false, message: "Failed to send reset link." };
     }
 }
