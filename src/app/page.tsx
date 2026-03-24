@@ -146,7 +146,7 @@ export default function Home() {
                   initial={{ y: 30, opacity: 0, scale: 0.95 }}
                   animate={{ y: 0, opacity: 1, scale: 1 }}
                   transition={{ duration: 1, delay: 0.2, ease: appleEase }}
-                  className="text-4xl md:text-8xl lg:text-9xl font-bold tracking-tighter mb-6 bg-clip-text text-transparent bg-gradient-to-b from-black via-black to-zinc-600 leading-[0.9]"
+                  className="text-5xl md:text-8xl lg:text-9xl font-bold tracking-tighter mb-6 bg-clip-text text-transparent bg-gradient-to-b from-black via-black to-zinc-600 leading-[0.9]"
               >
                 World’s Largest Borderless Showroom.
               </motion.h1>

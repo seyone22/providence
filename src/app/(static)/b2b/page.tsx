@@ -46,7 +46,7 @@ export default function B2BLanding() {
                         viewport={{ once: false, amount: 0.2 }} // Animate on scroll up AND down
                         transition={{ duration: 1, ease: appleEase }}
                     >
-                        <h1 className="text-4xl md:text-7xl lg:text-8xl font-bold tracking-tighter mb-6 bg-clip-text text-transparent bg-gradient-to-b from-black via-black/80 to-black/60 leading-[1.05] drop-shadow-[0_0_15px_rgba(255,255,255,0.8)]">
+                        <h1 className="text-5xl md:text-7xl lg:text-8xl font-bold tracking-tighter mb-6 bg-clip-text text-transparent bg-gradient-to-b from-black via-black/80 to-black/60 leading-[1.05] drop-shadow-[0_0_15px_rgba(255,255,255,0.8)]">
                             Inventory.<br />On Demand.
                         </h1>
                     </motion.div>
