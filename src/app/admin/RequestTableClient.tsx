@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { MoreHorizontal, Trash, Loader2, ExternalLink, ArrowRight, Eye, UserPlus, User, Paperclip, File, Image as ImageIcon } from "lucide-react";
+import { MoreHorizontal, Trash, Loader2, ExternalLink, ArrowRight, ArrowLeft, Eye, UserPlus, User, Paperclip, File, Image as ImageIcon } from "lucide-react";
 import { updateRequestStatus, deleteRequest } from "@/actions/admin-actions";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/app/components/ui/table";
 import { Badge } from "@/app/components/ui/badge";
@@ -12,8 +12,8 @@ import { Textarea } from "@/app/components/ui/textarea";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/app/components/ui/dropdown-menu";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/app/components/ui/dialog";
 import Link from "next/link";
-import DynamicFileUploader, {PendingFile} from "@/app/components/dynamicFileUploader";
-import {uploadToR2} from "@/lib/file-actions";
+import DynamicFileUploader, { PendingFile } from "@/app/components/dynamicFileUploader";
+import { uploadToR2 } from "@/lib/file-actions";
 
 const PIPELINE_STAGES = [
     "New",
@@ -29,7 +29,7 @@ const PIPELINE_STAGES = [
 
 type ActionModalState = {
     isOpen: boolean;
-    type: "advance" | "delete" | "specs" | "details" | "assign" | null;
+    type: "advance" | "revert" | "delete" | "specs" | "details" | "assign" | null;
     request: any | null;
     targetStage: string | null;
 };
@@ -64,10 +64,23 @@ export default function RequestTableClient({
         return PIPELINE_STAGES[currentIndex + 1];
     };
 
+    const getPreviousStage = (currentStatus: string) => {
+        const currentIndex = PIPELINE_STAGES.indexOf(currentStatus || "New");
+        if (currentIndex <= 0) return null; // Cannot go back from "New" or if not found
+        return PIPELINE_STAGES[currentIndex - 1];
+    };
+
     const openAdvanceModal = (req: any) => {
         const next = getNextStage(req.status || "New");
         if (next) {
             setModal({ isOpen: true, type: "advance", request: req, targetStage: next });
+        }
+    };
+
+    const openRevertModal = (req: any) => {
+        const prev = getPreviousStage(req.status || "New");
+        if (prev) {
+            setModal({ isOpen: true, type: "revert", request: req, targetStage: prev });
         }
     };
 
@@ -124,6 +137,9 @@ export default function RequestTableClient({
 
                 await updateRequestStatus(modal.request._id, modal.targetStage, finalPayload);
 
+            } else if (modal.type === "revert" && modal.targetStage) {
+                // Update the status backwards. Passing payload allows appending optional admin notes.
+                await updateRequestStatus(modal.request._id, modal.targetStage, payload);
             } else if (modal.type === "details" || modal.type === "assign") {
                 await updateRequestStatus(modal.request._id, modal.request.status, payload);
             }
@@ -175,6 +191,7 @@ export default function RequestTableClient({
                 <TableBody>
                     {initialRequests.map((req: any) => {
                         const nextStage = getNextStage(req.status || "New");
+                        const prevStage = getPreviousStage(req.status || "New");
 
                         return (
                             <TableRow key={req._id} className="border-b border-black/5 hover:bg-zinc-50/50 transition-colors">
@@ -229,6 +246,12 @@ export default function RequestTableClient({
                                                 </DropdownMenuItem>
                                             )}
 
+                                            {prevStage && (
+                                                <DropdownMenuItem onClick={() => openRevertModal(req)} className="font-bold text-amber-600 hover:bg-amber-50 focus:bg-amber-50 cursor-pointer rounded-lg mb-1 py-2">
+                                                    <ArrowLeft className="mr-2 h-4 w-4" /> Revert to: {prevStage}
+                                                </DropdownMenuItem>
+                                            )}
+
                                             <DropdownMenuItem onClick={() => openAssignModal(req)} className="hover:bg-black/5 focus:bg-black/5 cursor-pointer rounded-lg">
                                                 <UserPlus className="mr-2 h-4 w-4 text-blue-500" /> Assign Staff
                                             </DropdownMenuItem>
@@ -263,12 +286,14 @@ export default function RequestTableClient({
                         <DialogTitle className="text-2xl font-bold tracking-tight">
                             {modal.type === "delete" && "Delete Lead"}
                             {modal.type === "advance" && `Advance to ${modal.targetStage}`}
+                            {modal.type === "revert" && `Revert to ${modal.targetStage}`}
                             {modal.type === "details" && "Lead Details & Notes"}
                             {modal.type === "assign" && "Assign Staff"}
                         </DialogTitle>
                         <DialogDescription className="text-zinc-500 font-light mt-2">
                             {modal.type === "delete" && `Are you sure you want to delete ${modal.request?.name}'s inquiry? This cannot be undone.`}
                             {modal.type === "advance" && "Please provide the required details to move this lead to the next stage."}
+                            {modal.type === "revert" && `Are you sure you want to move this lead back to the "${modal.targetStage}" stage?`}
                             {modal.type === "details" && `Review collected data, documents, and notes for ${modal.request?.name}.`}
                             {modal.type === "assign" && `Assign this request to a team member.`}
                         </DialogDescription>
@@ -316,7 +341,6 @@ export default function RequestTableClient({
                     )}
 
                     {/* Content: Details & Notes & Documents */}
-                    {/* Content: Details & Notes & Documents */}
                     {modal.type === "details" && modal.request && (
                         <div className="space-y-6 mt-4">
                             {/* PIPELINE DATA CARD */}
@@ -360,8 +384,8 @@ export default function RequestTableClient({
                                                             {doc.stageAdded}
                                                         </Badge>
                                                         <span className="text-[10px] text-zinc-400">
-                                        {new Date(doc.uploadedAt).toLocaleDateString()}
-                                    </span>
+                                                            {new Date(doc.uploadedAt).toLocaleDateString()}
+                                                        </span>
                                                     </div>
                                                 </div>
                                                 <ExternalLink size={14} className="text-zinc-300 group-hover:text-black mr-2 transition-colors" />
@@ -385,6 +409,19 @@ export default function RequestTableClient({
                                     placeholder="Add private internal notes about this client or vehicle..."
                                 />
                             </div>
+                        </div>
+                    )}
+
+                    {/* Content: Revert Notes */}
+                    {modal.type === "revert" && (
+                        <div className="py-6 space-y-4">
+                            <Label className="text-zinc-600 font-bold">Reason for Reverting (Optional)</Label>
+                            <Textarea
+                                value={payload.adminNotes || ""}
+                                onChange={(e) => handlePayloadChange("adminNotes", e.target.value)}
+                                className={`${inputClasses} min-h-[100px] resize-none`}
+                                placeholder="Make a note of why this lead is moving backwards in the pipeline..."
+                            />
                         </div>
                     )}
 
@@ -477,13 +514,17 @@ export default function RequestTableClient({
                                 Cancel
                             </Button>
                             <Button
-                                variant={modal.type === "delete" ? "destructive" : "default"}
+                                variant={modal.type === "delete" ? "destructive" : modal.type === "revert" ? "secondary" : "default"}
                                 onClick={handleActionSubmit}
                                 disabled={isProcessing}
-                                className={modal.type !== "delete" ? "bg-black text-white hover:bg-zinc-800 rounded-xl px-8" : "rounded-xl px-8"}
+                                className={modal.type === "advance" || modal.type === "details" || modal.type === "assign" ? "bg-black text-white hover:bg-zinc-800 rounded-xl px-8" : "rounded-xl px-8"}
                             >
                                 {isProcessing && <Loader2 className="mr-2 h-4 w-4 animate-spin text-current" />}
-                                {modal.type === "delete" ? "Delete Lead" : modal.type === "details" ? "Save Notes" : modal.type === "assign" ? "Confirm Assignment" : `Update to ${modal.targetStage}`}
+                                {modal.type === "delete" ? "Delete Lead" :
+                                    modal.type === "revert" ? "Revert Stage" :
+                                        modal.type === "details" ? "Save Notes" :
+                                            modal.type === "assign" ? "Confirm Assignment" :
+                                                `Update to ${modal.targetStage}`}
                             </Button>
                         </>
                     </DialogFooter>

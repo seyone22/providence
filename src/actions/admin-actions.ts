@@ -72,29 +72,61 @@ export async function deleteRequest(id: string) {
     }
 }
 
-export async function updateRequestStatus(id: string, status: string, additionalData?: any) {
+export async function updateRequestStatus(id: string, targetStage: string, payload: any) {
     try {
-        await requireAuth();
-        await connectToDatabase();
+        await connectToDatabase(); // Ensure DB connection
 
-        const updatePayload: any = { status };
-
-        // Handle dynamically pushing new documents to the array
-        if (additionalData?.documents && additionalData.documents.length > 0) {
-            updatePayload.$push = { documents: { $each: additionalData.documents } };
-            delete additionalData.documents; // Remove from root payload
+        // 1. Fetch the existing record to prevent overwriting arrays/strings
+        const existingRequest = await Request.findById(id);
+        if (!existingRequest) {
+            throw new Error("Lead not found in the database.");
         }
 
-        // Merge any remaining scalar fields (agreedPrice, invoiceNumber, etc.)
-        Object.assign(updatePayload, additionalData);
+        // 2. Prepare the base update object
+        const updateData: any = {
+            ...payload,
+            status: targetStage
+        };
 
-        await Request.findByIdAndUpdate(id, updatePayload);
-        revalidatePath("/admin");
+        // 3. Smart Appending for Admin Notes
+        // If a user typed something into the notes/revert textarea
+        if (payload.adminNotes && payload.adminNotes.trim() !== "") {
+            const timestamp = new Date().toLocaleString('en-US', {
+                month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit'
+            });
+
+            const existingNotes = existingRequest.adminNotes || "";
+            const notePrefix = `[${timestamp} | Moved to: ${targetStage}]`;
+            const newNoteEntry = `${notePrefix}\n${payload.adminNotes.trim()}`;
+
+            // Append the new note to the bottom of the existing notes
+            updateData.adminNotes = existingNotes
+                ? `${existingNotes}\n\n${newNoteEntry}`
+                : newNoteEntry;
+        } else {
+            // If no new note was provided in the payload, keep the existing ones safe
+            delete updateData.adminNotes;
+        }
+
+        // 4. Smart Appending for Documents
+        // If new files were uploaded to R2, append them to the existing array
+        if (payload.documents && payload.documents.length > 0) {
+            const existingDocs = existingRequest.documents || [];
+            updateData.documents = [...existingDocs, ...payload.documents];
+        }
+
+        // 5. Execute the Database Update
+        await Request.findByIdAndUpdate(id, updateData, { returnDocument: 'after' });
+
+        // 6. Purge Next.js Cache so the table updates instantly
+        // Adjust this path to wherever your dashboard actually lives
+        revalidatePath("/admin/dashboard");
 
         return { success: true };
+
     } catch (error) {
-        console.error("Failed to update status:", error);
-        return { success: false, message: error instanceof Error ? error.message : "Failed to update status" };
+        console.error("Failed to update request status:", error);
+        throw new Error(error instanceof Error ? error.message : "Failed to update lead status.");
     }
 }
 
