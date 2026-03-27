@@ -68,55 +68,55 @@ export default function Home() {
 
         {/* Embedded CSS for the Logo Carousel */}
         <style dangerouslySetInnerHTML={{ __html: `
-        .carousel-container {
-            width: 100vw;
-            position: relative;
-            left: 50%;
-            transform: translateX(-50%);
-            overflow: hidden;
-            background: transparent;
-            border-top: 1px solid rgba(0, 0, 0, 0.15); 
-            border-bottom: 1px solid rgba(0, 0, 0, 0.15); 
-            padding: 40px 0;
-            box-sizing: border-box;
-            -webkit-mask-image: linear-gradient(to right, transparent, black 10%, black 90%, transparent);
-            mask-image: linear-gradient(to right, transparent, black 10%, black 90%, transparent);
-        }
-        .carousel-track {
-            display: flex;
-            align-items: center;
-            width: calc(3400% / 7); 
-            animation: scroll 40s linear infinite; 
-            overflow: hidden;
-        }
-        .carousel-track:hover {
-            animation-play-state: paused;
-        }
-        .carousel-item {
-            width: calc(100% / 34); 
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            padding: 0 5px;
-            box-sizing: border-box;
-        }
-        .carousel-item img {
-            max-width: 100%;
-            max-height: 70px;
-            object-fit: contain;
-            filter: grayscale(100%) opacity(70%); 
-            transition: filter 0.3s ease, transform 0.3s ease, opacity 0.3s ease;
-            cursor: pointer;
-        }
-        .carousel-item img:hover {
-            filter: grayscale(0%) opacity(100%);
-            transform: scale(1.15);
-        }
-        @keyframes scroll {
-            0% { transform: translateX(0); }
-            100% { transform: translateX(-50%); }
-        }
-      `}} />
+  .carousel-container {
+      width: 100vw;
+      position: relative;
+      left: 50%;
+      transform: translateX(-50%);
+      overflow: hidden;
+      background: transparent;
+      border-top: 1px solid rgba(0, 0, 0, 0.15); 
+      border-bottom: 1px solid rgba(0, 0, 0, 0.15); 
+      padding: 40px 0;
+      box-sizing: border-box;
+      -webkit-mask-image: linear-gradient(to right, transparent, black 10%, black 90%, transparent);
+      mask-image: linear-gradient(to right, transparent, black 10%, black 90%, transparent);
+  }
+  .carousel-track {
+      display: flex;
+      align-items: center;
+      width: max-content; /* Lets the track expand naturally */
+      animation: scroll 40s linear infinite; 
+  }
+  .carousel-track:hover {
+      animation-play-state: paused;
+  }
+  .carousel-item {
+      width: 160px; /* Fixed width stops the logos from shrinking */
+      flex-shrink: 0; /* Forces flexbox to respect the width */
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 0 15px;
+      box-sizing: border-box;
+  }
+  .carousel-item img {
+      max-width: 100%;
+      max-height: 70px;
+      object-fit: contain;
+      filter: grayscale(100%) opacity(70%); 
+      transition: filter 0.3s ease, transform 0.3s ease, opacity 0.3s ease;
+      cursor: pointer;
+  }
+  .carousel-item img:hover {
+      filter: grayscale(0%) opacity(100%);
+      transform: scale(1.15);
+  }
+  @keyframes scroll {
+      0% { transform: translateX(0); }
+      100% { transform: translateX(-50%); }
+  }
+`}} />
 
         {/* =========================================
           TOP SECTION: BACKGROUND IMAGE AREA
