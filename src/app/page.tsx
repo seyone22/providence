@@ -64,13 +64,15 @@ export default function Home() {
   const manifestoOpacity = useTransform(manifestoScroll, [0, 1], [0.3, 1]);
 
   return (
-      <main className="min-h-screen bg-white text-black relative flex flex-col selection:bg-black/10 selection:text-black font-sans">
+      <main className="min-h-screen w-full overflow-x-hidden bg-white text-black relative flex flex-col selection:bg-black/10 selection:text-black font-sans">
 
         {/* Embedded CSS for the Logo Carousel */}
         <style dangerouslySetInnerHTML={{ __html: `
         .carousel-container {
-            width: 100vw; 
-            margin-left: calc(50% - 50vw); 
+            width: 100vw;
+            position: relative;
+            left: 50%;
+            transform: translateX(-50%);
             overflow: hidden;
             background: transparent;
             border-top: 1px solid rgba(0, 0, 0, 0.15); 
@@ -85,6 +87,7 @@ export default function Home() {
             align-items: center;
             width: calc(3400% / 7); 
             animation: scroll 40s linear infinite; 
+            overflow: hidden;
         }
         .carousel-track:hover {
             animation-play-state: paused;
@@ -159,13 +162,16 @@ export default function Home() {
               >
                 Any Car. Any Country. Any Port.
               </motion.p>
+            </div>
 
+            <div>
               {/* BRAND LOGO CAROUSEL */}
               <motion.div
+                  style={{maxWidth: '100px !important'}}
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.8, delay: 0.45, ease: appleEase }}
-                  className="carousel-container my-12"
+                  className="carousel-container"
               >
                 <div className="carousel-track">
                   {[...brandLogos, ...brandLogos].map((logo, index) => (
