@@ -284,7 +284,7 @@ export default function RequestTableClient({
             </Table>
 
             <Dialog open={modal.isOpen} onOpenChange={closeDialog}>
-                <DialogContent className="bg-white border-black/5 text-black shadow-2xl sm:rounded-[2rem] max-w-lg p-8 max-h-[90vh] overflow-y-auto">
+                <DialogContent className="bg-white border-black/5 text-black shadow-2xl sm:rounded-[2rem] max-w-4xl min-w-2xl p-8 max-h-[90vh] overflow-y-auto">
                     <DialogHeader>
                         <DialogTitle className="text-2xl font-bold tracking-tight">
                             {modal.type === "delete" && "Delete Lead"}

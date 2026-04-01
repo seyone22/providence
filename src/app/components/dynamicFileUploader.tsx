@@ -22,7 +22,7 @@ export default function DynamicFileUploader({
     const [pendingFiles, setPendingFiles] = useState<PendingFile[]>([]);
 
     const addField = () => {
-        setPendingFiles((prev) => {
+        setPendingFiles((prev: any) => {
             const updated = [
                 ...prev,
                 {
