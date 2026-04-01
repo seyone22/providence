@@ -48,3 +48,40 @@ export async function uploadToR2(formData: FormData) {
         return { success: false, message: "Failed to upload files." };
     }
 }
+
+export async function uploadDossierImages(formData: FormData) {
+    try {
+        const uploadedUrls: string[] = [];
+        const files = formData.getAll("files") as File[];
+
+        for (let i = 0; i < files.length; i++) {
+            const file = files[i];
+            if (!file) continue;
+
+            const arrayBuffer = await file.arrayBuffer();
+            const buffer = Buffer.from(arrayBuffer);
+
+            // Create a unique filename
+            const uniqueSuffix = `${Date.now()}-${Math.round(Math.random() * 1e9)}`;
+            const extension = file.name.split('.').pop();
+            const fileName = `dossiers/${uniqueSuffix}.${extension}`;
+
+            // Upload to Cloudflare R2
+            await r2.send(
+                new PutObjectCommand({
+                    Bucket: BUCKET_NAME,
+                    Key: fileName,
+                    Body: buffer,
+                    ContentType: file.type,
+                })
+            );
+
+            uploadedUrls.push(`${PUBLIC_BUCKET_URL}/${fileName}`);
+        }
+
+        return { success: true, uploadedUrls };
+    } catch (error) {
+        console.error("R2 Upload Error:", error);
+        return { success: false, message: "Failed to upload files." };
+    }
+}

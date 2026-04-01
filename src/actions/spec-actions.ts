@@ -1,56 +1,118 @@
 "use server";
 
-import {revalidatePath} from "next/cache";
+import { revalidatePath } from "next/cache";
 import connectToDatabase from "@/lib/mongoose";
-import SpecDossier from "@/models/modelDossier";
+import SpecDossier from "@/models/SpecDossier";
 
+/**
+ * SAVE / UPSERT DOSSIER
+ * Handles both creating new records and updating existing ones based on VIN.
+ */
 export async function saveSpecDossier(payload: any) {
     try {
         await connectToDatabase();
 
-        // Basic Validation: Ensure a VIN is provided
         if (!payload.vin || payload.vin.trim() === "") {
-            return {success: false, message: "VIN / Chassis Number is required."};
+            return { success: false, message: "VIN / Chassis Number is required." };
         }
 
-        // Check if a dossier for this VIN already exists to prevent accidental duplicates
-        const existingDossier = await SpecDossier.findOne({vin: payload.vin});
+        // use findOneAndUpdate with upsert: true to handle both create/update in one DB hit
+        const savedDossier = await SpecDossier.findOneAndUpdate(
+            { vin: payload.vin },
+            { $set: payload },
+            {
+                new: true,
+                upsert: true,
+                runValidators: true,
+                setDefaultsOnInsert: true
+            }
+        );
 
-        let savedDossier;
-
-        if (existingDossier) {
-            // Update the existing record if the VIN matches
-            savedDossier = await SpecDossier.findOneAndUpdate(
-                {vin: payload.vin},
-                {$set: payload},
-                {new: true}
-            );
-        } else {
-            // Create a brand new record
-            savedDossier = await SpecDossier.create(payload);
-        }
-
-        // Revalidate the page where you might list these dossiers (adjust the path as needed)
-        revalidatePath("/admin/inventory");
+        revalidatePath("/admin/dossiers");
         revalidatePath("/admin/specs");
 
         return {
             success: true,
-            message: "Dossier saved successfully.",
-            data: JSON.parse(JSON.stringify(savedDossier)) // Parse to pass safely from Server to Client
+            message: "Dossier synchronized successfully.",
+            data: JSON.parse(JSON.stringify(savedDossier))
         };
-
     } catch (error: any) {
-        console.error("Failed to save spec dossier:", error);
-
-        // Handle MongoDB unique constraint error specifically
-        if (error.code === 11000) {
-            return {success: false, message: "A dossier with this VIN already exists."};
-        }
-
+        console.error("Save Error:", error);
         return {
             success: false,
-            message: error.message || "An unexpected error occurred while saving."
+            message: error.code === 11000 ? "Conflict: VIN already exists." : "Failed to save dossier."
         };
+    }
+}
+
+/**
+ * GET SINGLE DOSSIER
+ */
+export async function getSpecDossierByVin(vin: string) {
+    try {
+        await connectToDatabase();
+        const dossier = await SpecDossier.findOne({ vin });
+
+        if (!dossier) return { success: false, message: "Dossier not found." };
+
+        return {
+            success: true,
+            data: JSON.parse(JSON.stringify(dossier))
+        };
+    } catch (error) {
+        return { success: false, message: "Error fetching dossier." };
+    }
+}
+
+/**
+ * GET ALL DOSSIERS
+ */
+export async function getAllSpecDossiers() {
+    try {
+        await connectToDatabase();
+        const dossiers = await SpecDossier.find({}).sort({ createdAt: -1 });
+
+        return {
+            success: true,
+            data: JSON.parse(JSON.stringify(dossiers))
+        };
+    } catch (error) {
+        return { success: false, message: "Error fetching dossiers." };
+    }
+}
+
+/**
+ * UPDATE STATUS (Quick Action)
+ * Useful for switching between 'Draft', 'Published', 'Sold' without sending the whole payload.
+ */
+export async function updateDossierStatus(vin: string, status: string) {
+    try {
+        await connectToDatabase();
+        await SpecDossier.updateOne({ vin }, { $set: { status } });
+
+        revalidatePath("/admin/dossiers");
+        return { success: true, message: `Status updated to ${status}` };
+    } catch (error) {
+        return { success: false, message: "Failed to update status." };
+    }
+}
+
+/**
+ * DELETE DOSSIER
+ */
+export async function deleteSpecDossier(vin: string) {
+    try {
+        await connectToDatabase();
+        const result = await SpecDossier.findOneAndDelete({ vin });
+
+        if (!result) return { success: false, message: "Dossier not found." };
+
+        revalidatePath("/admin/dossiers");
+        revalidatePath("/admin/specs");
+
+        return { success: true, message: "Dossier deleted successfully." };
+    } catch (error) {
+        console.error("Delete Error:", error);
+        return { success: false, message: "Error deleting dossier." };
     }
 }

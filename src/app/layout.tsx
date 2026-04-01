@@ -19,7 +19,7 @@ export const metadata: Metadata = {
         default: "Providence Auto | World's largest borderless showroom ",
         template: "%s | Providence Auto",
     },
-    description: "Find your next high-quality vehicle at Providence Auto. Browse our extensive inventory of premium cars, trucks, and SUVs with competitive financing options.",
+    description: "Find your next high-quality vehicle at Providence Auto. Browse our extensive dossiers of premium cars, trucks, and SUVs with competitive financing options.",
     keywords: ["Providence Auto", "car dealership", "used cars", "premium vehicles", "auto sales", "financing"],
     authors: [{ name: "Providence Auto" }],
     creator: "Providence Auto",
@@ -47,7 +47,7 @@ export const metadata: Metadata = {
     twitter: {
         card: "summary_large_image",
         title: "Providence Auto | Premium Pre-Owned Vehicles",
-        description: "Browse our inventory of premium cars and SUVs.",
+        description: "Browse our dossiers of premium cars and SUVs.",
         images: ["/og-image.jpg"],
     },
     robots: {
