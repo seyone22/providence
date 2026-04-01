@@ -2,10 +2,9 @@
 
 import { useEffect, useState, Suspense } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
-import Image from "next/image";
 import {
     Save, Loader2, Globe, Car, Zap, Trash2,
-    Printer, ShieldCheck, Settings2, Armchair, Info, ImagePlus, X
+    Printer, ShieldCheck, Settings2, Armchair, Info, ImagePlus, X, Tag
 } from "lucide-react";
 
 // UI Components
@@ -24,24 +23,37 @@ import { uploadDossierImages } from "@/lib/file-actions";
 const R2_PUBLIC_URL = process.env.NEXT_PUBLIC_R2_PUBLIC_URL || "https://pub-0c6552f09f244121ac51914a1f782578.r2.dev";
 
 const initialSpecData = {
+    // Basics
+    make: "",
+    model: "",
+    year: "",
+    trim: "",
+    color: "",
+    price: "",
+    // Provenance
     countryOfOrigin: "japan",
     mileage: "",
     serviceHistory: "full",
     owners: "",
+    // Identification
     vin: "",
     engineNumber: "",
+    // Mechanics
     engineConfig: "",
     displacement: "",
     maxPower: "",
     maxTorque: "",
     transmission: "",
     fuelSystem: "Petrol",
+    // Interior & Tech
     upholstery: "",
     infotainment: "",
     notes: "",
+    // Compliance
     auctionGrade: "S",
     emissions: "",
     steering: "RHD",
+    // Metadata
     status: "Draft"
 };
 
@@ -69,7 +81,6 @@ function SpecBuilderContent() {
         if (path.startsWith("http://") || path.startsWith("https://") || path.startsWith("blob:")) {
             return path;
         }
-        // Ensure single slash between base URL and path
         const base = R2_PUBLIC_URL.replace(/\/$/, "");
         const cleanPath = path.replace(/^\//, "");
         return `${base}/${cleanPath}`;
@@ -104,7 +115,6 @@ function SpecBuilderContent() {
             const filesArray = Array.from(e.target.files);
             setPendingFiles(prev => [...prev, ...filesArray]);
 
-            // Create local object URLs for previewing before upload
             const newPreviews = filesArray.map(f => URL.createObjectURL(f));
             setPreviewUrls(prev => [...prev, ...newPreviews]);
         }
@@ -122,12 +132,12 @@ function SpecBuilderContent() {
     // Save Flow
     const handleSave = async () => {
         if (!specData.vin) return alert("VIN is required.");
+        if (!specData.make || !specData.model) return alert("Make and Model are required.");
         setIsSaving(true);
 
         try {
             let finalImageUrls = [...existingImages];
 
-            // Upload pending images first
             if (pendingFiles.length > 0) {
                 const formData = new FormData();
                 pendingFiles.forEach(file => formData.append("files", file));
@@ -140,7 +150,6 @@ function SpecBuilderContent() {
                 }
             }
 
-            // Save Dossier
             const payload = { ...specData, features: tags, images: finalImageUrls };
             const result = await saveSpecDossier(payload);
 
@@ -197,7 +206,7 @@ function SpecBuilderContent() {
                                     placeholder="REQUIRED"
                                     className="bg-white/10 border-white/10 h-11 text-white font-mono"
                                     value={specData.vin}
-                                    disabled={!!editVin} // Block VIN change during edit
+                                    disabled={!!editVin}
                                     onChange={(e) => handleInputChange("vin", e.target.value)}
                                 />
                             </div>
@@ -260,8 +269,42 @@ function SpecBuilderContent() {
                     </SpecSection>
                 </div>
 
-                {/* --- MAIN COLUMN (MECHANICS, IMAGES & INTERIOR) --- */}
+                {/* --- MAIN COLUMN (OVERVIEW, IMAGES, MECHANICS & INTERIOR) --- */}
                 <div className="lg:col-span-8 space-y-10">
+
+                    {/* NEW: Vehicle Overview Section */}
+                    <div className="bg-white border border-black/5 rounded-[3rem] p-10 shadow-sm relative overflow-hidden">
+                        <div className="flex items-center gap-4 mb-8">
+                            <div className="bg-blue-50 text-blue-600 p-4 rounded-2xl"><Tag size={28} /></div>
+                            <h3 className="text-2xl font-bold">Vehicle Overview</h3>
+                        </div>
+                        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-x-8 gap-y-6">
+                            <div className="space-y-2">
+                                <Label className="font-bold text-zinc-700">Make (Brand)</Label>
+                                <Input value={specData.make} onChange={(e) => handleInputChange("make", e.target.value)} className="rounded-xl h-12 bg-zinc-50" placeholder="e.g. Toyota" />
+                            </div>
+                            <div className="space-y-2">
+                                <Label className="font-bold text-zinc-700">Model</Label>
+                                <Input value={specData.model} onChange={(e) => handleInputChange("model", e.target.value)} className="rounded-xl h-12 bg-zinc-50" placeholder="e.g. Land Cruiser 300" />
+                            </div>
+                            <div className="space-y-2">
+                                <Label className="font-bold text-zinc-700">Year</Label>
+                                <Input value={specData.year} onChange={(e) => handleInputChange("year", e.target.value)} className="rounded-xl h-12 bg-zinc-50" placeholder="e.g. 2024" />
+                            </div>
+                            <div className="space-y-2">
+                                <Label className="font-bold text-zinc-700">Trim / Edition</Label>
+                                <Input value={specData.trim} onChange={(e) => handleInputChange("trim", e.target.value)} className="rounded-xl h-12 bg-zinc-50" placeholder="e.g. GR Sport" />
+                            </div>
+                            <div className="space-y-2">
+                                <Label className="font-bold text-zinc-700">Exterior Color</Label>
+                                <Input value={specData.color} onChange={(e) => handleInputChange("color", e.target.value)} className="rounded-xl h-12 bg-zinc-50" placeholder="e.g. Precious White" />
+                            </div>
+                            <div className="space-y-2">
+                                <Label className="font-bold text-zinc-700">Listing Price</Label>
+                                <Input value={specData.price} onChange={(e) => handleInputChange("price", e.target.value)} className="rounded-xl h-12 bg-zinc-50 border-emerald-200 focus:border-emerald-500" placeholder="e.g. $115,000 / POA" />
+                            </div>
+                        </div>
+                    </div>
 
                     {/* Image Gallery Builder */}
                     <div className="bg-white border border-black/5 rounded-[3rem] p-10 shadow-sm">
@@ -274,29 +317,18 @@ function SpecBuilderContent() {
                         </div>
 
                         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-                            {/* Render Existing Images from DB */}
                             {existingImages.map((url) => (
                                 <div key={url} className="relative aspect-video bg-zinc-100 rounded-2xl overflow-hidden group">
-                                    {/* Switched to unoptimized standard img to prevent Next.js hostname errors in admin */}
-                                    <img
-                                        src={getImageUrl(url)}
-                                        alt="Dossier image"
-                                        className="w-full h-full object-cover"
-                                    />
+                                    <img src={getImageUrl(url)} alt="Dossier image" className="w-full h-full object-cover" />
                                     <button onClick={() => removeExistingImage(url)} className="absolute top-2 right-2 bg-black/50 text-white p-1.5 rounded-full opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-500">
                                         <X size={14} />
                                     </button>
                                 </div>
                             ))}
 
-                            {/* Render Pending Upload Previews */}
                             {previewUrls.map((url, index) => (
                                 <div key={url} className="relative aspect-video bg-zinc-100 rounded-2xl overflow-hidden group border-2 border-dashed border-purple-400">
-                                    <img
-                                        src={url}
-                                        alt="Pending upload"
-                                        className="w-full h-full object-cover opacity-70"
-                                    />
+                                    <img src={url} alt="Pending upload" className="w-full h-full object-cover opacity-70" />
                                     <span className="absolute bottom-2 left-2 bg-purple-500 text-white text-[10px] font-bold px-2 py-1 rounded-full">Pending</span>
                                     <button onClick={() => removePendingFile(index)} className="absolute top-2 right-2 bg-black/50 text-white p-1.5 rounded-full opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-500">
                                         <X size={14} />
@@ -306,13 +338,7 @@ function SpecBuilderContent() {
                         </div>
 
                         <div className="relative border-2 border-dashed border-zinc-200 rounded-[2rem] p-10 flex flex-col items-center justify-center text-center hover:bg-zinc-50 transition-colors">
-                            <Input
-                                type="file"
-                                multiple
-                                accept="image/*"
-                                onChange={handleFileSelect}
-                                className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-                            />
+                            <Input type="file" multiple accept="image/*" onChange={handleFileSelect} className="absolute inset-0 w-full h-full opacity-0 cursor-pointer" />
                             <ImagePlus size={40} className="text-zinc-300 mb-4" />
                             <p className="font-bold text-lg">Drag & Drop Images Here</p>
                             <p className="text-zinc-400 text-sm mt-1">or click to browse from your device</p>
@@ -344,7 +370,6 @@ function SpecBuilderContent() {
                                 </div>
                             ))}
 
-                            {/* Refactored Fuel System Dropdown */}
                             <div className="space-y-2">
                                 <Label className="font-bold text-zinc-700">Fuel System</Label>
                                 <Select value={specData.fuelSystem} onValueChange={(v) => handleInputChange("fuelSystem", v)}>
