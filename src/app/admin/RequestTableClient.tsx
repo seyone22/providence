@@ -66,7 +66,7 @@ export default function RequestTableClient({
 
     const getPreviousStage = (currentStatus: string) => {
         const currentIndex = PIPELINE_STAGES.indexOf(currentStatus || "New");
-        if (currentIndex <= 0) return null; // Cannot go back from "New" or if not found
+        if (currentIndex <= 0) return null;
         return PIPELINE_STAGES[currentIndex - 1];
     };
 
@@ -106,7 +106,8 @@ export default function RequestTableClient({
                 await deleteRequest(modal.request._id);
             } else if (modal.type === "advance" && modal.targetStage) {
 
-                let uploadedDocuments = [];
+                // CRITICAL FIX: Preserve existing documents!
+                let finalDocuments = modal.request.documents ? [...modal.request.documents] : [];
 
                 // 1. Process File Uploads First
                 const validFiles = pendingFiles.filter(pf => pf.file !== null);
@@ -123,22 +124,24 @@ export default function RequestTableClient({
                         throw new Error(uploadRes.message);
                     }
 
-                    uploadedDocuments = uploadRes.uploadedFiles.map((file: any) => ({
+                    const newDocuments = uploadRes.uploadedFiles.map((file: any) => ({
                         ...file,
                         stageAdded: modal.targetStage
                     }));
+
+                    // Append the freshly uploaded docs to the existing array
+                    finalDocuments = [...finalDocuments, ...newDocuments];
                 }
 
-                // 2. Update Database
+                // 2. Update Database with the merged array
                 const finalPayload = {
                     ...payload,
-                    documents: uploadedDocuments
+                    documents: finalDocuments
                 };
 
                 await updateRequestStatus(modal.request._id, modal.targetStage, finalPayload);
 
             } else if (modal.type === "revert" && modal.targetStage) {
-                // Update the status backwards. Passing payload allows appending optional admin notes.
                 await updateRequestStatus(modal.request._id, modal.targetStage, payload);
             } else if (modal.type === "details" || modal.type === "assign") {
                 await updateRequestStatus(modal.request._id, modal.request.status, payload);
@@ -343,7 +346,6 @@ export default function RequestTableClient({
                     {/* Content: Details & Notes & Documents */}
                     {modal.type === "details" && modal.request && (
                         <div className="space-y-6 mt-4">
-                            {/* PIPELINE DATA CARD */}
                             <div className="bg-zinc-50 border border-black/5 rounded-2xl p-5 space-y-4 text-sm">
                                 <h4 className="font-bold text-black border-b border-black/5 pb-2">Collected Pipeline Data</h4>
                                 <div className="grid grid-cols-2 gap-x-4 gap-y-3">
@@ -358,7 +360,6 @@ export default function RequestTableClient({
                                 </div>
                             </div>
 
-                            {/* DOCUMENT LEDGER (R2 FILES) */}
                             <div className="space-y-3">
                                 <Label className="text-zinc-600 font-bold flex items-center gap-2">
                                     <Paperclip size={16} /> Attached Documents
@@ -383,9 +384,6 @@ export default function RequestTableClient({
                                                         <Badge variant="outline" className="text-[9px] uppercase tracking-tighter py-0 px-1.5 h-4 bg-zinc-100 border-none text-zinc-500">
                                                             {doc.stageAdded}
                                                         </Badge>
-                                                        <span className="text-[10px] text-zinc-400">
-                                                            {new Date(doc.uploadedAt).toLocaleDateString()}
-                                                        </span>
                                                     </div>
                                                 </div>
                                                 <ExternalLink size={14} className="text-zinc-300 group-hover:text-black mr-2 transition-colors" />
@@ -399,7 +397,6 @@ export default function RequestTableClient({
                                 )}
                             </div>
 
-                            {/* ADMIN NOTES */}
                             <div className="space-y-2">
                                 <Label className="text-zinc-600 font-bold">Internal Admin Notes</Label>
                                 <Textarea
@@ -501,7 +498,6 @@ export default function RequestTableClient({
                                 </div>
                             )}
 
-                            {/* Drop in the Uploader */}
                             <div className="mt-2 border-t border-black/5 pt-6">
                                 <DynamicFileUploader onFilesChange={setPendingFiles} />
                             </div>

@@ -22,27 +22,44 @@ export default function DynamicFileUploader({
     const [pendingFiles, setPendingFiles] = useState<PendingFile[]>([]);
 
     const addField = () => {
-        const newField: PendingFile = {
-            id: Math.random().toString(36).substring(7),
-            fieldName: "",
-            fileType: "pdf",
-            file: null
-        };
-        const updated = [...pendingFiles, newField];
-        setPendingFiles(updated);
-        onFilesChange(updated);
+        setPendingFiles((prev) => {
+            const updated = [
+                ...prev,
+                {
+                    id: Math.random().toString(36).substring(7),
+                    fieldName: "",
+                    fileType: "pdf",
+                    file: null
+                }
+            ];
+            onFilesChange(updated);
+            return updated;
+        });
     };
 
     const removeField = (id: string) => {
-        const updated = pendingFiles.filter(f => f.id !== id);
-        setPendingFiles(updated);
-        onFilesChange(updated);
+        setPendingFiles((prev) => {
+            const updated = prev.filter(f => f.id !== id);
+            onFilesChange(updated);
+            return updated;
+        });
     };
 
     const updateField = (id: string, key: keyof PendingFile, value: any) => {
-        const updated = pendingFiles.map(f => f.id === id ? { ...f, [key]: value } : f);
-        setPendingFiles(updated);
-        onFilesChange(updated);
+        setPendingFiles((prev) => {
+            const updated = prev.map(f => {
+                if (f.id !== id) return f;
+
+                // If the user switches fileType, clear out the selected file to prevent mismatches
+                if (key === "fileType" && f.fileType !== value) {
+                    return { ...f, [key]: value, file: null };
+                }
+
+                return { ...f, [key]: value };
+            });
+            onFilesChange(updated);
+            return updated;
+        });
     };
 
     return (
@@ -81,6 +98,8 @@ export default function DynamicFileUploader({
                             <div className="flex-1 w-full">
                                 <Input
                                     type="file"
+                                    // React uses the `key` to unmount and remount the input if the file type changes, forcing it to clear the browser's selected file
+                                    key={pf.fileType}
                                     accept={pf.fileType === "pdf" ? ".pdf" : "image/*"}
                                     onChange={(e) => updateField(pf.id, "file", e.target.files?.[0] || null)}
                                     className="h-9 text-sm cursor-pointer file:text-zinc-600 file:font-medium file:border-0 file:bg-transparent file:mr-2"
