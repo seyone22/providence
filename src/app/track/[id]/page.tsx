@@ -4,7 +4,9 @@ import Request from "@/models/Request";
 import { notFound } from "next/navigation";
 import {
     Inbox, Search, Handshake, CreditCard, FileCheck,
-    Wrench, Ship, Anchor, Flag, CheckCircle2, ArrowRight
+    Wrench, Ship, Anchor, Flag, CheckCircle2,
+    FileText, Image as ImageIcon, ExternalLink,
+    User, MessageCircle
 } from "lucide-react";
 
 // Updated Pipeline Stages matching your admin dashboard perfectly
@@ -39,6 +41,10 @@ export default async function TrackingPage({ params }: { params: Promise<{ id: s
     const currentIndex = TIMELINE_STEPS.findIndex(s => s.id === currentStatus);
     const activeIndex = currentIndex === -1 ? 0 : currentIndex;
 
+    // Extract names for the welcome block
+    const clientFirstName = requestData.name ? requestData.name.split(' ')[0] : 'there';
+    const agentName = requestData.assignedToName || "your dedicated import specialist";
+
     return (
         <main className="min-h-screen bg-white text-black selection:bg-black/10 selection:text-black font-sans overflow-x-hidden pb-32">
             <MinimalHeader />
@@ -48,16 +54,50 @@ export default async function TrackingPage({ params }: { params: Promise<{ id: s
 
             <div className="relative z-10 max-w-4xl mx-auto px-6 pt-32 md:pt-40">
 
+                {/* === NEW: AGENT WELCOME CARD === */}
+                <div className="mb-16 md:mb-24">
+                    <h2 className="text-2xl md:text-3xl font-bold tracking-tight text-center text-black mb-8">
+                        Hello {clientFirstName}, <span className="text-zinc-400 font-light">thank you for verifying your request.</span>
+                    </h2>
+
+                    <div className="bg-white border border-black/5 shadow-2xl shadow-black/[0.03] rounded-[2.5rem] p-6 md:p-8 flex flex-col md:flex-row items-center md:items-start gap-6 text-center md:text-left mx-auto max-w-3xl relative overflow-hidden">
+                        {/* Subtle background decoration */}
+                        <div className="absolute -top-10 -right-10 opacity-[0.02] pointer-events-none">
+                            <MessageCircle size={200} />
+                        </div>
+
+                        <div className="w-16 h-16 shrink-0 bg-zinc-50 border border-black/5 rounded-full flex items-center justify-center relative z-10 shadow-sm">
+                            <User className="h-7 w-7 text-zinc-400" />
+                        </div>
+                        <div className="flex-1 relative z-10">
+                            <p className="text-zinc-600 text-sm md:text-base leading-relaxed">
+                                I'm <strong className="text-black font-bold">{agentName}</strong>, and I'm here to assist you with securing your dream vehicle. The details of your inquiry are shown below along with your live tracker. Once you're ready, click below to initiate our conversation.
+                            </p>
+                            <div className="flex flex-wrap justify-center md:justify-start items-center gap-3 mt-6">
+                                <a href="mailto:support@providenceauto.com" className="inline-flex items-center justify-center gap-2 bg-black text-white px-6 py-3 rounded-xl text-sm font-bold shadow-xl shadow-black/10 hover:scale-[1.02] transition-transform">
+                                    <MessageCircle size={18} /> Chat Now
+                                </a>
+                                <a href="https://wa.me/1234567890" target="_blank" rel="noreferrer" className="inline-flex items-center justify-center gap-2 bg-[#25D366]/10 text-[#128C7E] px-6 py-3 rounded-xl text-sm font-bold hover:bg-[#25D366]/20 transition-colors border border-[#25D366]/20">
+                                    <svg viewBox="0 0 24 24" className="w-5 h-5 fill-current"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51a12.8 12.8 0 0 0-.57-.01c-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.064 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 0 1-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 0 1-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 0 1 2.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0 0 12.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 0 0 5.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 0 0-3.48-8.413Z"/></svg>
+                                    WhatsApp
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {/* === END WELCOME CARD === */}
+
+
                 {/* Header Section */}
                 <div className="text-center mb-20">
-                    <p className="text-xs font-bold tracking-[0.3em] text-zinc-400 uppercase mb-6 drop-shadow-sm">
-                        Live Logistics Tracker
+                    <p className="text-xs font-bold tracking-[0.3em] text-zinc-400 uppercase mb-4 drop-shadow-sm">
+                        Requested Vehicle
                     </p>
-                    <h1 className="text-5xl md:text-6xl font-bold tracking-tighter text-black mb-4">
+                    <h1 className="text-5xl md:text-6xl font-black tracking-tighter text-black mb-4">
                         {requestData.make} {requestData.vehicle_model}
                     </h1>
-                    <p className="text-lg text-zinc-500 font-light">
-                        Requested on {new Date(requestData.createdAt).toLocaleDateString()}
+                    <p className="text-lg text-zinc-500 font-medium">
+                        Initiated on {new Date(requestData.createdAt).toLocaleDateString()}
                     </p>
 
                     <div className="inline-flex items-center gap-3 mt-10 px-6 py-3 rounded-full bg-zinc-50 border border-black/5 shadow-sm">
@@ -72,7 +112,7 @@ export default async function TrackingPage({ params }: { params: Promise<{ id: s
                 </div>
 
                 {/* Timeline Section */}
-                <div className="max-w-2xl mx-auto relative">
+                <div className="max-w-2xl mx-auto relative mt-8">
                     {/* Background Line */}
                     <div className="absolute left-8 top-8 bottom-8 w-[2px] bg-zinc-100" />
 
@@ -87,6 +127,9 @@ export default async function TrackingPage({ params }: { params: Promise<{ id: s
                             const isCompleted = index < activeIndex;
                             const isActive = index === activeIndex;
                             const isFuture = index > activeIndex;
+
+                            // Filter documents that belong to this specific timeline stage
+                            const stepDocuments = requestData.documents?.filter((doc: any) => doc.stageAdded === step.id) || [];
 
                             return (
                                 <div key={step.id} className="flex items-start gap-8 group">
@@ -117,15 +160,13 @@ export default async function TrackingPage({ params }: { params: Promise<{ id: s
                                         <p className="text-zinc-500 text-lg font-light leading-relaxed mb-4">{step.desc}</p>
 
                                         {/* === DYNAMIC CONTEXTUAL DATA === */}
-                                        {/* We show this data if the step is active OR completed, so the user has a history */}
-
                                         {(isActive || isCompleted) && (
-                                            <div className="space-y-3 mt-4">
+                                            <div className="space-y-4 mt-4">
 
+                                                {/* Text Data specific to each stage */}
                                                 {step.id === "Vehicle Selection" && requestData.options && (
                                                     <div className="p-5 rounded-2xl bg-zinc-50 border border-black/5 text-sm leading-relaxed">
                                                         <span className="block text-zinc-800 font-bold mb-2">Proposed Options & Links:</span>
-                                                        {/* Using whitespace-pre-wrap so if the admin pasted multiple lines/links, they format correctly */}
                                                         <span className="text-zinc-600 font-light whitespace-pre-wrap">{requestData.options}</span>
                                                     </div>
                                                 )}
@@ -191,6 +232,30 @@ export default async function TrackingPage({ params }: { params: Promise<{ id: s
                                                     <div className="p-5 rounded-2xl bg-emerald-50 border border-emerald-100 text-sm leading-relaxed">
                                                         <span className="block text-emerald-800 font-bold mb-2">Release Notes:</span>
                                                         <span className="text-emerald-700 font-light">"{requestData.customsNotes}"</span>
+                                                    </div>
+                                                )}
+
+                                                {/* DYNAMIC DOCUMENTS / FILES associated with this stage */}
+                                                {stepDocuments.length > 0 && (
+                                                    <div className="grid gap-2 mt-2">
+                                                        {stepDocuments.map((doc: any, idx: number) => (
+                                                            <a
+                                                                key={idx}
+                                                                href={doc.fileUrl}
+                                                                target="_blank"
+                                                                rel="noopener noreferrer"
+                                                                className="flex items-center gap-3 p-3 bg-white border border-black/5 rounded-xl shadow-sm hover:shadow-md hover:border-black/10 transition-all group"
+                                                            >
+                                                                <div className="p-2 bg-zinc-100 rounded-lg text-zinc-500 group-hover:text-black group-hover:bg-black/5 transition-colors shrink-0">
+                                                                    {doc.fileType === "pdf" ? <FileText size={18} /> : <ImageIcon size={18} />}
+                                                                </div>
+                                                                <div className="flex-1 min-w-0">
+                                                                    <p className="text-sm font-semibold text-black truncate">{doc.fieldName}</p>
+                                                                    <p className="text-[10px] text-zinc-400 mt-0.5">Click to view document</p>
+                                                                </div>
+                                                                <ExternalLink size={16} className="text-zinc-300 group-hover:text-black mr-2 transition-colors shrink-0" />
+                                                            </a>
+                                                        ))}
                                                     </div>
                                                 )}
 
