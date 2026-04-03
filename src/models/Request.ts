@@ -24,6 +24,7 @@ export interface IRequest extends Document {
     phone: string;
     countryOfImport: string;
     status: string;
+    leadStatus: string;
 
     // Pipeline Fields
     options?: string;
@@ -67,6 +68,7 @@ const RequestSchema: Schema = new Schema(
         phone: { type: String, required: true },
         countryOfImport: { type: String, required: true },
         status: { type: String, default: 'New' },
+        leadStatus: { type: String, default: 'Unqualified'},
 
         options: { type: String },
         agreedPrice: { type: Number },

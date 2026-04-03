@@ -53,11 +53,14 @@ export default function RequestTableClient({
     };
 
     const getStatusBadge = (status: string) => {
+        const unqualified = status || "Unqualified";
         const current = status || "New";
         const isMiddle = ["Deposit Collected", "Vehicle Purchased", "Preparation"].includes(current);
         const isShipping = ["Shipped", "Arrived at Port"].includes(current);
         const isDone = current === "Cleared Customs";
 
+        if (unqualified) return <Badge
+            className="bg-zinc-100 text-zinc-600 border-zinc-200 hover:bg-zinc-200 rounded-full px-3">{current}</Badge>;
         if (isDone) return <Badge
             className="bg-emerald-50 text-emerald-600 border-emerald-200 hover:bg-emerald-100 rounded-full px-3">{current}</Badge>;
         if (isShipping) return <Badge
@@ -85,6 +88,7 @@ export default function RequestTableClient({
                         <TableHead className="text-zinc-500 font-semibold">Contact</TableHead>
                         <TableHead className="text-zinc-500 font-semibold">Requested Vehicle</TableHead>
                         <TableHead className="text-zinc-500 font-semibold">Status</TableHead>
+                        <TableHead className="text-zinc-500 font-semibold">Lead Status</TableHead>
                         <TableHead className="w-[80px] pr-6"></TableHead>
                     </TableRow>
                 </TableHeader>
@@ -137,6 +141,11 @@ export default function RequestTableClient({
                                                 Unassigned
                                             </div>
                                         )}
+                                    </div>
+                                </TableCell>
+                                <TableCell>
+                                    <div className="flex flex-col items-start gap-2">
+                                        {getStatusBadge(req.leadStatus)}
                                     </div>
                                 </TableCell>
                                 <TableCell className="pr-6">
