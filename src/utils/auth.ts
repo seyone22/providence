@@ -61,7 +61,9 @@ export const auth = betterAuth({
         additionalFields: {
             role: { type: "string", defaultValue: "user" },
             isBanned: { type: "boolean", defaultValue: false },
-            badges: { type: "string[]", defaultValue: [] }
+            badges: { type: "string[]", defaultValue: [] },
+            // 👉 ADD THIS
+            whatsappNumber: { type: "string", required: false, defaultValue: "" }
         }
     },
 

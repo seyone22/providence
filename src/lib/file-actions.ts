@@ -85,3 +85,33 @@ export async function uploadDossierImages(formData: FormData) {
         return { success: false, message: "Failed to upload files." };
     }
 }
+
+export async function uploadProfileImage(formData: FormData) {
+    try {
+        const file = formData.get("file") as File;
+        if (!file) return { success: false, message: "No file provided" };
+
+        const arrayBuffer = await file.arrayBuffer();
+        const buffer = Buffer.from(arrayBuffer);
+
+        // Create a unique filename
+        const uniqueSuffix = `${Date.now()}-${Math.round(Math.random() * 1e9)}`;
+        const extension = file.name.split('.').pop();
+        const fileName = `profiles/${uniqueSuffix}.${extension}`;
+
+        // Upload to Cloudflare R2
+        await r2.send(
+            new PutObjectCommand({
+                Bucket: BUCKET_NAME,
+                Key: fileName,
+                Body: buffer,
+                ContentType: file.type,
+            })
+        );
+
+        return { success: true, url: `${PUBLIC_BUCKET_URL}/${fileName}` };
+    } catch (error) {
+        console.error("R2 Upload Error:", error);
+        return { success: false, message: "Failed to upload profile picture." };
+    }
+}
