@@ -308,7 +308,7 @@ export default function RequestForm() {
 
                     <div className="flex flex-col items-center gap-6 w-full max-w-md">
                         <a
-                            href={`/tracking/${submittedRequestId}`}
+                            href={`/track/${submittedRequestId}`}
                             className="w-full bg-[#4da8da] hover:bg-[#3d92c2] text-white py-4 px-6 rounded-2xl font-bold text-lg transition-colors text-center shadow-md shadow-[#4da8da]/20"
                         >
                             Authenticate and Track My Inquiry
