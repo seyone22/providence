@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
+import { useSearchParams } from "next/navigation";
 import { Loader2, ArrowLeft, CheckCircle2, ChevronDown, AlertCircle } from "lucide-react";
 import { submitCarRequest } from "@/actions/request-actions";
 import { motion, AnimatePresence } from "framer-motion";
@@ -36,7 +37,16 @@ const COUNTRIES = [
     { n: "Sri Lanka", c: "+94" }, { n: "Sweden", c: "+46" }, { n: "Switzerland", c: "+41" },
     { n: "United Arab Emirates", c: "+971" }, { n: "United Kingdom", c: "+44" },
     { n: "United States", c: "+1" }
-].sort((a, b) => a.n.localeCompare(b.n)); // Truncated slightly for brevity, you can paste the full list back in
+].sort((a, b) => a.n.localeCompare(b.n));
+
+// --- HELPER: Read Cookies for Meta Pixel Data ---
+function getCookie(name: string) {
+    if (typeof document === 'undefined') return undefined;
+    const value = `; ${document.cookie}`;
+    const parts = value.split(`; ${name}=`);
+    if (parts.length === 2) return parts.pop()?.split(';').shift();
+    return undefined;
+}
 
 // --- CUSTOM UI COMPONENTS ---
 
@@ -112,6 +122,8 @@ const initialFormState = {
 };
 
 export default function RequestForm() {
+    const searchParams = useSearchParams();
+
     const [step, setStep] = useState(1);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [successMsg, setSuccessMsg] = useState("");
@@ -120,6 +132,19 @@ export default function RequestForm() {
 
     const [formData, setFormData] = useState(initialFormState);
     const [errors, setErrors] = useState<Record<string, string>>({});
+
+    // Identity keys for Server-to-Server tracking
+    const [trackingData, setTrackingData] = useState({ gclid: '', fbclid: '', fbc: '', fbp: '' });
+
+    // Capture URL params and Cookies on mount
+    useEffect(() => {
+        setTrackingData({
+            gclid: searchParams?.get('gclid') || '',
+            fbclid: searchParams?.get('fbclid') || '',
+            fbc: getCookie('_fbc') || '',
+            fbp: getCookie('_fbp') || ''
+        });
+    }, [searchParams]);
 
     useEffect(() => {
         if (!formData.make) {
@@ -147,12 +172,11 @@ export default function RequestForm() {
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
         const { id, value } = e.target;
         setFormData(prev => ({ ...prev, [id]: value }));
-        if (errors[id]) setErrors(prev => ({ ...prev, [id]: "" })); // Clear error on typing
+        if (errors[id]) setErrors(prev => ({ ...prev, [id]: "" }));
     };
 
     const handleDropdownChange = (id: string, value: string) => {
         setFormData(prev => {
-            // If make changes, reset the model
             if (id === "make" && prev.make !== value) return { ...prev, [id]: value, vehicle_model: "" };
             return { ...prev, [id]: value };
         });
@@ -194,7 +218,33 @@ export default function RequestForm() {
 
         setIsSubmitting(true);
         try {
-            const response = await submitCarRequest(formData);
+            // Map the form UI data back into the structure expected by the backend
+            let yearFrom = "", yearTo = "";
+            if (formData.condition === "Used" && formData.yearRange) {
+                const parts = formData.yearRange.split("-");
+                yearFrom = parts[0];
+                yearTo = parts[1] || parts[0];
+            }
+
+            const payload = {
+                make: formData.make,
+                vehicle_model: formData.vehicle_model,
+                condition: formData.condition,
+                yearFrom: yearFrom || undefined,
+                yearTo: yearTo || undefined,
+                mileage: formData.condition === "Used" ? formData.mileageRange : undefined,
+                specs: formData.specs,
+                name: formData.name,
+                email: formData.email,
+                countryCode: formData.countryCode,
+                phone: formData.phone,
+                countryOfImport: formData.countryOfImport,
+                // Append Tracking Identifiers
+                ...trackingData
+            };
+
+            const response = await submitCarRequest(payload);
+
             if (response.success) setSuccessMsg("Inquiry received. Our concierge will reach out within 24 hours.");
             else setErrors({ submit: response.message });
         } catch (error) {

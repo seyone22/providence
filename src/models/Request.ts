@@ -37,6 +37,11 @@ export interface IRequest extends Document {
     customsNotes?: string;
     adminNotes?: string;
 
+    gclid?: string;
+    fbclid?: string;
+    fbc?: string;
+    fbp?: string;
+
     // Assignment Fields - Updated to reference the User collection
     assignedToId?: mongoose.Types.ObjectId;
     assignedToName?: string;
@@ -74,6 +79,11 @@ const RequestSchema: Schema = new Schema(
         portName: {type: String},
         customsNotes: {type: String},
         adminNotes: {type: String},
+
+        gclid: { type: String },
+        fbclid: { type: String },
+        fbc: { type: String },
+        fbp: { type: String },
 
         // Reference to the User model (Assuming the collection name is 'user')
         assignedToId: {type: mongoose.Schema.Types.ObjectId, ref: 'user'},

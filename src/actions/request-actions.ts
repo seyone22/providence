@@ -17,6 +17,11 @@ export async function submitCarRequest(data: {
     countryCode: string;
     phone: string;
     countryOfImport: string;
+    // S2S Tracking Fields
+    gclid?: string;
+    fbclid?: string;
+    fbc?: string;
+    fbp?: string;
 }) {
     try {
         await connectToDatabase();
@@ -28,7 +33,7 @@ export async function submitCarRequest(data: {
         // 2. Fire off the emails concurrently (won't block the UI return if it takes a second)
         const staffEmail = "leads@providenceauto.co.uk"; // Hardcoded staff email for now
 
-        await Promise.all([
+        await Promise.allSettled([
             emailService.sendCustomerConfirmation(data.email, {
                 userName: data.name,
                 make: data.make,
