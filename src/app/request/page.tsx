@@ -1,5 +1,6 @@
 "use client";
 
+import { Suspense } from "react";
 import MinimalHeader from "@/app/components/MinimalHeader";
 import { motion } from "framer-motion";
 import RequestForm from "@/app/components/requestForm"; // Adjust path if necessary
@@ -56,7 +57,13 @@ export default function RequestCar() {
 
                 {/* Main Form Component */}
                 <div className="w-full max-w-3xl">
-                    <RequestForm />
+                    <Suspense fallback={
+                        <div className="w-full max-w-3xl mx-auto h-[550px] flex items-center justify-center bg-white/80 backdrop-blur-xl rounded-[2.5rem] border border-black/5 shadow-[0_40px_100px_rgba(0,0,0,0.08)] text-zinc-500">
+                            Loading form...
+                        </div>
+                    }>
+                        <RequestForm />
+                    </Suspense>
                 </div>
 
             </main>
