@@ -36,7 +36,7 @@ export async function submitCarRequest(data: {
             const UserCollection = db.collection("user");
 
             // Fetch all users with the role 'Staff'
-            const staffMembers = await UserCollection.find({ role: "Staff" }).toArray();
+            const staffMembers = await UserCollection.find({ role: "Sales" }).toArray();
 
             if (staffMembers.length > 0) {
                 // Pick a random staff member from the array
