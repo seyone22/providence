@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef } from "react";
+import { useRef, Suspense } from "react";
 import MinimalHeader from "@/app/components/MinimalHeader";
 import { Landmark, Compass, Ship, ShieldCheck, ArrowRight } from "lucide-react";
 import { motion, useScroll, useTransform } from "framer-motion";
@@ -84,7 +84,6 @@ export default function B2CLanding() {
                         animate={{ y: 0, opacity: 1 }}
                         transition={{ duration: 0.8, delay: 0.6, ease: appleEase }}
                     >
-                        {/* UPDATED: Changed from Link to a anchor tag to scroll down smoothly to the form */}
                         <a href="#inquiry" className="group relative inline-flex items-center justify-center px-10 py-5 text-lg font-bold  text-white bg-black rounded-full overflow-hidden transition-transform hover:scale-105 shadow-[0_10px_40px_rgba(0,0,0,0.1)]">
                             <span className="relative z-10 flex items-center gap-2">
                                 Begin Your Inquiry <ArrowRight size={18} className="group-hover:translate-x-1 transition-transform" />
@@ -138,9 +137,7 @@ export default function B2CLanding() {
                         >
                             <div className={`absolute -bottom-24 -right-24 w-64 h-64 rounded-full blur-[80px] bg-transparent transition-colors duration-700 ${feature.glowColor}`} />
                             <div className="relative z-10">
-                                {/* Container: Turns blue on hover */}
                                 <div className="p-4 bg-black/5 border border-black/10 rounded-2xl mb-6 inline-flex group-hover:bg-sky-500 group-hover:border-sky-500 transition-colors duration-500">
-                                    {/* Icon: Starts blue, turns white on hover */}
                                     <feature.icon className="text-sky-500 h-8 w-8 group-hover:text-white transition-colors duration-500" />
                                 </div>
 
@@ -157,8 +154,6 @@ export default function B2CLanding() {
                 </div>
             </section>
 
-            {/* SECTION 4: The Final Ask & Embedded Form */}
-            {/* Added id="inquiry" so the hero button scrolls down here */}
             <section id="inquiry" className="py-32 px-6 relative flex flex-col justify-center items-center bg-zinc-50 border-t border-black/5 z-10 overflow-hidden">
                 <motion.div
                     initial={{ y: 40, opacity: 0 }}
@@ -175,12 +170,16 @@ export default function B2CLanding() {
                     </p>
                 </motion.div>
 
-                {/* Render the extracted component here */}
                 <div className="w-full relative z-20">
-                    <RequestForm />
+                    <Suspense fallback={
+                        <div className="w-full max-w-3xl mx-auto h-[550px] flex items-center justify-center bg-white/80 backdrop-blur-xl rounded-[2.5rem] border border-black/5 text-zinc-500">
+                            Loading form...
+                        </div>
+                    }>
+                        <RequestForm />
+                    </Suspense>
                 </div>
 
-                {/* Subtle background glow behind the form */}
                 <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-[800px] h-[400px] bg-black/5 blur-[120px] rounded-full pointer-events-none" />
             </section>
         </main>
