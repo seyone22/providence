@@ -4,6 +4,7 @@ import CustomerConfirmationEmail from "@/emails/customer-confirmation";
 import StaffAlertEmail from "@/emails/staff-alert";
 import AuthActionEmail from "@/emails/auth-action";
 import AdminInvitationEmail from "@/emails/admin-invitation";
+import LeadQualifiedAlertEmail from "@/emails/lead-qualified-alert";
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
@@ -84,4 +85,13 @@ export const emailService = {
             )
         });
     },
+
+    sendLeadQualifiedAlert: async (data: any, requestId: string) => {
+        const targetEmail = "info@providenceauto.uk.com"; // Hardcoded as requested
+        await sendEmail({
+            to: targetEmail,
+            subject: `✅ Lead Qualified: ${data.name} - ${data.make} ${data.vehicle_model}`,
+            component: LeadQualifiedAlertEmail({ data, requestId })
+        });
+    }
 };

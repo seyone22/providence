@@ -1,15 +1,14 @@
+// @/app/tracking/[id]/page.tsx
 import MinimalHeader from "@/app/components/MinimalHeader";
-import connectToDatabase from "@/lib/mongoose";
-import Request from "@/models/Request";
 import { notFound } from "next/navigation";
 import {
     Inbox, Search, Handshake, CreditCard, FileCheck,
     Wrench, Ship, Anchor, Flag, CheckCircle2,
-    FileText, Image as ImageIcon, ExternalLink,
-    User, MessageCircle
+    FileText, Image as ImageIcon, ExternalLink
 } from "lucide-react";
+import { getTrackingData, markLeadAsOpened } from "@/actions/tracking-actions";
+import ClientAgentCard from "@/app/components/ClientAgentCard";
 
-// Updated Pipeline Stages matching your admin dashboard perfectly
 const TIMELINE_STEPS = [
     { id: "New", label: "Inquiry Received", icon: Inbox, desc: "Your request is actively in our system." },
     { id: "Vehicle Selection", label: "Vehicle Selection", icon: Search, desc: "Sourcing the perfect global match." },
@@ -23,70 +22,54 @@ const TIMELINE_STEPS = [
 ];
 
 export default async function TrackingPage({ params }: { params: Promise<{ id: string }> }) {
-    let requestData = null;
     const id = (await params).id;
 
-    try {
-        await connectToDatabase();
-        requestData = await Request.findById(id).lean();
-    } catch (error) {
-        console.error("Invalid Request ID");
+    // Call our separated server action
+    const data = await getTrackingData(id);
+
+    if (!data || !data.request) {
+        notFound();
     }
 
-    if (!requestData) {
-        notFound();
+    const { request: requestData, agent: agentData } = data;
+
+    // === FIRST VISIT LOGIC ===
+    // If the lead is completely new, trigger the update.
+    // We don't need to await this; it can run in the background while the page renders.
+    if (requestData.leadStatus === 'Unqualified') {
+        markLeadAsOpened(id);
     }
 
     const currentStatus = requestData.status || "New";
     const currentIndex = TIMELINE_STEPS.findIndex(s => s.id === currentStatus);
     const activeIndex = currentIndex === -1 ? 0 : currentIndex;
 
-    // Extract names for the welcome block
     const clientFirstName = requestData.name ? requestData.name.split(' ')[0] : 'there';
-    const agentName = requestData.assignedToName || "your dedicated import specialist";
+
+    // === DYNAMIC AGENT INFO ===
+    const agentName = agentData?.name || requestData.assignedToName || "Our Support Team";
+    const agentEmail = agentData?.email || "support@providenceauto.com";
+    const agentWhatsapp = agentData?.whatsappNumber || "";
+    // Pull the image from DB, fallback to the provided default R2 avatar
+    const agentImage = agentData?.image || "https://pub-0c6552f09f244121ac51914a1f782578.r2.dev/profiles/1775233164832-498582237.jpg";
 
     return (
         <main className="min-h-screen bg-white text-black selection:bg-black/10 selection:text-black font-sans overflow-x-hidden pb-32">
             <MinimalHeader />
 
-            {/* Light theme subtle top gradient for depth */}
             <div className="absolute top-0 w-full h-[600px] bg-[radial-gradient(ellipse_at_top,rgba(0,0,0,0.03)_0%,rgba(255,255,255,0)_70%)] pointer-events-none" />
 
             <div className="relative z-10 max-w-4xl mx-auto px-6 pt-32 md:pt-40">
 
-                {/* === NEW: AGENT WELCOME CARD === */}
-                <div className="mb-16 md:mb-24">
-                    <h2 className="text-2xl md:text-3xl font-bold tracking-tight text-center text-black mb-8">
-                        Hello {clientFirstName}, <span className="text-zinc-400 font-light">thank you for verifying your request.</span>
-                    </h2>
-
-                    <div className="bg-white border border-black/5 shadow-2xl shadow-black/[0.03] rounded-[2.5rem] p-6 md:p-8 flex flex-col md:flex-row items-center md:items-start gap-6 text-center md:text-left mx-auto max-w-3xl relative overflow-hidden">
-                        {/* Subtle background decoration */}
-                        <div className="absolute -top-10 -right-10 opacity-[0.02] pointer-events-none">
-                            <MessageCircle size={200} />
-                        </div>
-
-                        <div className="w-16 h-16 shrink-0 bg-zinc-50 border border-black/5 rounded-full flex items-center justify-center relative z-10 shadow-sm">
-                            <User className="h-7 w-7 text-zinc-400" />
-                        </div>
-                        <div className="flex-1 relative z-10">
-                            <p className="text-zinc-600 text-sm md:text-base leading-relaxed">
-                                I'm <strong className="text-black font-bold">{agentName}</strong>, and I'm here to assist you with securing your dream vehicle. The details of your inquiry are shown below along with your live tracker. Once you're ready, click below to initiate our conversation.
-                            </p>
-                            <div className="flex flex-wrap justify-center md:justify-start items-center gap-3 mt-6">
-                                <a href="mailto:support@providenceauto.com" className="inline-flex items-center justify-center gap-2 bg-black text-white px-6 py-3 rounded-xl text-sm font-bold shadow-xl shadow-black/10 hover:scale-[1.02] transition-transform">
-                                    <MessageCircle size={18} /> Chat Now
-                                </a>
-                                <a href="https://wa.me/1234567890" target="_blank" rel="noreferrer" className="inline-flex items-center justify-center gap-2 bg-[#25D366]/10 text-[#128C7E] px-6 py-3 rounded-xl text-sm font-bold hover:bg-[#25D366]/20 transition-colors border border-[#25D366]/20">
-                                    <svg viewBox="0 0 24 24" className="w-5 h-5 fill-current"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51a12.8 12.8 0 0 0-.57-.01c-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.064 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 0 1-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 0 1-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 0 1 2.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0 0 12.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 0 0 5.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 0 0-3.48-8.413Z"/></svg>
-                                    WhatsApp
-                                </a>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                {/* === END WELCOME CARD === */}
-
+                {/* === AGENT WELCOME CARD (NOW A CLIENT COMPONENT) === */}
+                <ClientAgentCard
+                    requestId={requestData._id}
+                    clientFirstName={clientFirstName}
+                    agentName={agentName}
+                    agentEmail={agentEmail}
+                    agentWhatsapp={agentWhatsapp}
+                    agentImage={agentImage}
+                />
 
                 {/* Header Section */}
                 <div className="text-center mb-20">

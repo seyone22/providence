@@ -1,6 +1,6 @@
-import mongoose, { Schema, Document } from 'mongoose';
+// @/models/Request.ts
+import mongoose, {Document, Schema} from 'mongoose';
 
-// 1. Define the shape of a single document object
 export interface IRequestDocument {
     fieldName: string;
     fileType: 'image' | 'pdf';
@@ -9,7 +9,6 @@ export interface IRequestDocument {
     uploadedAt?: Date;
 }
 
-// 2. Update your main interface to include the array of documents
 export interface IRequest extends Document {
     make: string;
     vehicle_model: string;
@@ -25,8 +24,6 @@ export interface IRequest extends Document {
     countryOfImport: string;
     status: string;
     leadStatus: string;
-
-    // Pipeline Fields
     options?: string;
     agreedPrice?: number;
     depositAmount?: number;
@@ -38,65 +35,59 @@ export interface IRequest extends Document {
     eta?: Date;
     portName?: string;
     customsNotes?: string;
-
-    // Internal Admin Notes
     adminNotes?: string;
 
-    // Assignment Fields
-    assignedToId?: string;
+    // Assignment Fields - Updated to reference the User collection
+    assignedToId?: mongoose.Types.ObjectId;
     assignedToName?: string;
 
-    // The fixed documents array type
     documents: IRequestDocument[];
-
     createdAt: Date;
     updatedAt: Date;
 }
 
 const RequestSchema: Schema = new Schema(
     {
-        make: { type: String, required: true },
-        vehicle_model: { type: String, required: true },
-        condition: { type: String, required: true, default: 'New' },
-        yearFrom: { type: Number },
-        yearTo: { type: Number },
-        mileage: { type: String },
-        specs: { type: String },
-        name: { type: String, required: true },
-        email: { type: String, required: true },
-        countryCode: { type: String, required: true },
-        phone: { type: String, required: true },
-        countryOfImport: { type: String, required: true },
-        status: { type: String, default: 'New' },
-        leadStatus: { type: String, default: 'Unqualified'},
+        make: {type: String, required: true},
+        vehicle_model: {type: String, required: true},
+        condition: {type: String, required: true, default: 'New'},
+        yearFrom: {type: Number},
+        yearTo: {type: Number},
+        mileage: {type: String},
+        specs: {type: String},
+        name: {type: String, required: true},
+        email: {type: String, required: true},
+        countryCode: {type: String, required: true},
+        phone: {type: String, required: true},
+        countryOfImport: {type: String, required: true},
+        status: {type: String, default: 'New'},
+        leadStatus: {type: String, default: 'Unqualified'},
+        options: {type: String},
+        agreedPrice: {type: Number},
+        depositAmount: {type: Number},
+        transactionId: {type: String},
+        invoiceNumber: {type: String},
+        inspectionNotes: {type: String},
+        trackingNumber: {type: String},
+        vesselName: {type: String},
+        eta: {type: Date},
+        portName: {type: String},
+        customsNotes: {type: String},
+        adminNotes: {type: String},
 
-        options: { type: String },
-        agreedPrice: { type: Number },
-        depositAmount: { type: Number },
-        transactionId: { type: String },
-        invoiceNumber: { type: String },
-        inspectionNotes: { type: String },
-        trackingNumber: { type: String },
-        vesselName: { type: String },
-        eta: { type: Date },
-        portName: { type: String },
-        customsNotes: { type: String },
+        // Reference to the User model (Assuming the collection name is 'user')
+        assignedToId: {type: mongoose.Schema.Types.ObjectId, ref: 'user'},
+        assignedToName: {type: String},
 
-        adminNotes: { type: String },
-
-        assignedToId: { type: String },
-        assignedToName: { type: String },
-
-        // The Mongoose schema definition for the documents
         documents: [{
-            fieldName: { type: String, required: true },
-            fileType: { type: String, enum: ['image', 'pdf'], required: true },
-            fileUrl: { type: String, required: true },
-            stageAdded: { type: String, required: true },
-            uploadedAt: { type: Date, default: Date.now }
+            fieldName: {type: String, required: true},
+            fileType: {type: String, enum: ['image', 'pdf'], required: true},
+            fileUrl: {type: String, required: true},
+            stageAdded: {type: String, required: true},
+            uploadedAt: {type: Date, default: Date.now}
         }]
     },
-    { timestamps: true }
+    {timestamps: true}
 );
 
 export default mongoose.models.Request || mongoose.model<IRequest>('Request', RequestSchema);
