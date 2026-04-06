@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from "react";
 import { useSearchParams } from "next/navigation";
-import { Loader2, ArrowLeft, CheckCircle2, ChevronDown, AlertCircle } from "lucide-react";
+import { Loader2, ArrowLeft, ChevronDown, AlertCircle, User } from "lucide-react";
 import { submitCarRequest } from "@/actions/request-actions";
 import { motion, AnimatePresence } from "framer-motion";
 
@@ -121,12 +121,24 @@ const initialFormState = {
     countryCode: "+1", countryOfImport: ""
 };
 
+// Type for the returned agent
+interface AgentData {
+    name: string;
+    email: string;
+    image: string;
+}
+
 export default function RequestForm() {
     const searchParams = useSearchParams();
 
     const [step, setStep] = useState(1);
     const [isSubmitting, setIsSubmitting] = useState(false);
-    const [successMsg, setSuccessMsg] = useState("");
+
+    // Success States
+    const [isSuccess, setIsSuccess] = useState(false);
+    const [submittedRequestId, setSubmittedRequestId] = useState<string>("");
+    const [assignedAgent, setAssignedAgent] = useState<AgentData | null | undefined>(null);
+
     const [availableModels, setAvailableModels] = useState<string[]>([]);
     const [isLoadingModels, setIsLoadingModels] = useState(false);
 
@@ -239,14 +251,19 @@ export default function RequestForm() {
                 countryCode: formData.countryCode,
                 phone: formData.phone,
                 countryOfImport: formData.countryOfImport,
-                // Append Tracking Identifiers
                 ...trackingData
             };
 
             const response = await submitCarRequest(payload);
 
-            if (response.success) setSuccessMsg("Inquiry received. Our concierge will reach out within 24 hours.");
-            else setErrors({ submit: response.message });
+            if (response.success) {
+                // Save the returned data to state
+                setAssignedAgent(response.agent);
+                setSubmittedRequestId(response.requestId);
+                setIsSuccess(true);
+            } else {
+                setErrors({ submit: response.message });
+            }
         } catch (error) {
             setErrors({ submit: "Submission failed. Please try again." });
         } finally {
@@ -260,19 +277,54 @@ export default function RequestForm() {
     return (
         <motion.div className="w-full max-w-3xl bg-white/80 backdrop-blur-xl rounded-[2.5rem] border border-black/5 shadow-[0_40px_100px_rgba(0,0,0,0.08)] overflow-visible relative text-black mx-auto">
             {/* Progress Bar */}
-            <div className="w-full h-1.5 bg-sky-500/10 absolute top-0 left-0 overflow-hidden rounded-t-[2.5rem]">
-                <motion.div className="h-full bg-sky-500" animate={{ width: `${(step / TOTAL_STEPS) * 100}%` }} transition={{ duration: 0.5 }} />
+            <div className="w-full h-1.5 bg-[#4da8da]/10 absolute top-0 left-0 overflow-hidden rounded-t-[2.5rem]">
+                <motion.div className="h-full bg-[#4da8da]" animate={{ width: `${(step / TOTAL_STEPS) * 100}%` }} transition={{ duration: 0.5 }} />
             </div>
 
-            {successMsg ? (
-                <div className="p-12 text-center flex flex-col items-center justify-center min-h-[500px]">
-                    <CheckCircle2 className="h-16 w-16 text-sky-500 mb-6" />
-                    <h3 className="text-3xl font-bold mb-4">Confirmed.</h3>
-                    <p className="text-zinc-500 text-lg mb-8">{successMsg}</p>
-                    <button onClick={() => {setStep(1); setSuccessMsg(""); setFormData(initialFormState);}} className="text-sky-500 border-b border-sky-500 font-bold hover:text-sky-600 transition-colors">
-                        New Inquiry
-                    </button>
-                </div>
+            {isSuccess ? (
+                // === NEW SUCCESS VIEW MATCHING SCREENSHOT ===
+                <motion.div
+                    initial={{ opacity: 0, scale: 0.95 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    className="p-10 md:p-16 text-center flex flex-col items-center justify-center min-h-[500px]"
+                >
+                    <h2 className="text-3xl md:text-4xl font-extrabold text-[#4da8da] mb-10 tracking-tight">
+                        Thank you for submitting your inquiry!
+                    </h2>
+
+                    <div className="w-32 h-32 rounded-full border-4 border-[#e6f3fa] overflow-hidden mb-6 shadow-sm bg-[#f2f8fc] flex items-center justify-center">
+                        {assignedAgent?.image ? (
+                            <img src={assignedAgent.image} alt={assignedAgent.name} className="w-full h-full object-cover" />
+                        ) : (
+                            <User className="h-14 w-14 text-[#4da8da]" />
+                        )}
+                    </div>
+
+                    <p className="text-zinc-800 text-base md:text-lg leading-relaxed max-w-xl mb-10">
+                        Hi {formData.name.split(' ')[0]}, I'm {assignedAgent?.name} and I'll be handling your inquiry from here.<br/>
+                        To get started, we just need to verify your inquiry. I've sent you an authentication email from <a href={`mailto:${assignedAgent?.email}`} className="text-zinc-800 underline decoration-1 underline-offset-4 font-medium">{assignedAgent?.email}</a> with a live tracking link — if you don't see it, check your spam folder. You can also tap the Track my inquiry button to follow your progress.<br/>
+                        Looking forward to helping you!
+                    </p>
+
+                    <div className="flex flex-col items-center gap-6 w-full max-w-md">
+                        <a
+                            href={`/tracking/${submittedRequestId}`}
+                            className="w-full bg-[#4da8da] hover:bg-[#3d92c2] text-white py-4 px-6 rounded-2xl font-bold text-lg transition-colors text-center shadow-md shadow-[#4da8da]/20"
+                        >
+                            Authenticate and Track My Inquiry
+                        </a>
+                        <button
+                            onClick={() => {
+                                setIsSuccess(false);
+                                setStep(1);
+                                setFormData(initialFormState);
+                            }}
+                            className="text-[#4da8da] font-bold hover:text-[#3d92c2] transition-colors underline decoration-2 underline-offset-4 text-base"
+                        >
+                            New Inquiry
+                        </button>
+                    </div>
+                </motion.div>
             ) : (
                 <div className="p-8 md:p-14 min-h-[550px] flex flex-col">
                     <div className="flex justify-between items-end border-b border-black/5 pb-6 mb-8">
@@ -281,7 +333,7 @@ export default function RequestForm() {
                             {step === 2 && "2. Condition & Availability"}
                             {step === 3 && "3. Delivery Details"}
                         </h3>
-                        <span className="text-sky-500 text-xs font-bold uppercase tracking-widest">Step {step}/{TOTAL_STEPS}</span>
+                        <span className="text-[#4da8da] text-xs font-bold uppercase tracking-widest">Step {step}/{TOTAL_STEPS}</span>
                     </div>
 
                     <AnimatePresence mode="wait">
@@ -327,7 +379,7 @@ export default function RequestForm() {
                                             <button
                                                 key={cond}
                                                 onClick={() => setFormData({...formData, condition: cond as any})}
-                                                className={`flex-1 py-4 rounded-2xl font-bold border transition-all ${formData.condition === cond ? "bg-sky-500 text-white border-sky-500 shadow-md" : "bg-transparent text-zinc-400 border-black/10 hover:border-sky-500/30"}`}
+                                                className={`flex-1 py-4 rounded-2xl font-bold border transition-all ${formData.condition === cond ? "bg-[#4da8da] text-white border-[#4da8da] shadow-md" : "bg-transparent text-zinc-400 border-black/10 hover:border-[#4da8da]/30"}`}
                                             >
                                                 {cond === "New" ? "Brand New" : "Pre-Owned"}
                                             </button>
@@ -341,7 +393,7 @@ export default function RequestForm() {
                                                 className="grid grid-cols-1 md:grid-cols-2 gap-8 overflow-visible"
                                             >
                                                 <div className="relative">
-                                                    <label className="text-[10px] font-bold text-sky-500 uppercase tracking-wider block mb-1">Year Range</label>
+                                                    <label className="text-[10px] font-bold text-[#4da8da] uppercase tracking-wider block mb-1">Year Range</label>
                                                     <SelectDropdown
                                                         id="yearRange" placeholder="Select Year"
                                                         options={["2024-2026", "2021-2023", "2018-2020", "Vintage / Classic"].map(y => ({label: y, value: y}))}
@@ -349,7 +401,7 @@ export default function RequestForm() {
                                                     />
                                                 </div>
                                                 <div className="relative">
-                                                    <label className="text-[10px] font-bold text-sky-500 uppercase tracking-wider block mb-1">Max Mileage</label>
+                                                    <label className="text-[10px] font-bold text-[#4da8da] uppercase tracking-wider block mb-1">Max Mileage</label>
                                                     <SelectDropdown
                                                         id="mileageRange" placeholder="Select Mileage"
                                                         options={["Delivery Miles Only", "Under 5,000", "Under 20,000", "Under 50,000", "Over 50,000"].map(m => ({label: m, value: m}))}
@@ -415,14 +467,14 @@ export default function RequestForm() {
                     </AnimatePresence>
 
                     <div className="mt-12 pt-8 flex items-center justify-between border-t border-black/5">
-                        <button onClick={handlePrev} className={`flex items-center gap-2 font-bold transition-all ${step === 1 ? "opacity-0 pointer-events-none" : "opacity-100 text-zinc-500 hover:text-sky-500"}`}>
+                        <button onClick={handlePrev} className={`flex items-center gap-2 font-bold transition-all ${step === 1 ? "opacity-0 pointer-events-none" : "opacity-100 text-zinc-500 hover:text-[#4da8da]"}`}>
                             <ArrowLeft size={18} /> Back
                         </button>
                         {step < TOTAL_STEPS ? (
-                            <button onClick={handleNext} className="bg-sky-500 text-white px-10 py-4 rounded-full font-bold hover:bg-sky-600 hover:scale-105 transition-all shadow-[0_10px_20px_rgba(14,165,233,0.3)]">Continue</button>
+                            <button onClick={handleNext} className="bg-[#4da8da] text-white px-10 py-4 rounded-full font-bold hover:bg-[#3d92c2] hover:scale-105 transition-all shadow-[0_10px_20px_rgba(77,168,218,0.3)]">Continue</button>
                         ) : (
-                            <button onClick={handleSubmit} disabled={isSubmitting} className="bg-sky-500 text-white px-10 py-4 rounded-full font-bold hover:bg-sky-600 hover:scale-105 transition-all shadow-[0_10px_20px_rgba(14,165,233,0.3)] disabled:opacity-50">
-                                {isSubmitting ? "Processing..." : "Submit Inquiry"}
+                            <button onClick={handleSubmit} disabled={isSubmitting} className="bg-[#4da8da] text-white px-10 py-4 rounded-full font-bold hover:bg-[#3d92c2] hover:scale-105 transition-all shadow-[0_10px_20px_rgba(77,168,218,0.3)] disabled:opacity-50 disabled:hover:scale-100 flex items-center gap-2">
+                                {isSubmitting ? <><Loader2 className="animate-spin" size={18} /> Processing...</> : "Submit Inquiry"}
                             </button>
                         )}
                     </div>
