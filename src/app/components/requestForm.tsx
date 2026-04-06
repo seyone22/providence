@@ -360,15 +360,6 @@ export default function RequestForm() {
                                             error={errors.vehicle_model}
                                         />
                                     </div>
-                                    <div className="relative pt-4">
-                                        <textarea
-                                            id="specs"
-                                            value={formData.specs}
-                                            onChange={handleInputChange}
-                                            placeholder="Specification Requests (e.g. Carbon Fiber Pack, Magma Red Interior, Night Package...)"
-                                            className={`${inputClasses("specs")} min-h-[120px] resize-none`}
-                                        />
-                                    </div>
                                 </>
                             )}
 
@@ -417,6 +408,16 @@ export default function RequestForm() {
                                             New vehicles will be sourced with 2025/2026 factory specifications.
                                         </motion.p>
                                     )}
+
+                                    <div className="relative pt-4">
+                                        <textarea
+                                            id="specs"
+                                            value={formData.specs}
+                                            onChange={handleInputChange}
+                                            placeholder="Specification Requests (e.g. Carbon Fiber Pack, Magma Red Interior, Night Package...)"
+                                            className={`${inputClasses("specs")} min-h-[120px] resize-none`}
+                                        />
+                                    </div>
                                 </>
                             )}
 
