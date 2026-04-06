@@ -352,7 +352,7 @@ export default function RequestForm() {
                                                     <label className="text-[10px] font-bold text-sky-500 uppercase tracking-wider block mb-1">Max Mileage</label>
                                                     <SelectDropdown
                                                         id="mileageRange" placeholder="Select Mileage"
-                                                        options={["Delivery Miles Only", "Under 5,000", "Under 20,000", "Under 50,000"].map(m => ({label: m, value: m}))}
+                                                        options={["Delivery Miles Only", "Under 5,000", "Under 20,000", "Under 50,000", "Over 50,000"].map(m => ({label: m, value: m}))}
                                                         value={formData.mileageRange} onChange={handleDropdownChange}
                                                     />
                                                 </div>
