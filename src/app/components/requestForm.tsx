@@ -337,10 +337,10 @@ export default function RequestForm() {
                     </div>
 
                     <AnimatePresence mode="wait">
-                        <motion.div key={step} initial={{ opacity: 0, x: 10 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -10 }} className="space-y-8 flex-1">
+                        <motion.div key={step} initial={{ opacity: 0, x: 10 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -10 }} className="flex-1">
                             {step === 1 && (
                                 <>
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                                    <div className="grid grid-cols-1 md:grid-cols-1 gap-16">
                                         <SelectDropdown
                                             id="make"
                                             placeholder="Select Make"
