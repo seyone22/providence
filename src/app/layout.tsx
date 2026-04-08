@@ -33,7 +33,7 @@ export const metadata: Metadata = {
         locale: "en_US",
         url: "https://www.providenceauto.com",
         siteName: "Providence Auto",
-        title: "Providence Auto | Premium Pre-Owned Vehicles",
+        title: "Providence Auto | World’s Largest Borderless Showroom. ",
         description: "Quality vehicles and transparent financing. Visit Providence Auto today.",
         images: [
             {
@@ -46,7 +46,7 @@ export const metadata: Metadata = {
     },
     twitter: {
         card: "summary_large_image",
-        title: "Providence Auto | Premium Pre-Owned Vehicles",
+        title: "Providence Auto | World’s Largest Borderless Showroom.",
         description: "Browse our dossiers of premium cars and SUVs.",
         images: ["/og-image.jpg"],
     },
