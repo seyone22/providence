@@ -1,5 +1,5 @@
 // @/app/tracking/[id]/page.tsx
-import MinimalHeader from "@/app/components/MinimalHeader";
+import MinimalHeader from "@/components/MinimalHeader";
 import { notFound } from "next/navigation";
 import {
     Inbox, Search, Handshake, CreditCard, FileCheck,
@@ -7,7 +7,7 @@ import {
     FileText, Image as ImageIcon, ExternalLink
 } from "lucide-react";
 import { getTrackingData, markLeadAsOpened } from "@/actions/tracking-actions";
-import ClientAgentCard from "@/app/components/ClientAgentCard";
+import ClientAgentCard from "@/components/ClientAgentCard";
 
 const TIMELINE_STEPS = [
     { id: "New", label: "Inquiry Received", icon: Inbox, desc: "Your request is actively in our system." },

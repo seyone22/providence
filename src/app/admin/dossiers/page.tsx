@@ -8,15 +8,15 @@ import {
 } from "lucide-react";
 
 // UI Components
-import { Button } from "@/app/components/ui/button";
-import { Input } from "@/app/components/ui/input";
-import { Badge } from "@/app/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Badge } from "@/components/ui/badge";
 import {
     Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
-} from "@/app/components/ui/table";
+} from "@/components/ui/table";
 import {
     DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger,
-} from "@/app/components/ui/dropdown-menu";
+} from "@/components/ui/dropdown-menu";
 
 // Actions
 import { deleteSpecDossier, getAllSpecDossiers } from "@/actions/spec-actions";

@@ -5,7 +5,7 @@ export default function MinimalHeader() {
         <header className="fixed top-0 w-full z-50 bg-gray-500/20 backdrop-blur-md border-b border-gray-500/30 shadow-sm transition-colors duration-300">
             <div className="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
 
-                <Link href="/" className="flex items-center gap-0">
+                <Link href="/public" className="flex items-center gap-0">
                     {/* Kept the logo clean and simple */}
                     <img src="/logo.png" width={60} alt="Providence Auto Logo" className="block" />
 

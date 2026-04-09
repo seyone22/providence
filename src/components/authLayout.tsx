@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
-import {Button} from "@/app/components/ui/button";
+import {Button} from "@/components/ui/button";
 
 interface AuthLayoutProps {
     children: React.ReactNode;
@@ -34,7 +34,7 @@ export function AuthLayout({ children, title, subtitle, image }: AuthLayoutProps
             {/* Form Side */}
             <div className="flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8 bg-background relative">
                 <div className="absolute top-8 left-8">
-                    <Link href="/">
+                    <Link href="/public">
                         <Button variant="ghost" className="gap-2 pl-0 hover:bg-transparent hover:text-primary">
                             <ArrowLeft className="size-4" /> Back to Home
                         </Button>

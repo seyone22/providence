@@ -2,18 +2,18 @@
 
 import { useState } from "react";
 import { ArrowLeft, ArrowRight, ExternalLink, Eye, MoreHorizontal, Trash, User, UserPlus, DollarSign, Ship } from "lucide-react";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/app/components/ui/table";
-import { Badge } from "@/app/components/ui/badge";
-import { Button } from "@/app/components/ui/button";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import {
     DropdownMenu,
     DropdownMenuContent,
     DropdownMenuItem,
     DropdownMenuSeparator,
     DropdownMenuTrigger
-} from "@/app/components/ui/dropdown-menu";
+} from "@/components/ui/dropdown-menu";
 import Link from "next/link";
-import RequestActionModal from "../components/RequestActionModal";
+import RequestActionModal from "@/components/RequestActionModal";
 
 const PIPELINE_STAGES = [
     "New", "Vehicle Selection", "Price Agreement", "Deposit Collected",

@@ -10,7 +10,7 @@ export default function Footer() {
 
                 {/* Left Column: Logo & Brand */}
                 <div className="flex flex-col justify-start">
-                    <Link href="/" className="inline-flex items-center gap-3 opacity-80 hover:opacity-100 transition-opacity">
+                    <Link href="/public" className="inline-flex items-center gap-3 opacity-80 hover:opacity-100 transition-opacity">
                         <div>
                             <Image
                                 src="/logo.png"

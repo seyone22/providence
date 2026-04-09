@@ -1,6 +1,6 @@
 "use client";
 
-import MinimalHeader from "@/app/components/MinimalHeader";
+import MinimalHeader from "@/components/MinimalHeader";
 import Link from "next/link";
 import Image from "next/image";
 import { useState } from "react";

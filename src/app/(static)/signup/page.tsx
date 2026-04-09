@@ -3,11 +3,11 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Mail, Lock, Loader2, ArrowRight } from "lucide-react";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/app/components/ui/card";
-import { Label } from "@/app/components/ui/label";
-import { Input } from "@/app/components/ui/input";
-import { Button } from "@/app/components/ui/button";
-import MinimalHeader from "@/app/components/MinimalHeader";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import MinimalHeader from "@/components/MinimalHeader";
 
 export default function SignUp() {
     const router = useRouter();

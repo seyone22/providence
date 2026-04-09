@@ -2,7 +2,7 @@
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { auth } from "@/utils/auth";
-import SettingsClient from "@/app/components/SettingsClient";
+import SettingsClient from "@/components/SettingsClient";
 
 export default async function SettingsPage() {
     const session = await auth.api.getSession({ headers: await headers() });

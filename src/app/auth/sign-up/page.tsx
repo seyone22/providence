@@ -6,10 +6,10 @@ import {useRouter} from "next/navigation";
 import {Loader2} from "lucide-react";
 import {toast} from "sonner";
 import {signUp} from "@/lib/auth-client";
-import { AuthLayout } from "@/app/components/authLayout";
-import { Label } from "@/app/components/ui/label";
-import { Input } from "@/app/components/ui/input";
-import {Button} from "@/app/components/ui/button";
+import { AuthLayout } from "@/components/authLayout";
+import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
+import {Button} from "@/components/ui/button";
 
 export default function SignUp() {
     const router = useRouter();

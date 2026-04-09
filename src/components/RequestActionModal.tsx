@@ -2,13 +2,13 @@
 
 import { useState, useEffect } from "react";
 import { Loader2, Paperclip, File, Image as ImageIcon, UserPlus } from "lucide-react";
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/app/components/ui/dialog";
-import { Button } from "@/app/components/ui/button";
-import { Input } from "@/app/components/ui/input";
-import { Label } from "@/app/components/ui/label";
-import { Textarea } from "@/app/components/ui/textarea";
-import { Badge } from "@/app/components/ui/badge";
-import DynamicFileUploader, { PendingFile } from "@/app/components/dynamicFileUploader";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { Badge } from "@/components/ui/badge";
+import DynamicFileUploader, { PendingFile } from "@/components/dynamicFileUploader";
 import { updateRequestStatus, deleteRequest } from "@/actions/admin-actions";
 import { uploadToR2 } from "@/lib/file-actions";
 import { ExternalLink } from "lucide-react";

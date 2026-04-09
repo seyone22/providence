@@ -5,21 +5,21 @@ import { useRouter } from "next/navigation";
 import {
     Search, Plus, MoreHorizontal, ShieldAlert, KeyRound, Trash2, Loader2
 } from "lucide-react";
-import { Button } from "@/app/components/ui/button";
-import { Input } from "@/app/components/ui/input";
-import { Badge } from "@/app/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Badge } from "@/components/ui/badge";
 import {
     Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
-} from "@/app/components/ui/table";
+} from "@/components/ui/table";
 import {
     DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger,
-} from "@/app/components/ui/dropdown-menu";
+} from "@/components/ui/dropdown-menu";
 import {
     Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetFooter
-} from "@/app/components/ui/sheet";
+} from "@/components/ui/sheet";
 import {
     Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
-} from "@/app/components/ui/select";
+} from "@/components/ui/select";
 
 import { createAdminUser, deleteAdminUser, sendPasswordResetAdmin, updateAdminUser } from "@/actions/admin-actions";
 import { Edit } from "lucide-react"; // Grab the Edit icon

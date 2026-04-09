@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { Car } from "lucide-react";
-import {Button} from "@/app/components/ui/button";
+import {Button} from "@/components/ui/button";
 
 export default function Navbar() {
     return (
@@ -16,7 +16,7 @@ export default function Navbar() {
             </div>
 
             <div className="hidden md:flex items-center gap-6 text-sm font-medium text-gray-200">
-                <Link href="/" className="hover:text-white transition">Home</Link>
+                <Link href="/public" className="hover:text-white transition">Home</Link>
                 <Link href="/request" className="hover:text-white transition">Request a Car</Link>
                 <Link href="#" className="hover:text-white transition">Import Calculator</Link>
                 <Link href="#" className="hover:text-white transition">For Showrooms</Link>

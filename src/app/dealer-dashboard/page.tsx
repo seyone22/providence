@@ -1,8 +1,8 @@
 import { Car, Code, DollarSign, Users, Activity, ExternalLink, Copy } from "lucide-react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/app/components/ui/card";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/app/components/ui/table";
-import { Badge } from "@/app/components/ui/badge";
-import { Button } from "@/app/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import Link from "next/link";
 
 // Mock Data for the Dealer's generated leads

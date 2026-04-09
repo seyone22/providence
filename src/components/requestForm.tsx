@@ -21,22 +21,248 @@ const CAR_MAKES = [
 ].sort();
 
 const COUNTRIES = [
-    { n: "Afghanistan", c: "+93" }, { n: "Albania", c: "+355" }, { n: "Algeria", c: "+213" },
-    { n: "Andorra", c: "+376" }, { n: "Angola", c: "+244" }, { n: "Antigua and Barbuda", c: "+1-268" },
-    { n: "Argentina", c: "+54" }, { n: "Armenia", c: "+374" }, { n: "Australia", c: "+61" },
-    { n: "Austria", c: "+43" }, { n: "Azerbaijan", c: "+994" }, { n: "Bahamas", c: "+1-242" },
-    { n: "Bahrain", c: "+973" }, { n: "Bangladesh", c: "+880" }, { n: "Barbados", c: "+1-246" },
-    { n: "Belarus", c: "+375" }, { n: "Belgium", c: "+32" }, { n: "Belize", c: "+501" },
-    { n: "Benin", c: "+229" }, { n: "Bhutan", c: "+975" }, { n: "Bolivia", c: "+591" },
-    { n: "Bosnia and Herzegovina", c: "+387" }, { n: "Botswana", c: "+267" }, { n: "Brazil", c: "+55" },
-    { n: "Canada", c: "+1" }, { n: "China", c: "+86" }, { n: "France", c: "+33" },
-    { n: "Germany", c: "+49" }, { n: "India", c: "+91" }, { n: "Italy", c: "+39" },
-    { n: "Japan", c: "+81" }, { n: "Mexico", c: "+52" }, { n: "Netherlands", c: "+31" },
-    { n: "New Zealand", c: "+64" }, { n: "Saudi Arabia", c: "+966" }, { n: "Singapore", c: "+65" },
-    { n: "South Africa", c: "+27" }, { n: "South Korea", c: "+82" }, { n: "Spain", c: "+34" },
-    { n: "Sri Lanka", c: "+94" }, { n: "Sweden", c: "+46" }, { n: "Switzerland", c: "+41" },
-    { n: "United Arab Emirates", c: "+971" }, { n: "United Kingdom", c: "+44" },
-    { n: "United States", c: "+1" }
+    { n: "Afghanistan", c: "+93" },
+    { n: "Albania", c: "+355" },
+    { n: "Algeria", c: "+213" },
+    { n: "American Samoa", c: "+1-684" },
+    { n: "Andorra", c: "+376" },
+    { n: "Angola", c: "+244" },
+    { n: "Anguilla", c: "+1-264" },
+    { n: "Antarctica", c: "+672" },
+    { n: "Antigua and Barbuda", c: "+1-268" },
+    { n: "Argentina", c: "+54" },
+    { n: "Armenia", c: "+374" },
+    { n: "Aruba", c: "+297" },
+    { n: "Australia", c: "+61" },
+    { n: "Austria", c: "+43" },
+    { n: "Azerbaijan", c: "+994" },
+    { n: "Bahamas", c: "+1-242" },
+    { n: "Bahrain", c: "+973" },
+    { n: "Bangladesh", c: "+880" },
+    { n: "Barbados", c: "+1-246" },
+    { n: "Belarus", c: "+375" },
+    { n: "Belgium", c: "+32" },
+    { n: "Belize", c: "+501" },
+    { n: "Benin", c: "+229" },
+    { n: "Bermuda", c: "+1-441" },
+    { n: "Bhutan", c: "+975" },
+    { n: "Bolivia", c: "+591" },
+    { n: "Bosnia and Herzegovina", c: "+387" },
+    { n: "Botswana", c: "+267" },
+    { n: "Brazil", c: "+55" },
+    { n: "British Indian Ocean Territory", c: "+246" },
+    { n: "British Virgin Islands", c: "+1-284" },
+    { n: "Brunei", c: "+673" },
+    { n: "Bulgaria", c: "+359" },
+    { n: "Burkina Faso", c: "+226" },
+    { n: "Burundi", c: "+257" },
+    { n: "Cambodia", c: "+855" },
+    { n: "Cameroon", c: "+237" },
+    { n: "Canada", c: "+1" },
+    { n: "Cape Verde", c: "+238" },
+    { n: "Cayman Islands", c: "+1-345" },
+    { n: "Central African Republic", c: "+236" },
+    { n: "Chad", c: "+235" },
+    { n: "Chile", c: "+56" },
+    { n: "China", c: "+86" },
+    { n: "Christmas Island", c: "+61" },
+    { n: "Cocos (Keeling) Islands", c: "+61" },
+    { n: "Colombia", c: "+57" },
+    { n: "Comoros", c: "+269" },
+    { n: "Cook Islands", c: "+682" },
+    { n: "Costa Rica", c: "+506" },
+    { n: "Croatia", c: "+385" },
+    { n: "Cuba", c: "+53" },
+    { n: "Curacao", c: "+599" },
+    { n: "Cyprus", c: "+357" },
+    { n: "Czech Republic", c: "+420" },
+    { n: "Democratic Republic of the Congo", c: "+243" },
+    { n: "Denmark", c: "+45" },
+    { n: "Djibouti", c: "+253" },
+    { n: "Dominica", c: "+1-767" },
+    { n: "Dominican Republic", c: "+1-809" },
+    { n: "East Timor (Timor-Leste)", c: "+670" },
+    { n: "Ecuador", c: "+593" },
+    { n: "Egypt", c: "+20" },
+    { n: "El Salvador", c: "+503" },
+    { n: "Equatorial Guinea", c: "+240" },
+    { n: "Eritrea", c: "+291" },
+    { n: "Estonia", c: "+372" },
+    { n: "Eswatini (Swaziland)", c: "+268" },
+    { n: "Ethiopia", c: "+251" },
+    { n: "Falkland Islands", c: "+500" },
+    { n: "Faroe Islands", c: "+298" },
+    { n: "Fiji", c: "+679" },
+    { n: "Finland", c: "+358" },
+    { n: "France", c: "+33" },
+    { n: "French Polynesia", c: "+689" },
+    { n: "Gabon", c: "+241" },
+    { n: "Gambia", c: "+220" },
+    { n: "Georgia", c: "+995" },
+    { n: "Germany", c: "+49" },
+    { n: "Ghana", c: "+233" },
+    { n: "Gibraltar", c: "+350" },
+    { n: "Greece", c: "+30" },
+    { n: "Greenland", c: "+299" },
+    { n: "Grenada", c: "+1-473" },
+    { n: "Guam", c: "+1-671" },
+    { n: "Guatemala", c: "+502" },
+    { n: "Guernsey", c: "+44-1481" },
+    { n: "Guinea", c: "+224" },
+    { n: "Guinea-Bissau", c: "+245" },
+    { n: "Guyana", c: "+592" },
+    { n: "Haiti", c: "+509" },
+    { n: "Honduras", c: "+504" },
+    { n: "Hong Kong", c: "+852" },
+    { n: "Hungary", c: "+36" },
+    { n: "Iceland", c: "+354" },
+    { n: "India", c: "+91" },
+    { n: "Indonesia", c: "+62" },
+    { n: "Iran", c: "+98" },
+    { n: "Iraq", c: "+964" },
+    { n: "Ireland", c: "+353" },
+    { n: "Isle of Man", c: "+44-1624" },
+    { n: "Israel", c: "+972" },
+    { n: "Italy", c: "+39" },
+    { n: "Ivory Coast", c: "+225" },
+    { n: "Jamaica", c: "+1-876" },
+    { n: "Japan", c: "+81" },
+    { n: "Jersey", c: "+44-1534" },
+    { n: "Jordan", c: "+962" },
+    { n: "Kazakhstan", c: "+7" },
+    { n: "Kenya", c: "+254" },
+    { n: "Kiribati", c: "+686" },
+    { n: "Kosovo", c: "+383" },
+    { n: "Kuwait", c: "+965" },
+    { n: "Kyrgyzstan", c: "+996" },
+    { n: "Laos", c: "+856" },
+    { n: "Latvia", c: "+371" },
+    { n: "Lebanon", c: "+961" },
+    { n: "Lesotho", c: "+266" },
+    { n: "Liberia", c: "+231" },
+    { n: "Libya", c: "+218" },
+    { n: "Liechtenstein", c: "+423" },
+    { n: "Lithuania", c: "+370" },
+    { n: "Luxembourg", c: "+352" },
+    { n: "Macau", c: "+853" },
+    { n: "Macedonia", c: "+389" },
+    { n: "Madagascar", c: "+261" },
+    { n: "Malawi", c: "+265" },
+    { n: "Malaysia", c: "+60" },
+    { n: "Maldives", c: "+960" },
+    { n: "Mali", c: "+223" },
+    { n: "Malta", c: "+356" },
+    { n: "Marshall Islands", c: "+692" },
+    { n: "Mauritania", c: "+222" },
+    { n: "Mauritius", c: "+230" },
+    { n: "Mayotte", c: "+262" },
+    { n: "Mexico", c: "+52" },
+    { n: "Micronesia", c: "+691" },
+    { n: "Moldova", c: "+373" },
+    { n: "Monaco", c: "+377" },
+    { n: "Mongolia", c: "+976" },
+    { n: "Montenegro", c: "+382" },
+    { n: "Montserrat", c: "+1-664" },
+    { n: "Morocco", c: "+212" },
+    { n: "Mozambique", c: "+258" },
+    { n: "Myanmar", c: "+95" },
+    { n: "Namibia", c: "+264" },
+    { n: "Nauru", c: "+674" },
+    { n: "Nepal", c: "+977" },
+    { n: "Netherlands", c: "+31" },
+    { n: "Netherlands Antilles", c: "+599" },
+    { n: "New Caledonia", c: "+687" },
+    { n: "New Zealand", c: "+64" },
+    { n: "Nicaragua", c: "+505" },
+    { n: "Niger", c: "+227" },
+    { n: "Nigeria", c: "+234" },
+    { n: "Niue", c: "+683" },
+    { n: "Norfolk Island", c: "+672" },
+    { n: "North Korea", c: "+850" },
+    { n: "Northern Ireland", c: "+44" },
+    { n: "Northern Mariana Islands", c: "+1-670" },
+    { n: "Norway", c: "+47" },
+    { n: "Oman", c: "+968" },
+    { n: "Pakistan", c: "+92" },
+    { n: "Palau", c: "+680" },
+    { n: "Palestine", c: "+970" },
+    { n: "Panama", c: "+507" },
+    { n: "Papua New Guinea", c: "+675" },
+    { n: "Paraguay", c: "+595" },
+    { n: "Peru", c: "+51" },
+    { n: "Philippines", c: "+63" },
+    { n: "Pitcairn Islands", c: "+64" },
+    { n: "Poland", c: "+48" },
+    { n: "Portugal", c: "+351" },
+    { n: "Puerto Rico", c: "+1-787" },
+    { n: "Qatar", c: "+974" },
+    { n: "Republic of the Congo", c: "+242" },
+    { n: "Reunion", c: "+262" },
+    { n: "Romania", c: "+40" },
+    { n: "Russia", c: "+7" },
+    { n: "Rwanda", c: "+250" },
+    { n: "Saint Barthelemy", c: "+590" },
+    { n: "Saint Helena", c: "+290" },
+    { n: "Saint Kitts and Nevis", c: "+1-869" },
+    { n: "Saint Lucia", c: "+1-758" },
+    { n: "Saint Martin", c: "+590" },
+    { n: "Saint Pierre and Miquelon", c: "+508" },
+    { n: "Saint Vincent and the Grenadines", c: "+1-784" },
+    { n: "Samoa", c: "+685" },
+    { n: "San Marino", c: "+378" },
+    { n: "Sao Tome and Principe", c: "+239" },
+    { n: "Saudi Arabia", c: "+966" },
+    { n: "Senegal", c: "+221" },
+    { n: "Serbia", c: "+381" },
+    { n: "Seychelles", c: "+248" },
+    { n: "Sierra Leone", c: "+232" },
+    { n: "Singapore", c: "+65" },
+    { n: "Sint Maarten", c: "+1-721" },
+    { n: "Slovakia", c: "+421" },
+    { n: "Slovenia", c: "+386" },
+    { n: "Solomon Islands", c: "+677" },
+    { n: "Somalia", c: "+252" },
+    { n: "South Africa", c: "+27" },
+    { n: "South Korea", c: "+82" },
+    { n: "South Sudan", c: "+211" },
+    { n: "Spain", c: "+34" },
+    { n: "Sri Lanka", c: "+94" },
+    { n: "Sudan", c: "+249" },
+    { n: "Suriname", c: "+597" },
+    { n: "Svalbard and Jan Mayen", c: "+47" },
+    { n: "Sweden", c: "+46" },
+    { n: "Switzerland", c: "+41" },
+    { n: "Syria", c: "+963" },
+    { n: "Taiwan", c: "+886" },
+    { n: "Tajikistan", c: "+992" },
+    { n: "Tanzania", c: "+255" },
+    { n: "Thailand", c: "+66" },
+    { n: "Togo", c: "+228" },
+    { n: "Tokelau", c: "+690" },
+    { n: "Tonga", c: "+676" },
+    { n: "Trinidad and Tobago", c: "+1-868" },
+    { n: "Tunisia", c: "+216" },
+    { n: "Turkey", c: "+90" },
+    { n: "Turkmenistan", c: "+993" },
+    { n: "Turks and Caicos Islands", c: "+1-649" },
+    { n: "Tuvalu", c: "+688" },
+    { n: "U.S. Virgin Islands", c: "+1-340" },
+    { n: "Uganda", c: "+256" },
+    { n: "Ukraine", c: "+380" },
+    { n: "United Arab Emirates", c: "+971" },
+    { n: "United Kingdom", c: "+44" },
+    { n: "United States", c: "+1" },
+    { n: "Uruguay", c: "+598" },
+    { n: "Uzbekistan", c: "+998" },
+    { n: "Vanuatu", c: "+678" },
+    { n: "Vatican", c: "+379" },
+    { n: "Venezuela", c: "+58" },
+    { n: "Vietnam", c: "+84" },
+    { n: "Wallis and Futuna", c: "+681" },
+    { n: "Western Sahara", c: "+212" },
+    { n: "Yemen", c: "+967" },
+    { n: "Zambia", c: "+260" },
+    { n: "Zimbabwe", c: "+263" }
 ].sort((a, b) => a.n.localeCompare(b.n));
 
 // --- HELPER: Read Cookies for Meta Pixel Data ---
@@ -141,6 +367,7 @@ export default function RequestForm() {
 
     const [availableModels, setAvailableModels] = useState<string[]>([]);
     const [isLoadingModels, setIsLoadingModels] = useState(false);
+    const [apiFailed, setApiFailed] = useState(false); // <-- NEW
 
     const [formData, setFormData] = useState(initialFormState);
     const [errors, setErrors] = useState<Record<string, string>>({});
@@ -161,20 +388,40 @@ export default function RequestForm() {
     useEffect(() => {
         if (!formData.make) {
             setAvailableModels([]);
+            setApiFailed(false); // Reset on empty
             return;
         }
         const fetchModels = async () => {
             setIsLoadingModels(true);
+            setApiFailed(false); // Reset before new attempt
+
             try {
-                const res = await fetch(`https://vpic.nhtsa.dot.gov/api/vehicles/GetModelsForMake/${formData.make}?format=json`);
+                const url = `https://vpic.nhtsa.dot.gov/api/vehicles/GetModelsForMake/${encodeURIComponent(formData.make)}?format=json`;
+                const res = await fetch(`https://corsproxy.io/?${encodeURIComponent(url)}`);
+
+                if (res.status === 503) {
+                    throw new Error("NHTSA Server is currently unavailable (503). Please try again later.");
+                }
+
+                if (!res.ok) throw new Error("Network response was not ok");
+
                 const data = await res.json();
+
                 if (data.Results) {
                     const models = data.Results.map((item: any) =>
-                        item.Model_Name.toLowerCase().replace(/\b\w/g, (c: string) => c.toUpperCase())
+                        item.Model_Name
+                            .trim()
+                            .toLowerCase()
+                            .replace(/\b\w/g, (c: string) => c.toUpperCase())
                     );
-                    setAvailableModels(Array.from(new Set(models)).sort() as string[]);
+                    setAvailableModels([...new Set(models)].sort() as string[]);
                 }
-            } catch (err) { console.error(err); } finally { setIsLoadingModels(false); }
+            } catch (err) {
+                console.error("Fetch Error:", err);
+                setApiFailed(true); // <-- Trigger the manual input fallback
+            } finally {
+                setIsLoadingModels(false);
+            }
         };
 
         const delayDebounceFn = setTimeout(fetchModels, 500);
@@ -349,16 +596,38 @@ export default function RequestForm() {
                                             onChange={handleDropdownChange}
                                             error={errors.make}
                                         />
-                                        <SelectDropdown
-                                            id="vehicle_model"
-                                            placeholder="Select Model"
-                                            options={availableModels.map(m => ({ label: m, value: m }))}
-                                            value={formData.vehicle_model}
-                                            onChange={handleDropdownChange}
-                                            disabled={!formData.make}
-                                            isLoading={isLoadingModels}
-                                            error={errors.vehicle_model}
-                                        />
+
+                                        {/* CONDITIONAL RENDER BASED ON API STATUS */}
+                                        {apiFailed ? (
+                                            <div className="relative">
+                                                <input
+                                                    id="vehicle_model"
+                                                    value={formData.vehicle_model}
+                                                    onChange={handleInputChange}
+                                                    placeholder="Type Vehicle Model (e.g. 911, M3)"
+                                                    className={inputClasses("vehicle_model")}
+                                                />
+                                                {errors.vehicle_model && (
+                                                    <p className="absolute -bottom-5 left-0 text-[10px] font-bold text-red-500 flex items-center gap-1">
+                                                        <AlertCircle size={10}/> {errors.vehicle_model}
+                                                    </p>
+                                                )}
+                                                <p className="absolute -bottom-5 right-0 text-[10px] text-zinc-400">
+                                                    Manual Entry Mode
+                                                </p>
+                                            </div>
+                                        ) : (
+                                            <SelectDropdown
+                                                id="vehicle_model"
+                                                placeholder="Select Model"
+                                                options={availableModels.map(m => ({ label: m, value: m }))}
+                                                value={formData.vehicle_model}
+                                                onChange={handleDropdownChange}
+                                                disabled={!formData.make}
+                                                isLoading={isLoadingModels}
+                                                error={errors.vehicle_model}
+                                            />
+                                        )}
                                     </div>
                                 </>
                             )}

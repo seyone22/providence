@@ -1,10 +1,10 @@
 "use client";
 
 import { useRef, Suspense } from "react";
-import MinimalHeader from "@/app/components/MinimalHeader";
+import MinimalHeader from "@/components/MinimalHeader";
 import { Landmark, Compass, Ship, ShieldCheck, ArrowRight } from "lucide-react";
 import { motion, useScroll, useTransform } from "framer-motion";
-import RequestForm from "@/app/components/requestForm";
+import RequestForm from "@/components/requestForm";
 
 const appleEase: any = [0.16, 1, 0.3, 1];
 

@@ -4,8 +4,8 @@
 import { useState, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { Camera, Loader2, Save, ShieldCheck, User as UserIcon } from "lucide-react";
-import { Button } from "@/app/components/ui/button";
-import { Input } from "@/app/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { updateProfileSettings, updatePasswordServer } from "@/actions/settings-actions";
 import {uploadProfileImage} from "@/lib/file-actions";
 

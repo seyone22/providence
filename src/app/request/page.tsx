@@ -1,9 +1,9 @@
 "use client";
 
 import { Suspense } from "react";
-import MinimalHeader from "@/app/components/MinimalHeader";
+import MinimalHeader from "@/components/MinimalHeader";
 import { motion } from "framer-motion";
-import RequestForm from "@/app/components/requestForm"; // Adjust path if necessary
+import RequestForm from "@/components/requestForm"; // Adjust path if necessary
 
 // Apple-style smooth easing curve
 const appleEase: any = [0.16, 1, 0.3, 1];
