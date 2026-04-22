@@ -63,21 +63,77 @@ export async function getSpecDossierByVin(vin: string) {
         return { success: false, message: "Error fetching dossier." };
     }
 }
+/**
+ * GET SINGLE DOSSIER BY ID
+ */
+export async function getSpecDossierById(id: any) {
+    const actionName = "[getSpecDossierById]";
+    try {
+        await connectToDatabase();
+        const dossier = await SpecDossier.findById(id);
+
+        if (!dossier) {
+            return { success: false, message: "Dossier not found." };
+        }
+
+        return {
+            success: true,
+            data: JSON.parse(JSON.stringify(dossier))
+        };
+    } catch (error) {
+        console.error(`${actionName} Error:`, error);
+        return { success: false, message: "Error fetching dossier." };
+    }
+}
 
 /**
  * GET ALL DOSSIERS
  */
 export async function getAllSpecDossiers() {
+    const actionName = "[getAllSpecDossiers]";
+    const startTime = Date.now();
+    console.log(`${actionName} INITIATION: Starting request to fetch all spec dossiers...`);
+
     try {
+        // Step 1: Database Connection
+        console.log(`${actionName} STEP 1: Attempting to connect to the database...`);
         await connectToDatabase();
+        console.log(`${actionName} STEP 1 COMPLETE: Database connection established successfully.`);
+
+        // Step 2: Query Execution
+        console.log(`${actionName} STEP 2: Executing find() query on SpecDossier collection...`);
         const dossiers = await SpecDossier.find({}).sort({ createdAt: -1 });
+        console.log(`${actionName} STEP 2 COMPLETE: Query successful. Found ${dossiers?.length || 0} dossier(s).`);
+
+        // Step 3: Payload Parsing and Return
+        console.log(`${actionName} STEP 3: Parsing payload for client...`);
+        const parsedData = JSON.parse(JSON.stringify(dossiers));
+
+        const executionTime = Date.now() - startTime;
+        console.log(`${actionName} SUCCESS: Returning data payload. Total execution time: ${executionTime}ms.`);
 
         return {
             success: true,
-            data: JSON.parse(JSON.stringify(dossiers))
+            data: parsedData
         };
+
     } catch (error) {
-        return { success: false, message: "Error fetching dossiers." };
+        const executionTime = Date.now() - startTime;
+
+        // Detailed Error Logging
+        console.error(`${actionName} ERROR: Action failed after ${executionTime}ms.`);
+
+        if (error instanceof Error) {
+            console.error(`${actionName} Error Message:`, error.message);
+            console.error(`${actionName} Stack Trace:`, error.stack);
+        } else {
+            console.error(`${actionName} Unknown Error:`, error);
+        }
+
+        return {
+            success: false,
+            message: "Error fetching dossiers."
+        };
     }
 }
 
