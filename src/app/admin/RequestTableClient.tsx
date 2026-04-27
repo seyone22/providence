@@ -201,7 +201,7 @@ export default function RequestTableClient({
                                         <TableCell className="py-4 pl-6 align-top">
                                             <div className="font-bold text-black text-sm">{req.name}</div>
                                             <div className="text-xs text-zinc-500">{req.email}</div>
-                                            <div className="text-xs text-zinc-500 mb-1">{req.countryCode} {req.phone}</div>
+                                            <div className="text-xs text-zinc-500 mb-1">wa.me/{req.countryCode} {req.phone}</div>
                                             <div className="text-[10px] uppercase font-bold text-zinc-400">
                                                 Import to: {req.countryOfImport}
                                             </div>
