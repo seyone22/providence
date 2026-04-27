@@ -208,7 +208,7 @@ export default function GalleryClient({ dossiers }: { dossiers: Dossier[] }) {
                         className="relative h-[600px] lg:h-[800px] rounded-[2.5rem] overflow-hidden bg-zinc-200"
                     >
                         <img
-                            src="https://images.unsplash.com/photo-1588626245089-8d7d91e605d5?q=80&w=2940&auto=format&fit=crop"
+                            src="/gallery_image.jpg"
                             alt="Vehicles being loaded into a shipping container"
                             className="w-full h-full object-cover"
                         />
