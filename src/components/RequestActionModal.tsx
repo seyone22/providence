@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Loader2, Paperclip, File, Image as ImageIcon, UserPlus } from "lucide-react";
+import { Loader2, Paperclip, File, Image as ImageIcon, UserPlus, ExternalLink } from "lucide-react";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -11,7 +11,7 @@ import { Badge } from "@/components/ui/badge";
 import DynamicFileUploader, { PendingFile } from "@/components/dynamicFileUploader";
 import { updateRequestStatus, deleteRequest } from "@/actions/admin-actions";
 import { uploadToR2 } from "@/lib/file-actions";
-import { ExternalLink } from "lucide-react";
+import {SALES_STATUSES} from "@/app/admin/RequestTableClient";
 
 export default function RequestActionModal({
                                                modal,
@@ -40,6 +40,11 @@ export default function RequestActionModal({
                 setPayload({
                     assignedToId: modal.request.assignedToId || "",
                     assignedToName: modal.request.assignedToName || ""
+                });
+            } else if (modal.type === "sales_status") {
+                // Initialize with current sales status, fallback to legacy leadStatus
+                setPayload({
+                    leadStatus: modal.request.leadStatus || "Action required"
                 });
             } else {
                 setPayload({});
@@ -84,7 +89,8 @@ export default function RequestActionModal({
                 await updateRequestStatus(modal.request._id, modal.targetStage, { ...payload, documents: finalDocuments });
             } else if (modal.type === "revert" && modal.targetStage) {
                 await updateRequestStatus(modal.request._id, modal.targetStage, payload);
-            } else if (modal.type === "details" || modal.type === "assign") {
+            } else if (modal.type === "details" || modal.type === "assign" || modal.type === "sales_status") {
+                // For these three types, we pass the *current* pipeline status so it doesn't move stages
                 await updateRequestStatus(modal.request._id, modal.request.status, payload);
             }
         } catch (error) {
@@ -106,6 +112,7 @@ export default function RequestActionModal({
                         {modal.type === "revert" && `Revert to ${modal.targetStage}`}
                         {modal.type === "details" && "Lead Details & Notes"}
                         {modal.type === "assign" && "Assign Staff"}
+                        {modal.type === "sales_status" && "Update Sales Status"}
                     </DialogTitle>
                     <DialogDescription className="text-zinc-500 font-light mt-2">
                         {modal.type === "delete" && `Are you sure you want to delete ${modal.request?.name}'s inquiry? This cannot be undone.`}
@@ -113,8 +120,30 @@ export default function RequestActionModal({
                         {modal.type === "revert" && `Are you sure you want to move this lead back to the "${modal.targetStage}" stage?`}
                         {modal.type === "details" && `Review collected data, documents, and notes for ${modal.request?.name}.`}
                         {modal.type === "assign" && `Assign this request to a team member.`}
+                        {modal.type === "sales_status" && `Select the current communication status for ${modal.request?.name}.`}
                     </DialogDescription>
                 </DialogHeader>
+
+                {/* --- SALES STATUS UPDATE --- */}
+                {modal.type === "sales_status" && (
+                    <div className="py-6 space-y-4">
+                        <Label className="text-zinc-600 font-bold">Current Communication Status</Label>
+                        <div className="relative">
+                            <select
+                                className={selectClasses}
+                                // FIX 1: Read from payload.leadStatus
+                                value={payload.leadStatus || "Action required"}
+                                // FIX 2: Write to leadStatus
+                                onChange={(e) => handlePayloadChange("leadStatus", e.target.value)}
+                                style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%23a1a1aa' stroke-width='2'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E")`, backgroundRepeat: 'no-repeat', backgroundPosition: 'right 1rem center', backgroundSize: '1.2em' }}
+                            >
+                                {SALES_STATUSES.map(status => (
+                                    <option key={status} value={status}>{status}</option>
+                                ))}
+                            </select>
+                        </div>
+                    </div>
+                )}
 
                 {/* --- ASSIGNMENT --- */}
                 {modal.type === "assign" && (
@@ -300,14 +329,15 @@ export default function RequestActionModal({
                         variant={modal.type === "delete" ? "destructive" : modal.type === "revert" ? "secondary" : "default"}
                         onClick={handleActionSubmit}
                         disabled={isProcessing}
-                        className={modal.type === "advance" || modal.type === "details" || modal.type === "assign" ? "bg-black text-white hover:bg-zinc-800 rounded-xl px-8" : "rounded-xl px-8"}
+                        className={modal.type === "advance" || modal.type === "details" || modal.type === "assign" || modal.type === "sales_status" ? "bg-black text-white hover:bg-zinc-800 rounded-xl px-8" : "rounded-xl px-8"}
                     >
                         {isProcessing && <Loader2 className="mr-2 h-4 w-4 animate-spin text-current" />}
                         {modal.type === "delete" ? "Delete Lead" :
                             modal.type === "revert" ? "Revert Stage" :
                                 modal.type === "details" ? "Save Notes" :
                                     modal.type === "assign" ? "Confirm Assignment" :
-                                        `Update to ${modal.targetStage}`}
+                                        modal.type === "sales_status" ? "Save Status" :
+                                            `Update to ${modal.targetStage}`}
                     </Button>
                 </DialogFooter>
             </DialogContent>

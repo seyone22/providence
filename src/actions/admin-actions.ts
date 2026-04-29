@@ -77,17 +77,20 @@ export async function updateRequestStatus(id: string, targetStage: string, paylo
     try {
         await connectToDatabase();
 
-        // 1. Fetch the existing record to prevent overwriting arrays/strings and track status changes
         const existingRequest = await Request.findById(id);
         if (!existingRequest) {
             throw new Error("Lead not found in the database.");
         }
 
-        // 2. Prepare the base update object
         const updateData: any = {
             ...payload,
             status: targetStage
         };
+
+        // FIXED: Watch the leadStatus field for changes to trigger the timestamp
+        if (payload.leadStatus && payload.leadStatus !== existingRequest.leadStatus) {
+            updateData.statusUpdatedAt = new Date();
+        }
 
         // 3. Smart Appending for Admin Notes
         if (payload.adminNotes && payload.adminNotes.trim() !== "") {
@@ -96,7 +99,9 @@ export async function updateRequestStatus(id: string, targetStage: string, paylo
             });
 
             const existingNotes = existingRequest.adminNotes || "";
-            const notePrefix = `[${timestamp} | Moved to: ${targetStage}]`;
+            // FIXED: Look for leadStatus in the payload
+            const actionLabel = payload.leadStatus ? `Status: ${payload.leadStatus}` : `Moved to: ${targetStage}`;
+            const notePrefix = `[${timestamp} | ${actionLabel}]`;
             const newNoteEntry = `${notePrefix}\n${payload.adminNotes.trim()}`;
 
             updateData.adminNotes = existingNotes
@@ -112,33 +117,34 @@ export async function updateRequestStatus(id: string, targetStage: string, paylo
             updateData.documents = [...existingDocs, ...payload.documents];
         }
 
-        // 5. Execute the Database Update (using {new: true} to get the updated document)
         const updatedRequest = await Request.findByIdAndUpdate(id, updateData, { new: true });
 
         // 6. --- S2S CONVERSION TRIGGERS ---
         if (updatedRequest) {
-            const prevLeadStatus = existingRequest.leadStatus || "Unqualified";
-            const newLeadStatus = updatedRequest.leadStatus || "Unqualified";
+            // FIXED: We can safely just look at leadStatus now
+            const prevStatus = existingRequest.leadStatus || "Unqualified";
+            const newStatus = updatedRequest.leadStatus || "Unqualified";
 
-            // Trigger "QualifiedLead" if transitioned to Qualified
-            if (newLeadStatus.toLowerCase() === 'qualified' && prevLeadStatus.toLowerCase() !== 'qualified') {
-                // Awaiting Promise.allSettled guarantees execution in Vercel Serverless environments
+            const wasQualified = prevStatus.toLowerCase().includes('qualified') || prevStatus.toLowerCase().includes('sql');
+            const isQualified = newStatus.toLowerCase().includes('qualified') || newStatus.toLowerCase().includes('sql');
+
+            const wasClosed = prevStatus.toLowerCase().includes('closed') || prevStatus.toLowerCase().includes('won');
+            const isClosed = newStatus.toLowerCase().includes('closed') || newStatus.toLowerCase().includes('won');
+
+            if (isQualified && !wasQualified) {
                 await Promise.allSettled([
                     sendMetaConversion(updatedRequest, 'QualifiedLead'),
                     sendGoogleConversion(updatedRequest)
                 ]);
             }
 
-            // Trigger "Purchase" if transitioned to Won/Closed
-            if ((newLeadStatus.toLowerCase() === 'closed' || newLeadStatus.toLowerCase() === 'won') &&
-                (prevLeadStatus.toLowerCase() !== 'closed' && prevLeadStatus.toLowerCase() !== 'won')) {
+            if (isClosed && !wasClosed) {
                 await Promise.allSettled([
                     sendMetaConversion(updatedRequest, 'Purchase')
                 ]);
             }
         }
 
-        // 7. Purge Next.js Cache
         revalidatePath("/admin/dashboard");
         revalidatePath("/admin");
 
