@@ -30,6 +30,13 @@ export interface IRequest extends Document {
     // Legacy Payment Field
     agreedPrice?: number;
 
+    // Add this to your IRequest interface:
+    statusHistory?: {
+        action: string;
+        performedBy: string;
+        date: Date;
+    }[];
+
     // NEW Payment Fields
     paymentType?: string;
     totalAmount?: number;
@@ -117,6 +124,13 @@ const RequestSchema: Schema = new Schema(
 
         assignedToId: {type: mongoose.Schema.Types.ObjectId, ref: 'user'},
         assignedToName: {type: String},
+
+        // Add this inside your new Schema({ ... }) definition:
+        statusHistory: [{
+            action: { type: String, required: true },
+            performedBy: { type: String, required: true },
+            date: { type: Date, default: Date.now }
+        }],
 
         documents: [{
             fieldName: {type: String, required: true},

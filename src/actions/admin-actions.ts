@@ -75,6 +75,10 @@ export async function deleteRequest(id: string) {
 
 export async function updateRequestStatus(id: string, targetStage: string, payload: any) {
     try {
+        // 1. Get the current user to track WHO made the change
+        const session = await requireAuth();
+        const currentUser = session.user?.name || "System Admin";
+
         await connectToDatabase();
 
         const existingRequest = await Request.findById(id);
@@ -87,26 +91,36 @@ export async function updateRequestStatus(id: string, targetStage: string, paylo
             status: targetStage
         };
 
-        // FIXED: Watch the leadStatus field for changes to trigger the timestamp
+        // 2. Prepare History Logging
+        const historyPush: any = {};
+
+        // Check if Pipeline Stage Changed
+        if (targetStage !== existingRequest.status) {
+            historyPush.statusHistory = {
+                action: `Moved to Pipeline Stage: ${targetStage}`,
+                performedBy: currentUser,
+                date: new Date()
+            };
+        }
+
+        // Check if Sales Status Changed
         if (payload.leadStatus && payload.leadStatus !== existingRequest.leadStatus) {
             updateData.statusUpdatedAt = new Date();
+
+            // If we are already pushing a pipeline change, format it as an array to push both,
+            // otherwise just push the sales status. For simplicity, we'll log the sales status update.
+            historyPush.statusHistory = {
+                action: `Updated Sales Status: ${payload.leadStatus}`,
+                performedBy: currentUser,
+                date: new Date()
+            };
         }
 
         // 3. Smart Appending for Admin Notes
         if (payload.adminNotes && payload.adminNotes.trim() !== "") {
-            const timestamp = new Date().toLocaleString('en-US', {
-                month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit'
-            });
-
             const existingNotes = existingRequest.adminNotes || "";
-            // FIXED: Look for leadStatus in the payload
-            const actionLabel = payload.leadStatus ? `Status: ${payload.leadStatus}` : `Moved to: ${targetStage}`;
-            const notePrefix = `[${timestamp} | ${actionLabel}]`;
-            const newNoteEntry = `${notePrefix}\n${payload.adminNotes.trim()}`;
-
-            updateData.adminNotes = existingNotes
-                ? `${existingNotes}\n\n${newNoteEntry}`
-                : newNoteEntry;
+            const newNoteEntry = `[Note added by ${currentUser}]\n${payload.adminNotes.trim()}`;
+            updateData.adminNotes = existingNotes ? `${existingNotes}\n\n${newNoteEntry}` : newNoteEntry;
         } else {
             delete updateData.adminNotes;
         }
@@ -117,11 +131,16 @@ export async function updateRequestStatus(id: string, targetStage: string, paylo
             updateData.documents = [...existingDocs, ...payload.documents];
         }
 
-        const updatedRequest = await Request.findByIdAndUpdate(id, updateData, { new: true });
+        // 5. Execute Update (Merge normal updates with the history $push)
+        const finalQuery = Object.keys(historyPush).length > 0
+            ? { $set: updateData, $push: historyPush }
+            : { $set: updateData };
+
+        // We use updating with $set and $push to cleanly add to the array
+        const updatedRequest = await Request.findByIdAndUpdate(id, finalQuery, { new: true });
 
         // 6. --- S2S CONVERSION TRIGGERS ---
         if (updatedRequest) {
-            // FIXED: We can safely just look at leadStatus now
             const prevStatus = existingRequest.leadStatus || "Unqualified";
             const newStatus = updatedRequest.leadStatus || "Unqualified";
 
