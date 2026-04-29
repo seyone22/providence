@@ -14,6 +14,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
+import FAQSection from "@/components/faqSection";
 
 const appleEase: any = [0.16, 1, 0.3, 1];
 
@@ -207,7 +208,7 @@ export default function GalleryClient({ dossiers }: { dossiers: Dossier[] }) {
                         className="relative h-[600px] lg:h-[800px] rounded-[2.5rem] overflow-hidden bg-zinc-200"
                     >
                         <img
-                            src="https://images.unsplash.com/photo-1588626245089-8d7d91e605d5?q=80&w=2940&auto=format&fit=crop"
+                            src="/gallery_image.jpg"
                             alt="Vehicles being loaded into a shipping container"
                             className="w-full h-full object-cover"
                         />
@@ -314,57 +315,7 @@ export default function GalleryClient({ dossiers }: { dossiers: Dossier[] }) {
             </section>
 
             {/* FAQs Section */}
-            <section className="py-32 px-6 bg-[#FAFAFA] border-t border-black/5">
-                <div className="max-w-4xl mx-auto">
-                    <motion.div
-                        initial={{ opacity: 0, y: 30 }}
-                        whileInView={{ opacity: 1, y: 0 }}
-                        viewport={{ once: true }}
-                        transition={{ duration: 0.8, ease: appleEase }}
-                        className="text-center mb-16"
-                    >
-                        <h2 className="text-4xl md:text-6xl font-bold tracking-tighter mb-6">
-                            FAQs
-                        </h2>
-                        <p className="text-zinc-500 font-light text-lg md:text-xl">
-                            Everything you need to know about our direct import network.
-                        </p>
-                    </motion.div>
-
-                    <motion.div
-                        initial={{ opacity: 0, y: 30 }}
-                        whileInView={{ opacity: 1, y: 0 }}
-                        viewport={{ once: true }}
-                        transition={{ duration: 0.8, delay: 0.2, ease: appleEase }}
-                        className="bg-white rounded-[2rem] border border-black/5 p-6 md:p-12 shadow-[0_20px_40px_rgba(0,0,0,0.02)]"
-                    >
-                        {[
-                            {
-                                q: "Are the vehicles compliant with local regulations?",
-                                a: "Yes, absolutely. We only source vehicles that can be legally homologated in your destination country. Our compliance team handles all necessary emissions testing, safety certifications, and documentation required by your local transport authorities."
-                            },
-                            {
-                                q: "Do I need to manage customs and import duties?",
-                                a: "No. Providence Auto operates a true end-to-end service. We calculate all tariffs, taxes, and import duties upfront, and our brokers clear the vehicle through customs on your behalf. You simply take delivery."
-                            },
-                            {
-                                q: "How long does the entire import process take?",
-                                a: "On average, the process takes between 6 to 10 weeks depending on the vehicle's origin and your destination. This includes purchasing, de-registration, shipping, customs clearance, and final delivery."
-                            },
-                            {
-                                q: "Can I use financing to purchase an imported vehicle?",
-                                a: "Yes. While traditional banks may hesitate to finance an overseas asset, we have partnered with specialized automotive finance firms that understand the direct-import model and can offer competitive rates."
-                            },
-                            {
-                                q: "What happens if the car arrives damaged?",
-                                a: "Every vehicle is covered by comprehensive marine and transit insurance from the moment it is purchased until it is handed over to you. In the highly unlikely event of transit damage, our policy covers the repair or replacement value in full."
-                            }
-                        ].map((faq, index) => (
-                            <FAQItem key={index} question={faq.q} answer={faq.a} />
-                        ))}
-                    </motion.div>
-                </div>
-            </section>
+            <FAQSection/>
 
             <style jsx global>{`
                 .hide-scrollbar::-webkit-scrollbar {

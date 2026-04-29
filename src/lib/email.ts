@@ -51,7 +51,8 @@ export const emailService = {
         userName: string,
         make: string,
         model: string,
-        requestId: string
+        requestId: string,
+        staffName: string,
     }) => {
         await sendEmail({
             to,
