@@ -151,7 +151,7 @@ export default function RequestTableClient({
                     <div className="flex items-center gap-2 pl-2">
                         <ListFilter size={16} className="text-zinc-400 hidden sm:block" />
 
-                        {/* Dropdown: Staff Filter */}
+                        {/* Dropdown:d Staff Filter */}
                         <select
                             value={staffFilter}
                             onChange={(e) => setStaffFilter(e.target.value)}
