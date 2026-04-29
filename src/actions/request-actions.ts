@@ -72,7 +72,8 @@ export async function submitCarRequest(data: {
                 userName: data.name,
                 make: data.make,
                 model: data.vehicle_model,
-                requestId: requestId
+                requestId: requestId,
+                staffName: "Rakeez"
             }),
             emailService.sendStaffAlert(agentData.email, data, requestId)
         ]);
