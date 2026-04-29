@@ -11,7 +11,13 @@ import { Badge } from "@/components/ui/badge";
 import DynamicFileUploader, { PendingFile } from "@/components/dynamicFileUploader";
 import { updateRequestStatus, deleteRequest } from "@/actions/admin-actions";
 import { uploadToR2 } from "@/lib/file-actions";
-import {SALES_STATUSES} from "@/app/admin/RequestTableClient";
+import { SALES_STATUSES } from "@/app/admin/RequestTableClient"; // Adjust path if needed
+
+// Add the pipeline stages here so we can map them in the dropdown
+const PIPELINE_STAGES = [
+    "New", "Vehicle Selection", "Price Agreement", "Deposit Collected",
+    "Vehicle Purchased", "Preparation", "Shipped", "Arrived at Port", "Cleared Customs"
+];
 
 export default function RequestActionModal({
                                                modal,
@@ -42,12 +48,16 @@ export default function RequestActionModal({
                     assignedToName: modal.request.assignedToName || ""
                 });
             } else if (modal.type === "sales_status") {
-                // Initialize with current sales status, fallback to legacy leadStatus
                 setPayload({
                     leadStatus: modal.request.leadStatus || "Action required"
                 });
             } else {
-                setPayload({});
+                // Initialize default payment type if we are opening Price Agreement
+                if (modal.type === "advance" && modal.targetStage === "Price Agreement") {
+                    setPayload({ paymentType: "Full payment" });
+                } else {
+                    setPayload({});
+                }
             }
             setPendingFiles([]); // Reset files
         }
@@ -62,6 +72,27 @@ export default function RequestActionModal({
         setIsProcessing(true);
 
         try {
+            // --- NEW: PAYLOAD SANITIZATION ---
+            let formattedPayload = { ...payload };
+
+            if (modal.targetStage === "Price Agreement") {
+                // 1. Safely convert string inputs to actual Numbers
+                if (formattedPayload.totalAmount) formattedPayload.totalAmount = Number(formattedPayload.totalAmount);
+                if (formattedPayload.agreedPrice) formattedPayload.agreedPrice = Number(formattedPayload.agreedPrice);
+
+                // 2. Prevent dirty data: Wipe partial payment fields if Full Payment is selected
+                if (formattedPayload.paymentType === "Full payment") {
+                    formattedPayload.advancePaymentAmount = null;
+                    formattedPayload.balancePaymentAmount = null;
+                    formattedPayload.balancePaymentStage = null;
+                } else if (formattedPayload.paymentType === "Partial Payments") {
+                    // Convert partial inputs to Numbers
+                    if (formattedPayload.advancePaymentAmount) formattedPayload.advancePaymentAmount = Number(formattedPayload.advancePaymentAmount);
+                    if (formattedPayload.balancePaymentAmount) formattedPayload.balancePaymentAmount = Number(formattedPayload.balancePaymentAmount);
+                }
+            }
+            // ---------------------------------
+
             if (modal.type === "delete") {
                 await deleteRequest(modal.request._id);
             } else if (modal.type === "advance" && modal.targetStage) {
@@ -86,12 +117,14 @@ export default function RequestActionModal({
                     finalDocuments = [...finalDocuments, ...newDocuments];
                 }
 
-                await updateRequestStatus(modal.request._id, modal.targetStage, { ...payload, documents: finalDocuments });
+                // Make sure to pass `formattedPayload` here instead of `payload`
+                await updateRequestStatus(modal.request._id, modal.targetStage, { ...formattedPayload, documents: finalDocuments });
             } else if (modal.type === "revert" && modal.targetStage) {
-                await updateRequestStatus(modal.request._id, modal.targetStage, payload);
+                // Make sure to pass `formattedPayload` here too
+                await updateRequestStatus(modal.request._id, modal.targetStage, formattedPayload);
             } else if (modal.type === "details" || modal.type === "assign" || modal.type === "sales_status") {
-                // For these three types, we pass the *current* pipeline status so it doesn't move stages
-                await updateRequestStatus(modal.request._id, modal.request.status, payload);
+                // Make sure to pass `formattedPayload` here too
+                await updateRequestStatus(modal.request._id, modal.request.status, formattedPayload);
             }
         } catch (error) {
             console.error("Action failed:", error);
@@ -131,9 +164,7 @@ export default function RequestActionModal({
                         <div className="relative">
                             <select
                                 className={selectClasses}
-                                // FIX 1: Read from payload.leadStatus
                                 value={payload.leadStatus || "Action required"}
-                                // FIX 2: Write to leadStatus
                                 onChange={(e) => handlePayloadChange("leadStatus", e.target.value)}
                                 style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%23a1a1aa' stroke-width='2'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E")`, backgroundRepeat: 'no-repeat', backgroundPosition: 'right 1rem center', backgroundSize: '1.2em' }}
                             >
@@ -186,7 +217,7 @@ export default function RequestActionModal({
                     </div>
                 )}
 
-                {/* --- DETAILS & NOTES (Now includes Initial Lead Data) --- */}
+                {/* --- DETAILS & NOTES (Includes Initial Lead Data & ALL Pipeline Data) --- */}
                 {modal.type === "details" && modal.request && (
                     <div className="space-y-6 mt-4">
 
@@ -209,17 +240,34 @@ export default function RequestActionModal({
                             </div>
                         </div>
 
-                        {/* 2. PIPELINE DATA */}
+                        {/* 2. PIPELINE DATA (Updated to show Payment & Shipping fields) */}
                         <div className="bg-zinc-50 border border-black/5 rounded-2xl p-5 space-y-4 text-sm">
                             <h4 className="font-bold text-black border-b border-black/5 pb-2">Collected Pipeline Data</h4>
                             <div className="grid grid-cols-2 gap-x-4 gap-y-4">
-                                {modal.request.agreedPrice && <div><span className="block text-zinc-400 text-[10px] uppercase tracking-widest font-bold mb-1">Agreed Price</span><span className="font-medium text-black">${modal.request.agreedPrice}</span></div>}
+
+                                {/* Payment Fields */}
+                                {modal.request.paymentType && <div><span className="block text-zinc-400 text-[10px] uppercase tracking-widest font-bold mb-1">Payment Type</span><span className="font-medium text-black">{modal.request.paymentType}</span></div>}
+                                {(modal.request.totalAmount || modal.request.agreedPrice) && <div><span className="block text-zinc-400 text-[10px] uppercase tracking-widest font-bold mb-1">Total Agreed Price</span><span className="font-medium text-black">${modal.request.totalAmount || modal.request.agreedPrice}</span></div>}
+
+                                {modal.request.paymentType === "Partial Payments" && (
+                                    <>
+                                        {modal.request.advancePaymentAmount && <div><span className="block text-zinc-400 text-[10px] uppercase tracking-widest font-bold mb-1">Advance Amount</span><span className="font-medium text-black">${modal.request.advancePaymentAmount}</span></div>}
+                                        {modal.request.balancePaymentAmount && <div><span className="block text-zinc-400 text-[10px] uppercase tracking-widest font-bold mb-1">Balance Amount</span><span className="font-medium text-black">${modal.request.balancePaymentAmount}</span></div>}
+                                        {modal.request.balancePaymentStage && <div className="col-span-2"><span className="block text-zinc-400 text-[10px] uppercase tracking-widest font-bold mb-1">Balance Due Trigger</span><span className="font-medium text-black">{modal.request.balancePaymentStage}</span></div>}
+                                    </>
+                                )}
+
+                                {/* General Logistics Fields */}
                                 {modal.request.depositAmount && <div><span className="block text-zinc-400 text-[10px] uppercase tracking-widest font-bold mb-1">Deposit</span><span className="font-medium text-black">${modal.request.depositAmount}</span></div>}
                                 {modal.request.transactionId && <div><span className="block text-zinc-400 text-[10px] uppercase tracking-widest font-bold mb-1">Receipt ID</span><span className="font-medium text-black">{modal.request.transactionId}</span></div>}
                                 {modal.request.invoiceNumber && <div><span className="block text-zinc-400 text-[10px] uppercase tracking-widest font-bold mb-1">Invoice #</span><span className="font-medium text-black">{modal.request.invoiceNumber}</span></div>}
-                                {modal.request.trackingNumber && <div><span className="block text-zinc-400 text-[10px] uppercase tracking-widest font-bold mb-1">Tracking #</span><span className="font-medium text-black">{modal.request.trackingNumber}</span></div>}
+
+                                {/* Shipping Fields */}
                                 {modal.request.vesselName && <div><span className="block text-zinc-400 text-[10px] uppercase tracking-widest font-bold mb-1">Vessel</span><span className="font-medium text-black">{modal.request.vesselName}</span></div>}
-                                {modal.request.portName && <div><span className="block text-zinc-400 text-[10px] uppercase tracking-widest font-bold mb-1">Arrival Port</span><span className="font-medium text-black">{modal.request.portName}</span></div>}
+                                {modal.request.trackingNumber && <div><span className="block text-zinc-400 text-[10px] uppercase tracking-widest font-bold mb-1">Tracking #</span><span className="font-medium text-black">{modal.request.trackingNumber}</span></div>}
+                                {modal.request.containerNumber && <div><span className="block text-zinc-400 text-[10px] uppercase tracking-widest font-bold mb-1">Container #</span><span className="font-medium text-black">{modal.request.containerNumber}</span></div>}
+                                {modal.request.portOfArrival && <div><span className="block text-zinc-400 text-[10px] uppercase tracking-widest font-bold mb-1">Dest. Port (Shipping)</span><span className="font-medium text-black">{modal.request.portOfArrival}</span></div>}
+                                {modal.request.portName && <div><span className="block text-zinc-400 text-[10px] uppercase tracking-widest font-bold mb-1">Arrival Port (Confirmed)</span><span className="font-medium text-black">{modal.request.portName}</span></div>}
                                 {modal.request.eta && <div><span className="block text-zinc-400 text-[10px] uppercase tracking-widest font-bold mb-1">ETA</span><span className="font-medium text-black">{new Date(modal.request.eta).toLocaleDateString()}</span></div>}
                             </div>
                         </div>
@@ -283,12 +331,80 @@ export default function RequestActionModal({
                                 <Textarea onChange={(e) => handlePayloadChange("options", e.target.value)} className={inputClasses} placeholder="Paste links to cars or list options sent to the client..." />
                             </div>
                         )}
+
+                        {/* --- NEW: COMPREHENSIVE PRICE AGREEMENT --- */}
                         {modal.targetStage === "Price Agreement" && (
-                            <div className="space-y-2">
-                                <Label className="text-zinc-600 font-bold">Agreed Price (USD)</Label>
-                                <Input type="number" onChange={(e) => handlePayloadChange("agreedPrice", e.target.value)} className={inputClasses} placeholder="e.g. 125000" />
+                            <div className="space-y-6 bg-zinc-50/50 p-5 rounded-2xl border border-black/5">
+                                <div className="space-y-2">
+                                    <Label className="text-zinc-600 font-bold">Payment Type</Label>
+                                    <div className="relative">
+                                        <select
+                                            className={selectClasses}
+                                            value={payload.paymentType || "Full payment"}
+                                            onChange={(e) => handlePayloadChange("paymentType", e.target.value)}
+                                            style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%23a1a1aa' stroke-width='2'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E")`, backgroundRepeat: 'no-repeat', backgroundPosition: 'right 1rem center', backgroundSize: '1.2em' }}
+                                        >
+                                            <option value="Full payment">Full payment</option>
+                                            <option value="Partial Payments">Partial Payments</option>
+                                        </select>
+                                    </div>
+                                </div>
+
+                                <div className="space-y-2">
+                                    <Label className="text-zinc-600 font-bold">Total Agreed Amount (USD)</Label>
+                                    <Input
+                                        type="number"
+                                        onChange={(e) => {
+                                            handlePayloadChange("totalAmount", e.target.value);
+                                            // Keep legacy field synced for backward compatibility
+                                            handlePayloadChange("agreedPrice", e.target.value);
+                                        }}
+                                        className={inputClasses}
+                                        placeholder="e.g. 125000"
+                                    />
+                                </div>
+
+                                {payload.paymentType === "Partial Payments" && (
+                                    <div className="grid grid-cols-2 gap-4 pt-2 border-t border-black/5">
+                                        <div className="space-y-2">
+                                            <Label className="text-zinc-600 font-bold text-xs">Advance Amount</Label>
+                                            <Input
+                                                type="number"
+                                                onChange={(e) => handlePayloadChange("advancePaymentAmount", e.target.value)}
+                                                className={inputClasses}
+                                                placeholder="e.g. 50000"
+                                            />
+                                        </div>
+                                        <div className="space-y-2">
+                                            <Label className="text-zinc-600 font-bold text-xs">Balance Amount</Label>
+                                            <Input
+                                                type="number"
+                                                onChange={(e) => handlePayloadChange("balancePaymentAmount", e.target.value)}
+                                                className={inputClasses}
+                                                placeholder="e.g. 75000"
+                                            />
+                                        </div>
+                                        <div className="col-span-2 space-y-2">
+                                            <Label className="text-zinc-600 font-bold text-xs">Balance Due Stage</Label>
+                                            <div className="relative">
+                                                <select
+                                                    className={selectClasses}
+                                                    value={payload.balancePaymentStage || ""}
+                                                    onChange={(e) => handlePayloadChange("balancePaymentStage", e.target.value)}
+                                                    style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%23a1a1aa' stroke-width='2'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E")`, backgroundRepeat: 'no-repeat', backgroundPosition: 'right 1rem center', backgroundSize: '1.2em' }}
+                                                >
+                                                    <option value="" disabled>Select a stage...</option>
+                                                    {PIPELINE_STAGES.map(stage => (
+                                                        <option key={stage} value={stage}>{stage}</option>
+                                                    ))}
+                                                </select>
+                                            </div>
+                                        </div>
+                                    </div>
+                                )}
                             </div>
                         )}
+
                         {modal.targetStage === "Deposit Collected" && (
                             <>
                                 <div className="space-y-2"><Label className="text-zinc-600 font-bold">Deposit Amount Collected</Label><Input type="number" onChange={(e) => handlePayloadChange("depositAmount", e.target.value)} className={inputClasses} placeholder="e.g. 5000" /></div>
@@ -301,15 +417,20 @@ export default function RequestActionModal({
                         {modal.targetStage === "Preparation" && (
                             <div className="space-y-2"><Label className="text-zinc-600 font-bold">Inspection & Prep Notes</Label><Textarea onChange={(e) => handlePayloadChange("inspectionNotes", e.target.value)} className={inputClasses} placeholder="e.g. Car received at garage. Export physical checks passed..." /></div>
                         )}
+
+                        {/* --- NEW: UPDATED SHIPPING FIELDS --- */}
                         {modal.targetStage === "Shipped" && (
                             <>
                                 <div className="space-y-2"><Label className="text-zinc-600 font-bold">Shipping Tracking Number</Label><Input onChange={(e) => handlePayloadChange("trackingNumber", e.target.value)} className={inputClasses} placeholder="e.g. MSCU1234567" /></div>
                                 <div className="space-y-2"><Label className="text-zinc-600 font-bold">Vessel Name</Label><Input onChange={(e) => handlePayloadChange("vesselName", e.target.value)} className={inputClasses} placeholder="e.g. Ever Given" /></div>
+                                <div className="space-y-2"><Label className="text-zinc-600 font-bold">Container Number</Label><Input onChange={(e) => handlePayloadChange("containerNumber", e.target.value)} className={inputClasses} placeholder="e.g. HLBU1234567" /></div>
+                                <div className="space-y-2"><Label className="text-zinc-600 font-bold">Port of Arrival</Label><Input onChange={(e) => handlePayloadChange("portOfArrival", e.target.value)} className={inputClasses} placeholder="e.g. Port of Los Angeles" /></div>
                                 <div className="space-y-2"><Label className="text-zinc-600 font-bold">Estimated Arrival (ETA)</Label><Input type="date" onChange={(e) => handlePayloadChange("eta", e.target.value)} className={inputClasses} /></div>
                             </>
                         )}
+
                         {modal.targetStage === "Arrived at Port" && (
-                            <div className="space-y-2"><Label className="text-zinc-600 font-bold">Port of Arrival</Label><Input onChange={(e) => handlePayloadChange("portName", e.target.value)} className={inputClasses} placeholder="e.g. Port of Los Angeles" /></div>
+                            <div className="space-y-2"><Label className="text-zinc-600 font-bold">Arrival Notes / Confirm Port</Label><Input onChange={(e) => handlePayloadChange("portName", e.target.value)} className={inputClasses} placeholder="e.g. Confirmed at Port of Los Angeles" /></div>
                         )}
                         {modal.targetStage === "Cleared Customs" && (
                             <div className="space-y-2"><Label className="text-zinc-600 font-bold">Final Notes / Delivery Instructions</Label><Textarea onChange={(e) => handlePayloadChange("customsNotes", e.target.value)} className={inputClasses} placeholder="e.g. Duties paid, ready for flatbed pickup." /></div>
