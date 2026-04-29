@@ -107,7 +107,7 @@ export default function RequestTableClient({
                 const matchesStatus = statusFilter === "All" || (req.leadStatus || "Unqualified") === statusFilter;
 
                 // NEW: Staff Match
-                const assignedValue = req.assignedToId || "Unassigned";
+                const assignedValue = req.assignedToName || "Unassigned"; // <-- Changed to assignedToName
                 const matchesStaff = staffFilter === "All" || assignedValue === staffFilter;
 
                 // NEW: Car Match
