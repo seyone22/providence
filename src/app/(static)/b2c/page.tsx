@@ -6,6 +6,7 @@ import MinimalHeader from "@/components/MinimalHeader";
 import { Landmark, Compass, Ship, ShieldCheck, ArrowRight, Images } from "lucide-react";
 import { motion, useScroll, useTransform } from "framer-motion";
 import RequestForm from "@/components/requestForm";
+import FAQSection from "@/components/faqSection";
 
 const appleEase: any = [0.16, 1, 0.3, 1];
 
@@ -222,6 +223,9 @@ export default function B2CLanding() {
                         <RequestForm />
                     </Suspense>
                 </div>
+
+                {/* FAQs Section */}
+                <FAQSection/>
 
                 <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-[800px] h-[400px] bg-black/5 blur-[120px] rounded-full pointer-events-none" />
             </section>

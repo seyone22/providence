@@ -282,9 +282,20 @@ const SelectDropdown = ({
     id: string, options: {label: string, value: string}[], value: string, onChange: (id: string, val: string) => void, placeholder: string, error?: string, disabled?: boolean, isLoading?: boolean
 }) => {
     const [isOpen, setIsOpen] = useState(false);
+    const [searchTerm, setSearchTerm] = useState("");
     const dropdownRef = useRef<HTMLDivElement>(null);
 
+    // Filter options based on user input
+    const filteredOptions = options.filter(opt =>
+        opt.label.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+
     const selectedLabel = options.find(o => o.value === value)?.label;
+
+    // Sync search term with selection when closed
+    useEffect(() => {
+        if (!isOpen) setSearchTerm("");
+    }, [isOpen]);
 
     useEffect(() => {
         const handleClickOutside = (event: MouseEvent) => {
@@ -299,16 +310,32 @@ const SelectDropdown = ({
     return (
         <div className="relative w-full" ref={dropdownRef}>
             <div
-                onClick={() => !disabled && !isLoading && setIsOpen(!isOpen)}
-                className={`w-full bg-transparent border-b flex items-center justify-between px-0 py-3 text-lg transition-colors cursor-pointer outline-none
+                className={`w-full bg-transparent border-b flex items-center justify-between px-0 py-3 text-lg transition-colors outline-none
                     ${disabled || isLoading ? "opacity-50 cursor-not-allowed" : ""}
                     ${error ? "border-red-500 text-red-500" : isOpen ? "border-sky-500 text-black" : "border-black/10 text-black hover:border-black/30"}
                 `}
             >
-                <span className={!value ? "text-zinc-400" : "text-black"}>
-                    {isLoading ? "Loading..." : selectedLabel || placeholder}
-                </span>
-                {isLoading ? <Loader2 size={18} className="animate-spin text-zinc-400" /> : <ChevronDown size={18} className={`transition-transform duration-300 ${isOpen ? "rotate-180 text-sky-500" : "text-zinc-400"}`} />}
+                <input
+                    type="text"
+                    disabled={disabled || isLoading}
+                    className="bg-transparent w-full outline-none placeholder:text-zinc-400 text-black"
+                    placeholder={selectedLabel || placeholder}
+                    value={isOpen ? searchTerm : (selectedLabel || "")}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    onFocus={() => setIsOpen(true)}
+                />
+
+                <div className="flex items-center gap-2">
+                    {isLoading ? (
+                        <Loader2 size={18} className="animate-spin text-zinc-400" />
+                    ) : (
+                        <ChevronDown
+                            size={18}
+                            onClick={() => !disabled && setIsOpen(!isOpen)}
+                            className={`transition-transform duration-300 cursor-pointer ${isOpen ? "rotate-180 text-sky-500" : "text-zinc-400"}`}
+                        />
+                    )}
+                </div>
             </div>
 
             <AnimatePresence>
@@ -317,13 +344,17 @@ const SelectDropdown = ({
                         initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 10 }} transition={{ duration: 0.2 }}
                         className="absolute z-50 top-full left-0 w-full mt-2 bg-white rounded-2xl shadow-[0_20px_40px_rgba(0,0,0,0.1)] border border-black/5 max-h-64 overflow-y-auto py-2"
                     >
-                        {options.length === 0 ? (
-                            <div className="px-4 py-3 text-sm text-zinc-500 italic">No options available</div>
+                        {filteredOptions.length === 0 ? (
+                            <div className="px-4 py-3 text-sm text-zinc-500 italic">No results found</div>
                         ) : (
-                            options.map((opt) => (
+                            filteredOptions.map((opt) => (
                                 <div
                                     key={opt.value}
-                                    onClick={() => { onChange(id, opt.value); setIsOpen(false); }}
+                                    onClick={() => {
+                                        onChange(id, opt.value);
+                                        setSearchTerm("");
+                                        setIsOpen(false);
+                                    }}
                                     className={`px-4 py-3 text-sm cursor-pointer transition-colors hover:bg-sky-50 hover:text-sky-600 ${value === opt.value ? "bg-sky-500/10 text-sky-600 font-bold" : "text-zinc-700"}`}
                                 >
                                     {opt.label}

@@ -75,33 +75,52 @@ export async function deleteRequest(id: string) {
 
 export async function updateRequestStatus(id: string, targetStage: string, payload: any) {
     try {
+        // 1. Get the current user to track WHO made the change
+        const session = await requireAuth();
+        const currentUser = session.user?.name || "System Admin";
+
         await connectToDatabase();
 
-        // 1. Fetch the existing record to prevent overwriting arrays/strings and track status changes
         const existingRequest = await Request.findById(id);
         if (!existingRequest) {
             throw new Error("Lead not found in the database.");
         }
 
-        // 2. Prepare the base update object
         const updateData: any = {
             ...payload,
             status: targetStage
         };
 
+        // 2. Prepare History Logging
+        const historyPush: any = {};
+
+        // Check if Pipeline Stage Changed
+        if (targetStage !== existingRequest.status) {
+            historyPush.statusHistory = {
+                action: `Moved to Pipeline Stage: ${targetStage}`,
+                performedBy: currentUser,
+                date: new Date()
+            };
+        }
+
+        // Check if Sales Status Changed
+        if (payload.leadStatus && payload.leadStatus !== existingRequest.leadStatus) {
+            updateData.statusUpdatedAt = new Date();
+
+            // If we are already pushing a pipeline change, format it as an array to push both,
+            // otherwise just push the sales status. For simplicity, we'll log the sales status update.
+            historyPush.statusHistory = {
+                action: `Updated Sales Status: ${payload.leadStatus}`,
+                performedBy: currentUser,
+                date: new Date()
+            };
+        }
+
         // 3. Smart Appending for Admin Notes
         if (payload.adminNotes && payload.adminNotes.trim() !== "") {
-            const timestamp = new Date().toLocaleString('en-US', {
-                month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit'
-            });
-
             const existingNotes = existingRequest.adminNotes || "";
-            const notePrefix = `[${timestamp} | Moved to: ${targetStage}]`;
-            const newNoteEntry = `${notePrefix}\n${payload.adminNotes.trim()}`;
-
-            updateData.adminNotes = existingNotes
-                ? `${existingNotes}\n\n${newNoteEntry}`
-                : newNoteEntry;
+            const newNoteEntry = `[Note added by ${currentUser}]\n${payload.adminNotes.trim()}`;
+            updateData.adminNotes = existingNotes ? `${existingNotes}\n\n${newNoteEntry}` : newNoteEntry;
         } else {
             delete updateData.adminNotes;
         }
@@ -112,33 +131,39 @@ export async function updateRequestStatus(id: string, targetStage: string, paylo
             updateData.documents = [...existingDocs, ...payload.documents];
         }
 
-        // 5. Execute the Database Update (using {new: true} to get the updated document)
-        const updatedRequest = await Request.findByIdAndUpdate(id, updateData, { new: true });
+        // 5. Execute Update (Merge normal updates with the history $push)
+        const finalQuery = Object.keys(historyPush).length > 0
+            ? { $set: updateData, $push: historyPush }
+            : { $set: updateData };
+
+        // We use updating with $set and $push to cleanly add to the array
+        const updatedRequest = await Request.findByIdAndUpdate(id, finalQuery, { new: true });
 
         // 6. --- S2S CONVERSION TRIGGERS ---
         if (updatedRequest) {
-            const prevLeadStatus = existingRequest.leadStatus || "Unqualified";
-            const newLeadStatus = updatedRequest.leadStatus || "Unqualified";
+            const prevStatus = existingRequest.leadStatus || "Unqualified";
+            const newStatus = updatedRequest.leadStatus || "Unqualified";
 
-            // Trigger "QualifiedLead" if transitioned to Qualified
-            if (newLeadStatus.toLowerCase() === 'qualified' && prevLeadStatus.toLowerCase() !== 'qualified') {
-                // Awaiting Promise.allSettled guarantees execution in Vercel Serverless environments
+            const wasQualified = prevStatus.toLowerCase().includes('qualified') || prevStatus.toLowerCase().includes('sql');
+            const isQualified = newStatus.toLowerCase().includes('qualified') || newStatus.toLowerCase().includes('sql');
+
+            const wasClosed = prevStatus.toLowerCase().includes('closed') || prevStatus.toLowerCase().includes('won');
+            const isClosed = newStatus.toLowerCase().includes('closed') || newStatus.toLowerCase().includes('won');
+
+            if (isQualified && !wasQualified) {
                 await Promise.allSettled([
                     sendMetaConversion(updatedRequest, 'QualifiedLead'),
                     sendGoogleConversion(updatedRequest)
                 ]);
             }
 
-            // Trigger "Purchase" if transitioned to Won/Closed
-            if ((newLeadStatus.toLowerCase() === 'closed' || newLeadStatus.toLowerCase() === 'won') &&
-                (prevLeadStatus.toLowerCase() !== 'closed' && prevLeadStatus.toLowerCase() !== 'won')) {
+            if (isClosed && !wasClosed) {
                 await Promise.allSettled([
                     sendMetaConversion(updatedRequest, 'Purchase')
                 ]);
             }
         }
 
-        // 7. Purge Next.js Cache
         revalidatePath("/admin/dashboard");
         revalidatePath("/admin");
 
