@@ -1,7 +1,10 @@
 "use client";
 
 import { useState, useMemo } from "react";
-import { ArrowLeft, ArrowRight, ExternalLink, Eye, MoreHorizontal, Trash, User, UserPlus, DollarSign, Ship, Search, ListFilter } from "lucide-react";
+import {
+    ArrowLeft, ArrowRight, ExternalLink, Eye, MoreHorizontal, Trash,
+    User, UserPlus, DollarSign, Ship, Search, ListFilter, MessageCircle, MapPin, Box, Activity
+} from "lucide-react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -20,11 +23,25 @@ const PIPELINE_STAGES = [
     "Vehicle Purchased", "Preparation", "Shipped", "Arrived at Port", "Cleared Customs"
 ];
 
-const LEAD_STATUSES = ["Unqualified", "Contacted", "Qualified", "In Progress", "Won", "Lost"];
+// Exporting this so you can potentially import it in your Modal component
+export const SALES_STATUSES = [
+    "Action required",
+    "No Response",
+    "Stopped Responding",
+    "Replied (Email)",
+    "Replied (WhatsApp)",
+    "Replied (Both)",
+    "Active Conversation",
+    "SQL: Moved to vehicle offering stage",
+    "Not Qualified",
+    "Lead Lost",
+    "Lead Closed"
+];
 
+// ADDED "sales_status" to the type definition
 type ActionModalState = {
     isOpen: boolean;
-    type: "advance" | "revert" | "delete" | "details" | "assign" | null;
+    type: "advance" | "revert" | "delete" | "details" | "assign" | "sales_status" | null;
     request: any | null;
     targetStage: string | null;
 };
@@ -44,8 +61,8 @@ export default function RequestTableClient({
     const [searchQuery, setSearchQuery] = useState("");
     const [stageFilter, setStageFilter] = useState("All");
     const [statusFilter, setStatusFilter] = useState("All");
-    const [staffFilter, setStaffFilter] = useState("All"); // <-- NEW
-    const [carFilter, setCarFilter] = useState("All");     // <-- NEW
+    const [staffFilter, setStaffFilter] = useState("All");
+    const [carFilter, setCarFilter] = useState("All");
     const [sortBy, setSortBy] = useState("newest");
 
     const closeDialog = () => setModal({ isOpen: false, type: null, request: null, targetStage: null });
@@ -75,19 +92,24 @@ export default function RequestTableClient({
         return <Badge className="bg-zinc-100 text-zinc-600 border-zinc-200 hover:bg-zinc-200 rounded-full px-3">{current}</Badge>;
     };
 
-    const getLeadStatusBadge = (status: string) => {
-        const current = status || "Unqualified";
-        const lower = current.toLowerCase();
+    // Color-coded Sales Status Badge
+    const getSalesStatusBadge = (status: string) => {
+        const current = status || "Action required";
 
-        if (lower === "qualified") return <Badge className="bg-blue-50 text-blue-600 border-blue-200 hover:bg-blue-100 rounded-full px-3">{current}</Badge>;
-        if (lower === "won" || lower === "closed") return <Badge className="bg-emerald-50 text-emerald-600 border-emerald-200 hover:bg-emerald-100 rounded-full px-3">{current}</Badge>;
-        if (lower === "lost") return <Badge className="bg-red-50 text-red-600 border-red-200 hover:bg-red-100 rounded-full px-3">{current}</Badge>;
-        if (lower === "contacted" || lower === "in progress") return <Badge className="bg-amber-50 text-amber-600 border-amber-200 hover:bg-amber-100 rounded-full px-3">{current}</Badge>;
+        if (["Action required", "Lead Lost"].includes(current)) {
+            return <Badge className="bg-red-50 text-red-600 border-red-200 hover:bg-red-100 rounded-full px-3">{current}</Badge>;
+        }
+        if (["No Response", "Stopped Responding"].includes(current)) {
+            return <Badge className="bg-yellow-50 text-yellow-600 border-yellow-200 hover:bg-yellow-100 rounded-full px-3">{current}</Badge>;
+        }
+        if (["Replied (Email)", "Replied (WhatsApp)", "Replied (Both)", "Active Conversation", "SQL: Moved to vehicle offering stage", "Lead Closed"].includes(current)) {
+            return <Badge className="bg-emerald-50 text-emerald-600 border-emerald-200 hover:bg-emerald-100 rounded-full px-3">{current}</Badge>;
+        }
 
         return <Badge className="bg-zinc-100 text-zinc-500 border-zinc-200 hover:bg-zinc-200 rounded-full px-3">{current}</Badge>;
     };
 
-    // Extract unique cars dynamically from the requests to populate the Car filter dropdown
+    // Extract unique cars dynamically
     const uniqueCars = useMemo(() => {
         const cars = new Set(initialRequests.map(req => `${req.make} ${req.vehicle_model}`.trim()));
         return Array.from(cars).filter(Boolean).sort();
@@ -104,13 +126,13 @@ export default function RequestTableClient({
                     (req.vehicle_model || "").toLowerCase().includes(searchQuery.toLowerCase());
 
                 const matchesStage = stageFilter === "All" || (req.status || "New") === stageFilter;
-                const matchesStatus = statusFilter === "All" || (req.leadStatus || "Unqualified") === statusFilter;
 
-                // NEW: Staff Match
-                const assignedValue = req.assignedToId || "Unassigned";
+                const currentStatus = req.salesStatus || req.leadStatus || "Action required";
+                const matchesStatus = statusFilter === "All" || currentStatus === statusFilter;
+
+                const assignedValue = req.assignedToName || "Unassigned";
                 const matchesStaff = staffFilter === "All" || assignedValue === staffFilter;
 
-                // NEW: Car Match
                 const carName = `${req.make} ${req.vehicle_model}`.trim();
                 const matchesCar = carFilter === "All" || carName === carFilter;
 
@@ -121,7 +143,7 @@ export default function RequestTableClient({
                 const dateB = new Date(b.createdAt).getTime();
                 return sortBy === "newest" ? dateB - dateA : dateA - dateB;
             });
-    }, [initialRequests, searchQuery, stageFilter, statusFilter, staffFilter, carFilter, sortBy]); // Added new filters to dependency array
+    }, [initialRequests, searchQuery, stageFilter, statusFilter, staffFilter, carFilter, sortBy]);
 
     if (initialRequests.length === 0) {
         return (
@@ -151,7 +173,6 @@ export default function RequestTableClient({
                     <div className="flex items-center gap-2 pl-2">
                         <ListFilter size={16} className="text-zinc-400 hidden sm:block" />
 
-                        {/* Dropdown:d Staff Filter */}
                         <select
                             value={staffFilter}
                             onChange={(e) => setStaffFilter(e.target.value)}
@@ -161,11 +182,10 @@ export default function RequestTableClient({
                             <option value="All">All Staff</option>
                             <option value="Unassigned">Unassigned</option>
                             {staffUsers.map(staff => (
-                                <option key={staff._id} value={staff._id}>{staff.name}</option>
+                                <option key={staff._id} value={staff.name}>{staff.name}</option>
                             ))}
                         </select>
 
-                        {/* Dropdown: Car Filter */}
                         <select
                             value={carFilter}
                             onChange={(e) => setCarFilter(e.target.value)}
@@ -196,8 +216,8 @@ export default function RequestTableClient({
                             className="px-4 py-2.5 text-sm bg-zinc-50 border border-transparent hover:border-black/10 focus:bg-white focus:border-black/20 focus:ring-4 focus:ring-black/5 outline-none rounded-xl text-zinc-600 font-medium cursor-pointer appearance-none pr-10 transition-all relative"
                             style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%23a1a1aa' stroke-width='2'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E")`, backgroundRepeat: 'no-repeat', backgroundPosition: 'right 0.75rem center', backgroundSize: '1em' }}
                         >
-                            <option value="All">All Statuses</option>
-                            {LEAD_STATUSES.map(status => (
+                            <option value="All">All Sales Status</option>
+                            {SALES_STATUSES.map(status => (
                                 <option key={status} value={status}>{status}</option>
                             ))}
                         </select>
@@ -230,7 +250,7 @@ export default function RequestTableClient({
                                 <TableHead className="text-zinc-500 font-semibold py-4 pl-6">Client Info</TableHead>
                                 <TableHead className="text-zinc-500 font-semibold">Requested Vehicle</TableHead>
                                 <TableHead className="text-zinc-500 font-semibold">Pipeline Stage</TableHead>
-                                <TableHead className="text-zinc-500 font-semibold">Lead Status</TableHead>
+                                <TableHead className="text-zinc-500 font-semibold">Sales Status</TableHead>
                                 <TableHead className="text-zinc-500 font-semibold hidden md:table-cell">Key Details</TableHead>
                                 <TableHead className="w-[60px] pr-6"></TableHead>
                             </TableRow>
@@ -239,18 +259,33 @@ export default function RequestTableClient({
                             {processedRequests.map((req: any) => {
                                 const nextStage = getNextStage(req.status || "New");
                                 const prevStage = getPreviousStage(req.status || "New");
+                                const currentSalesStatus = req.leadStatus || "Action required";
+
+                                // Clean up phone for WhatsApp link
+                                const cleanPhone = req.phone?.replace(/[^0-9]/g, '');
+                                const cleanCountryCode = req.countryCode?.replace(/[^0-9]/g, '');
 
                                 return (
                                     <TableRow key={req._id} className="border-b border-black/5 hover:bg-zinc-50/50 transition-colors bg-white">
                                         <TableCell className="py-4 pl-6 align-top">
                                             <div className="font-bold text-black text-sm">{req.name}</div>
-                                            <div className="text-xs text-zinc-500">{req.email}</div>
-                                            <div className="text-xs text-zinc-500 mb-1">wa.me/{req.countryCode} {req.phone}</div>
-                                            <div className="text-[10px] uppercase font-bold text-zinc-400">
+                                            <div className="text-xs text-zinc-500 mb-1">{req.email}</div>
+
+                                            {/* WhatsApp Link integration */}
+                                            <a
+                                                href={`https://wa.me/${cleanCountryCode}${cleanPhone}`}
+                                                target="_blank"
+                                                rel="noopener noreferrer"
+                                                className="inline-flex items-center gap-1.5 text-xs text-emerald-600 hover:text-emerald-700 hover:underline font-medium mb-1 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-100 transition-colors"
+                                            >
+                                                <MessageCircle size={12} /> {req.countryCode} {req.phone}
+                                            </a>
+
+                                            <div className="text-[10px] uppercase font-bold text-zinc-400 mt-1">
                                                 Import to: {req.countryOfImport}
                                             </div>
-                                            <div className="text-[10px] text-zinc-400 mt-1">
-                                                {new Date(req.createdAt).toLocaleDateString()}
+                                            <div className="text-[10px] text-zinc-400 mt-0.5">
+                                                Created: {new Date(req.createdAt).toLocaleDateString()}
                                             </div>
                                         </TableCell>
 
@@ -287,32 +322,65 @@ export default function RequestTableClient({
 
                                         <TableCell className="align-top">
                                             <div className="mt-1">
-                                                {getLeadStatusBadge(req.leadStatus)}
+                                                {getSalesStatusBadge(currentSalesStatus)}
+                                                {/* Timestamp for status change */}
+                                                {(req.statusUpdatedAt || req.updatedAt) && (
+                                                    <div className="text-[10px] text-zinc-400 mt-1 ml-1">
+                                                        Updated: {new Date(req.statusUpdatedAt || req.updatedAt).toLocaleDateString()}
+                                                    </div>
+                                                )}
                                             </div>
                                         </TableCell>
 
                                         <TableCell className="align-top hidden md:table-cell">
                                             <div className="flex flex-col gap-1.5 mt-1">
-                                                {req.agreedPrice ? (
+
+                                                {/* PAYMENT INFO DISPLAY */}
+                                                {req.paymentType === "Full payment" ? (
+                                                    <div className="flex flex-col text-xs text-emerald-700 bg-emerald-50 px-2 py-1 rounded border border-emerald-100">
+                                                        <div className="font-bold mb-0.5">Full Payment</div>
+                                                        <div className="flex items-center gap-1"><DollarSign size={12} /> Total: ${(req.totalAmount || req.agreedPrice || 0).toLocaleString()}</div>
+                                                    </div>
+                                                ) : req.paymentType === "Partial Payments" ? (
+                                                    <div className="flex flex-col text-xs text-blue-700 bg-blue-50 px-2 py-1 rounded border border-blue-100">
+                                                        <div className="font-bold mb-0.5">Partial Payments</div>
+                                                        <div className="flex justify-between items-center"><span className="text-zinc-600">Total:</span> <span>${(req.totalAmount || req.agreedPrice || 0).toLocaleString()}</span></div>
+                                                        <div className="flex justify-between items-center"><span className="text-zinc-600">Advance:</span> <span>${(req.advancePaymentAmount || 0).toLocaleString()}</span></div>
+                                                        <div className="flex flex-col mt-0.5 pt-0.5 border-t border-blue-200/50">
+                                                            <div className="flex justify-between items-center font-medium"><span>Balance:</span> <span>${(req.balancePaymentAmount || 0).toLocaleString()}</span></div>
+                                                            <div className="text-[9px] text-blue-500 uppercase font-bold mt-0.5">Due: {req.balancePaymentStage || 'TBD'}</div>
+                                                        </div>
+                                                    </div>
+                                                ) : req.agreedPrice ? (
+                                                    // Fallback for older leads before Payment Type was added
                                                     <div className="flex items-center gap-1.5 text-xs text-emerald-700">
                                                         <DollarSign size={12} /> Price: ${req.agreedPrice.toLocaleString()}
                                                     </div>
                                                 ) : (
-                                                    <div className="text-xs text-zinc-400 italic">No price set</div>
+                                                    <div className="text-xs text-zinc-400 italic">No pricing terms set</div>
                                                 )}
 
-                                                {req.depositAmount ? (
-                                                    <div className="text-[11px] text-zinc-500 ml-4">
-                                                        Dep: ${req.depositAmount.toLocaleString()}
+                                                {/* SHIPPING INFO DISPLAY */}
+                                                {(req.status === "Shipped" || req.status === "Arrived at Port" || req.status === "Cleared Customs") && (
+                                                    <div className="mt-1 pt-1 border-t border-black/5 flex flex-col gap-1 text-xs">
+                                                        {req.vesselName && (
+                                                            <div className="flex items-center gap-1.5 text-blue-600">
+                                                                <Ship size={12} /> {req.vesselName}
+                                                                {req.eta && <span className="text-[10px] text-zinc-400">(ETA: {new Date(req.eta).toLocaleDateString()})</span>}
+                                                            </div>
+                                                        )}
+                                                        {req.containerNumber && (
+                                                            <div className="flex items-center gap-1.5 text-zinc-600">
+                                                                <Box size={12} className="text-zinc-400"/> Cont: <span className="font-medium text-black">{req.containerNumber}</span>
+                                                            </div>
+                                                        )}
+                                                        {req.portOfArrival && (
+                                                            <div className="flex items-center gap-1.5 text-zinc-600">
+                                                                <MapPin size={12} className="text-zinc-400"/> Port: <span className="font-medium text-black">{req.portOfArrival}</span>
+                                                            </div>
+                                                        )}
                                                     </div>
-                                                ) : null}
-
-                                                {req.vesselName ? (
-                                                    <div className="flex items-center gap-1.5 text-xs text-blue-600 mt-1">
-                                                        <Ship size={12} /> {req.vesselName}
-                                                        {req.eta && <span className="text-[10px] text-zinc-400 ml-1">(ETA: {new Date(req.eta).toLocaleDateString()})</span>}
-                                                    </div>
-                                                ) : null}
+                                                )}
                                             </div>
                                         </TableCell>
 
@@ -324,6 +392,14 @@ export default function RequestTableClient({
                                                     </Button>
                                                 </DropdownMenuTrigger>
                                                 <DropdownMenuContent align="end" className="bg-white border-black/5 text-black shadow-xl rounded-xl w-56 p-2">
+
+                                                    {/* NEW: Update Sales Status Button */}
+                                                    <DropdownMenuItem onClick={() => setModal({ isOpen: true, type: "sales_status", request: req, targetStage: null })} className="font-bold text-blue-600 hover:bg-blue-50 focus:bg-blue-50 cursor-pointer rounded-lg mb-1 py-2">
+                                                        <Activity className="mr-2 h-4 w-4" /> Update Sales Status
+                                                    </DropdownMenuItem>
+
+                                                    <DropdownMenuSeparator className="bg-black/5 my-1" />
+
                                                     {nextStage && (
                                                         <DropdownMenuItem onClick={() => setModal({ isOpen: true, type: "advance", request: req, targetStage: nextStage })} className="font-bold text-black hover:bg-black/5 focus:bg-black/5 cursor-pointer rounded-lg mb-1 py-2">
                                                             <ArrowRight className="mr-2 h-4 w-4" /> Advance to: {nextStage}
@@ -337,7 +413,7 @@ export default function RequestTableClient({
                                                     )}
 
                                                     <DropdownMenuItem onClick={() => setModal({ isOpen: true, type: "assign", request: req, targetStage: null })} className="hover:bg-black/5 focus:bg-black/5 cursor-pointer rounded-lg">
-                                                        <UserPlus className="mr-2 h-4 w-4 text-blue-500" /> Assign Staff
+                                                        <UserPlus className="mr-2 h-4 w-4 text-zinc-500" /> Assign Staff
                                                     </DropdownMenuItem>
 
                                                     <DropdownMenuItem onClick={() => setModal({ isOpen: true, type: "details", request: req, targetStage: null })} className="hover:bg-black/5 focus:bg-black/5 cursor-pointer rounded-lg">

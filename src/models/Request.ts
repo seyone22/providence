@@ -24,16 +24,39 @@ export interface IRequest extends Document {
     countryOfImport: string;
     status: string;
     leadStatus: string;
+    statusUpdatedAt?: Date; // Added missing type from previous step
     options?: string;
+
+    // Legacy Payment Field
     agreedPrice?: number;
+
+    // Add this to your IRequest interface:
+    statusHistory?: {
+        action: string;
+        performedBy: string;
+        date: Date;
+    }[];
+
+    // NEW Payment Fields
+    paymentType?: string;
+    totalAmount?: number;
+    advancePaymentAmount?: number;
+    balancePaymentAmount?: number;
+    balancePaymentStage?: string;
+
     depositAmount?: number;
     transactionId?: string;
     invoiceNumber?: string;
     inspectionNotes?: string;
+
+    // Shipping Fields
     trackingNumber?: string;
     vesselName?: string;
     eta?: Date;
     portName?: string;
+    containerNumber?: string; // NEW
+    portOfArrival?: string;   // NEW
+
     customsNotes?: string;
     adminNotes?: string;
 
@@ -42,7 +65,6 @@ export interface IRequest extends Document {
     fbc?: string;
     fbp?: string;
 
-    // Assignment Fields - Updated to reference the User collection
     assignedToId?: mongoose.Types.ObjectId;
     assignedToName?: string;
 
@@ -66,28 +88,49 @@ const RequestSchema: Schema = new Schema(
         phone: {type: String, required: true},
         countryOfImport: {type: String, required: true},
         status: {type: String, default: 'New'},
-        leadStatus: {type: String, default: 'Unqualified'},
+        leadStatus: {type: String, default: 'Action required'}, // Updated default
+        statusUpdatedAt: {type: Date},
+
         options: {type: String},
+
+        // Payment
         agreedPrice: {type: Number},
+        paymentType: {type: String, enum: ['Full payment', 'Partial Payments']},
+        totalAmount: {type: Number},
+        advancePaymentAmount: {type: Number},
+        balancePaymentAmount: {type: Number},
+        balancePaymentStage: {type: String},
+
         depositAmount: {type: Number},
         transactionId: {type: String},
         invoiceNumber: {type: String},
         inspectionNotes: {type: String},
+
+        // Shipping
         trackingNumber: {type: String},
         vesselName: {type: String},
         eta: {type: Date},
         portName: {type: String},
+        containerNumber: {type: String}, // NEW
+        portOfArrival: {type: String},   // NEW
+
         customsNotes: {type: String},
         adminNotes: {type: String},
 
-        gclid: { type: String },
-        fbclid: { type: String },
-        fbc: { type: String },
-        fbp: { type: String },
+        gclid: {type: String},
+        fbclid: {type: String},
+        fbc: {type: String},
+        fbp: {type: String},
 
-        // Reference to the User model (Assuming the collection name is 'user')
         assignedToId: {type: mongoose.Schema.Types.ObjectId, ref: 'user'},
         assignedToName: {type: String},
+
+        // Add this inside your new Schema({ ... }) definition:
+        statusHistory: [{
+            action: { type: String, required: true },
+            performedBy: { type: String, required: true },
+            date: { type: Date, default: Date.now }
+        }],
 
         documents: [{
             fieldName: {type: String, required: true},
