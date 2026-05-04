@@ -49,24 +49,38 @@ interface RequestActionModalProps {
     currentUserId: string;
 }
 
-// --- TYPED HELPER ---
 const getStyles = (action: string | undefined): HistoryStyle => {
     const act = action || "";
 
+    // 1. Pipeline Stages
     if (act.includes("Cleared Customs")) {
-        return {dot: "bg-emerald-500", box: "bg-emerald-50 border-emerald-100 text-emerald-900"};
+        return { dot: "bg-emerald-500", box: "bg-emerald-50 border-emerald-100 text-emerald-900" };
     }
     if (act.includes("Shipped") || act.includes("Arrived at Port")) {
-        return {dot: "bg-blue-500", box: "bg-blue-50 border-blue-100 text-blue-900"};
+        return { dot: "bg-blue-500", box: "bg-blue-50 border-blue-100 text-blue-900" };
     }
     if (act.includes("Deposit") || act.includes("Purchased") || act.includes("Preparation")) {
-        return {dot: "bg-purple-500", box: "bg-purple-50 border-purple-100 text-purple-900"};
-    }
-    if (act.includes("Delete") || act.includes("Revert")) {
-        return {dot: "bg-amber-500", box: "bg-amber-50 border-amber-100 text-amber-900"};
+        return { dot: "bg-purple-500", box: "bg-purple-50 border-purple-100 text-purple-900" };
     }
 
-    return {dot: "bg-zinc-400", box: "bg-zinc-50 border-black/5 text-zinc-600"};
+    // 2. Sales Statuses (Matching your badge logic)
+    if (act.includes("Active Conversation") || act.includes("Replied") || act.includes("SQL") || act.includes("Lead Closed")) {
+        return { dot: "bg-emerald-500", box: "bg-emerald-50 border-emerald-100 text-emerald-900" };
+    }
+    if (act.includes("Action required") || act.includes("Lead Lost")) {
+        return { dot: "bg-red-500", box: "bg-red-50 border-red-100 text-red-900" };
+    }
+    if (act.includes("No Response") || act.includes("Stopped Responding")) {
+        return { dot: "bg-amber-500", box: "bg-amber-50 border-amber-100 text-amber-900" };
+    }
+
+    // 3. System Actions
+    if (act.includes("Delete") || act.includes("Revert")) {
+        return { dot: "bg-amber-500", box: "bg-amber-50 border-amber-100 text-amber-900" };
+    }
+
+    // Default Fallback
+    return { dot: "bg-zinc-400", box: "bg-zinc-50 border-black/5 text-zinc-600" };
 };
 
 export default function RequestActionModal({
@@ -345,7 +359,7 @@ export default function RequestActionModal({
                                         found.</p>
                                 )}
                             </div>
-                        </div>
+                        </div>D
 
                         {/* ATTACHED DOCUMENTS */}
                         <div className="space-y-3">
