@@ -223,22 +223,54 @@ export default function RequestActionModal({
                         <Activity size={16} /> Activity History
                     </Label>
 
-                    <div className="bg-white border border-black/5 rounded-2xl p-4 max-h-[250px] overflow-y-auto hide-scrollbar">
+                    <div className="bg-white border border-black/5 rounded-2xl p-4 max-h-[300px] overflow-y-auto hide-scrollbar">
                         {modal.request?.statusHistory && modal.request.statusHistory.length > 0 ? (
                             <div className="relative space-y-4 before:absolute before:inset-0 before:ml-2 before:-translate-x-px md:before:mx-auto md:before:translate-x-0 before:h-full before:w-0.5 before:bg-gradient-to-b before:from-transparent before:via-black/10 before:to-transparent">
-                                {/* Sort history so newest is at the top */}
-                                {[...modal.request.statusHistory].reverse().map((log: any, i: number) => (
-                                    <div key={i} className="relative flex items-center justify-between md:justify-normal md:odd:flex-row-reverse group is-active">
-                                        <div className="flex items-center justify-center w-4 h-4 rounded-full border-2 border-white bg-zinc-300 group-[.is-active]:bg-black text-slate-500 shadow shrink-0 md:order-1 md:group-odd:-translate-x-1/2 md:group-even:translate-x-1/2"></div>
-                                        <div className="w-[calc(100%-2rem)] md:w-[calc(50%-1rem)] p-3 rounded-xl bg-zinc-50 border border-black/5 shadow-[0_1px_2px_rgba(0,0,0,0.02)]">
-                                            <div className="flex items-center justify-between mb-1">
-                                                <div className="font-bold text-black text-xs">{log.performedBy}</div>
-                                                <time className="text-[9px] font-medium text-zinc-400">{new Date(log.date).toLocaleString('en-US', { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' })}</time>
+                                {[...modal.request.statusHistory].reverse().map((log: any, i: number) => {
+
+                                    // Helper to determine color based on the action text
+                                    const getStyles = (action: string) => {
+                                        const act = action || "";
+                                        if (act.includes("Cleared Customs")) {
+                                            return { dot: "bg-emerald-500", box: "bg-emerald-50 border-emerald-100 text-emerald-900" };
+                                        }
+                                        if (act.includes("Shipped") || act.includes("Arrived at Port")) {
+                                            return { dot: "bg-blue-500", box: "bg-blue-50 border-blue-100 text-blue-900" };
+                                        }
+                                        if (act.includes("Deposit") || act.includes("Purchased") || act.includes("Preparation")) {
+                                            return { dot: "bg-purple-500", box: "bg-purple-50 border-purple-100 text-purple-900" };
+                                        }
+                                        if (act.includes("Delete") || act.includes("Revert")) {
+                                            return { dot: "bg-amber-500", box: "bg-amber-50 border-amber-100 text-amber-900" };
+                                        }
+                                        return { dot: "bg-zinc-400", box: "bg-zinc-50 border-black/5 text-zinc-600" };
+                                    };
+
+                                    const styles = getStyles(log.action);
+
+                                    return (
+                                        <div key={i} className="relative flex items-center justify-between md:justify-normal md:odd:flex-row-reverse group is-active">
+                                            {/* The Dot */}
+                                            <div className={`flex items-center justify-center w-4 h-4 rounded-full border-2 border-white ${styles.dot} shadow shrink-0 md:order-1 md:group-odd:-translate-x-1/2 md:group-even:translate-x-1/2 z-10`}></div>
+
+                                            {/* The Content Box */}
+                                            <div className={`w-[calc(100%-2rem)] md:w-[calc(50%-1rem)] p-3 rounded-xl border shadow-[0_1px_2px_rgba(0,0,0,0.02)] ${styles.box}`}>
+                                                <div className="flex items-center justify-between mb-1">
+                                                    <div className="font-bold text-xs opacity-80">{log.performedBy}</div>
+                                                    <time className="text-[9px] font-bold opacity-50">
+                                                        {new Date(log.date).toLocaleString('en-US', {
+                                                            month: 'short',
+                                                            day: 'numeric',
+                                                            hour: 'numeric',
+                                                            minute: '2-digit'
+                                                        })}
+                                                    </time>
+                                                </div>
+                                                <div className="text-xs font-medium leading-snug">{log.action}</div>
                                             </div>
-                                            <div className="text-xs text-zinc-600 font-medium leading-snug">{log.action}</div>
                                         </div>
-                                    </div>
-                                ))}
+                                    );
+                                })}
                             </div>
                         ) : (
                             <p className="text-xs text-center text-zinc-400 italic py-4">No status changes have been recorded yet.</p>
