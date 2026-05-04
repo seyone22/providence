@@ -285,7 +285,7 @@ export default function RequestTableClient({
                                                 Import to: {req.countryOfImport}
                                             </div>
                                             <div className="text-[10px] text-zinc-400 mt-0.5">
-                                                Created: {new Date(req.createdAt).toLocaleDateString()}
+                                                Created: {new Date(req.createdAt).toLocaleString()}
                                             </div>
                                         </TableCell>
 
