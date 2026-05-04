@@ -39,7 +39,7 @@ export function AdminSidebar() {
         await authClient.signOut({
             fetchOptions: {
                 onSuccess: () => {
-                    router.push("/login"); // Redirect after logout
+                    router.push("/auth/sign-in"); // Redirect after logout
                 },
             },
         });
