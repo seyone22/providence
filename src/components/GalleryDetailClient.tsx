@@ -3,39 +3,76 @@
 import { useState } from "react";
 import MinimalHeader from "@/components/MinimalHeader";
 import { motion } from "framer-motion";
-import { ArrowLeft, Download, FileText, ChevronRight } from "lucide-react";
+import { ArrowLeft, Mail, FileText, Loader2 } from "lucide-react"; // Imported Loader2
 import Link from "next/link";
+import { generateDossierPdfAction } from "@/actions/pdf-actions"; // <-- IMPORT YOUR ACTION HERE
 
 const appleEase: any = [0.16, 1, 0.3, 1];
 
+// Updated to perfectly match the new SpecDossier Schema (Blueprint)
 type Dossier = {
     _id: string;
     make: string;
     model: string;
     year: string;
     trim: string;
-    color: string;
-    price: string;
     countryOfOrigin: string;
-    mileage: string;
-    images: string[];
-    notes: string;
     engineConfig: string;
     displacement: string;
+    maxPower: string;
+    maxTorque: string;
     transmission: string;
     fuelSystem: string;
-    auctionGrade: string;
     steering: string;
+    emissions: string;
+    upholstery: string;
+    infotainment: string;
+    features: string[];
+    searchTags: string[];
+    images: string[];
+    notes: string;
     status: string;
 };
 
 export default function GalleryDetailClient({ car }: { car: Dossier }) {
     const [activeImage, setActiveImage] = useState(0);
+    const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
 
     // Fallback images if none are provided
     const displayImages = car.images?.length > 0
         ? car.images
         : ["https://images.unsplash.com/photo-1603584173870-7f23fdae1b7a?q=80&w=2938&auto=format&fit=crop"];
+
+    // Handler for PDF Generation
+    const handleDownloadPdf = async () => {
+        setIsGeneratingPdf(true);
+        try {
+            const res = await generateDossierPdfAction(car._id);
+            if (res.success && res.pdfBase64) {
+                const byteCharacters = atob(res.pdfBase64);
+                const byteNumbers = new Array(byteCharacters.length);
+                for (let i = 0; i < byteCharacters.length; i++) {
+                    byteNumbers[i] = byteCharacters.charCodeAt(i);
+                }
+                const byteArray = new Uint8Array(byteNumbers);
+                const blob = new Blob([byteArray], { type: 'application/pdf' });
+                const blobUrl = URL.createObjectURL(blob);
+
+                // Open in a new tab
+                window.open(blobUrl, '_blank');
+
+                // Cleanup
+                setTimeout(() => URL.revokeObjectURL(blobUrl), 1000);
+            } else {
+                alert(res.message || "Failed to generate PDF.");
+            }
+        } catch (error) {
+            console.error(error);
+            alert("An error occurred while generating the PDF.");
+        } finally {
+            setIsGeneratingPdf(false);
+        }
+    };
 
     return (
         <main className="min-h-screen bg-[#FDFCFB] text-black selection:bg-black/10 selection:text-black font-sans overflow-x-hidden pb-32">
@@ -87,15 +124,6 @@ export default function GalleryDetailClient({ car }: { car: Dossier }) {
                                 alt={`${car.make} ${car.model}`}
                                 className="w-full h-full object-cover"
                             />
-                            <div className="absolute top-6 right-6">
-                                <span className={`inline-flex px-4 py-2 text-sm font-bold uppercase tracking-widest rounded-full backdrop-blur-xl border ${
-                                    car.status.toLowerCase() === 'sold'
-                                        ? 'bg-black/80 text-white border-black/20'
-                                        : 'bg-white/90 text-black border-black/10 shadow-lg'
-                                }`}>
-                                    {car.status}
-                                </span>
-                            </div>
                         </div>
                     </motion.div>
                 </div>
@@ -105,7 +133,7 @@ export default function GalleryDetailClient({ car }: { car: Dossier }) {
             <section className="mt-24 lg:mt-40 px-6 max-w-[1400px] mx-auto">
                 <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-24">
 
-                    {/* Left: Specs & Pricing */}
+                    {/* Left: Specs & Features */}
                     <motion.div
                         initial={{ opacity: 0, y: 30 }}
                         whileInView={{ opacity: 1, y: 0 }}
@@ -114,50 +142,71 @@ export default function GalleryDetailClient({ car }: { car: Dossier }) {
                         className="lg:col-span-5 flex flex-col"
                     >
                         <h2 className="text-3xl md:text-5xl font-bold tracking-tighter mb-12 uppercase leading-tight">
-                            Import Directly <br/> To Your Country
+                            Vehicle <br/> Specs
                         </h2>
 
-                        <h3 className="text-2xl font-serif text-zinc-500 mb-6 italic">Spec Details</h3>
+                        <h3 className="text-2xl font-serif text-zinc-500 mb-6 italic">Technical Specifications</h3>
 
-                        {/* Premium Spec List (Replaces the blue table) */}
+                        {/* Premium Spec List */}
                         <div className="bg-white rounded-[2rem] border border-black/5 p-8 shadow-[0_20px_40px_rgba(0,0,0,0.02)] mb-10">
                             <dl className="divide-y divide-black/5">
                                 {[
-                                    { label: "Variant", value: car.trim || "Standard" },
-                                    { label: "Fuel Type", value: car.fuelSystem },
-                                    { label: "Mileage", value: car.mileage ? `${car.mileage} km` : "Delivery Miles" },
-                                    { label: "Gear Box", value: car.transmission },
-                                    { label: "Color", value: car.color },
-                                    { label: "Engine", value: `${car.displacement || ''} ${car.engineConfig || ''}`.trim() || 'N/A' },
+                                    { label: "Variant / Trim", value: car.trim },
+                                    { label: "Target Market", value: <span className="capitalize">{car.countryOfOrigin}</span> },
+                                    { label: "Engine", value: `${car.displacement || ''} ${car.engineConfig || ''}`.trim() },
+                                    { label: "Power & Torque", value: (car.maxPower || car.maxTorque) ? `${car.maxPower || '-'} / ${car.maxTorque || '-'}` : '' },
+                                    { label: "Transmission", value: car.transmission },
+                                    { label: "Fuel System", value: car.fuelSystem },
                                     { label: "Steering", value: car.steering },
-                                    { label: "Auction Grade", value: car.auctionGrade },
-                                    { label: "Origin", value: <span className="capitalize">{car.countryOfOrigin}</span> }
-                                ].map((spec, i) => (
-                                    <div key={i} className="py-4 flex justify-between items-center first:pt-0 last:pb-0">
-                                        <dt className="text-zinc-500 text-sm font-medium">{spec.label}</dt>
-                                        <dd className="text-black font-semibold text-right max-w-[60%] truncate">{spec.value || "N/A"}</dd>
-                                    </div>
-                                ))}
+                                    { label: "Emissions", value: car.emissions },
+                                    { label: "Upholstery", value: car.upholstery },
+                                    { label: "Infotainment", value: car.infotainment }
+                                ].map((spec, i) => {
+                                    // Only render rows that have actual data to keep the UI clean
+                                    if (!spec.value) return null;
+                                    return (
+                                        <div key={i} className="py-4 flex justify-between items-center first:pt-0 last:pb-0">
+                                            <dt className="text-zinc-500 text-sm font-medium">{spec.label}</dt>
+                                            <dd className="text-black font-semibold text-right max-w-[60%] truncate">{spec.value}</dd>
+                                        </div>
+                                    );
+                                })}
                             </dl>
                         </div>
 
                         {/* Action Buttons */}
                         <div className="flex flex-col sm:flex-row gap-4 mb-12">
-                            <button className="flex-1 inline-flex items-center justify-center gap-2 px-6 py-4 bg-zinc-800 hover:bg-black text-white text-sm font-bold uppercase tracking-wider rounded-full transition-colors">
-                                <FileText size={18} /> Spec Sheet
+                            {/* PDF Download Button */}
+                            <button
+                                onClick={handleDownloadPdf}
+                                disabled={isGeneratingPdf}
+                                className="flex-1 inline-flex items-center justify-center gap-2 px-6 py-4 bg-zinc-800 hover:bg-black text-white text-sm font-bold uppercase tracking-wider rounded-full transition-colors disabled:opacity-70 disabled:cursor-not-allowed"
+                            >
+                                {isGeneratingPdf ? <Loader2 className="animate-spin" size={18} /> : <FileText size={18} />}
+                                {isGeneratingPdf ? "Generating..." : "Print Dossier"}
                             </button>
+
                             <button className="flex-1 inline-flex items-center justify-center gap-2 px-6 py-4 bg-white border border-black/10 hover:border-black/30 hover:bg-zinc-50 text-black text-sm font-bold uppercase tracking-wider rounded-full transition-all">
-                                <Download size={18} /> Inspection
+                                <Mail size={18} /> Inquire Now
                             </button>
                         </div>
 
-                        {/* Price */}
-                        <div className="mt-auto pt-8 border-t border-black/10">
-                            <p className="text-zinc-500 font-bold tracking-widest uppercase text-sm mb-2">CNF Price</p>
-                            <p className="text-5xl md:text-6xl font-bold tracking-tighter">
-                                {car.price ? car.price : "P.O.A."}
-                            </p>
-                        </div>
+                        {/* Hardware Features Cloud */}
+                        {car.features && car.features.length > 0 && (
+                            <div className="mt-auto pt-8 border-t border-black/10">
+                                <p className="text-zinc-500 font-bold tracking-widest uppercase text-sm mb-4">Included Features</p>
+                                <div className="flex flex-wrap gap-2">
+                                    {car.features.map((feature, idx) => (
+                                        <span
+                                            key={idx}
+                                            className="px-4 py-2 bg-zinc-100/80 hover:bg-zinc-200 text-zinc-800 text-xs font-bold uppercase tracking-wider rounded-xl border border-black/5 transition-colors"
+                                        >
+                                            {feature}
+                                        </span>
+                                    ))}
+                                </div>
+                            </div>
+                        )}
                     </motion.div>
 
                     {/* Right: Interactive Gallery */}

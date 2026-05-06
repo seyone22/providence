@@ -47,11 +47,11 @@ type ActionModalState = {
 };
 
 export default function RequestTableClient({
-                                               initialRequests,
+                                               processedRequests,
                                                staffUsers,
                                                currentUserId
                                            }: {
-    initialRequests: any[];
+    processedRequests: any[];
     staffUsers: any[];
     currentUserId: string;
 }) {
@@ -109,134 +109,8 @@ export default function RequestTableClient({
         return <Badge className="bg-zinc-100 text-zinc-500 border-zinc-200 hover:bg-zinc-200 rounded-full px-3">{current}</Badge>;
     };
 
-    // Extract unique cars dynamically
-    const uniqueCars = useMemo(() => {
-        const cars = new Set(initialRequests.map(req => `${req.make} ${req.vehicle_model}`.trim()));
-        return Array.from(cars).filter(Boolean).sort();
-    }, [initialRequests]);
-
-    // Filter and Sort Logic
-    const processedRequests = useMemo(() => {
-        return initialRequests
-            .filter((req) => {
-                const matchesSearch =
-                    (req.name || "").toLowerCase().includes(searchQuery.toLowerCase()) ||
-                    (req.email || "").toLowerCase().includes(searchQuery.toLowerCase()) ||
-                    (req.make || "").toLowerCase().includes(searchQuery.toLowerCase()) ||
-                    (req.vehicle_model || "").toLowerCase().includes(searchQuery.toLowerCase());
-
-                const matchesStage = stageFilter === "All" || (req.status || "New") === stageFilter;
-
-                const currentStatus = req.salesStatus || req.leadStatus || "Action required";
-                const matchesStatus = statusFilter === "All" || currentStatus === statusFilter;
-
-                const assignedValue = req.assignedToName || "Unassigned";
-                const matchesStaff = staffFilter === "All" || assignedValue === staffFilter;
-
-                const carName = `${req.make} ${req.vehicle_model}`.trim();
-                const matchesCar = carFilter === "All" || carName === carFilter;
-
-                return matchesSearch && matchesStage && matchesStatus && matchesStaff && matchesCar;
-            })
-            .sort((a, b) => {
-                const dateA = new Date(a.createdAt).getTime();
-                const dateB = new Date(b.createdAt).getTime();
-                return sortBy === "newest" ? dateB - dateA : dateA - dateB;
-            });
-    }, [initialRequests, searchQuery, stageFilter, statusFilter, staffFilter, carFilter, sortBy]);
-
-    if (initialRequests.length === 0) {
-        return (
-            <div className="p-16 text-center text-zinc-500 font-medium bg-white border border-black/5 rounded-[2rem]">
-                No active requests found. When a client submits an inquiry, it will appear here.
-            </div>
-        );
-    }
-
     return (
         <div className="w-full flex flex-col gap-4">
-
-            {/* --- FILTER & SEARCH BAR --- */}
-            <div className="flex flex-col xl:flex-row justify-between items-center gap-4 bg-white p-2 rounded-[1.5rem] border border-black/5 shadow-[0_2px_10px_rgba(0,0,0,0.02)]">
-                <div className="relative w-full xl:w-80 flex-shrink-0">
-                    <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-zinc-400" />
-                    <input
-                        type="text"
-                        placeholder="Search clients, makes, or models..."
-                        value={searchQuery}
-                        onChange={(e) => setSearchQuery(e.target.value)}
-                        className="w-full pl-10 pr-4 py-2.5 text-sm bg-zinc-50 border border-transparent hover:border-black/10 focus:bg-white focus:border-black/20 focus:ring-4 focus:ring-black/5 outline-none rounded-xl transition-all font-medium text-black placeholder:text-zinc-400"
-                    />
-                </div>
-
-                <div className="flex flex-wrap items-center gap-2 w-full xl:w-auto overflow-x-auto hide-scrollbar pb-1 xl:pb-0">
-                    <div className="flex items-center gap-2 pl-2">
-                        <ListFilter size={16} className="text-zinc-400 hidden sm:block" />
-
-                        <select
-                            value={staffFilter}
-                            onChange={(e) => setStaffFilter(e.target.value)}
-                            className="px-4 py-2.5 text-sm bg-zinc-50 border border-transparent hover:border-black/10 focus:bg-white focus:border-black/20 focus:ring-4 focus:ring-black/5 outline-none rounded-xl text-zinc-600 font-medium cursor-pointer appearance-none pr-10 transition-all relative"
-                            style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%23a1a1aa' stroke-width='2'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E")`, backgroundRepeat: 'no-repeat', backgroundPosition: 'right 0.75rem center', backgroundSize: '1em' }}
-                        >
-                            <option value="All">All Staff</option>
-                            <option value="Unassigned">Unassigned</option>
-                            {staffUsers.map(staff => (
-                                <option key={staff._id} value={staff.name}>{staff.name}</option>
-                            ))}
-                        </select>
-
-                        <select
-                            value={carFilter}
-                            onChange={(e) => setCarFilter(e.target.value)}
-                            className="px-4 py-2.5 text-sm bg-zinc-50 border border-transparent hover:border-black/10 focus:bg-white focus:border-black/20 focus:ring-4 focus:ring-black/5 outline-none rounded-xl text-zinc-600 font-medium cursor-pointer appearance-none pr-10 transition-all relative"
-                            style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%23a1a1aa' stroke-width='2'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E")`, backgroundRepeat: 'no-repeat', backgroundPosition: 'right 0.75rem center', backgroundSize: '1em' }}
-                        >
-                            <option value="All">All Cars</option>
-                            {uniqueCars.map(car => (
-                                <option key={car} value={car}>{car}</option>
-                            ))}
-                        </select>
-
-                        <select
-                            value={stageFilter}
-                            onChange={(e) => setStageFilter(e.target.value)}
-                            className="px-4 py-2.5 text-sm bg-zinc-50 border border-transparent hover:border-black/10 focus:bg-white focus:border-black/20 focus:ring-4 focus:ring-black/5 outline-none rounded-xl text-zinc-600 font-medium cursor-pointer appearance-none pr-10 transition-all relative"
-                            style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%23a1a1aa' stroke-width='2'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E")`, backgroundRepeat: 'no-repeat', backgroundPosition: 'right 0.75rem center', backgroundSize: '1em' }}
-                        >
-                            <option value="All">All Stages</option>
-                            {PIPELINE_STAGES.map(stage => (
-                                <option key={stage} value={stage}>{stage}</option>
-                            ))}
-                        </select>
-
-                        <select
-                            value={statusFilter}
-                            onChange={(e) => setStatusFilter(e.target.value)}
-                            className="px-4 py-2.5 text-sm bg-zinc-50 border border-transparent hover:border-black/10 focus:bg-white focus:border-black/20 focus:ring-4 focus:ring-black/5 outline-none rounded-xl text-zinc-600 font-medium cursor-pointer appearance-none pr-10 transition-all relative"
-                            style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%23a1a1aa' stroke-width='2'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E")`, backgroundRepeat: 'no-repeat', backgroundPosition: 'right 0.75rem center', backgroundSize: '1em' }}
-                        >
-                            <option value="All">All Sales Status</option>
-                            {SALES_STATUSES.map(status => (
-                                <option key={status} value={status}>{status}</option>
-                            ))}
-                        </select>
-
-                        <div className="h-6 w-px bg-black/10 mx-1 hidden sm:block"></div>
-
-                        <select
-                            value={sortBy}
-                            onChange={(e) => setSortBy(e.target.value)}
-                            className="px-4 py-2.5 text-sm bg-zinc-50 border border-transparent hover:border-black/10 focus:bg-white focus:border-black/20 focus:ring-4 focus:ring-black/5 outline-none rounded-xl text-zinc-600 font-medium cursor-pointer appearance-none pr-10 transition-all relative"
-                            style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%23a1a1aa' stroke-width='2'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E")`, backgroundRepeat: 'no-repeat', backgroundPosition: 'right 0.75rem center', backgroundSize: '1em' }}
-                        >
-                            <option value="newest">Newest First</option>
-                            <option value="oldest">Oldest First</option>
-                        </select>
-                    </div>
-                </div>
-            </div>
-
             {/* --- TABLE AREA --- */}
             <div className="overflow-x-auto w-full pb-4">
                 {processedRequests.length === 0 ? (

@@ -2,67 +2,50 @@
 
 import { revalidatePath } from "next/cache";
 import connectToDatabase from "@/lib/mongoose";
-import SpecDossier from "@/models/SpecDossier";
+import { SpecDossier } from "@/models/SpecDossier";
 
 /**
- * SAVE / UPSERT DOSSIER
- * Handles both creating new records and updating existing ones based on VIN.
+ * SAVE / UPSERT DOSSIER TEMPLATE
+ * Handles creating new templates and updating existing ones based on _id.
  */
 export async function saveSpecDossier(payload: any) {
     try {
         await connectToDatabase();
 
-        if (!payload.vin || payload.vin.trim() === "") {
-            return { success: false, message: "VIN / Chassis Number is required." };
-        }
+        let savedDossier;
 
-        // use findOneAndUpdate with upsert: true to handle both create/update in one DB hit
-        const savedDossier = await SpecDossier.findOneAndUpdate(
-            { vin: payload.vin },
-            { $set: payload },
-            {
-                new: true,
-                upsert: true,
-                runValidators: true,
-                setDefaultsOnInsert: true
-            }
-        );
+        if (payload._id) {
+            // If an ID exists, update the existing template
+            savedDossier = await SpecDossier.findByIdAndUpdate(
+                payload._id,
+                { $set: payload },
+                {
+                    new: true,
+                    runValidators: true,
+                }
+            );
+        } else {
+            // If no ID exists, create a brand new template
+            savedDossier = await SpecDossier.create(payload);
+        }
 
         revalidatePath("/admin/dossiers");
         revalidatePath("/admin/specs");
 
         return {
             success: true,
-            message: "Dossier synchronized successfully.",
+            message: "Template synchronized successfully.",
             data: JSON.parse(JSON.stringify(savedDossier))
         };
     } catch (error: any) {
         console.error("Save Error:", error);
         return {
             success: false,
-            message: error.code === 11000 ? "Conflict: VIN already exists." : "Failed to save dossier."
+            message: "Failed to save template."
         };
     }
 }
 
-/**
- * GET SINGLE DOSSIER
- */
-export async function getSpecDossierByVin(vin: string) {
-    try {
-        await connectToDatabase();
-        const dossier = await SpecDossier.findOne({ vin });
-
-        if (!dossier) return { success: false, message: "Dossier not found." };
-
-        return {
-            success: true,
-            data: JSON.parse(JSON.stringify(dossier))
-        };
-    } catch (error) {
-        return { success: false, message: "Error fetching dossier." };
-    }
-}
 /**
  * GET SINGLE DOSSIER BY ID
  */
@@ -73,7 +56,7 @@ export async function getSpecDossierById(id: any) {
         const dossier = await SpecDossier.findById(id);
 
         if (!dossier) {
-            return { success: false, message: "Dossier not found." };
+            return { success: false, message: "Template not found." };
         }
 
         return {
@@ -82,7 +65,7 @@ export async function getSpecDossierById(id: any) {
         };
     } catch (error) {
         console.error(`${actionName} Error:`, error);
-        return { success: false, message: "Error fetching dossier." };
+        return { success: false, message: "Error fetching template." };
     }
 }
 
@@ -103,7 +86,7 @@ export async function getAllSpecDossiers() {
         // Step 2: Query Execution
         console.log(`${actionName} STEP 2: Executing find() query on SpecDossier collection...`);
         const dossiers = await SpecDossier.find({}).sort({ createdAt: -1 });
-        console.log(`${actionName} STEP 2 COMPLETE: Query successful. Found ${dossiers?.length || 0} dossier(s).`);
+        console.log(`${actionName} STEP 2 COMPLETE: Query successful. Found ${dossiers?.length || 0} template(s).`);
 
         // Step 3: Payload Parsing and Return
         console.log(`${actionName} STEP 3: Parsing payload for client...`);
@@ -132,19 +115,19 @@ export async function getAllSpecDossiers() {
 
         return {
             success: false,
-            message: "Error fetching dossiers."
+            message: "Error fetching templates."
         };
     }
 }
 
 /**
  * UPDATE STATUS (Quick Action)
- * Useful for switching between 'Draft', 'Published', 'Sold' without sending the whole payload.
+ * Useful for switching between 'Draft', 'Active', 'Archived' without sending the whole payload.
  */
-export async function updateDossierStatus(vin: string, status: string) {
+export async function updateDossierStatus(id: string, status: string) {
     try {
         await connectToDatabase();
-        await SpecDossier.updateOne({ vin }, { $set: { status } });
+        await SpecDossier.findByIdAndUpdate(id, { $set: { status } });
 
         revalidatePath("/admin/dossiers");
         return { success: true, message: `Status updated to ${status}` };
@@ -156,19 +139,19 @@ export async function updateDossierStatus(vin: string, status: string) {
 /**
  * DELETE DOSSIER
  */
-export async function deleteSpecDossier(vin: string) {
+export async function deleteSpecDossier(id: string) {
     try {
         await connectToDatabase();
-        const result = await SpecDossier.findOneAndDelete({ vin });
+        const result = await SpecDossier.findByIdAndDelete(id);
 
-        if (!result) return { success: false, message: "Dossier not found." };
+        if (!result) return { success: false, message: "Template not found." };
 
         revalidatePath("/admin/dossiers");
         revalidatePath("/admin/specs");
 
-        return { success: true, message: "Dossier deleted successfully." };
+        return { success: true, message: "Template deleted successfully." };
     } catch (error) {
         console.error("Delete Error:", error);
-        return { success: false, message: "Error deleting dossier." };
+        return { success: false, message: "Error deleting template." };
     }
 }

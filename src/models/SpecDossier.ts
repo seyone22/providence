@@ -1,51 +1,40 @@
-import mongoose, { Schema, models } from "mongoose";
+import mongoose, {models, Schema} from "mongoose";
 
 const SpecDossierSchema = new Schema(
     {
-            // Vehicle Overview (The Basics)
-            make: { type: String, required: true },
-            model: { type: String, required: true },
-            year: { type: String, default: "" },
-            trim: { type: String, default: "" },
-            color: { type: String, default: "" },
-            price: { type: String, default: "" },
+        // Vehicle Overview (Template details)
+        make: {type: String, required: true},
+        model: {type: String, required: true},
+        year: {type: String, default: ""},
+        trim: {type: String, default: ""},
 
-            // Provenance
-            countryOfOrigin: { type: String, default: "japan" },
-            mileage: { type: String, default: "" },
-            serviceHistory: { type: String, default: "full" },
-            owners: { type: String, default: "" },
+        // Provenance (Spec market origin)
+        countryOfOrigin: {type: String, default: "Japan"},
 
-            // Identification
-            vin: { type: String, required: true, unique: true },
-            engineNumber: { type: String, default: "" },
+        // Mechanics
+        engineConfig: {type: String, default: ""},
+        displacement: {type: String, default: ""},
+        maxPower: {type: String, default: ""},
+        maxTorque: {type: String, default: ""},
+        transmission: {type: String, default: ""},
+        fuelSystem: {type: String, default: "Petrol"},
+        steering: {type: String, default: "RHD"},
+        emissions: {type: String, default: ""},
 
-            // Mechanics
-            engineConfig: { type: String, default: "" },
-            displacement: { type: String, default: "" },
-            maxPower: { type: String, default: "" },
-            maxTorque: { type: String, default: "" },
-            transmission: { type: String, default: "" },
-            fuelSystem: { type: String, default: "Petrol" },
+        // Interior & Tech
+        upholstery: {type: String, default: ""},
+        infotainment: {type: String, default: ""},
 
-            // Interior & Tech
-            upholstery: { type: String, default: "" },
-            infotainment: { type: String, default: "" },
-            features: [{ type: String }],
-            images: [{ type: String }], // Array to store Cloudflare R2 URLs
-            notes: { type: String, default: "" },
+        // Tagging & Arrays
+        features: [{type: String}], // e.g., "Panoramic Roof", "Heated Seats"
+        searchTags: [{type: String}], // e.g., "SUV", "Off-Road", "Family", "JDM"
+        images: [{type: String}], // Array to store Cloudflare R2 URLs
 
-            // Compliance
-            auctionGrade: { type: String, default: "S" },
-            emissions: { type: String, default: "" },
-            steering: { type: String, default: "RHD" },
-
-            // Metadata
-            status: { type: String, default: "Draft" },
+        // Metadata
+        notes: {type: String, default: ""},
+        status: {type: String, default: "Draft"},
     },
-    { timestamps: true }
+    {timestamps: true}
 );
 
-const SpecDossier = models.SpecDossier || mongoose.model("SpecDossier", SpecDossierSchema);
-
-export default SpecDossier;
+export const SpecDossier = models.SpecDossier || mongoose.model("SpecDossier", SpecDossierSchema);

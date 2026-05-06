@@ -4,75 +4,73 @@ import MinimalHeader from "@/components/MinimalHeader";
 import { motion, AnimatePresence } from "framer-motion";
 import {
     MapPin,
-    Gauge,
-    CircleDollarSign,
     Calendar,
     ImageOff,
     ChevronDown,
     Star,
-    Play
+    Play,
+    Fuel,
+    Cog,
+    Filter
 } from "lucide-react";
 import Link from "next/link";
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import FAQSection from "@/components/faqSection";
 
 const appleEase: any = [0.16, 1, 0.3, 1];
 
-// Type definition based on your Mongoose Schema
+// Updated to perfectly match your Blueprint Schema
 type Dossier = {
     _id: string;
     make: string;
     model: string;
     year: string;
     trim: string;
-    price: string;
     countryOfOrigin: string;
-    mileage: string;
+    fuelSystem: string;
+    transmission: string;
     images: string[];
+    features: string[];
+    searchTags: string[];
     status: string;
 };
 
-// FAQ Component for clean code separation
-const FAQItem = ({ question, answer }: { question: string, answer: string }) => {
-    const [isOpen, setIsOpen] = useState(false);
-
-    return (
-        <div className="border-b border-black/10">
-            <button
-                onClick={() => setIsOpen(!isOpen)}
-                className="w-full py-6 flex justify-between items-center text-left hover:text-zinc-600 transition-colors focus:outline-none"
-            >
-                <span className="text-lg md:text-xl font-medium pr-8">{question}</span>
-                <div className={`transform transition-transform duration-500 flex-shrink-0 ${isOpen ? 'rotate-180' : ''}`}>
-                    <ChevronDown size={20} className="text-zinc-400" />
-                </div>
-            </button>
-            <AnimatePresence>
-                {isOpen && (
-                    <motion.div
-                        initial={{ height: 0, opacity: 0 }}
-                        animate={{ height: "auto", opacity: 1 }}
-                        exit={{ height: 0, opacity: 0 }}
-                        transition={{ duration: 0.4, ease: appleEase }}
-                        className="overflow-hidden"
-                    >
-                        <p className="pb-6 text-zinc-500 font-light text-base md:text-lg leading-relaxed">
-                            {answer}
-                        </p>
-                    </motion.div>
-                )}
-            </AnimatePresence>
-        </div>
-    );
-};
-
 export default function GalleryClient({ dossiers }: { dossiers: Dossier[] }) {
+    const [selectedTags, setSelectedTags] = useState<string[]>([]);
+
+    // Extract all unique search tags from all active dossiers
+    const availableTags = useMemo(() => {
+        const tags = new Set<string>();
+        dossiers.forEach(car => {
+            if (car.searchTags) {
+                car.searchTags.forEach(tag => tags.add(tag));
+            }
+        });
+        return Array.from(tags).sort();
+    }, [dossiers]);
+
+    // Filter logic: If tags are selected, the car must have ALL selected tags
+    const filteredDossiers = useMemo(() => {
+        if (selectedTags.length === 0) return dossiers;
+        return dossiers.filter(car =>
+            selectedTags.every(tag => car.searchTags?.includes(tag))
+        );
+    }, [dossiers, selectedTags]);
+
+    const toggleTag = (tag: string) => {
+        setSelectedTags(prev =>
+            prev.includes(tag)
+                ? prev.filter(t => t !== tag)
+                : [...prev, tag]
+        );
+    };
+
     return (
         <main className="min-h-screen bg-white text-black selection:bg-black/10 selection:text-black font-sans overflow-x-hidden">
             <MinimalHeader />
 
             {/* Hero Section */}
-            <section className="relative pt-40 pb-20 px-6 bg-white overflow-hidden">
+            <section className="relative pt-40 pb-10 px-6 bg-white overflow-hidden">
                 <motion.div
                     initial={{ y: 40, opacity: 0 }}
                     animate={{ y: 0, opacity: 1 }}
@@ -80,28 +78,73 @@ export default function GalleryClient({ dossiers }: { dossiers: Dossier[] }) {
                     className="relative z-10 text-center max-w-4xl mx-auto"
                 >
                     <p className="text-sm font-bold tracking-[0.4em] text-zinc-400 uppercase mb-6">
-                        Portfolio
+                        Master Blueprints
                     </p>
                     <h1 className="text-4xl md:text-6xl lg:text-8xl font-bold tracking-tighter mb-6 text-black leading-[1.1]">
                         The Gallery.
                     </h1>
                     <p className="text-xl md:text-2xl text-zinc-500 font-light max-w-2xl mx-auto">
-                        A curated selection of globally-sourced vehicles, secured and delivered to exacting standards.
+                        A curated selection of globally-sourced vehicle specifications, ready to be commissioned to your exacting standards.
                     </p>
                 </motion.div>
 
                 <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[400px] bg-zinc-100 blur-[120px] rounded-full pointer-events-none -z-10" />
             </section>
 
+            {/* Filter Section */}
+            {availableTags.length > 0 && (
+                <section className="px-6 max-w-[1400px] mx-auto relative z-20 mb-8">
+                    <div className="flex flex-col md:flex-row gap-4 items-start md:items-center border-b border-black/5 pb-8">
+                        <div className="flex items-center gap-2 text-zinc-400 font-bold uppercase tracking-widest text-xs shrink-0">
+                            <Filter size={14} /> Filter By:
+                        </div>
+                        <div className="flex flex-wrap gap-2">
+                            {availableTags.map(tag => {
+                                const isSelected = selectedTags.includes(tag);
+                                return (
+                                    <button
+                                        key={tag}
+                                        onClick={() => toggleTag(tag)}
+                                        className={`px-4 py-2 rounded-full text-xs font-bold uppercase tracking-wider transition-all duration-300 border ${
+                                            isSelected
+                                                ? 'bg-black text-white border-black shadow-md scale-105'
+                                                : 'bg-zinc-50 text-zinc-500 border-black/5 hover:border-black/20 hover:bg-zinc-100'
+                                        }`}
+                                    >
+                                        {tag}
+                                    </button>
+                                );
+                            })}
+                            {selectedTags.length > 0 && (
+                                <button
+                                    onClick={() => setSelectedTags([])}
+                                    className="px-4 py-2 rounded-full text-xs font-bold uppercase tracking-wider text-red-500 hover:bg-red-50 transition-colors"
+                                >
+                                    Clear Filters
+                                </button>
+                            )}
+                        </div>
+                    </div>
+                </section>
+            )}
+
             {/* Grid Section */}
-            <section className="py-20 px-6 max-w-[1400px] mx-auto bg-white relative z-10">
-                {dossiers.length === 0 ? (
-                    <div className="text-center py-32 text-zinc-400 font-light text-lg">
-                        No vehicles currently available in the gallery.
+            <section className="pb-20 px-6 max-w-[1400px] mx-auto bg-white relative z-10">
+                {filteredDossiers.length === 0 ? (
+                    <div className="text-center py-32 bg-zinc-50 rounded-[2.5rem] border border-black/5">
+                        <p className="text-zinc-400 font-medium text-lg">
+                            No vehicles match your current filter selection.
+                        </p>
+                        <button
+                            onClick={() => setSelectedTags([])}
+                            className="mt-4 text-sm font-bold border-b border-black pb-0.5 hover:text-zinc-500 hover:border-zinc-500 transition-colors"
+                        >
+                            Clear filters
+                        </button>
                     </div>
                 ) : (
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 gap-y-16">
-                        {dossiers.map((car, index) => (
+                        {filteredDossiers.map((car, index) => (
                             <motion.div
                                 key={car._id}
                                 initial={{ y: 40, opacity: 0, scale: 0.98 }}
@@ -111,6 +154,7 @@ export default function GalleryClient({ dossiers }: { dossiers: Dossier[] }) {
                                 className="group relative flex flex-col rounded-[2rem] bg-white border border-black/5 overflow-hidden hover:shadow-[0_30px_60px_rgba(0,0,0,0.06)] hover:border-black/10 transition-all duration-700 cursor-pointer"
                             >
                                 <Link href={`/b2c/gallery/${car._id}`} className="flex flex-col h-full outline-none">
+                                    {/* Image Container */}
                                     <div className="relative aspect-[4/3] bg-zinc-100 overflow-hidden">
                                         {car.images && car.images.length > 0 ? (
                                             <img
@@ -124,18 +168,9 @@ export default function GalleryClient({ dossiers }: { dossiers: Dossier[] }) {
                                                 <span className="text-sm font-medium uppercase tracking-widest">No Image</span>
                                             </div>
                                         )}
-
-                                        <div className="absolute top-4 left-4 z-10">
-                                            <span className={`inline-flex px-3 py-1 text-xs font-bold uppercase tracking-widest rounded-full backdrop-blur-md border ${
-                                                car.status.toLowerCase() === 'sold'
-                                                    ? 'bg-black/70 text-white border-black/10'
-                                                    : 'bg-white/80 text-black border-white/20 shadow-sm'
-                                            }`}>
-                                                {car.status}
-                                            </span>
-                                        </div>
                                     </div>
 
+                                    {/* Content Container */}
                                     <div className="p-8 flex flex-col flex-grow">
                                         <div className="mb-6 flex-grow">
                                             <h2 className="text-2xl font-bold tracking-tight text-black mb-1 group-hover:text-sky-600 transition-colors duration-500 line-clamp-1">
@@ -146,24 +181,44 @@ export default function GalleryClient({ dossiers }: { dossiers: Dossier[] }) {
                                             </p>
                                         </div>
 
+                                        {/* Specs Grid (Updated to match blueprint schema) */}
                                         <div className="grid grid-cols-2 gap-y-4 gap-x-2 pt-6 border-t border-black/5">
                                             <div className="flex items-center gap-2 text-sm text-zinc-600 font-medium">
                                                 <Calendar size={16} className="text-zinc-400" />
-                                                {car.year || "N/A"}
+                                                {car.year || "Year N/A"}
                                             </div>
-                                            <div className="flex items-center gap-2 text-sm text-zinc-600 font-medium capitalize">
-                                                <MapPin size={16} className="text-zinc-400" />
-                                                {car.countryOfOrigin}
+                                            <div className="flex items-center gap-2 text-sm text-zinc-600 font-medium capitalize truncate">
+                                                <MapPin size={16} className="text-zinc-400 shrink-0" />
+                                                <span className="truncate">{car.countryOfOrigin || "Global"}</span>
                                             </div>
-                                            <div className="flex items-center gap-2 text-sm text-zinc-600 font-medium">
-                                                <Gauge size={16} className="text-zinc-400" />
-                                                {car.mileage ? `${car.mileage} km` : "N/A"}
+                                            <div className="flex items-center gap-2 text-sm text-zinc-600 font-medium truncate">
+                                                <Fuel size={16} className="text-zinc-400 shrink-0" />
+                                                <span className="truncate">{car.fuelSystem || "N/A"}</span>
                                             </div>
-                                            <div className="flex items-center gap-2 text-sm text-zinc-600 font-medium">
-                                                <CircleDollarSign size={16} className="text-zinc-400" />
-                                                {car.price || "P.O.A."}
+                                            <div className="flex items-center gap-2 text-sm text-zinc-600 font-medium truncate">
+                                                <Cog size={16} className="text-zinc-400 shrink-0" />
+                                                <span className="truncate">{car.transmission || "N/A"}</span>
                                             </div>
                                         </div>
+
+                                        {/* Tags Container */}
+                                        {car.searchTags && car.searchTags.length > 0 && (
+                                            <div className="flex flex-wrap gap-2 pt-6 mt-6 border-t border-black/5">
+                                                {car.searchTags.slice(0, 3).map(tag => (
+                                                    <span
+                                                        key={tag}
+                                                        className="px-2.5 py-1 bg-zinc-100 text-zinc-600 text-[10px] font-bold uppercase tracking-wider rounded-md"
+                                                    >
+                                                        {tag}
+                                                    </span>
+                                                ))}
+                                                {car.searchTags.length > 3 && (
+                                                    <span className="px-2.5 py-1 text-zinc-400 text-[10px] font-bold uppercase tracking-wider">
+                                                        +{car.searchTags.length - 3} More
+                                                    </span>
+                                                )}
+                                            </div>
+                                        )}
                                     </div>
                                 </Link>
                             </motion.div>

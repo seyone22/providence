@@ -18,7 +18,7 @@ import {Badge} from "@/components/ui/badge";
 import DynamicFileUploader, {PendingFile} from "@/components/dynamicFileUploader";
 import {deleteRequest, updateRequestStatus} from "@/actions/admin-actions";
 import {uploadToR2} from "@/lib/file-actions";
-import {SALES_STATUSES} from "@/app/admin/RequestTableClient";
+import {SALES_STATUSES} from "@/components/RequestTableClient";
 
 const PIPELINE_STAGES = [
     "New", "Vehicle Selection", "Price Agreement", "Deposit Collected",
