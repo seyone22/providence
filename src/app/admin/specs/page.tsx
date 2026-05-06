@@ -61,6 +61,7 @@ const initialSpecData = {
     countryOfOrigin: "Japan",
     engineConfig: "",
     displacement: "",
+    pricing: [],
     maxPower: "",
     maxTorque: "",
     transmission: "",
@@ -77,6 +78,9 @@ function SpecBuilderContent() {
     const searchParams = useSearchParams();
     const router = useRouter();
     const editId = searchParams.get("editId");
+
+    const [pricing, setPricing] = useState<any[]>([]);
+    const [newPrice, setNewPrice] = useState({ country: "", currency: "USD", amount: "", type: "CIF" });
 
     const [isPrinting, setIsPrinting] = useState(false);
     const [isSaving, setIsSaving] = useState(false);
@@ -111,6 +115,7 @@ function SpecBuilderContent() {
                 const res = await getSpecDossierById(editId);
                 if (res.success && res.data) {
                     setSpecData(res.data);
+                    setPricing(res.data.pricing || []);
                     setFeatures(res.data.features || []);
                     setSearchTags(res.data.searchTags || []);
                     setExistingImages(res.data.images || []);
@@ -122,6 +127,14 @@ function SpecBuilderContent() {
             loadDossier();
         }
     }, [editId]);
+
+    const handleAddPrice = () => {
+        if (!newPrice.country || !newPrice.amount) return;
+        setPricing([...pricing, { ...newPrice, amount: parseFloat(newPrice.amount) }]);
+        setNewPrice({ country: "", currency: "USD", amount: "", type: "CIF" });
+    };
+
+    const removePrice = (index: number) => setPricing(pricing.filter((_, i) => i !== index));
 
     const handlePrint = async () => {
         if (!editId) return alert("Please save the dossier first before generating a PDF.");
@@ -194,7 +207,7 @@ function SpecBuilderContent() {
                 } else throw new Error("Failed to upload images.");
             }
 
-            const payload = {...specData, features, searchTags, images: finalImageUrls};
+            const payload = {...specData, features, searchTags, images: finalImageUrls, pricing};
             const result = await saveSpecDossier(payload);
 
             if (result.success) {
@@ -290,6 +303,47 @@ function SpecBuilderContent() {
                             </div>
                         </div>
                     </SpecSection>
+
+                    {/* Final Status & Notes */}
+                    <div className="bg-white border border-black/5 rounded-[3rem] p-10 shadow-sm flex flex-col gap-10">
+
+                        {/* Top: Notes Area */}
+                        <div className="space-y-4">
+                            <Label className="font-bold flex items-center gap-2">
+                                <Info size={18}/> Additional Template Notes
+                            </Label>
+                            <Textarea
+                                placeholder="Internal notes regarding this specific vehicle blueprint..."
+                                value={specData.notes}
+                                onChange={(e) => handleInputChange("notes", e.target.value)}
+                                className="min-h-[150px] rounded-[2rem] bg-zinc-50 border-transparent p-6 focus:bg-white transition-all"
+                            />
+                        </div>
+
+                        {/* Bottom: Status Selection */}
+                        <div className="pt-6 border-t border-black/5 space-y-4">
+                            <div className="max-w-xs"> {/* Keeps the select at a reasonable width */}
+                                <Label className="font-bold mb-2 block">Template Status</Label>
+                                <Select value={specData.status} onValueChange={(v) => handleInputChange("status", v)}>
+                                    <SelectTrigger className="h-12 rounded-xl">
+                                        <SelectValue />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="Draft">Draft</SelectItem>
+                                        <SelectItem value="Active">Active</SelectItem>
+                                        <SelectItem value="Archived">Archived</SelectItem>
+                                    </SelectContent>
+                                </Select>
+                            </div>
+
+                            <div className="p-4 bg-amber-50 rounded-2xl border border-amber-100 inline-flex">
+                                <p className="text-[10px] text-amber-700 font-bold leading-tight flex gap-2 items-center">
+                                    <ShieldCheck size={14} className="shrink-0"/>
+                                    Drafts cannot be assigned to concrete vehicles.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
                 </div>
 
                 {/* --- MAIN COLUMN --- */}
@@ -402,18 +456,18 @@ function SpecBuilderContent() {
                             </Label>
                             <p className="text-sm text-zinc-500">List specific physical attributes of this trim (e.g.
                                 Sunroof, 360 Camera).</p>
-                            <div className="p-8 bg-zinc-950 rounded-[2.5rem] space-y-6">
+                            <div className="p-8 bg-zinc-50 rounded-[2.5rem] space-y-6 border border-zinc-200">
                                 <div className="flex flex-wrap gap-2">
                                     {features.map(tag => (
                                         <Badge key={tag}
-                                               className="bg-white/10 text-white hover:bg-white/20 border-transparent px-4 py-2 rounded-full gap-2 transition-colors cursor-default">
+                                               className="bg-zinc-200 text-zinc-800 hover:bg-zinc-300 border-transparent px-4 py-2 rounded-full gap-2 transition-colors cursor-default">
                                             {tag}
                                             <button
                                                 type="button"
                                                 onClick={() => setFeatures(features.filter(t => t !== tag))}
                                                 className="focus:outline-none flex items-center justify-center rounded-full hover:bg-red-500/50 p-0.5 transition-colors"
                                             >
-                                                <Trash2 size={12} className="text-zinc-300 hover:text-white"/>
+                                                <Trash2 size={12} className="text-zinc-500 hover:text-red-600"/>
                                             </button>
                                         </Badge>
                                     ))}
@@ -424,7 +478,7 @@ function SpecBuilderContent() {
                                     <Input
                                         value={newFeature}
                                         onChange={(e) => setNewFeature(e.target.value)}
-                                        className="bg-white/5 border-white/10 text-white h-12 rounded-xl"
+                                        className="bg-white border-zinc-200 text-black h-12 rounded-xl"
                                         placeholder="Add a feature (e.g. Panoramic Roof)..."
                                         onKeyDown={(e) => {
                                             if (e.key === 'Enter') {
@@ -434,7 +488,7 @@ function SpecBuilderContent() {
                                         }}
                                     />
                                     <Button type="button" onClick={handleAddFeature}
-                                            className="bg-white text-black hover:bg-zinc-200 rounded-xl h-12 px-6">Add</Button>
+                                            className="bg-zinc-950 text-white hover:bg-zinc-900 rounded-xl h-12 px-6">Add</Button>
                                 </div>
                             </div>
                         </div>
@@ -485,37 +539,91 @@ function SpecBuilderContent() {
                         </div>
                     </div>
 
-                    {/* Final Status & Notes */}
-                    <div
-                        className="bg-white border border-black/5 rounded-[3rem] p-10 shadow-sm flex flex-col md:flex-row gap-10">
-                        <div className="flex-1 space-y-4">
-                            <Label className="font-bold flex items-center gap-2"><Info size={18}/> Additional Template
-                                Notes</Label>
-                            <Textarea
-                                placeholder="Internal notes regarding this specific vehicle blueprint..."
-                                value={specData.notes}
-                                onChange={(e) => handleInputChange("notes", e.target.value)}
-                                className="min-h-[150px] rounded-[2rem] bg-zinc-50 border-transparent p-6 focus:bg-white transition-all"
-                            />
+                    <div className="bg-white border border-black/5 rounded-[3rem] p-10 shadow-sm relative overflow-hidden">
+                        <div className="flex items-center gap-4 mb-8">
+                            <div className="bg-amber-50 text-amber-600 p-4 rounded-2xl"><Globe size={28}/></div>
+                            <h3 className="text-2xl font-bold">International Pricing Matrix</h3>
                         </div>
-                        <div className="w-full md:w-64 space-y-4">
-                            <Label className="font-bold">Template Status</Label>
-                            <Select value={specData.status} onValueChange={(v) => handleInputChange("status", v)}>
-                                <SelectTrigger className="h-12 rounded-xl"><SelectValue/></SelectTrigger>
-                                <SelectContent>
-                                    <SelectItem value="Draft">Draft</SelectItem>
-                                    <SelectItem value="Active">Active</SelectItem>
-                                    <SelectItem value="Archived">Archived</SelectItem>
-                                </SelectContent>
-                            </Select>
-                            <div className="p-4 bg-amber-50 rounded-2xl border border-amber-100 mt-4">
-                                <p className="text-[10px] text-amber-700 font-bold leading-tight flex gap-2">
-                                    <ShieldCheck size={14} className="shrink-0"/>
-                                    Drafts cannot be assigned to concrete vehicles.
-                                </p>
+
+                        <div className="space-y-6">
+                            {/* Price Table Headings */}
+                            <div className="grid grid-cols-12 gap-4 px-4 text-[10px] font-black uppercase text-zinc-400">
+                                <div className="col-span-4">Country</div>
+                                <div className="col-span-2">Currency</div>
+                                <div className="col-span-3">Amount</div>
+                                <div className="col-span-2">Type</div>
+                                <div className="col-span-1"></div>
+                            </div>
+
+                            {/* Existing Prices */}
+                            {pricing.map((p, idx) => (
+                                <div key={idx} className="grid grid-cols-12 gap-4 items-center bg-zinc-50 p-3 rounded-2xl border border-black/5">
+                                    <div className="col-span-4 font-bold text-sm">{p.country}</div>
+                                    <div className="col-span-2 text-zinc-500 text-sm">{p.currency}</div>
+                                    <div className="col-span-3 font-mono font-bold">{p.amount.toLocaleString()}</div>
+                                    <div className="col-span-2">
+                                        <Badge variant="outline" className="bg-white">{p.type}</Badge>
+                                    </div>
+                                    <div className="col-span-1 flex justify-end">
+                                        <Button variant="ghost" size="icon" onClick={() => removePrice(idx)} className="text-zinc-400 hover:text-red-500">
+                                            <Trash2 size={16}/>
+                                        </Button>
+                                    </div>
+                                </div>
+                            ))}
+
+                            {/* Add New Price Row */}
+                            <div className="grid grid-cols-12 gap-4 items-end bg-blue-50/50 p-6 rounded-[2rem] border border-blue-100 mt-4">
+                                <div className="col-span-4 space-y-2">
+                                    <Label className="text-[10px] font-bold uppercase">Destination</Label>
+                                    <Input
+                                        list="country-list"
+                                        placeholder="Select Country"
+                                        value={newPrice.country}
+                                        onChange={(e) => setNewPrice({...newPrice, country: e.target.value})}
+                                        className="bg-white rounded-xl"
+                                    />
+                                </div>
+                                <div className="col-span-2 space-y-2">
+                                    <Label className="text-[10px] font-bold uppercase">Curr.</Label>
+                                    <Input
+                                        placeholder="USD"
+                                        value={newPrice.currency}
+                                        onChange={(e) => setNewPrice({...newPrice, currency: e.target.value})}
+                                        className="bg-white rounded-xl"
+                                    />
+                                </div>
+                                <div className="col-span-3 space-y-2">
+                                    <Label className="text-[10px] font-bold uppercase">Price</Label>
+                                    <Input
+                                        type="number"
+                                        placeholder="0.00"
+                                        value={newPrice.amount}
+                                        onChange={(e) => setNewPrice({...newPrice, amount: e.target.value})}
+                                        className="bg-white rounded-xl"
+                                    />
+                                </div>
+                                <div className="col-span-2 space-y-2">
+                                    <Label className="text-[10px] font-bold uppercase">Basis</Label>
+                                    <Select value={newPrice.type} onValueChange={(v) => setNewPrice({...newPrice, type: v})}>
+                                        <SelectTrigger className="bg-white rounded-xl"><SelectValue /></SelectTrigger>
+                                        <SelectContent>
+                                            <SelectItem value="CIF">CIF</SelectItem>
+                                            <SelectItem value="FOB">FOB</SelectItem>
+                                            <SelectItem value="Landed">Landed</SelectItem>
+                                        </SelectContent>
+                                    </Select>
+                                </div>
+                                <div className="col-span-1">
+                                    <Button onClick={handleAddPrice} className="w-full rounded-xl bg-blue-600 hover:bg-blue-700 text-white">
+                                        Add
+                                    </Button>
+                                </div>
                             </div>
                         </div>
                     </div>
+
+
 
                 </div>
             </div>

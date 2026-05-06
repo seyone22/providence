@@ -385,7 +385,7 @@ interface AgentData {
     image: string;
 }
 
-export default function RequestForm() {
+export default function RequestForm({ prefill }: { prefill?: Partial<typeof initialFormState> }) {
     const searchParams = useSearchParams();
 
     const [step, setStep] = useState(1);
@@ -415,6 +415,17 @@ export default function RequestForm() {
             fbp: getCookie('_fbp') || ''
         });
     }, [searchParams]);
+
+    useEffect(() => {
+        if (prefill) {
+            setFormData(prev => ({
+                ...prev,
+                ...prefill,
+                // Ensure condition is "Used" if it's a specific car from the gallery
+                condition: "Used"
+            }));
+        }
+    }, [prefill]);
 
     useEffect(() => {
         if (!formData.make) {

@@ -1,5 +1,13 @@
 import mongoose, {models, Schema} from "mongoose";
 
+const PriceEntrySchema = new Schema({
+        country: { type: String, required: true },
+        currency: { type: String, default: "USD" },
+        amount: { type: Number, required: true },
+        type: { type: String, enum: ["CIF", "FOB", "Landed", "Ex-Works"], default: "CIF" },
+        isPublic: { type: Boolean, default: true }
+});
+
 const SpecDossierSchema = new Schema(
     {
         // Vehicle Overview (Template details)
@@ -20,6 +28,9 @@ const SpecDossierSchema = new Schema(
         fuelSystem: {type: String, default: "Petrol"},
         steering: {type: String, default: "RHD"},
         emissions: {type: String, default: ""},
+
+        // New Pricing Matrix field
+        pricing: [PriceEntrySchema],
 
         // Interior & Tech
         upholstery: {type: String, default: ""},
