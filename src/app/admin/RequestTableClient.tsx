@@ -285,7 +285,7 @@ export default function RequestTableClient({
                                                 Import to: {req.countryOfImport}
                                             </div>
                                             <div className="text-[10px] text-zinc-400 mt-0.5">
-                                                Created: {new Date(req.createdAt).toLocaleDateString()}
+                                                Created: {new Date(req.createdAt).toLocaleString()}
                                             </div>
                                         </TableCell>
 
@@ -322,7 +322,20 @@ export default function RequestTableClient({
 
                                         <TableCell className="align-top">
                                             <div className="mt-1">
-                                                {getSalesStatusBadge(currentSalesStatus)}
+                                                {/* Wrap the badge in a button for accessibility and click handling */}
+                                                <button
+                                                    onClick={() => setModal({
+                                                        isOpen: true,
+                                                        type: "sales_status",
+                                                        request: req,
+                                                        targetStage: null
+                                                    })}
+                                                    className="block hover:opacity-80 transition-opacity focus:outline-none"
+                                                    title="Click to change sales status"
+                                                >
+                                                    {getSalesStatusBadge(currentSalesStatus)}
+                                                </button>
+
                                                 {/* Timestamp for status change */}
                                                 {(req.statusUpdatedAt || req.updatedAt) && (
                                                     <div className="text-[10px] text-zinc-400 mt-1 ml-1">

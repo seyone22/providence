@@ -156,47 +156,47 @@ export default function B2CLanding() {
                 </div>
             </section>
 
-            {/* Gallery Promo Section */}
-            <section className="py-16 px-6 max-w-7xl mx-auto bg-white relative z-10">
-                <motion.div
-                    initial={{ y: 40, opacity: 0, scale: 0.98 }}
-                    whileInView={{ y: 0, opacity: 1, scale: 1 }}
-                    viewport={{ once: true, margin: "-100px" }}
-                    transition={{ duration: 0.8, ease: appleEase }}
-                >
-                    <Link href="/b2c/gallery" className="group relative block w-full overflow-hidden rounded-[2.5rem] bg-black min-h-[400px] md:min-h-[500px]">
-                        <img
-                            src="https://images.unsplash.com/photo-1603584173870-7f23fdae1b7a?q=80&w=2938&auto=format&fit=crop"
-                            alt="The Providence Gallery"
-                            className="absolute inset-0 w-full h-full object-cover opacity-60 group-hover:scale-105 transition-transform duration-[1.5s] ease-out"
-                        />
-                        <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/30 to-transparent" />
+            {/*/!* Gallery Promo Section *!/*/}
+            {/*<section className="py-16 px-6 max-w-7xl mx-auto bg-white relative z-10">*/}
+            {/*    <motion.div*/}
+            {/*        initial={{ y: 40, opacity: 0, scale: 0.98 }}*/}
+            {/*        whileInView={{ y: 0, opacity: 1, scale: 1 }}*/}
+            {/*        viewport={{ once: true, margin: "-100px" }}*/}
+            {/*        transition={{ duration: 0.8, ease: appleEase }}*/}
+            {/*    >*/}
+            {/*        <Link href="/b2c/gallery" className="group relative block w-full overflow-hidden rounded-[2.5rem] bg-black min-h-[400px] md:min-h-[500px]">*/}
+            {/*            <img*/}
+            {/*                src="https://images.unsplash.com/photo-1603584173870-7f23fdae1b7a?q=80&w=2938&auto=format&fit=crop"*/}
+            {/*                alt="The Providence Gallery"*/}
+            {/*                className="absolute inset-0 w-full h-full object-cover opacity-60 group-hover:scale-105 transition-transform duration-[1.5s] ease-out"*/}
+            {/*            />*/}
+            {/*            <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/30 to-transparent" />*/}
 
-                        <div className="absolute inset-0 p-8 md:p-16 flex flex-col justify-end">
-                            <div className="flex flex-col md:flex-row md:items-end justify-between gap-8">
-                                <div className="max-w-2xl">
-                                    <div className="flex items-center gap-3 mb-4">
-                                        <Images className="text-white/70 h-6 w-6" />
-                                        <span className="text-white/70 font-bold tracking-[0.2em] uppercase text-sm">Portfolio</span>
-                                    </div>
-                                    <h2 className="text-4xl md:text-5xl lg:text-6xl font-bold tracking-tighter text-white mb-4">
-                                        The Gallery.
-                                    </h2>
-                                    <p className="text-lg md:text-xl text-zinc-300 font-light">
-                                        Explore our collection of curated, globally-sourced vehicles successfully delivered to our clients.
-                                    </p>
-                                </div>
+            {/*            <div className="absolute inset-0 p-8 md:p-16 flex flex-col justify-end">*/}
+            {/*                <div className="flex flex-col md:flex-row md:items-end justify-between gap-8">*/}
+            {/*                    <div className="max-w-2xl">*/}
+            {/*                        <div className="flex items-center gap-3 mb-4">*/}
+            {/*                            <Images className="text-white/70 h-6 w-6" />*/}
+            {/*                            <span className="text-white/70 font-bold tracking-[0.2em] uppercase text-sm">Portfolio</span>*/}
+            {/*                        </div>*/}
+            {/*                        <h2 className="text-4xl md:text-5xl lg:text-6xl font-bold tracking-tighter text-white mb-4">*/}
+            {/*                            The Gallery.*/}
+            {/*                        </h2>*/}
+            {/*                        <p className="text-lg md:text-xl text-zinc-300 font-light">*/}
+            {/*                            Explore our collection of curated, globally-sourced vehicles successfully delivered to our clients.*/}
+            {/*                        </p>*/}
+            {/*                    </div>*/}
 
-                                <div className="shrink-0 inline-flex items-center justify-center px-8 py-4 text-base font-bold text-black bg-white rounded-full transition-transform group-hover:scale-105">
-                                    <span className="flex items-center gap-2">
-                                        View Collection <ArrowRight size={18} className="group-hover:translate-x-1 transition-transform" />
-                                    </span>
-                                </div>
-                            </div>
-                        </div>
-                    </Link>
-                </motion.div>
-            </section>
+            {/*                    <div className="shrink-0 inline-flex items-center justify-center px-8 py-4 text-base font-bold text-black bg-white rounded-full transition-transform group-hover:scale-105">*/}
+            {/*                        <span className="flex items-center gap-2">*/}
+            {/*                            View Collection <ArrowRight size={18} className="group-hover:translate-x-1 transition-transform" />*/}
+            {/*                        </span>*/}
+            {/*                    </div>*/}
+            {/*                </div>*/}
+            {/*            </div>*/}
+            {/*        </Link>*/}
+            {/*    </motion.div>*/}
+            {/*</section>*/}
 
             <section id="inquiry" className="py-32 px-6 relative flex flex-col justify-center items-center bg-zinc-50 border-t border-black/5 z-10 overflow-hidden">
                 <motion.div
