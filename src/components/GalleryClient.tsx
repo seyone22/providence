@@ -38,24 +38,29 @@ type Dossier = {
 export default function GalleryClient({ dossiers }: { dossiers: Dossier[] }) {
     const [selectedTags, setSelectedTags] = useState<string[]>([]);
 
-    // Extract all unique search tags from all active dossiers
+    // 1. Filter out Drafts, only keep Published items
+    const publishedDossiers = useMemo(() => {
+        return dossiers.filter(car => car.status === "Active");
+    }, [dossiers]);
+
+    // 2. Extract all unique search tags from all published dossiers
     const availableTags = useMemo(() => {
         const tags = new Set<string>();
-        dossiers.forEach(car => {
+        publishedDossiers.forEach(car => {
             if (car.searchTags) {
                 car.searchTags.forEach(tag => tags.add(tag));
             }
         });
         return Array.from(tags).sort();
-    }, [dossiers]);
+    }, [publishedDossiers]);
 
-    // Filter logic: If tags are selected, the car must have ALL selected tags
+    // 3. Filter logic: If tags are selected, the car must have ALL selected tags
     const filteredDossiers = useMemo(() => {
-        if (selectedTags.length === 0) return dossiers;
-        return dossiers.filter(car =>
+        if (selectedTags.length === 0) return publishedDossiers;
+        return publishedDossiers.filter(car =>
             selectedTags.every(tag => car.searchTags?.includes(tag))
         );
-    }, [dossiers, selectedTags]);
+    }, [publishedDossiers, selectedTags]);
 
     const toggleTag = (tag: string) => {
         setSelectedTags(prev =>
