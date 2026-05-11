@@ -1,7 +1,18 @@
 "use client";
 
 import { useState, useMemo } from "react";
-import {Users, AlertCircle, MessageSquareText, ArchiveX, Search, ListFilter, ArrowUpDown, X} from "lucide-react";
+import {
+    Users,
+    AlertCircle,
+    MessageSquareText,
+    ArchiveX,
+    Search,
+    ListFilter,
+    ArrowUpDown,
+    X,
+    Car,
+    Ship, CheckCircle2
+} from "lucide-react";
 import LeadDistributionChart from "@/components/LeadDistributionChart";
 import RequestTableClient from "./RequestTableClient";
 
@@ -96,6 +107,20 @@ export default function DashboardClient({ requests, staffUsers, currentUserId }:
             color: "bg-zinc-100 text-zinc-500"
         },
     ];
+
+    const totalInquiries = filteredRequests.length;
+
+    const pendingAction = filteredRequests.filter(
+        (req: any) => req.leadStatus === "Action required" || (!req.leadStatus && req.status === "New")
+    ).length;
+
+    const inTransit = filteredRequests.filter(
+        (req: any) => ["Shipped", "Arrived at Port"].includes(req.status)
+    ).length;
+
+    const completed = filteredRequests.filter(
+        (req: any) => req.status === "Cleared Customs" || req.leadStatus === "Lead Closed"
+    ).length;
 
     // Chart logic mapping (Grouped for the visual bar chart)
     const getStageColor = (stage: string) => {
@@ -210,6 +235,41 @@ export default function DashboardClient({ requests, staffUsers, currentUserId }:
                             </button>
                         )}
                     </div>
+                </div>
+            </div>
+
+            {/* STATS GRID */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
+                <div className="bg-white border border-black/5 rounded-[2rem] p-6 shadow-[0_10px_40px_rgba(0,0,0,0.03)] flex flex-col justify-between">
+                    <div className="flex justify-between items-start mb-4">
+                        <p className="text-zinc-500 font-medium">Total Inquiries</p>
+                        <div className="p-2 bg-black/5 rounded-xl"><Car size={18} className="text-black" /></div>
+                    </div>
+                    <h3 className="text-4xl font-bold text-black">{totalInquiries}</h3>
+                </div>
+
+                <div className="bg-white border border-black/5 rounded-[2rem] p-6 shadow-[0_10px_40px_rgba(0,0,0,0.03)] flex flex-col justify-between">
+                    <div className="flex justify-between items-start mb-4">
+                        <p className="text-zinc-500 font-medium">Action Required</p>
+                        <div className="p-2 bg-red-50 rounded-xl"><AlertCircle size={18} className="text-red-500" /></div>
+                    </div>
+                    <h3 className="text-4xl font-bold text-black">{pendingAction}</h3>
+                </div>
+
+                <div className="bg-white border border-black/5 rounded-[2rem] p-6 shadow-[0_10px_40px_rgba(0,0,0,0.03)] flex flex-col justify-between">
+                    <div className="flex justify-between items-start mb-4">
+                        <p className="text-zinc-500 font-medium">In Transit</p>
+                        <div className="p-2 bg-blue-50 rounded-xl"><Ship size={18} className="text-blue-500" /></div>
+                    </div>
+                    <h3 className="text-4xl font-bold text-black">{inTransit}</h3>
+                </div>
+
+                <div className="bg-white border border-black/5 rounded-[2rem] p-6 shadow-[0_10px_40px_rgba(0,0,0,0.03)] flex flex-col justify-between">
+                    <div className="flex justify-between items-start mb-4">
+                        <p className="text-zinc-500 font-medium">Completed</p>
+                        <div className="p-2 bg-emerald-50 rounded-xl"><CheckCircle2 size={18} className="text-emerald-500" /></div>
+                    </div>
+                    <h3 className="text-4xl font-bold text-black">{completed}</h3>
                 </div>
             </div>
 
