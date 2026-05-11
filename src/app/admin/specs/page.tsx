@@ -349,6 +349,71 @@ function SpecBuilderContent() {
                 {/* --- MAIN COLUMN --- */}
                 <div className="lg:col-span-8 space-y-10">
 
+                    {/* Media & Gallery Section */}
+                    <div className="bg-white border border-black/5 rounded-[3rem] p-10 shadow-sm">
+                        <div className="flex items-center gap-4 mb-8">
+                            <div className="bg-purple-50 text-purple-600 p-4 rounded-2xl">
+                                <Settings2 size={28} />
+                            </div>
+                            <h3 className="text-2xl font-bold">Media & Gallery</h3>
+                        </div>
+
+                        <div className="space-y-6">
+                            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                                {/* Existing Images (from R2) */}
+                                {existingImages.map((url, idx) => (
+                                    <div key={idx} className="relative aspect-video rounded-2xl overflow-hidden border border-zinc-200 group">
+                                        <img
+                                            src={getImageUrl(url)}
+                                            alt="Gallery"
+                                            className="object-cover w-full h-full"
+                                        />
+                                        <button
+                                            onClick={() => removeExistingImage(url)}
+                                            className="absolute top-2 right-2 p-1.5 bg-red-500 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+                                        >
+                                            <Trash2 size={14} />
+                                        </button>
+                                    </div>
+                                ))}
+
+                                {/* Pending Upload Previews */}
+                                {previewUrls.map((url, idx) => (
+                                    <div key={idx} className="relative aspect-video rounded-2xl overflow-hidden border-2 border-dashed border-blue-200 group">
+                                        <img src={url} alt="Preview" className="object-cover w-full h-full opacity-60" />
+                                        <div className="absolute inset-0 flex items-center justify-center">
+                                            <Badge className="bg-blue-500 text-white">Pending</Badge>
+                                        </div>
+                                        <button
+                                            onClick={() => removePendingFile(idx)}
+                                            className="absolute top-2 right-2 p-1.5 bg-zinc-800 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+                                        >
+                                            <Trash2 size={14} />
+                                        </button>
+                                    </div>
+                                ))}
+
+                                {/* Upload Trigger */}
+                                <label className="flex flex-col items-center justify-center aspect-video rounded-2xl border-2 border-dashed border-zinc-200 hover:border-zinc-400 hover:bg-zinc-50 transition-all cursor-pointer">
+                                    <div className="flex flex-col items-center gap-2 text-zinc-500">
+                                        <Save size={24} />
+                                        <span className="text-xs font-bold uppercase tracking-wider">Upload Images</span>
+                                    </div>
+                                    <input
+                                        type="file"
+                                        multiple
+                                        accept="image/*"
+                                        className="hidden"
+                                        onChange={handleFileSelect}
+                                    />
+                                </label>
+                            </div>
+                            <p className="text-[11px] text-zinc-400 font-medium">
+                                Images will be uploaded to the R2 storage bucket upon saving the template.
+                            </p>
+                        </div>
+                    </div>
+
                     {/* Vehicle Overview Section */}
                     <div
                         className="bg-white border border-black/5 rounded-[3rem] p-10 shadow-sm relative overflow-hidden">
