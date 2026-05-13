@@ -201,7 +201,7 @@ export default function GalleryDetailClient({car}: { car: Dossier }) {
                                 className="flex-1 inline-flex items-center justify-center gap-2 px-6 py-4 bg-zinc-800 hover:bg-black text-white text-sm font-bold uppercase tracking-wider rounded-full transition-colors disabled:opacity-70"
                             >
                                 {isGeneratingPdf ? <Loader2 className="animate-spin" size={18}/> : <FileText size={18}/>}
-                                {isGeneratingPdf ? "Generating..." : "Print Dossier"}
+                                {isGeneratingPdf ? "Generating..." : "Download PDF"}
                             </button>
 
                             <button
