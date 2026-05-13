@@ -181,16 +181,40 @@ export default function RequestTableClient({
 
                                         <TableCell className="align-top">
                                             <div className="flex flex-col items-start gap-2 mt-1">
-                                                {getPipelineBadge(req.status)}
-                                                {req.assignedToName ? (
-                                                    <div className="inline-flex items-center gap-1.5 text-[11px] text-blue-600 bg-blue-50 px-2 py-0.5 rounded border border-blue-100 font-medium">
-                                                        <User size={10} /> {req.assignedToName}
-                                                    </div>
-                                                ) : (
-                                                    <div className="inline-flex items-center gap-1.5 text-[11px] text-zinc-400 bg-zinc-50 px-2 py-0.5 rounded border border-zinc-200">
-                                                        Unassigned
-                                                    </div>
-                                                )}
+                                                <button
+                                                    onClick={() => setModal({
+                                                        isOpen: true,
+                                                        type: "advance",
+                                                        request: req,
+                                                        targetStage: nextStage
+                                                    })}
+                                                    className="block hover:opacity-80 transition-opacity focus:outline-none"
+                                                    title="Click to advance stage"
+                                                >
+                                                    {getPipelineBadge(req.status)}
+                                                </button>
+
+                                                <button
+                                                    onClick={() => setModal({
+                                                        isOpen: true,
+                                                        type: "assign",
+                                                        request: req,
+                                                        targetStage: null
+                                                    })}
+                                                    className="block hover:opacity-80 transition-opacity focus:outline-none"
+                                                    title="Click to change Asignee"
+                                                >
+                                                    {req.assignedToName ? (
+                                                        <div className="inline-flex items-center gap-1.5 text-[11px] text-blue-600 bg-blue-50 px-2 py-0.5 rounded border border-blue-100 font-medium">
+                                                            <User size={10} /> {req.assignedToName}
+                                                        </div>
+                                                    ) : (
+                                                        <div className="inline-flex items-center gap-1.5 text-[11px] text-zinc-400 bg-zinc-50 px-2 py-0.5 rounded border border-zinc-200">
+                                                            Unassigned
+                                                        </div>
+                                                    )}
+                                                </button>
+
                                             </div>
                                         </TableCell>
 
