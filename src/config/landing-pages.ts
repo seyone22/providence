@@ -75,7 +75,7 @@ export const lhdCampaignConfig: LandingPageConfig = {
     },
     valueProps: {
         title: "Why Import From Providence Auto",
-        containerImage: "https://images.unsplash.com/photo-1580674285054-bed31e145f59?q=80&w=2940&auto=format&fit=crop",
+        containerImage: "/gallery_image.jpg",
         features: [
             {
                 icon: FileSearch,

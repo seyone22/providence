@@ -10,6 +10,17 @@ import { lhdCampaignConfig } from "@/config/landing-pages"; // Adjust path as ne
 
 const appleEase: any = [0.16, 1, 0.3, 1];
 
+// Hardcoded array using the specific files you highlighted
+const highlightedCarLogos = [
+    { src: "/car_logo/Aston Martin Logo.png", alt: "Aston Martin" },
+    { src: "/car_logo/ferrari logo.png", alt: "Ferrari" },
+    { src: "/car_logo/lamborghini logo.png", alt: "Lamborghini" },
+    { src: "/car_logo/land rover logo.png", alt: "Land Rover" },
+    { src: "/car_logo/lexus logo.png", alt: "Lexus" },
+    { src: "/car_logo/porsche logo.png", alt: "Porsche" },
+    { src: "/car_logo/rolls royce logo.png", alt: "Rolls Royce" },
+];
+
 export default function ConfigurableLanding() {
     // In a real dynamic route, you would find the config by slug here.
     // For now, we use the hardcoded one.
@@ -97,6 +108,40 @@ export default function ConfigurableLanding() {
                         </a>
                     </motion.div>
                 </motion.div>
+            </section>
+
+            {/* Hardcoded Brand Logos Section */}
+            <section className="py-16 md:py-20 px-6 bg-white relative z-10 border-t border-black/5">
+                <div className="max-w-[1400px] mx-auto flex flex-col items-center">
+                    <motion.p
+                        initial={{ opacity: 0, y: 10 }}
+                        whileInView={{ opacity: 1, y: 0 }}
+                        viewport={{ once: true }}
+                        transition={{ duration: 0.5, ease: appleEase }}
+                        className="text-xs font-bold tracking-[0.2em] text-zinc-400 uppercase mb-10"
+                    >
+                        Sourcing the world's finest
+                    </motion.p>
+
+                    <div className="flex flex-wrap justify-center items-center gap-10 md:gap-16 lg:gap-24 opacity-60">
+                        {highlightedCarLogos.map((logo, index) => (
+                            <motion.div
+                                key={index}
+                                initial={{ opacity: 0, y: 20 }}
+                                whileInView={{ opacity: 1, y: 0 }}
+                                viewport={{ once: true }}
+                                transition={{ duration: 0.6, delay: index * 0.1, ease: appleEase }}
+                                className="w-16 md:w-20 lg:w-24 grayscale hover:grayscale-0 hover:scale-110 transition-all duration-300 cursor-pointer"
+                            >
+                                <img
+                                    src={logo.src}
+                                    alt={logo.alt}
+                                    className="w-full h-auto object-contain"
+                                />
+                            </motion.div>
+                        ))}
+                    </div>
+                </div>
             </section>
 
             {/* Configurable Manifesto/Intro */}
