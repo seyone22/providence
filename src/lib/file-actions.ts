@@ -2,7 +2,45 @@
 "use server";
 
 import { PutObjectCommand } from "@aws-sdk/client-s3";
+import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import { r2, BUCKET_NAME, PUBLIC_BUCKET_URL } from "@/lib/r2";
+
+type FileMetadata = {
+    name: string;
+    type: string;
+    size: number;
+};
+
+export async function getPresignedUrls(files: FileMetadata[], folder: string) {
+    try {
+        const uploadData = await Promise.all(
+            files.map(async (file) => {
+                const uniqueSuffix = `${Date.now()}-${Math.round(Math.random() * 1e9)}`;
+                const extension = file.name.split('.').pop() || 'bin';
+                const fileName = `${folder}/${uniqueSuffix}.${extension}`;
+
+                const command = new PutObjectCommand({
+                    Bucket: BUCKET_NAME,
+                    Key: fileName,
+                    ContentType: file.type || "application/octet-stream",
+                });
+
+                // URL valid for 5 minutes
+                const uploadUrl = await getSignedUrl(r2, command, { expiresIn: 300 });
+
+                return {
+                    uploadUrl,
+                    fileUrl: `${PUBLIC_BUCKET_URL}/${fileName}`,
+                };
+            })
+        );
+
+        return { success: true, uploadData };
+    } catch (error) {
+        console.error("Presigned URL Error:", error);
+        return { success: false, message: "Failed to generate upload URLs." };
+    }
+}
 
 export async function uploadToR2(formData: FormData) {
     try {

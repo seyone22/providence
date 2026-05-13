@@ -28,7 +28,7 @@ import {Badge} from "@/components/ui/badge";
 // Actions & Components
 import {getSpecDossierById, saveSpecDossier} from "@/actions/spec-actions";
 import {SpecSection} from "@/components/SpecSection";
-import {uploadDossierImages} from "@/lib/file-actions";
+import {getPresignedUrls, uploadDossierImages} from "@/lib/file-actions";
 import {generateDossierPdfAction} from "@/actions/pdf-actions";
 
 // Full Country List for the Datalist
@@ -199,12 +199,28 @@ function SpecBuilderContent() {
             let finalImageUrls = [...existingImages];
 
             if (pendingFiles.length > 0) {
-                const formData = new FormData();
-                pendingFiles.forEach(file => formData.append("files", file));
-                const uploadRes = await uploadDossierImages(formData);
-                if (uploadRes.success && uploadRes.uploadedUrls) {
-                    finalImageUrls = [...finalImageUrls, ...uploadRes.uploadedUrls];
-                } else throw new Error("Failed to upload images.");
+                // Get secure URLs
+                const fileMeta = pendingFiles.map(f => ({ name: f.name, type: f.type, size: f.size }));
+                const { success, uploadData, message } = await getPresignedUrls(fileMeta, "dossiers");
+
+                if (!success || !uploadData) throw new Error(message || "Failed to get upload URLs.");
+
+                // Upload all files directly to Cloudflare concurrently
+                const uploadPromises = pendingFiles.map(async (file, index) => {
+                    const { uploadUrl, fileUrl } = uploadData[index];
+
+                    const uploadRes = await fetch(uploadUrl, {
+                        method: "PUT",
+                        body: file,
+                        headers: { "Content-Type": file.type },
+                    });
+
+                    if (!uploadRes.ok) throw new Error(`Failed to upload ${file.name}`);
+                    return fileUrl;
+                });
+
+                const uploadedUrls = await Promise.all(uploadPromises);
+                finalImageUrls = [...finalImageUrls, ...uploadedUrls];
             }
 
             const payload = {...specData, features, searchTags, images: finalImageUrls, pricing};

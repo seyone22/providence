@@ -1,13 +1,13 @@
 // app/settings/SettingsClient.tsx
 "use client";
 
-import { useState, useRef } from "react";
-import { useRouter } from "next/navigation";
-import { Camera, Loader2, Save, ShieldCheck, User as UserIcon } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { updateProfileSettings, updatePasswordServer } from "@/actions/settings-actions";
-import {uploadProfileImage} from "@/lib/file-actions";
+import {useRef, useState} from "react";
+import {useRouter} from "next/navigation";
+import {Camera, Loader2, Save, ShieldCheck, User as UserIcon} from "lucide-react";
+import {Button} from "@/components/ui/button";
+import {Input} from "@/components/ui/input";
+import {updatePasswordServer, updateProfileSettings} from "@/actions/settings-actions";
+import {getPresignedUrls} from "@/lib/file-actions";
 
 type UserProps = {
     id: string;
@@ -17,7 +17,7 @@ type UserProps = {
     whatsappNumber?: string | null | undefined;
 };
 
-export default function SettingsClient({ user }: { user: UserProps }) {
+export default function SettingsClient({user}: { user: UserProps }) {
     const router = useRouter();
 
     // Profile State
@@ -50,17 +50,31 @@ export default function SettingsClient({ user }: { user: UserProps }) {
 
         // 1. Upload new image if selected
         if (selectedFile) {
-            const formData = new FormData();
-            formData.append("file", selectedFile);
-            const uploadRes = await uploadProfileImage(formData);
+            // Get secure URL
+            const fileMeta = [{name: selectedFile.name, type: selectedFile.type, size: selectedFile.size}];
+            const {success, uploadData, message} = await getPresignedUrls(fileMeta, "profiles");
 
-            if (uploadRes.success && uploadRes.url) {
-                finalImageUrl = uploadRes.url;
-            } else {
-                alert("Failed to upload image.");
+            if (!success || !uploadData) {
+                alert(message || "Failed to get upload URL.");
                 setIsProfilePending(false);
                 return;
             }
+
+            // Upload directly to Cloudflare
+            const {uploadUrl, fileUrl} = uploadData[0];
+            const uploadRes = await fetch(uploadUrl, {
+                method: "PUT",
+                body: selectedFile,
+                headers: {"Content-Type": selectedFile.type},
+            });
+
+            if (!uploadRes.ok) {
+                alert("Failed to upload image directly to storage.");
+                setIsProfilePending(false);
+                return;
+            }
+
+            finalImageUrl = fileUrl;
         }
 
         // 2. Update database
@@ -109,7 +123,7 @@ export default function SettingsClient({ user }: { user: UserProps }) {
             <div className="bg-white border border-zinc-200/60 shadow-sm rounded-[2rem] p-6 lg:p-8">
                 <div className="flex items-center gap-3 border-b border-zinc-100 pb-4 mb-6">
                     <div className="p-2.5 bg-zinc-50 rounded-xl border border-zinc-100">
-                        <UserIcon className="text-zinc-600" size={20} />
+                        <UserIcon className="text-zinc-600" size={20}/>
                     </div>
                     <h2 className="text-lg font-semibold text-zinc-900">Public Profile</h2>
                 </div>
@@ -118,18 +132,19 @@ export default function SettingsClient({ user }: { user: UserProps }) {
                     {/* Avatar Upload */}
                     <div className="flex flex-col items-center space-y-4 shrink-0">
                         <div className="relative group">
-                            <div className="size-32 rounded-full border-4 border-white shadow-md bg-zinc-100 overflow-hidden flex items-center justify-center">
+                            <div
+                                className="size-32 rounded-full border-4 border-white shadow-md bg-zinc-100 overflow-hidden flex items-center justify-center">
                                 {imagePreview ? (
-                                    <img src={imagePreview} alt="Profile" className="w-full h-full object-cover" />
+                                    <img src={imagePreview} alt="Profile" className="w-full h-full object-cover"/>
                                 ) : (
-                                    <UserIcon size={48} className="text-zinc-300" />
+                                    <UserIcon size={48} className="text-zinc-300"/>
                                 )}
                             </div>
                             <button
                                 onClick={() => fileInputRef.current?.click()}
                                 className="absolute bottom-0 right-0 p-2.5 bg-zinc-900 text-white rounded-full hover:bg-zinc-800 transition-colors shadow-sm"
                             >
-                                <Camera size={16} />
+                                <Camera size={16}/>
                             </button>
                             <input
                                 type="file"
@@ -156,7 +171,8 @@ export default function SettingsClient({ user }: { user: UserProps }) {
                             </div>
 
                             <div className="space-y-2">
-                                <label className="text-sm font-medium text-zinc-700">Email Address <span className="text-zinc-400 font-normal">(Read-only)</span></label>
+                                <label className="text-sm font-medium text-zinc-700">Email Address <span
+                                    className="text-zinc-400 font-normal">(Read-only)</span></label>
                                 <Input
                                     value={user.email}
                                     disabled
@@ -181,7 +197,7 @@ export default function SettingsClient({ user }: { user: UserProps }) {
                                 disabled={isProfilePending}
                                 className="rounded-xl h-11 px-6 gap-2"
                             >
-                                {isProfilePending ? <Loader2 className="animate-spin" size={18} /> : <Save size={18} />}
+                                {isProfilePending ? <Loader2 className="animate-spin" size={18}/> : <Save size={18}/>}
                                 Save Changes
                             </Button>
                         </div>
@@ -193,11 +209,12 @@ export default function SettingsClient({ user }: { user: UserProps }) {
             <div className="bg-white border border-zinc-200/60 shadow-sm rounded-[2rem] p-6 lg:p-8">
                 <div className="flex items-center gap-3 border-b border-zinc-100 pb-4 mb-6">
                     <div className="p-2.5 bg-zinc-50 rounded-xl border border-zinc-100">
-                        <ShieldCheck className="text-zinc-600" size={20} />
+                        <ShieldCheck className="text-zinc-600" size={20}/>
                     </div>
                     <div>
                         <h2 className="text-lg font-semibold text-zinc-900">Security & Password</h2>
-                        <p className="text-sm text-zinc-500">Ensure your account is using a long, random password to stay secure.</p>
+                        <p className="text-sm text-zinc-500">Ensure your account is using a long, random password to
+                            stay secure.</p>
                     </div>
                 </div>
 
@@ -239,7 +256,7 @@ export default function SettingsClient({ user }: { user: UserProps }) {
                             variant="secondary"
                             className="rounded-xl h-11 px-6 border border-zinc-200/60 shadow-sm hover:bg-zinc-100"
                         >
-                            {isPasswordPending ? <Loader2 className="animate-spin" size={18} /> : "Update Password"}
+                            {isPasswordPending ? <Loader2 className="animate-spin" size={18}/> : "Update Password"}
                         </Button>
                     </div>
                 </div>

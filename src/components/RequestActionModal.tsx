@@ -17,7 +17,7 @@ import {Textarea} from "@/components/ui/textarea";
 import {Badge} from "@/components/ui/badge";
 import DynamicFileUploader, {PendingFile} from "@/components/dynamicFileUploader";
 import {deleteRequest, updateRequestStatus} from "@/actions/admin-actions";
-import {uploadToR2} from "@/lib/file-actions";
+import {getPresignedUrls, uploadToR2} from "@/lib/file-actions";
 import {SALES_STATUSES} from "@/components/RequestTableClient";
 
 const PIPELINE_STAGES = [
@@ -152,20 +152,40 @@ export default function RequestActionModal({
 
                 const validFiles = pendingFiles.filter(pf => pf.file !== null);
                 if (validFiles.length > 0) {
-                    const formData = new FormData();
-                    validFiles.forEach(pf => {
-                        formData.append("files", pf.file as File);
-                        formData.append("fieldNames", pf.fieldName || "Unnamed Document");
-                        formData.append("fileTypes", pf.fileType);
+
+                    // Get secure URLs
+                    const fileMeta = validFiles.map(pf => ({
+                        name: (pf.file as File).name,
+                        type: (pf.file as File).type,
+                        size: (pf.file as File).size
+                    }));
+                    const { success, uploadData, message } = await getPresignedUrls(fileMeta, "pipeline-docs");
+
+                    if (!success || !uploadData) throw new Error(message || "Failed to get upload URLs.");
+
+                    // Upload directly to Cloudflare
+                    const uploadPromises = validFiles.map(async (pf, index) => {
+                        const file = pf.file as File;
+                        const { uploadUrl, fileUrl } = uploadData[index];
+
+                        const uploadRes = await fetch(uploadUrl, {
+                            method: "PUT",
+                            body: file,
+                            headers: { "Content-Type": file.type },
+                        });
+
+                        if (!uploadRes.ok) throw new Error(`Failed to upload ${file.name}`);
+
+                        // Return the document schema object expected by your DB
+                        return {
+                            fieldName: pf.fieldName || "Unnamed Document",
+                            fileType: pf.fileType,
+                            fileUrl: fileUrl,
+                            stageAdded: modal.targetStage
+                        };
                     });
 
-                    const uploadRes: any = await uploadToR2(formData);
-                    if (!uploadRes.success) throw new Error(uploadRes.message);
-
-                    const newDocuments = uploadRes.uploadedFiles.map((file: any) => ({
-                        ...file,
-                        stageAdded: modal.targetStage
-                    }));
+                    const newDocuments = await Promise.all(uploadPromises);
                     finalDocuments = [...finalDocuments, ...newDocuments];
                 }
 
