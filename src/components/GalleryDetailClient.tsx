@@ -256,7 +256,7 @@ export default function GalleryDetailClient({car}: { car: Dossier }) {
                 <div className="max-w-[1400px] mx-auto grid grid-cols-1 lg:grid-cols-12 gap-16">
                     <div className="lg:col-span-4">
                         <h2 className="text-4xl md:text-6xl font-bold tracking-tighter uppercase leading-[0.8] mb-6">
-                            Start Your <br/> <span className="text-[#4da8da]">Acquisition</span>
+                            Start Your <br/> <span className="text-[#4da8da]">Purchase</span>
                         </h2>
                         <p className="text-zinc-500 text-lg font-light leading-relaxed">
                             Our team will verify the availability of this {car.model} and provide a landed cost estimate for your destination country.
