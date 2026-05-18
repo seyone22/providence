@@ -252,8 +252,6 @@ export default function GalleryDetailClient({car}: { car: Dossier }) {
                 </div>
             </section>
 
-            <FAQSection />
-
             {/* Inquiry Section */}
             <section ref={inquiryRef} className="mt-32 lg:mt-56 px-6 py-24 bg-zinc-50 border-y border-black/5">
                 <div className="max-w-[1400px] mx-auto grid grid-cols-1 lg:grid-cols-12 gap-16">
@@ -270,6 +268,8 @@ export default function GalleryDetailClient({car}: { car: Dossier }) {
                     </div>
                 </div>
             </section>
+
+            <FAQSection />
         </main>
     );
 }
