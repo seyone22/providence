@@ -43,11 +43,20 @@ export default function DashboardClient({ requests, staffUsers, currentUserId }:
     const [staffFilter, setStaffFilter] = useState("All");
     const [carFilter, setCarFilter] = useState("All");
     const [sortBy, setSortBy] = useState("newest");
+    const [countryFilter, setCountryFilter] = useState("All");
 
     // Dynamic unique cars list for the filter
     const uniqueCars = useMemo(() => {
         const cars = new Set(requests.map((req: any) => `${req.make} ${req.vehicle_model}`.trim()));
         return Array.from(cars).filter(Boolean).sort();
+    }, [requests]);
+
+    const uniqueCountries = useMemo(() => {
+        const countries = new Set(
+            requests.map((req: any) => req.countryOfImport).filter(Boolean)
+        );
+
+        return Array.from(countries).sort();
     }, [requests]);
 
     // THE MASTER FILTER LOGIC (Affects Stats, Chart, and Table)
@@ -65,20 +74,31 @@ export default function DashboardClient({ requests, staffUsers, currentUserId }:
                 const currentStatus = req.leadStatus || "Action required";
                 const matchesStatus = statusFilter === "All" || currentStatus === statusFilter;
 
+                const matchesCountry =
+                    countryFilter === "All" ||
+                    req.countryOfImport === countryFilter;
+
                 const assignedValue = req.assignedToName || "Unassigned";
                 const matchesStaff = staffFilter === "All" || assignedValue === staffFilter;
 
                 const carName = `${req.make} ${req.vehicle_model}`.trim();
                 const matchesCar = carFilter === "All" || carName === carFilter;
 
-                return matchesSearch && matchesStage && matchesStatus && matchesStaff && matchesCar;
+                return (
+                    matchesSearch &&
+                    matchesStage &&
+                    matchesStatus &&
+                    matchesStaff &&
+                    matchesCar &&
+                    matchesCountry
+                );
             })
             .sort((a: any, b: any) => {
                 const dateA = new Date(a.createdAt).getTime();
                 const dateB = new Date(b.createdAt).getTime();
                 return sortBy === "newest" ? dateB - dateA : dateA - dateB;
             });
-    }, [requests, searchQuery, stageFilter, statusFilter, staffFilter, carFilter, sortBy]);
+    }, [requests, searchQuery, stageFilter, countryFilter, statusFilter, staffFilter, carFilter, sortBy]);
 
     // Top Level Stats calculated from FILTERED data
     const stats = [
@@ -185,6 +205,20 @@ export default function DashboardClient({ requests, staffUsers, currentUserId }:
                         </select>
 
                         <select
+                            value={countryFilter}
+                            onChange={(e) => setCountryFilter(e.target.value)}
+                            className="pl-3 pr-8 py-2 text-sm bg-white border border-zinc-200 hover:border-zinc-300 rounded-xl text-zinc-600 font-semibold cursor-pointer outline-none transition-all appearance-none bg-[url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20width%3D%2220%22%20height%3D%2220%22%20viewBox%3D%220%200%2020%2020%22%20fill%3D%22none%22%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%3E%3Cpath%20d%3D%22M5%207.5L10%2012.5L15%207.5%22%20stroke%3D%22%2371717a%22%20stroke-width%3D%221.5%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22/%3E%3C/svg%3E')] bg-[length:1.25rem_1.25rem] bg-[right_0.5rem_center] bg-no-repeat"
+                        >
+                            <option value="All">All Countries</option>
+
+                            {uniqueCountries.map((country: any) => (
+                                <option key={country} value={country}>
+                                    {country}
+                                </option>
+                            ))}
+                        </select>
+
+                        <select
                             value={stageFilter}
                             onChange={(e) => setStageFilter(e.target.value)}
                             className="pl-3 pr-8 py-2 text-sm bg-white border border-zinc-200 hover:border-zinc-300 rounded-xl text-zinc-600 font-semibold cursor-pointer outline-none transition-all appearance-none bg-[url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20width%3D%2220%22%20height%3D%2220%22%20viewBox%3D%220%200%2020%2020%22%20fill%3D%22none%22%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%3E%3Cpath%20d%3D%22M5%207.5L10%2012.5L15%207.5%22%20stroke%3D%22%2371717a%22%20stroke-width%3D%221.5%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22/%3E%3C/svg%3E')] bg-[length:1.25rem_1.25rem] bg-[right_0.5rem_center] bg-no-repeat"
@@ -219,7 +253,14 @@ export default function DashboardClient({ requests, staffUsers, currentUserId }:
                         </button>
 
                         {/* Reset Icon Button */}
-                        {(searchQuery || staffFilter !== "All" || carFilter !== "All" || stageFilter !== "All" || statusFilter !== "All") && (
+                        {(
+                            searchQuery ||
+                            staffFilter !== "All" ||
+                            carFilter !== "All" ||
+                            countryFilter !== "All" ||
+                            stageFilter !== "All" ||
+                            statusFilter !== "All"
+                        ) && (
                             <button
                                 onClick={() => {
                                     setSearchQuery("");
@@ -227,6 +268,7 @@ export default function DashboardClient({ requests, staffUsers, currentUserId }:
                                     setCarFilter("All");
                                     setStageFilter("All");
                                     setStatusFilter("All");
+                                    setCountryFilter("All");
                                 }}
                                 className="p-2 text-red-500 hover:bg-red-50 rounded-xl transition-colors border border-transparent hover:border-red-100"
                                 title="Reset Filters"

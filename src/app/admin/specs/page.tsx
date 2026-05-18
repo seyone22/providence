@@ -1,6 +1,6 @@
 "use client";
 
-import {Suspense, useEffect, useState} from "react";
+import {Suspense, useEffect, useRef, useState} from "react";
 import {useRouter, useSearchParams} from "next/navigation";
 import {
     Armchair,
@@ -86,6 +86,9 @@ function SpecBuilderContent() {
     const [isSaving, setIsSaving] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
 
+    const [isDirty, setIsDirty] = useState(false);
+    const isSavingRef = useRef(false);
+
     // Core Data
     const [specData, setSpecData] = useState(initialSpecData);
 
@@ -128,13 +131,63 @@ function SpecBuilderContent() {
         }
     }, [editId]);
 
+    useEffect(() => {
+        const handleRouteChange = (e: MouseEvent) => {
+            const target = e.target as HTMLElement;
+
+            const link = target.closest("a");
+
+            if (
+                link &&
+                isDirty &&
+                !isSavingRef.current
+            ) {
+                const confirmed = window.confirm(
+                    "You have unsaved changes. Are you sure you want to leave this page?"
+                );
+
+                if (!confirmed) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                }
+            }
+        };
+
+        document.addEventListener("click", handleRouteChange, true);
+
+        return () => {
+            document.removeEventListener("click", handleRouteChange, true);
+        };
+    }, [isDirty]);
+
+    useEffect(() => {
+        const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+            if (isDirty && !isSavingRef.current) {
+                e.preventDefault();
+                e.returnValue = "";
+            }
+        };
+
+        window.addEventListener("beforeunload", handleBeforeUnload);
+
+        return () => {
+            window.removeEventListener("beforeunload", handleBeforeUnload);
+        };
+    }, [isDirty]);
+
     const handleAddPrice = () => {
         if (!newPrice.country || !newPrice.amount) return;
+
+        setIsDirty(true);
+
         setPricing([...pricing, { ...newPrice, amount: parseFloat(newPrice.amount) }]);
         setNewPrice({ country: "", currency: "USD", amount: "", type: "CIF" });
     };
 
-    const removePrice = (index: number) => setPricing(pricing.filter((_, i) => i !== index));
+    const removePrice = (index: number) => {
+        setIsDirty(true);
+        setPricing(pricing.filter((_, i) => i !== index));
+    };
 
     const handlePrint = async () => {
         if (!editId) return alert("Please save the dossier first before generating a PDF.");
@@ -161,7 +214,12 @@ function SpecBuilderContent() {
     };
 
     const handleInputChange = (field: keyof typeof initialSpecData, value: string) => {
-        setSpecData(prev => ({...prev, [field]: value}));
+        setIsDirty(true);
+
+        setSpecData(prev => ({
+            ...prev,
+            [field]: value
+        }));
     };
 
     const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -169,10 +227,16 @@ function SpecBuilderContent() {
             const filesArray = Array.from(e.target.files);
             setPendingFiles(prev => [...prev, ...filesArray]);
             setPreviewUrls(prev => [...prev, ...filesArray.map(f => URL.createObjectURL(f))]);
+
+            setIsDirty(true);
         }
     };
 
-    const removeExistingImage = (urlToRemove: string) => setExistingImages(prev => prev.filter(url => url !== urlToRemove));
+    const removeExistingImage = (urlToRemove: string) => {
+        setIsDirty(true);
+        setExistingImages(prev => prev.filter(url => url !== urlToRemove));
+    };
+
     const removePendingFile = (index: number) => {
         setPendingFiles(prev => prev.filter((_, i) => i !== index));
         setPreviewUrls(prev => prev.filter((_, i) => i !== index));
@@ -194,6 +258,7 @@ function SpecBuilderContent() {
     const handleSave = async () => {
         if (!specData.make || !specData.model) return alert("Make and Model are required.");
         setIsSaving(true);
+        isSavingRef.current = true;
 
         try {
             let finalImageUrls = [...existingImages];
@@ -228,7 +293,15 @@ function SpecBuilderContent() {
 
             if (result.success) {
                 alert(editId ? "Dossier Template Updated!" : "New Dossier Template Created!");
-                router.push("/admin/dossiers");
+
+                setIsDirty(false);
+
+                if (!editId && (result as any).id) {
+                    router.replace(`/admin/dossiers/builder?editId=${(result as any).id}`);
+                }
+
+                alert(editId ? "Dossier Template Updated!" : "New Dossier Template Created!");
+
             } else {
                 alert(result.message);
             }
@@ -236,6 +309,7 @@ function SpecBuilderContent() {
             alert(err.message || "An unexpected error occurred.");
         } finally {
             setIsSaving(false);
+            isSavingRef.current = false;
         }
     };
 

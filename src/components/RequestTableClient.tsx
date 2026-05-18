@@ -79,8 +79,19 @@ export default function RequestTableClient({
         return PIPELINE_STAGES[currentIndex - 1];
     };
 
+    const isRecentLead = (createdAt: string) => {
+        const createdDate = new Date(createdAt).getTime();
+        const now = new Date().getTime();
+
+        const diffInDays = (now - createdDate) / (1000 * 60 * 60 * 24);
+
+        return diffInDays <= 5;
+    };
+
     const getPipelineBadge = (status: string) => {
-        const current = status || "New";
+        const current = status === "New"
+            ? "Request Initiated"
+            : (status || "Action required");
         const isMiddle = ["Deposit Collected", "Vehicle Purchased", "Preparation"].includes(current);
         const isShipping = ["Shipped", "Arrived at Port"].includes(current);
         const isDone = current === "Cleared Customs";
@@ -142,7 +153,16 @@ export default function RequestTableClient({
                                 return (
                                     <TableRow key={req._id} className="border-b border-black/5 hover:bg-zinc-50/50 transition-colors bg-white">
                                         <TableCell className="py-4 pl-6 align-top">
-                                            <div className="font-bold text-black text-sm">{req.name}</div>
+                                            <div className="flex items-center gap-2">
+                                                <div className="font-bold text-black text-sm">{req.name}</div>
+
+                                                {isRecentLead(req.createdAt) && (
+                                                    <div className="relative flex h-2.5 w-2.5">
+                                                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-orange-400 opacity-75"></span>
+                                                        <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-orange-500"></span>
+                                                    </div>
+                                                )}
+                                            </div>
                                             <div className="text-xs text-zinc-500 mb-1">{req.email}</div>
 
                                             {/* WhatsApp Link integration */}

@@ -7,6 +7,7 @@ import {ArrowLeft, FileText, Loader2, Mail, Globe} from "lucide-react";
 import Link from "next/link";
 import {generateDossierPdfAction} from "@/actions/pdf-actions";
 import RequestForm from "@/components/requestForm";
+import FAQSection from "@/components/faqSection";
 
 const appleEase: any = [0.16, 1, 0.3, 1];
 
@@ -250,6 +251,8 @@ export default function GalleryDetailClient({car}: { car: Dossier }) {
                     </motion.div>
                 </div>
             </section>
+
+            <FAQSection />
 
             {/* Inquiry Section */}
             <section ref={inquiryRef} className="mt-32 lg:mt-56 px-6 py-24 bg-zinc-50 border-y border-black/5">
