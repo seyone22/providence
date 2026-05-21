@@ -3,7 +3,7 @@
 import {useRef, useState} from "react";
 import MinimalHeader from "@/components/MinimalHeader";
 import {motion} from "framer-motion";
-import {ArrowLeft, FileText, Loader2, Mail, Globe} from "lucide-react";
+import {ArrowLeft, FileText, Loader2, Mail, Globe, Zap} from "lucide-react";
 import Link from "next/link";
 import {generateDossierPdfAction} from "@/actions/pdf-actions";
 import RequestForm from "@/components/requestForm";
@@ -17,6 +17,19 @@ type PriceEntry = {
     currency: string;
     amount: number;
     type: string;
+};
+
+
+
+// --- ADD THESE ENTRY TYPES ABOVE type Dossier ---
+type CustomDataEntry = {
+    label: string;
+    value: string;
+};
+
+type ValuePointEntry = {
+    title: string;
+    description: string;
 };
 
 type Dossier = {
@@ -41,7 +54,10 @@ type Dossier = {
     images: string[];
     notes: string;
     status: string;
-    pricing?: PriceEntry[]; // Added Pricing
+    pricing?: PriceEntry[];
+    // --- ADD THESE TWO NEW FIELDS HERE ---
+    customData?: CustomDataEntry[];
+    valuePoints?: ValuePointEntry[];
 };
 
 export default function GalleryDetailClient({car}: { car: Dossier }) {
@@ -174,7 +190,24 @@ export default function GalleryDetailClient({car}: { car: Dossier }) {
                             </div>
                         )}
 
-                        {/* 2. TECHNICAL SPECS */}
+                        {/* 2. PROVIDENCE VALUE ADVANTAGES (New Section) */}
+                        {car.valuePoints && car.valuePoints.length > 0 && (
+                            <div className="mb-12 space-y-4">
+                                <h3 className="text-xl font-bold text-black flex items-center gap-2">
+                                    <Zap size={20} className="text-amber-500 fill-amber-500/10"/> Providence Advantages
+                                </h3>
+                                <div className="space-y-4">
+                                    {car.valuePoints.map((point, i) => (
+                                        <div key={i} className="p-6 bg-amber-50/50 rounded-3xl border border-amber-100/70 shadow-sm">
+                                            <h4 className="text-md font-bold text-zinc-900 mb-1.5">{point.title}</h4>
+                                            <p className="text-xs text-zinc-600 leading-relaxed font-light">{point.description}</p>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        )}
+
+                        {/* 3. TECHNICAL SPECS */}
                         <h3 className="text-2xl font-serif text-zinc-500 mb-6 italic">Technical Specifications</h3>
                         <div className="bg-white rounded-[2rem] border border-black/5 p-8 shadow-[0_20px_40px_rgba(0,0,0,0.02)] mb-10">
                             <dl className="divide-y divide-black/5">
@@ -186,11 +219,21 @@ export default function GalleryDetailClient({car}: { car: Dossier }) {
                                     {label: "Fuel System", value: car.fuelSystem},
                                     {label: "Steering", value: car.steering}
                                 ].map((spec, i) => spec.value && (
-                                    <div key={i} className="py-4 flex justify-between items-center first:pt-0 last:pb-0">
+                                    <div key={i} className="py-4 flex justify-between items-center first:pt-0">
                                         <dt className="text-zinc-500 text-sm font-medium">{spec.label}</dt>
                                         <dd className="text-black font-semibold text-right">{spec.value}</dd>
                                     </div>
                                 ))}
+
+                                {/* Append Custom Data Rows Dynamically inside the spec table list */}
+                                {car.customData && car.customData.length > 0 && (
+                                    car.customData.map((custom, idx) => custom.value && (
+                                        <div key={`custom-${idx}`} className="py-4 flex justify-between items-center last:pb-0">
+                                            <dt className="text-zinc-500 text-sm font-medium">{custom.label}</dt>
+                                            <dd className="text-black font-semibold text-right">{custom.value}</dd>
+                                        </div>
+                                    ))
+                                )}
                             </dl>
                         </div>
 
