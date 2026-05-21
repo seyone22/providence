@@ -1,0 +1,10 @@
+{
+  "permissions": {
+    "allow": [
+      "PowerShell(Get-ChildItem -Path \"C:\\\\Users\\\\DVM\\\\Desktop\\\\Providence\\\\Source Code\\\\providence\" -File -Name | Where-Object {$_ -match '\\\\.\\(env|example|local|example\\\\.local\\)'})",
+      "PowerShell(ls -Recurse \"C:\\\\Users\\\\DVM\\\\Desktop\\\\Providence\\\\Source Code\\\\providence\\\\src\" -File | Select-Object @{Name='Path'; Expression={$_.FullName.Replace\\('C:\\\\Users\\\\DVM\\\\Desktop\\\\Providence\\\\Source Code\\\\providence\\\\', ''\\)}} -First 50)",
+      "PowerShell(Get-ChildItem -Path \"C:\\\\Users\\\\DVM\\\\Desktop\\\\Providence\\\\Source Code\\\\providence\\\\src\" -Recurse -File | ForEach-Object {$_.FullName.Replace\\('C:\\\\Users\\\\DVM\\\\Desktop\\\\Providence\\\\Source Code\\\\providence\\\\', ''\\)} | Sort-Object | Select-Object -First 100)",
+      "PowerShell(Get-ChildItem -Path \"C:\\\\Users\\\\DVM\\\\Desktop\\\\Providence\\\\Source Code\\\\providence\" -File -Name | Where-Object {$_ -match 'tailwind|css|style'})"
+    ]
+  }
+}
