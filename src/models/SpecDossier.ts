@@ -1,11 +1,11 @@
 import mongoose, {models, Schema} from "mongoose";
 
 const PriceEntrySchema = new Schema({
-        country: { type: String, required: true },
-        currency: { type: String, default: "USD" },
-        amount: { type: Number, required: true },
-        type: { type: String, enum: ["CIF", "FOB", "Landed", "Ex-Works"], default: "CIF" },
-        isPublic: { type: Boolean, default: true }
+    country: {type: String, required: true},
+    currency: {type: String, default: "USD"},
+    amount: {type: Number, required: true},
+    type: {type: String, enum: ["CIF", "FOB", "Landed", "Ex-Works"], default: "CIF"},
+    isPublic: {type: Boolean, default: true}
 });
 
 const SpecDossierSchema = new Schema(
@@ -40,6 +40,18 @@ const SpecDossierSchema = new Schema(
         features: [{type: String}], // e.g., "Panoramic Roof", "Heated Seats"
         searchTags: [{type: String}], // e.g., "SUV", "Off-Road", "Family", "JDM"
         images: [{type: String}], // Array to store Cloudflare R2 URLs
+
+        // --- ADD THESE FIELDS INSIDE SpecDossierSchema ---
+        customData: [{
+            label: {type: String, required: true},
+            value: {type: String, required: true}
+        }],
+        valuePoints: [{
+            title: {type: String, required: true},
+            description: {type: String, required: true}
+        }],
+
+        slug: { type: String, default: "", trim: true },
 
         // Metadata
         notes: {type: String, default: ""},

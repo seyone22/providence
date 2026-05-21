@@ -53,7 +53,50 @@ const COUNTRIES = [
 
 const R2_PUBLIC_URL = process.env.NEXT_PUBLIC_R2_PUBLIC_URL || "https://pub-0c6552f09f244121ac51914a1f782578.r2.dev";
 
-const initialSpecData = {
+// --- REPLACE YOUR CURRENT initialSpecData WITH THIS DESIGNATED TYPE STRUCTURE ---
+
+interface PriceEntry {
+    country: string;
+    currency: string;
+    amount: number;
+    type: string;
+}
+
+interface CustomDataEntry {
+    label: string;
+    value: string;
+}
+
+interface ValuePointEntry {
+    title: string;
+    description: string;
+}
+
+interface SpecDataType {
+    make: string;
+    model: string;
+    year: string;
+    trim: string;
+    countryOfOrigin: string;
+    engineConfig: string;
+    displacement: string;
+    pricing: PriceEntry[];
+    maxPower: string;
+    maxTorque: string;
+    transmission: string;
+    fuelSystem: string;
+    upholstery: string;
+    infotainment: string;
+    slug: string;
+    notes: string;
+    emissions: string;
+    steering: string;
+    status: string;
+    customData: CustomDataEntry[];
+    valuePoints: ValuePointEntry[];
+}
+
+const initialSpecData: SpecDataType = {
     make: "",
     model: "",
     year: "",
@@ -66,12 +109,15 @@ const initialSpecData = {
     maxTorque: "",
     transmission: "",
     fuelSystem: "Petrol",
+    slug: "",
     upholstery: "",
     infotainment: "",
     notes: "",
     emissions: "",
     steering: "RHD",
-    status: "Draft"
+    status: "Draft",
+    customData: [],
+    valuePoints: []
 };
 
 function SpecBuilderContent() {
@@ -98,6 +144,12 @@ function SpecBuilderContent() {
     const [searchTags, setSearchTags] = useState<string[]>([]);
     const [newSearchTag, setNewSearchTag] = useState("");
 
+    const [newCustomLabel, setNewCustomLabel] = useState("");
+    const [newCustomValue, setNewCustomValue] = useState("");
+
+    const [newValueTitle, setNewValueTitle] = useState("");
+    const [newValueDesc, setNewValueDesc] = useState("");
+
     // Image Management State
     const [existingImages, setExistingImages] = useState<string[]>([]);
     const [pendingFiles, setPendingFiles] = useState<File[]>([]);
@@ -117,7 +169,13 @@ function SpecBuilderContent() {
                 setIsLoading(true);
                 const res = await getSpecDossierById(editId);
                 if (res.success && res.data) {
-                    setSpecData(res.data);
+                    // --- ADD THESE INSIDE THE loadDossier useEffect SUCCESS BLOCK ---
+                    setSpecData(prev => ({
+                        ...res.data,
+                        slug: res.data.slug || "",
+                        customData: res.data.customData || [],
+                        valuePoints: res.data.valuePoints || []
+                    }));
                     setPricing(res.data.pricing || []);
                     setFeatures(res.data.features || []);
                     setSearchTags(res.data.searchTags || []);
@@ -288,7 +346,13 @@ function SpecBuilderContent() {
                 finalImageUrls = [...finalImageUrls, ...uploadedUrls];
             }
 
-            const payload = {...specData, features, searchTags, images: finalImageUrls, pricing};
+            const payload = {
+                ...specData,
+                features,
+                searchTags,
+                images: finalImageUrls,
+                pricing
+            };
             const result = await saveSpecDossier(payload);
 
             if (result.success) {
@@ -430,6 +494,31 @@ function SpecBuilderContent() {
                                 <p className="text-[10px] text-amber-700 font-bold leading-tight flex gap-2 items-center">
                                     <ShieldCheck size={14} className="shrink-0"/>
                                     Drafts cannot be assigned to concrete vehicles.
+                                </p>
+                            </div>
+                        </div>
+
+                        {/* --- ADD THIS SLUG INPUT BOX DIRECTLY UNDER THE NOTES AREA CONTAINER --- */}
+                        <div className="space-y-4 pt-4 border-t border-black/5">
+                            <Label className="font-bold flex items-center gap-2 text-zinc-700">
+                                <Tag size={18} className="text-zinc-400" /> URL Slug Configuration
+                            </Label>
+                            <div className="space-y-1">
+                                <Input
+                                    placeholder="e.g. land-cruiser-300-gr-sport"
+                                    value={specData.slug || ""}
+                                    onChange={(e) => {
+                                        // Auto-formats input to url-safe slugs (lowercase, dashes instead of spaces)
+                                        const processedSlug = e.target.value
+                                            .toLowerCase()
+                                            .replace(/\s+/g, "-")
+                                            .replace(/[^a-z0-9-_]/g, "");
+                                        handleInputChange("slug", processedSlug);
+                                    }}
+                                    className="h-11 rounded-xl bg-zinc-50 border-transparent focus:bg-white transition-all font-mono text-sm text-zinc-800"
+                                />
+                                <p className="text-[10px] text-zinc-400 pl-1 font-medium">
+                                    Used for building clean routing addresses. Spaces automatically convert to hyphens.
                                 </p>
                             </div>
                         </div>
@@ -778,7 +867,160 @@ function SpecBuilderContent() {
                         </div>
                     </div>
 
+                    {/* --- CUSTOM SPEC DATA & VALUE POINTS SECTION --- */}
+                    <div className="bg-white border border-black/5 rounded-[3rem] p-10 shadow-sm space-y-12">
 
+                        {/* 1. Custom Data Engine */}
+                        <div className="space-y-6">
+                            <div className="flex items-center gap-4">
+                                <div className="bg-zinc-100 text-zinc-800 p-4 rounded-2xl">
+                                    <Settings2 size={28} />
+                                </div>
+                                <div>
+                                    <h3 className="text-2xl font-bold">Custom Specific Data</h3>
+                                    <p className="text-sm text-zinc-500">Add unique parameters not found globally (e.g., "4L Engine" or "Special Edition Color").</p>
+                                </div>
+                            </div>
+
+                            {/* Render Custom Specs */}
+                            <div className="space-y-3">
+                                {(specData.customData || []).map((item: any, idx: number) => (
+                                    <div key={idx} className="flex justify-between items-center bg-zinc-50 p-4 rounded-2xl border border-black/5">
+                                        <div>
+                                            <span className="text-xs font-black uppercase text-zinc-400 block">{item.label}</span>
+                                            <span className="font-semibold text-zinc-900">{item.value}</span>
+                                        </div>
+                                        <Button
+                                            variant="ghost"
+                                            size="icon"
+                                            onClick={() => {
+                                                setIsDirty(true);
+                                                setSpecData(prev => ({ ...prev, customData: prev.customData.filter((_, i) => i !== idx) }));
+                                            }}
+                                            className="text-zinc-400 hover:text-red-500"
+                                        >
+                                            <Trash2 size={16}/>
+                                        </Button>
+                                    </div>
+                                ))}
+                            </div>
+
+                            {/* Add Custom Spec Form Row */}
+                            <div className="flex flex-col sm:flex-row gap-4 p-6 bg-zinc-50 rounded-[2rem] border border-zinc-200">
+                                <div className="flex-1 space-y-2">
+                                    <Label className="text-[10px] font-bold uppercase">Metric Label</Label>
+                                    <Input
+                                        placeholder="e.g. Engine Variant"
+                                        value={newCustomLabel}
+                                        onChange={(e) => setNewCustomLabel(e.target.value)}
+                                        className="bg-white rounded-xl h-11"
+                                    />
+                                </div>
+                                <div className="flex-1 space-y-2">
+                                    <Label className="text-[10px] font-bold uppercase">Value / Description</Label>
+                                    <Input
+                                        placeholder="e.g. 4.0L V8 Twin-Turbo"
+                                        value={newCustomValue}
+                                        onChange={(e) => setNewCustomValue(e.target.value)}
+                                        className="bg-white rounded-xl h-11"
+                                    />
+                                </div>
+                                <div className="sm:self-end">
+                                    <Button
+                                        type="button"
+                                        onClick={() => {
+                                            if (!newCustomLabel.trim() || !newCustomValue.trim()) return;
+                                            setIsDirty(true);
+                                            setSpecData(prev => ({
+                                                ...prev,
+                                                customData: [...(prev.customData || []), { label: newCustomLabel.trim(), value: newCustomValue.trim() }]
+                                            }));
+                                            setNewCustomLabel("");
+                                            setNewCustomValue("");
+                                        }}
+                                        className="bg-black text-white rounded-xl h-11 px-6 w-full"
+                                    >
+                                        Add Metric
+                                    </Button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <hr className="border-black/5" />
+
+                        {/* 2. Providence Value Points Engine */}
+                        <div className="space-y-6">
+                            <div className="flex items-center gap-4">
+                                <div className="bg-amber-50 text-amber-600 p-4 rounded-2xl">
+                                    <Zap size={28} />
+                                </div>
+                                <div>
+                                    <h3 className="text-2xl font-bold">Providence Value Points</h3>
+                                    <p className="text-sm text-zinc-500">Highlight unique structural advantages (e.g., tax loop-holes, regional financial savings).</p>
+                                </div>
+                            </div>
+
+                            {/* Render Value Points */}
+                            <div className="space-y-4">
+                                {(specData.valuePoints || []).map((point: any, idx: number) => (
+                                    <div key={idx} className="bg-zinc-50 p-6 rounded-3xl border border-black/5 relative group">
+                                        <button
+                                            onClick={() => {
+                                                setIsDirty(true);
+                                                setSpecData(prev => ({ ...prev, valuePoints: prev.valuePoints.filter((_, i) => i !== idx) }));
+                                            }}
+                                            className="absolute top-4 right-4 text-zinc-400 hover:text-red-500 transition-colors"
+                                        >
+                                            <Trash2 size={16} />
+                                        </button>
+                                        <h4 className="text-lg font-bold text-zinc-900 mb-2">### {point.title}</h4>
+                                        <p className="text-sm text-zinc-600 leading-relaxed">{point.description}</p>
+                                    </div>
+                                ))}
+                            </div>
+
+                            {/* Add Value Point Entry Area */}
+                            <div className="p-6 bg-blue-50/40 rounded-[2rem] border border-blue-100 space-y-4">
+                                <div className="space-y-2">
+                                    <Label className="text-[10px] font-bold uppercase">Value Hook Heading (H3)</Label>
+                                    <Input
+                                        placeholder="e.g. Lowest VAT in Ireland"
+                                        value={newValueTitle}
+                                        onChange={(e) => setNewValueTitle(e.target.value)}
+                                        className="bg-white rounded-xl h-11"
+                                    />
+                                </div>
+                                <div className="space-y-2">
+                                    <Label className="text-[10px] font-bold uppercase">Contextual Narrative Description</Label>
+                                    <Textarea
+                                        placeholder="Since this model from Japan qualifies criteria 1, 2, and 3..."
+                                        value={newValueDesc}
+                                        onChange={(e) => setNewValueDesc(e.target.value)}
+                                        className="bg-white rounded-2xl min-h-[80px]"
+                                    />
+                                </div>
+                                <div className="flex justify-end">
+                                    <Button
+                                        type="button"
+                                        onClick={() => {
+                                            if (!newValueTitle.trim() || !newValueDesc.trim()) return;
+                                            setIsDirty(true);
+                                            setSpecData(prev => ({
+                                                ...prev,
+                                                valuePoints: [...(prev.valuePoints || []), { title: newValueTitle.trim(), description: newValueDesc.trim() }]
+                                            }));
+                                            setNewValueTitle("");
+                                            setNewValueDesc("");
+                                        }}
+                                        className="bg-blue-600 hover:bg-blue-700 text-white rounded-xl h-11 px-8"
+                                    >
+                                        Add Value Advantage
+                                    </Button>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
 
                 </div>
             </div>
