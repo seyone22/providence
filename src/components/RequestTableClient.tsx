@@ -260,6 +260,32 @@ export default function RequestTableClient({
                                                         Updated: {new Date(req.statusUpdatedAt || req.updatedAt).toLocaleDateString()}
                                                     </div>
                                                 )}
+
+                                                {/* --- ADDED: LATEST COMMENT SNIPPET DISPLAY --- */}
+                                                {(() => {
+                                                    // Find the most recent history log entry that actually has a comment text string
+                                                    const historyLogs = req.statusHistory || [];
+                                                    const latestLogWithComment = [...historyLogs]
+                                                        .reverse()
+                                                        .find((log: any) => log.comment && log.comment.trim() !== "");
+
+                                                    if (!latestLogWithComment) return null;
+
+                                                    // Truncate cleanly at 55 characters so it fits neatly in a table cell row
+                                                    const rawComment = latestLogWithComment.comment;
+                                                    const truncatedComment = rawComment.length > 55
+                                                        ? `${rawComment.substring(0, 55)}...`
+                                                        : rawComment;
+
+                                                    return (
+                                                        <div
+                                                            className="text-[11px] text-zinc-500 italic max-w-[200px] bg-zinc-50 border border-black/5 rounded-md px-2 py-1 mt-1 font-light leading-tight truncate"
+                                                            title={rawComment} // Hover shows the full un-truncated note
+                                                        >
+                                                            "{truncatedComment}"
+                                                        </div>
+                                                    );
+                                                })()}
                                             </div>
                                         </TableCell>
 
