@@ -22,6 +22,7 @@ import { authClient } from "@/lib/auth-client"; // Adjust this path to your auth
 
 const navItems = [
     { title: "Dashboard", url: "/admin", icon: LayoutDashboard },
+    { title: "Archived", url: "/admin/archived", icon: LayoutDashboard },
     { title: "Cars", url: "/admin/dossiers", icon: Car },
     { title: "Create Spec", url: "/admin/specs", icon: Car },
     { title: "Users", url: "/admin/users", icon: Users },
