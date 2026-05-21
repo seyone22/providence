@@ -155,3 +155,30 @@ export async function deleteSpecDossier(id: string) {
         return { success: false, message: "Error deleting template." };
     }
 }
+
+/**
+ * GET DOSSIERS BY FILTER TAGS
+ * Fetches active vehicle templates that match a list of search keywords/slugs.
+ */
+export async function getSpecDossiersByTags(tags: string[]) {
+    const actionName = "[getSpecDossiersByTags]";
+    try {
+        await connectToDatabase();
+
+        // Convert tags to lowercase to ensure match compatibility
+        const normalizedTags = tags.map(t => t.toLowerCase());
+
+        const dossiers = await SpecDossier.find({
+            status: "Active",
+            searchTags: { $in: normalizedTags }
+        }).sort({ createdAt: -1 });
+
+        return {
+            success: true,
+            data: JSON.parse(JSON.stringify(dossiers))
+        };
+    } catch (error) {
+        console.error(`${actionName} Error:`, error);
+        return { success: false, message: "Error fetching filtered templates.", data: [] };
+    }
+}

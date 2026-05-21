@@ -7,6 +7,7 @@ import { motion, useScroll, useTransform } from "framer-motion";
 import RequestForm from "@/components/requestForm";
 import FAQSection from "@/components/faqSection";
 import { lhdCampaignConfig } from "@/config/landing-pages"; // Adjust path as needed
+import VehicleShowcaseCarousel from "@/components/vehicleShowcaseCarousel";
 
 const appleEase: any = [0.16, 1, 0.3, 1];
 
@@ -143,6 +144,10 @@ export default function ConfigurableLanding() {
                     </div>
                 </div>
             </section>
+
+            {/* --- ADD THIS DYNAMIC COMPONENT HERE --- */}
+            {/* Passes the campaign search tags array directly down to fetch matches */}
+            <VehicleShowcaseCarousel tags={config.slug ? [config.slug] : ["LHD", "SUV"]} />
 
             {/* Configurable Manifesto/Intro */}
             <section ref={manifestoRef} className="py-32 md:py-48 px-6 bg-white border-y border-black/5 relative z-10 overflow-hidden">
