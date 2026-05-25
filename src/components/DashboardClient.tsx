@@ -24,6 +24,7 @@ const PIPELINE_STAGES = [
     "Vehicle Purchased", "Preparation", "Shipped", "Arrived at Port", "Cleared Customs"
 ];
 
+// Simplify the list
 const SALES_STATUSES = [
     "Action required",
     "No Response",
@@ -34,8 +35,7 @@ const SALES_STATUSES = [
     "Active Conversation",
     "SQL: Moved to vehicle offering stage",
     "Not Qualified",
-    "Lead Lost",
-    "Lead Closed"
+    "Lead Lost" // "Lead Closed" removed as it is now grouped with Lead Lost
 ];
 
 export default function DashboardClient({ requests, staffUsers, currentUserId }: any) {
@@ -147,9 +147,11 @@ export default function DashboardClient({ requests, staffUsers, currentUserId }:
         },
         {
             label: "Cold / Dropped",
-            value: filteredRequests.filter((r: any) => ["No Response", "Stopped Responding", "Not Qualified", "Lead Lost"].includes(r.leadStatus)).length,
+            value: filteredRequests.filter((r: any) =>
+                ["No Response", "Stopped Responding", "Not Qualified", "Lead Lost", "Lead Closed"].includes(r.leadStatus)
+            ).length,
             icon: ArchiveX,
-            color: "bg-zinc-100 text-zinc-500"
+            color: "bg-red-50 text-red-600" // Changed color to red to match the negative sentiment
         },
     ];
 

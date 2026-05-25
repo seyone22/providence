@@ -35,7 +35,6 @@ export const SALES_STATUSES = [
     "SQL: Moved to vehicle offering stage",
     "Not Qualified",
     "Lead Lost",
-    "Lead Closed"
 ];
 
 // ADDED "sales_status" to the type definition
@@ -107,13 +106,18 @@ export default function RequestTableClient({
     const getSalesStatusBadge = (status: string) => {
         const current = status || "Action required";
 
-        if (["Action required", "Lead Lost"].includes(current)) {
+        // Combined "Bad" / Lost / Closed statuses in Red
+        if (["Action required", "Lead Lost", "Lead Closed", "Not Qualified"].includes(current)) {
             return <Badge className="bg-red-50 text-red-600 border-red-200 hover:bg-red-100 rounded-full px-3">{current}</Badge>;
         }
+
+        // Middle-ground statuses in Yellow
         if (["No Response", "Stopped Responding"].includes(current)) {
             return <Badge className="bg-yellow-50 text-yellow-600 border-yellow-200 hover:bg-yellow-100 rounded-full px-3">{current}</Badge>;
         }
-        if (["Replied (Email)", "Replied (WhatsApp)", "Replied (Both)", "Active Conversation", "SQL: Moved to vehicle offering stage", "Lead Closed"].includes(current)) {
+
+        // Positive statuses in Emerald
+        if (["Replied (Email)", "Replied (WhatsApp)", "Replied (Both)", "Active Conversation", "SQL: Moved to vehicle offering stage"].includes(current)) {
             return <Badge className="bg-emerald-50 text-emerald-600 border-emerald-200 hover:bg-emerald-100 rounded-full px-3">{current}</Badge>;
         }
 
