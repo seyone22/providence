@@ -48,10 +48,23 @@ export default function DashboardClient({ requests, staffUsers, currentUserId }:
     const [sortBy, setSortBy] = useState("newest");
     const [countryFilter, setCountryFilter] = useState("All");
 
+    const [showDatePicker, setShowDatePicker] = useState(false);
+
     const [dateRange, setDateRange] = useState<{ from: Date | undefined; to: Date | undefined }>({
         from: undefined,
         to: undefined,
     });
+
+    useEffect(() => {
+        const handleClickOutside = (event: MouseEvent) => {
+            // Close if click target is not inside the date picker container
+            if (showDatePicker && !(event.target as HTMLElement).closest('.relative')) {
+                setShowDatePicker(false);
+            }
+        };
+        document.addEventListener("mousedown", handleClickOutside);
+        return () => document.removeEventListener("mousedown", handleClickOutside);
+    }, [showDatePicker]);
 
     // Dynamic unique cars list for the filter
     const uniqueCars = useMemo(() => {
@@ -264,16 +277,30 @@ export default function DashboardClient({ requests, staffUsers, currentUserId }:
                             <span className="hidden sm:inline capitalize">{sortBy}</span>
                         </button>
 
-                        {/* Date Filter Dropdown/Popover Trigger */}
+                        {/* Date Filter Trigger */}
                         <div className="relative">
                             <button
-                                onClick={() => {/* Toggle state to show/hide DayPicker */}}
-                                className="px-4 py-2 text-sm bg-white border border-zinc-200 rounded-xl font-semibold text-zinc-600"
+                                onClick={() => setShowDatePicker(!showDatePicker)}
+                                className="px-4 py-2 text-sm bg-white border border-zinc-200 rounded-xl font-semibold text-zinc-600 hover:border-zinc-300 transition-colors"
                             >
                                 {dateRange.from ? format(dateRange.from, "MMM dd") : "From"} -
                                 {dateRange.to ? format(dateRange.to, "MMM dd") : "To"}
                             </button>
-                            {/* Render <DayPicker mode="range" selected={dateRange} onSelect={setDateRange} /> here */}
+
+                            {/* Popover/Absolute Dropdown */}
+                            {showDatePicker && (
+                                <div className="absolute top-full left-0 mt-2 z-50 bg-white border border-zinc-200 shadow-xl rounded-2xl p-2">
+                                    <DayPicker
+                                        mode="range"
+                                        selected={dateRange}
+                                        onSelect={(range) => {
+                                            setDateRange({ from: range?.from, to: range?.to });
+                                            // Optional: Close picker automatically when range is fully selected
+                                            if (range?.from && range?.to) setShowDatePicker(false);
+                                        }}
+                                    />
+                                </div>
+                            )}
                         </div>
 
                         {/* Reset Icon Button */}
