@@ -30,6 +30,7 @@ import {getSpecDossierById, saveSpecDossier} from "@/actions/spec-actions";
 import {SpecSection} from "@/components/SpecSection";
 import {getPresignedUrls, uploadDossierImages} from "@/lib/file-actions";
 import {generateDossierPdfAction} from "@/actions/pdf-actions";
+import {CAR_MAKES, getLogoFilename} from "@/lib/logo-utils";
 
 // Full Country List for the Datalist
 const COUNTRIES = [
@@ -601,10 +602,34 @@ function SpecBuilderContent() {
                             <h3 className="text-2xl font-bold">Template Overview</h3>
                         </div>
                         <div className="grid md:grid-cols-2 lg:grid-cols-2 gap-x-8 gap-y-6">
-                            <div className="space-y-2">
-                                <Label className="font-bold text-zinc-700">Make (Brand)</Label>
-                                <Input value={specData.make} onChange={(e) => handleInputChange("make", e.target.value)}
-                                       className="rounded-xl h-12 bg-zinc-50" placeholder="e.g. Toyota"/>
+                            <div className="space-y-2 relative">
+                                <Label className="font-bold text-zinc-700 flex items-center gap-2">
+                                    Make (Brand)
+                                    {/* Dynamic Logo Display */}
+                                    {specData.make && getLogoFilename(specData.make) && (
+                                        <img
+                                            src={`/car_logo/${getLogoFilename(specData.make)}`}
+                                            alt={`${specData.make} logo`}
+                                            className="h-6 w-auto opacity-70"
+                                        />
+                                    )}
+                                </Label>
+
+                                <Select
+                                    value={specData.make}
+                                    onValueChange={(val) => handleInputChange("make", val)}
+                                >
+                                    <SelectTrigger className="rounded-xl h-12 bg-zinc-50 border-transparent focus:bg-white transition-all">
+                                        <SelectValue placeholder="Select a manufacturer" />
+                                    </SelectTrigger>
+                                    <SelectContent className="max-h-60">
+                                        {CAR_MAKES.map((make) => (
+                                            <SelectItem key={make} value={make}>
+                                                {make}
+                                            </SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
                             </div>
                             <div className="space-y-2">
                                 <Label className="font-bold text-zinc-700">Model</Label>

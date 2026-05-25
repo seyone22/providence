@@ -8,6 +8,7 @@ import Link from "next/link";
 import {generateDossierPdfAction} from "@/actions/pdf-actions";
 import RequestForm from "@/components/requestForm";
 import FAQSection from "@/components/faqSection";
+import {getLogoFilename} from "@/lib/logo-utils";
 
 const appleEase: any = [0.16, 1, 0.3, 1];
 
@@ -122,6 +123,17 @@ export default function GalleryDetailClient({car}: { car: Dossier }) {
                         transition={{duration: 0.8, ease: appleEase}}
                         className="lg:col-span-5 flex flex-col justify-center sticky top-32"
                     >
+                        {/* Logo Display */}
+                        {getLogoFilename(car.make) && (
+                            <div className="mb-6">
+                                <img
+                                    src={`/car_logo/${getLogoFilename(car.make)}`}
+                                    alt={`${car.make} logo`}
+                                    className="h-12 w-auto opacity-50 grayscale hover:opacity-100 transition-opacity duration-500"
+                                />
+                            </div>
+                        )}
+
                         <h1 className="text-5xl md:text-7xl lg:text-[5.5rem] font-bold tracking-tighter leading-[0.9] mb-4 uppercase">
                             {car.make} <br/>
                             <span className="text-zinc-400">{car.model}</span> <br/>
