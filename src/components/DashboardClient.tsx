@@ -15,6 +15,9 @@ import {
 } from "lucide-react";
 import LeadDistributionChart from "@/components/LeadDistributionChart";
 import RequestTableClient from "./RequestTableClient";
+import { format, isWithinInterval, startOfDay, endOfDay } from "date-fns";
+import { DayPicker } from "react-day-picker";
+import "react-day-picker/dist/style.css"; // Basic styles
 
 const PIPELINE_STAGES = [
     "New", "Vehicle Selection", "Price Agreement", "Deposit Collected",
@@ -45,6 +48,11 @@ export default function DashboardClient({ requests, staffUsers, currentUserId }:
     const [sortBy, setSortBy] = useState("newest");
     const [countryFilter, setCountryFilter] = useState("All");
 
+    const [dateRange, setDateRange] = useState<{ from: Date | undefined; to: Date | undefined }>({
+        from: undefined,
+        to: undefined,
+    });
+
     // Dynamic unique cars list for the filter
     const uniqueCars = useMemo(() => {
         const cars = new Set(requests.map((req: any) => `${req.make} ${req.vehicle_model}`.trim()));
@@ -71,6 +79,16 @@ export default function DashboardClient({ requests, staffUsers, currentUserId }:
 
                 const matchesStage = stageFilter === "All" || (req.status || "New") === stageFilter;
 
+                // New Date Range filter
+                let matchesDate = true;
+                if (dateRange.from && dateRange.to) {
+                    const reqDate = new Date(req.createdAt);
+                    matchesDate = isWithinInterval(reqDate, {
+                        start: startOfDay(dateRange.from),
+                        end: endOfDay(dateRange.to),
+                    });
+                }
+
                 const currentStatus = req.leadStatus || "Action required";
                 const matchesStatus = statusFilter === "All" || currentStatus === statusFilter;
 
@@ -84,14 +102,8 @@ export default function DashboardClient({ requests, staffUsers, currentUserId }:
                 const carName = `${req.make} ${req.vehicle_model}`.trim();
                 const matchesCar = carFilter === "All" || carName === carFilter;
 
-                return (
-                    matchesSearch &&
-                    matchesStage &&
-                    matchesStatus &&
-                    matchesStaff &&
-                    matchesCar &&
-                    matchesCountry
-                );
+                return matchesSearch && matchesStage && matchesStatus &&
+                    matchesStaff && matchesCar && matchesCountry && matchesDate;
             })
             .sort((a: any, b: any) => {
                 const dateA = new Date(a.createdAt).getTime();
@@ -251,6 +263,18 @@ export default function DashboardClient({ requests, staffUsers, currentUserId }:
                             <ArrowUpDown size={16} />
                             <span className="hidden sm:inline capitalize">{sortBy}</span>
                         </button>
+
+                        {/* Date Filter Dropdown/Popover Trigger */}
+                        <div className="relative">
+                            <button
+                                onClick={() => {/* Toggle state to show/hide DayPicker */}}
+                                className="px-4 py-2 text-sm bg-white border border-zinc-200 rounded-xl font-semibold text-zinc-600"
+                            >
+                                {dateRange.from ? format(dateRange.from, "MMM dd") : "From"} -
+                                {dateRange.to ? format(dateRange.to, "MMM dd") : "To"}
+                            </button>
+                            {/* Render <DayPicker mode="range" selected={dateRange} onSelect={setDateRange} /> here */}
+                        </div>
 
                         {/* Reset Icon Button */}
                         {(
