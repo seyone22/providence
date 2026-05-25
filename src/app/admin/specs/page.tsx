@@ -85,6 +85,7 @@ interface SpecDataType {
     maxPower: string;
     maxTorque: string;
     transmission: string;
+    heroImageUrl: string; // Add this
     fuelSystem: string;
     upholstery: string;
     infotainment: string;
@@ -104,6 +105,7 @@ const initialSpecData: SpecDataType = {
     trim: "",
     countryOfOrigin: "Japan",
     engineConfig: "",
+    heroImageUrl: "",
     displacement: "",
     pricing: [],
     maxPower: "",
@@ -173,6 +175,7 @@ function SpecBuilderContent() {
                     // --- ADD THESE INSIDE THE loadDossier useEffect SUCCESS BLOCK ---
                     setSpecData(prev => ({
                         ...res.data,
+                        heroImageUrl: res.data.heroImageUrl || "",
                         slug: res.data.slug || "",
                         customData: res.data.customData || [],
                         valuePoints: res.data.valuePoints || []
@@ -349,6 +352,7 @@ function SpecBuilderContent() {
 
             const payload = {
                 ...specData,
+                heroImageUrl: specData.heroImageUrl || (finalImageUrls.length > 0 ? finalImageUrls[0] : ""),
                 features,
                 searchTags,
                 images: finalImageUrls,
@@ -541,21 +545,39 @@ function SpecBuilderContent() {
                         <div className="space-y-6">
                             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                                 {/* Existing Images (from R2) */}
-                                {existingImages.map((url, idx) => (
-                                    <div key={idx} className="relative aspect-video rounded-2xl overflow-hidden border border-zinc-200 group">
-                                        <img
-                                            src={getImageUrl(url)}
-                                            alt="Gallery"
-                                            className="object-cover w-full h-full"
-                                        />
-                                        <button
-                                            onClick={() => removeExistingImage(url)}
-                                            className="absolute top-2 right-2 p-1.5 bg-red-500 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
-                                        >
-                                            <Trash2 size={14} />
-                                        </button>
-                                    </div>
-                                ))}
+                                {existingImages.map((url, idx) => {
+                                    const isHero = specData.heroImageUrl === url;
+                                    return (
+                                        <div key={idx} className={`relative aspect-video rounded-2xl overflow-hidden border-2 group ${isHero ? "border-blue-500" : "border-zinc-200"}`}>
+                                            <img
+                                                src={getImageUrl(url)}
+                                                alt="Gallery"
+                                                className="object-cover w-full h-full"
+                                            />
+                                            {/* Hero Toggle Button */}
+                                            <button
+                                                onClick={() => handleInputChange("heroImageUrl", url)}
+                                                className={`absolute top-2 left-2 p-1.5 rounded-full transition-colors ${isHero ? "bg-blue-500 text-white" : "bg-black/50 text-white opacity-0 group-hover:opacity-100"}`}
+                                                title="Set as Hero Image"
+                                            >
+                                                <Zap size={14} />
+                                            </button>
+
+                                            <button
+                                                onClick={() => removeExistingImage(url)}
+                                                className="absolute top-2 right-2 p-1.5 bg-red-500 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+                                            >
+                                                <Trash2 size={14} />
+                                            </button>
+
+                                            {isHero && (
+                                                <div className="absolute bottom-2 left-2 bg-blue-500 text-white text-[10px] px-2 py-0.5 rounded-full font-bold">
+                                                    HERO
+                                                </div>
+                                            )}
+                                        </div>
+                                    );
+                                })}
 
                                 {/* Pending Upload Previews */}
                                 {previewUrls.map((url, idx) => (

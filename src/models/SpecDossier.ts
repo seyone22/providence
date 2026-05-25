@@ -39,6 +39,7 @@ const SpecDossierSchema = new Schema(
         // Tagging & Arrays
         features: [{type: String}], // e.g., "Panoramic Roof", "Heated Seats"
         searchTags: [{type: String}], // e.g., "SUV", "Off-Road", "Family", "JDM"
+        heroImageUrl: { type: String, default: "" },
         images: [{type: String}], // Array to store Cloudflare R2 URLs
 
         // --- ADD THESE FIELDS INSIDE SpecDossierSchema ---

@@ -42,6 +42,7 @@ type Dossier = {
     countryOfOrigin: string;
     engineConfig: string;
     displacement: string;
+    heroImageUrl?: string;
     maxPower: string;
     maxTorque: string;
     transmission: string;
@@ -62,7 +63,6 @@ type Dossier = {
 };
 
 export default function GalleryDetailClient({car}: { car: Dossier }) {
-    const [activeImage, setActiveImage] = useState(0);
     const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
     const inquiryRef = useRef<HTMLDivElement>(null);
 
@@ -76,9 +76,18 @@ export default function GalleryDetailClient({car}: { car: Dossier }) {
         specs: `Inquiry for ${car.year} ${car.make} ${car.model} (${car.trim}). Features: ${car.features?.join(", ")}`,
     };
 
+// UPDATE: Set default image based on hero selection
     const displayImages = car.images?.length > 0
         ? car.images
         : ["https://images.unsplash.com/photo-1603584173870-7f23fdae1b7a?q=80&w=2938&auto=format&fit=crop"];
+
+    // Use heroImageUrl if it exists, otherwise default to index 0
+    const initialHero = car.heroImageUrl && car.images?.includes(car.heroImageUrl)
+        ? car.heroImageUrl
+        : displayImages[0];
+
+    // Initialize activeImage to show the hero image first
+    const [activeImage, setActiveImage] = useState(0);
 
     const handleDownloadPdf = async () => {
         setIsGeneratingPdf(true);
@@ -151,8 +160,13 @@ export default function GalleryDetailClient({car}: { car: Dossier }) {
                         transition={{duration: 1, ease: appleEase, delay: 0.1}}
                         className="lg:col-span-7"
                     >
-                        <div className="relative aspect-[4/3] w-full rounded-[2.5rem] overflow-hidden bg-zinc-100 shadow-[0_30px_60px_rgba(0,0,0,0.05)] border border-black/5">
-                            <img src={displayImages[0]} alt={`${car.make} ${car.model}`} className="w-full h-full object-cover"/>
+                        <div className="relative aspect-[16/10] w-full rounded-[2rem] overflow-hidden bg-black flex items-center justify-center shadow-[0_20px_50px_rgba(0,0,0,0.1)]">
+                            <img
+                                key={activeImage}
+                                src={activeImage === 0 && car.heroImageUrl ? car.heroImageUrl : displayImages[activeImage]}
+                                alt={`${car.make} - View ${activeImage + 1}`}
+                                className="w-full h-full object-cover animate-in fade-in zoom-in-95 duration-500"
+                            />
                         </div>
                     </motion.div>
                 </div>
@@ -291,9 +305,6 @@ export default function GalleryDetailClient({car}: { car: Dossier }) {
                         transition={{duration: 0.8, ease: appleEase, delay: 0.2}}
                         className="lg:col-span-7 flex flex-col gap-6"
                     >
-                        <div className="relative aspect-[16/10] w-full rounded-[2rem] overflow-hidden bg-black flex items-center justify-center shadow-[0_20px_50px_rgba(0,0,0,0.1)]">
-                            <img key={activeImage} src={displayImages[activeImage]} alt={`${car.make} - View ${activeImage + 1}`} className="w-full h-full object-cover animate-in fade-in zoom-in-95 duration-500"/>
-                        </div>
                         {displayImages.length > 1 && (
                             <div className="grid grid-cols-4 sm:grid-cols-5 gap-4">
                                 {displayImages.map((img, idx) => (
