@@ -305,6 +305,9 @@ export default function GalleryDetailClient({car}: { car: Dossier }) {
                         transition={{duration: 0.8, ease: appleEase, delay: 0.2}}
                         className="lg:col-span-7 flex flex-col gap-6"
                     >
+                        <div className="relative aspect-[16/10] w-full rounded-[2rem] overflow-hidden bg-black flex items-center justify-center shadow-[0_20px_50px_rgba(0,0,0,0.1)]">
+                            <img key={activeImage} src={displayImages[activeImage]} alt={`${car.make} - View ${activeImage + 1}`} className="w-full h-full object-cover animate-in fade-in zoom-in-95 duration-500"/>
+                        </div>
                         {displayImages.length > 1 && (
                             <div className="grid grid-cols-4 sm:grid-cols-5 gap-4">
                                 {displayImages.map((img, idx) => (
