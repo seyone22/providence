@@ -20,6 +20,7 @@ export const getLogoFilename = (make: string): string | null => {
         "Tesla": "tesla logo.png",
         "Volvo": "volvo logo.png",
         "Zeekr": "Zeekr logo.png",
+        "Toyota": "Toyota.png"
     };
 
     return mapping[make] || null;
@@ -28,5 +29,5 @@ export const getLogoFilename = (make: string): string | null => {
 export const CAR_MAKES = [
     "Aston Martin", "Audi", "Bentley", "BMW", "Ferrari", "Genesis",
     "Lamborghini", "Land Rover", "Lexus", "Lucid Motors", "Mercedes-Benz",
-    "Polestar", "Porsche", "Rolls-Royce", "Tesla", "Volvo", "Zeekr"
+    "Polestar", "Porsche", "Rolls-Royce", "Toyota", "Tesla", "Volvo", "Zeekr"
 ].sort();
