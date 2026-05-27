@@ -35,6 +35,7 @@ export interface IRequest extends Document {
         action: string;
         performedBy: string;
         date: Date;
+        comment?: string; // ADD THIS PROPERTY
     }[];
 
     // NEW Payment Fields
@@ -127,9 +128,10 @@ const RequestSchema: Schema = new Schema(
 
         // Add this inside your new Schema({ ... }) definition:
         statusHistory: [{
-            action: { type: String, required: true },
-            performedBy: { type: String, required: true },
-            date: { type: Date, default: Date.now }
+            action: {type: String, required: true},
+            performedBy: {type: String, required: true},
+            date: {type: Date, default: Date.now},
+            comment: {type: String, default: ""} // ADD THIS CONFIGURATION
         }],
 
         documents: [{

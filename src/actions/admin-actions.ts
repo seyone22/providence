@@ -86,55 +86,60 @@ export async function updateRequestStatus(id: string, targetStage: string, paylo
             throw new Error("Lead not found in the database.");
         }
 
+        // Extract the sales comment context so it doesn't pollute top-level keys
+        const { salesComment = "", ...cleanedPayload } = payload;
+
         const updateData: any = {
-            ...payload,
+            ...cleanedPayload,
             status: targetStage
         };
 
-        // 2. Prepare History Logging
-        const historyPush: any = {};
+        // Track array entries to insert into history push operations safely
+        const historyLogs: any[] = [];
 
         // Check if Pipeline Stage Changed
         if (targetStage !== existingRequest.status) {
-            historyPush.statusHistory = {
+            historyLogs.push({
                 action: `Moved to Pipeline Stage: ${targetStage}`,
                 performedBy: currentUser,
-                date: new Date()
-            };
+                date: new Date(),
+                comment: "" // Explicitly empty on pure pipeline adjustments
+            });
         }
 
         // Check if Sales Status Changed
-        if (payload.leadStatus && payload.leadStatus !== existingRequest.leadStatus) {
+        if (cleanedPayload.leadStatus && cleanedPayload.leadStatus !== existingRequest.leadStatus) {
             updateData.statusUpdatedAt = new Date();
 
-            // If we are already pushing a pipeline change, format it as an array to push both,
-            // otherwise just push the sales status. For simplicity, we'll log the sales status update.
-            historyPush.statusHistory = {
-                action: `Updated Sales Status: ${payload.leadStatus}`,
+            historyLogs.push({
+                action: `Updated Sales Status: ${cleanedPayload.leadStatus}`,
                 performedBy: currentUser,
-                date: new Date()
-            };
+                date: new Date(),
+                comment: salesComment.trim() // Safely saves comment right alongside this event entry log!
+            });
         }
 
         // 3. Smart Appending for Admin Notes
-        if (payload.adminNotes && payload.adminNotes.trim() !== "") {
+        if (cleanedPayload.adminNotes && cleanedPayload.adminNotes.trim() !== "") {
             const existingNotes = existingRequest.adminNotes || "";
-            const newNoteEntry = `[Note added by ${currentUser}]\n${payload.adminNotes.trim()}`;
+            const newNoteEntry = `[Note added by ${currentUser}]\n${cleanedPayload.adminNotes.trim()}`;
             updateData.adminNotes = existingNotes ? `${existingNotes}\n\n${newNoteEntry}` : newNoteEntry;
         } else {
             delete updateData.adminNotes;
         }
 
         // 4. Smart Appending for Documents
-        if (payload.documents && payload.documents.length > 0) {
+        if (cleanedPayload.documents && cleanedPayload.documents.length > 0) {
             const existingDocs = existingRequest.documents || [];
-            updateData.documents = [...existingDocs, ...payload.documents];
+            updateData.documents = [...existingDocs, ...cleanedPayload.documents];
         }
 
-        // 5. Execute Update (Merge normal updates with the history $push)
-        const finalQuery = Object.keys(historyPush).length > 0
-            ? { $set: updateData, $push: historyPush }
-            : { $set: updateData };
+        // 5. Execute Update (Safely merges updates using standard array aggregation rules)
+        const finalQuery: any = { $set: updateData };
+        if (historyLogs.length > 0) {
+            // Using $each guarantees that if BOTH updates occur simultaneously, both records hit the log cleanly
+            finalQuery.$push = { statusHistory: { $each: historyLogs } };
+        }
 
         // We use updating with $set and $push to cleanly add to the array
         const updatedRequest = await Request.findByIdAndUpdate(id, finalQuery, { new: true });

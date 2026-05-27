@@ -1,5 +1,8 @@
+"use client";
+
 import { motion } from 'framer-motion';
-import {Accordion, AccordionContent, AccordionItem, AccordionTrigger} from "@/components/ui/accordion";
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
+import { LandingPageConfig } from "@/config/landing-pages";
 
 const FAQ_DATA = [
     {
@@ -83,7 +86,17 @@ const FAQ_DATA = [
     }
 ];
 
-export default function FAQSection() {
+const DEFAULT_FAQ_CONFIG: LandingPageConfig['faqs'] = {
+    title: "Frequently Asked Questions",
+    subtitle: "Everything you need to know about our global direct import network.",
+    categories: FAQ_DATA
+};
+
+type FAQSectionProps = {
+    data?: LandingPageConfig['faqs'];
+};
+
+export default function FAQSection({ data = DEFAULT_FAQ_CONFIG }: FAQSectionProps) {
     return (
         <section className="py-32 px-6 bg-[#FAFAFA] border-t border-black/5">
             <div className="max-w-4xl mx-auto">
@@ -96,16 +109,16 @@ export default function FAQSection() {
                     className="text-center mb-16"
                 >
                     <h2 className="text-4xl md:text-6xl font-bold tracking-tighter mb-6 uppercase">
-                        Frequently Asked Questions
+                        {data.title}
                     </h2>
                     <p className="text-zinc-500 font-light text-lg md:text-xl">
-                        Everything you need to know about our global direct import network.
+                        {data.subtitle}
                     </p>
                 </motion.div>
 
                 {/* Categories */}
                 <div className="space-y-16">
-                    {FAQ_DATA.map((section, idx) => (
+                    {data.categories.map((section, idx) => (
                         <motion.div
                             key={idx}
                             initial={{ opacity: 0, y: 20 }}

@@ -150,7 +150,7 @@ export default async function TrackingPage({ params }: { params: Promise<{ id: s
                                                 {step.id === "Vehicle Selection" && requestData.options && (
                                                     <div className="p-5 rounded-2xl bg-zinc-50 border border-black/5 text-sm leading-relaxed">
                                                         <span className="block text-zinc-800 font-bold mb-2">Proposed Options & Links:</span>
-                                                        <span className="text-zinc-600 font-light whitespace-pre-wrap">{requestData.options}</span>
+                                                        <span className="text-zinc-600 font-light whitespace-pre-wrap">{renderTextWithLinks(requestData.options)}</span>
                                                     </div>
                                                 )}
 
@@ -253,4 +253,32 @@ export default async function TrackingPage({ params }: { params: Promise<{ id: s
             </div>
         </main>
     );
+}
+
+
+function renderTextWithLinks(text: string) {
+    if (!text) return null;
+
+    // Regex to match URLs starting with http or https
+    const urlRegex = /(https?:\/\/[^\s]+)/g;
+
+    // Split the text into an array of strings and URLs
+    const parts = text.split(urlRegex);
+
+    return parts.map((part, i) => {
+        if (part.match(urlRegex)) {
+            return (
+                <a
+                    key={i}
+                    href={part}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-blue-600 hover:text-blue-800 underline decoration-blue-300 underline-offset-2 transition-colors break-all"
+                >
+                    {part}
+                </a>
+            );
+        }
+        return part; // Return normal text as-is
+    });
 }

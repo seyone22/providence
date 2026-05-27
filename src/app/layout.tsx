@@ -1,8 +1,9 @@
-import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import type {Metadata} from "next";
+import {Geist, Geist_Mono} from "next/font/google";
 import "./globals.css";
 import Footer from "@/components/Footer";
-import { GoogleTagManager } from '@next/third-parties/google';
+import {GoogleTagManager} from '@next/third-parties/google';
+import {Toaster} from "sonner";
 
 const geistSans = Geist({
     variable: "--font-geist-sans",
@@ -26,7 +27,7 @@ export const metadata: Metadata = {
         "7-seater family SUVs", "luxury executive sedans", "premium electric vehicles",
         "high-performance supercars", "right-hand drive imports"
     ],
-    authors: [{ name: "Providence Auto" }],
+    authors: [{name: "Providence Auto"}],
     creator: "Providence Auto",
     icons: {
         icon: "/favicon.ico",
@@ -110,11 +111,11 @@ export default function RootLayout({
         "@context": "https://schema.org",
         "@type": "ItemList",
         "itemListElement": [
-            { "@type": "ListItem", "position": 1, "name": "Luxury Sedans" },
-            { "@type": "ListItem", "position": 2, "name": "7-Seater SUVs" },
-            { "@type": "ListItem", "position": 3, "name": "Electric Vehicles (BEV/PHEV)" },
-            { "@type": "ListItem", "position": 4, "name": "High-Performance Sports Cars" },
-            { "@type": "ListItem", "position": 5, "name": "Executive Coupes" }
+            {"@type": "ListItem", "position": 1, "name": "Luxury Sedans"},
+            {"@type": "ListItem", "position": 2, "name": "7-Seater SUVs"},
+            {"@type": "ListItem", "position": 3, "name": "Electric Vehicles (BEV/PHEV)"},
+            {"@type": "ListItem", "position": 4, "name": "High-Performance Sports Cars"},
+            {"@type": "ListItem", "position": 5, "name": "Executive Coupes"}
         ]
     };
 
@@ -123,19 +124,20 @@ export default function RootLayout({
         <head>
             <script
                 type="application/ld+json"
-                dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationSchema) }}
+                dangerouslySetInnerHTML={{__html: JSON.stringify(organizationSchema)}}
             />
             <script
                 type="application/ld+json"
-                dangerouslySetInnerHTML={{ __html: JSON.stringify(categorySchema) }}
+                dangerouslySetInnerHTML={{__html: JSON.stringify(categorySchema)}}
             />
         </head>
-        <GoogleTagManager gtmId="GTM-K7GCCZXQ" />
+        <GoogleTagManager gtmId="GTM-K7GCCZXQ"/>
         <body className={`${geistSans.variable} ${geistMono.variable} antialiased flex flex-col min-h-screen`}>
         <div className="flex-1">
             {children}
         </div>
-        <Footer />
+        <Footer/>
+        <Toaster position="bottom-right" richColors/>
         </body>
         </html>
     );

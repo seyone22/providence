@@ -35,7 +35,6 @@ export const SALES_STATUSES = [
     "SQL: Moved to vehicle offering stage",
     "Not Qualified",
     "Lead Lost",
-    "Lead Closed"
 ];
 
 // ADDED "sales_status" to the type definition
@@ -47,11 +46,11 @@ type ActionModalState = {
 };
 
 export default function RequestTableClient({
-                                               initialRequests,
+                                               processedRequests,
                                                staffUsers,
                                                currentUserId
                                            }: {
-    initialRequests: any[];
+    processedRequests: any[];
     staffUsers: any[];
     currentUserId: string;
 }) {
@@ -79,8 +78,19 @@ export default function RequestTableClient({
         return PIPELINE_STAGES[currentIndex - 1];
     };
 
+    const isRecentLead = (createdAt: string) => {
+        const createdDate = new Date(createdAt).getTime();
+        const now = new Date().getTime();
+
+        const diffInDays = (now - createdDate) / (1000 * 60 * 60 * 24);
+
+        return diffInDays <= 5;
+    };
+
     const getPipelineBadge = (status: string) => {
-        const current = status || "New";
+        const current = status === "New"
+            ? "Request Initiated"
+            : (status || "Action required");
         const isMiddle = ["Deposit Collected", "Vehicle Purchased", "Preparation"].includes(current);
         const isShipping = ["Shipped", "Arrived at Port"].includes(current);
         const isDone = current === "Cleared Customs";
@@ -96,147 +106,26 @@ export default function RequestTableClient({
     const getSalesStatusBadge = (status: string) => {
         const current = status || "Action required";
 
-        if (["Action required", "Lead Lost"].includes(current)) {
+        // Combined "Bad" / Lost / Closed statuses in Red
+        if (["Action required", "Lead Lost", "Lead Closed", "Not Qualified"].includes(current)) {
             return <Badge className="bg-red-50 text-red-600 border-red-200 hover:bg-red-100 rounded-full px-3">{current}</Badge>;
         }
+
+        // Middle-ground statuses in Yellow
         if (["No Response", "Stopped Responding"].includes(current)) {
             return <Badge className="bg-yellow-50 text-yellow-600 border-yellow-200 hover:bg-yellow-100 rounded-full px-3">{current}</Badge>;
         }
-        if (["Replied (Email)", "Replied (WhatsApp)", "Replied (Both)", "Active Conversation", "SQL: Moved to vehicle offering stage", "Lead Closed"].includes(current)) {
+
+        // Positive statuses in Emerald
+        if (["Replied (Email)", "Replied (WhatsApp)", "Replied (Both)", "Active Conversation", "SQL: Moved to vehicle offering stage"].includes(current)) {
             return <Badge className="bg-emerald-50 text-emerald-600 border-emerald-200 hover:bg-emerald-100 rounded-full px-3">{current}</Badge>;
         }
 
         return <Badge className="bg-zinc-100 text-zinc-500 border-zinc-200 hover:bg-zinc-200 rounded-full px-3">{current}</Badge>;
     };
 
-    // Extract unique cars dynamically
-    const uniqueCars = useMemo(() => {
-        const cars = new Set(initialRequests.map(req => `${req.make} ${req.vehicle_model}`.trim()));
-        return Array.from(cars).filter(Boolean).sort();
-    }, [initialRequests]);
-
-    // Filter and Sort Logic
-    const processedRequests = useMemo(() => {
-        return initialRequests
-            .filter((req) => {
-                const matchesSearch =
-                    (req.name || "").toLowerCase().includes(searchQuery.toLowerCase()) ||
-                    (req.email || "").toLowerCase().includes(searchQuery.toLowerCase()) ||
-                    (req.make || "").toLowerCase().includes(searchQuery.toLowerCase()) ||
-                    (req.vehicle_model || "").toLowerCase().includes(searchQuery.toLowerCase());
-
-                const matchesStage = stageFilter === "All" || (req.status || "New") === stageFilter;
-
-                const currentStatus = req.salesStatus || req.leadStatus || "Action required";
-                const matchesStatus = statusFilter === "All" || currentStatus === statusFilter;
-
-                const assignedValue = req.assignedToName || "Unassigned";
-                const matchesStaff = staffFilter === "All" || assignedValue === staffFilter;
-
-                const carName = `${req.make} ${req.vehicle_model}`.trim();
-                const matchesCar = carFilter === "All" || carName === carFilter;
-
-                return matchesSearch && matchesStage && matchesStatus && matchesStaff && matchesCar;
-            })
-            .sort((a, b) => {
-                const dateA = new Date(a.createdAt).getTime();
-                const dateB = new Date(b.createdAt).getTime();
-                return sortBy === "newest" ? dateB - dateA : dateA - dateB;
-            });
-    }, [initialRequests, searchQuery, stageFilter, statusFilter, staffFilter, carFilter, sortBy]);
-
-    if (initialRequests.length === 0) {
-        return (
-            <div className="p-16 text-center text-zinc-500 font-medium bg-white border border-black/5 rounded-[2rem]">
-                No active requests found. When a client submits an inquiry, it will appear here.
-            </div>
-        );
-    }
-
     return (
         <div className="w-full flex flex-col gap-4">
-
-            {/* --- FILTER & SEARCH BAR --- */}
-            <div className="flex flex-col xl:flex-row justify-between items-center gap-4 bg-white p-2 rounded-[1.5rem] border border-black/5 shadow-[0_2px_10px_rgba(0,0,0,0.02)]">
-                <div className="relative w-full xl:w-80 flex-shrink-0">
-                    <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-zinc-400" />
-                    <input
-                        type="text"
-                        placeholder="Search clients, makes, or models..."
-                        value={searchQuery}
-                        onChange={(e) => setSearchQuery(e.target.value)}
-                        className="w-full pl-10 pr-4 py-2.5 text-sm bg-zinc-50 border border-transparent hover:border-black/10 focus:bg-white focus:border-black/20 focus:ring-4 focus:ring-black/5 outline-none rounded-xl transition-all font-medium text-black placeholder:text-zinc-400"
-                    />
-                </div>
-
-                <div className="flex flex-wrap items-center gap-2 w-full xl:w-auto overflow-x-auto hide-scrollbar pb-1 xl:pb-0">
-                    <div className="flex items-center gap-2 pl-2">
-                        <ListFilter size={16} className="text-zinc-400 hidden sm:block" />
-
-                        <select
-                            value={staffFilter}
-                            onChange={(e) => setStaffFilter(e.target.value)}
-                            className="px-4 py-2.5 text-sm bg-zinc-50 border border-transparent hover:border-black/10 focus:bg-white focus:border-black/20 focus:ring-4 focus:ring-black/5 outline-none rounded-xl text-zinc-600 font-medium cursor-pointer appearance-none pr-10 transition-all relative"
-                            style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%23a1a1aa' stroke-width='2'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E")`, backgroundRepeat: 'no-repeat', backgroundPosition: 'right 0.75rem center', backgroundSize: '1em' }}
-                        >
-                            <option value="All">All Staff</option>
-                            <option value="Unassigned">Unassigned</option>
-                            {staffUsers.map(staff => (
-                                <option key={staff._id} value={staff.name}>{staff.name}</option>
-                            ))}
-                        </select>
-
-                        <select
-                            value={carFilter}
-                            onChange={(e) => setCarFilter(e.target.value)}
-                            className="px-4 py-2.5 text-sm bg-zinc-50 border border-transparent hover:border-black/10 focus:bg-white focus:border-black/20 focus:ring-4 focus:ring-black/5 outline-none rounded-xl text-zinc-600 font-medium cursor-pointer appearance-none pr-10 transition-all relative"
-                            style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%23a1a1aa' stroke-width='2'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E")`, backgroundRepeat: 'no-repeat', backgroundPosition: 'right 0.75rem center', backgroundSize: '1em' }}
-                        >
-                            <option value="All">All Cars</option>
-                            {uniqueCars.map(car => (
-                                <option key={car} value={car}>{car}</option>
-                            ))}
-                        </select>
-
-                        <select
-                            value={stageFilter}
-                            onChange={(e) => setStageFilter(e.target.value)}
-                            className="px-4 py-2.5 text-sm bg-zinc-50 border border-transparent hover:border-black/10 focus:bg-white focus:border-black/20 focus:ring-4 focus:ring-black/5 outline-none rounded-xl text-zinc-600 font-medium cursor-pointer appearance-none pr-10 transition-all relative"
-                            style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%23a1a1aa' stroke-width='2'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E")`, backgroundRepeat: 'no-repeat', backgroundPosition: 'right 0.75rem center', backgroundSize: '1em' }}
-                        >
-                            <option value="All">All Stages</option>
-                            {PIPELINE_STAGES.map(stage => (
-                                <option key={stage} value={stage}>{stage}</option>
-                            ))}
-                        </select>
-
-                        <select
-                            value={statusFilter}
-                            onChange={(e) => setStatusFilter(e.target.value)}
-                            className="px-4 py-2.5 text-sm bg-zinc-50 border border-transparent hover:border-black/10 focus:bg-white focus:border-black/20 focus:ring-4 focus:ring-black/5 outline-none rounded-xl text-zinc-600 font-medium cursor-pointer appearance-none pr-10 transition-all relative"
-                            style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%23a1a1aa' stroke-width='2'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E")`, backgroundRepeat: 'no-repeat', backgroundPosition: 'right 0.75rem center', backgroundSize: '1em' }}
-                        >
-                            <option value="All">All Sales Status</option>
-                            {SALES_STATUSES.map(status => (
-                                <option key={status} value={status}>{status}</option>
-                            ))}
-                        </select>
-
-                        <div className="h-6 w-px bg-black/10 mx-1 hidden sm:block"></div>
-
-                        <select
-                            value={sortBy}
-                            onChange={(e) => setSortBy(e.target.value)}
-                            className="px-4 py-2.5 text-sm bg-zinc-50 border border-transparent hover:border-black/10 focus:bg-white focus:border-black/20 focus:ring-4 focus:ring-black/5 outline-none rounded-xl text-zinc-600 font-medium cursor-pointer appearance-none pr-10 transition-all relative"
-                            style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%23a1a1aa' stroke-width='2'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E")`, backgroundRepeat: 'no-repeat', backgroundPosition: 'right 0.75rem center', backgroundSize: '1em' }}
-                        >
-                            <option value="newest">Newest First</option>
-                            <option value="oldest">Oldest First</option>
-                        </select>
-                    </div>
-                </div>
-            </div>
-
             {/* --- TABLE AREA --- */}
             <div className="overflow-x-auto w-full pb-4">
                 {processedRequests.length === 0 ? (
@@ -268,7 +157,16 @@ export default function RequestTableClient({
                                 return (
                                     <TableRow key={req._id} className="border-b border-black/5 hover:bg-zinc-50/50 transition-colors bg-white">
                                         <TableCell className="py-4 pl-6 align-top">
-                                            <div className="font-bold text-black text-sm">{req.name}</div>
+                                            <div className="flex items-center gap-2">
+                                                <div className="font-bold text-black text-sm">{req.name}</div>
+
+                                                {isRecentLead(req.createdAt) && (
+                                                    <div className="relative flex h-2.5 w-2.5">
+                                                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-orange-400 opacity-75"></span>
+                                                        <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-orange-500"></span>
+                                                    </div>
+                                                )}
+                                            </div>
                                             <div className="text-xs text-zinc-500 mb-1">{req.email}</div>
 
                                             {/* WhatsApp Link integration */}
@@ -307,16 +205,40 @@ export default function RequestTableClient({
 
                                         <TableCell className="align-top">
                                             <div className="flex flex-col items-start gap-2 mt-1">
-                                                {getPipelineBadge(req.status)}
-                                                {req.assignedToName ? (
-                                                    <div className="inline-flex items-center gap-1.5 text-[11px] text-blue-600 bg-blue-50 px-2 py-0.5 rounded border border-blue-100 font-medium">
-                                                        <User size={10} /> {req.assignedToName}
-                                                    </div>
-                                                ) : (
-                                                    <div className="inline-flex items-center gap-1.5 text-[11px] text-zinc-400 bg-zinc-50 px-2 py-0.5 rounded border border-zinc-200">
-                                                        Unassigned
-                                                    </div>
-                                                )}
+                                                <button
+                                                    onClick={() => setModal({
+                                                        isOpen: true,
+                                                        type: "advance",
+                                                        request: req,
+                                                        targetStage: nextStage
+                                                    })}
+                                                    className="block hover:opacity-80 transition-opacity focus:outline-none"
+                                                    title="Click to advance stage"
+                                                >
+                                                    {getPipelineBadge(req.status)}
+                                                </button>
+
+                                                <button
+                                                    onClick={() => setModal({
+                                                        isOpen: true,
+                                                        type: "assign",
+                                                        request: req,
+                                                        targetStage: null
+                                                    })}
+                                                    className="block hover:opacity-80 transition-opacity focus:outline-none"
+                                                    title="Click to change Asignee"
+                                                >
+                                                    {req.assignedToName ? (
+                                                        <div className="inline-flex items-center gap-1.5 text-[11px] text-blue-600 bg-blue-50 px-2 py-0.5 rounded border border-blue-100 font-medium">
+                                                            <User size={10} /> {req.assignedToName}
+                                                        </div>
+                                                    ) : (
+                                                        <div className="inline-flex items-center gap-1.5 text-[11px] text-zinc-400 bg-zinc-50 px-2 py-0.5 rounded border border-zinc-200">
+                                                            Unassigned
+                                                        </div>
+                                                    )}
+                                                </button>
+
                                             </div>
                                         </TableCell>
 
@@ -342,6 +264,32 @@ export default function RequestTableClient({
                                                         Updated: {new Date(req.statusUpdatedAt || req.updatedAt).toLocaleDateString()}
                                                     </div>
                                                 )}
+
+                                                {/* --- ADDED: LATEST COMMENT SNIPPET DISPLAY --- */}
+                                                {(() => {
+                                                    // Find the most recent history log entry that actually has a comment text string
+                                                    const historyLogs = req.statusHistory || [];
+                                                    const latestLogWithComment = [...historyLogs]
+                                                        .reverse()
+                                                        .find((log: any) => log.comment && log.comment.trim() !== "");
+
+                                                    if (!latestLogWithComment) return null;
+
+                                                    // Truncate cleanly at 55 characters so it fits neatly in a table cell row
+                                                    const rawComment = latestLogWithComment.comment;
+                                                    const truncatedComment = rawComment.length > 55
+                                                        ? `${rawComment.substring(0, 55)}...`
+                                                        : rawComment;
+
+                                                    return (
+                                                        <div
+                                                            className="text-[11px] text-zinc-500 italic max-w-[200px] bg-zinc-50 border border-black/5 rounded-md px-2 py-1 mt-1 font-light leading-tight truncate"
+                                                            title={rawComment} // Hover shows the full un-truncated note
+                                                        >
+                                                            "{truncatedComment}"
+                                                        </div>
+                                                    );
+                                                })()}
                                             </div>
                                         </TableCell>
 

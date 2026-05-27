@@ -17,15 +17,14 @@ import {Textarea} from "@/components/ui/textarea";
 import {Badge} from "@/components/ui/badge";
 import DynamicFileUploader, {PendingFile} from "@/components/dynamicFileUploader";
 import {deleteRequest, updateRequestStatus} from "@/actions/admin-actions";
-import {uploadToR2} from "@/lib/file-actions";
-import {SALES_STATUSES} from "@/app/admin/RequestTableClient";
+import {getPresignedUrls} from "@/lib/file-actions";
+import {SALES_STATUSES} from "@/components/RequestTableClient";
 
 const PIPELINE_STAGES = [
     "New", "Vehicle Selection", "Price Agreement", "Deposit Collected",
     "Vehicle Purchased", "Preparation", "Shipped", "Arrived at Port", "Cleared Customs"
 ];
 
-// --- TYPES ---
 type HistoryStyle = {
     dot: string;
     box: string;
@@ -35,6 +34,7 @@ interface StatusHistoryItem {
     performedBy: string;
     date: string | Date;
     action: string;
+    comment: string;
 }
 
 interface RequestActionModalProps {
@@ -51,36 +51,14 @@ interface RequestActionModalProps {
 
 const getStyles = (action: string | undefined): HistoryStyle => {
     const act = action || "";
-
-    // 1. Pipeline Stages
-    if (act.includes("Cleared Customs")) {
-        return { dot: "bg-emerald-500", box: "bg-emerald-50 border-emerald-100 text-emerald-900" };
-    }
-    if (act.includes("Shipped") || act.includes("Arrived at Port")) {
-        return { dot: "bg-blue-500", box: "bg-blue-50 border-blue-100 text-blue-900" };
-    }
-    if (act.includes("Deposit") || act.includes("Purchased") || act.includes("Preparation")) {
-        return { dot: "bg-purple-500", box: "bg-purple-50 border-purple-100 text-purple-900" };
-    }
-
-    // 2. Sales Statuses (Matching your badge logic)
-    if (act.includes("Active Conversation") || act.includes("Replied") || act.includes("SQL") || act.includes("Lead Closed")) {
-        return { dot: "bg-emerald-500", box: "bg-emerald-50 border-emerald-100 text-emerald-900" };
-    }
-    if (act.includes("Action required") || act.includes("Lead Lost")) {
-        return { dot: "bg-red-500", box: "bg-red-50 border-red-100 text-red-900" };
-    }
-    if (act.includes("No Response") || act.includes("Stopped Responding")) {
-        return { dot: "bg-amber-500", box: "bg-amber-50 border-amber-100 text-amber-900" };
-    }
-
-    // 3. System Actions
-    if (act.includes("Delete") || act.includes("Revert")) {
-        return { dot: "bg-amber-500", box: "bg-amber-50 border-amber-100 text-amber-900" };
-    }
-
-    // Default Fallback
-    return { dot: "bg-zinc-400", box: "bg-zinc-50 border-black/5 text-zinc-600" };
+    if (act.includes("Cleared Customs")) return {dot: "bg-emerald-500", box: "bg-emerald-50 border-emerald-100 text-emerald-900"};
+    if (act.includes("Shipped") || act.includes("Arrived at Port")) return {dot: "bg-blue-500", box: "bg-blue-50 border-blue-100 text-blue-900"};
+    if (act.includes("Deposit") || act.includes("Purchased") || act.includes("Preparation")) return {dot: "bg-purple-500", box: "bg-purple-50 border-purple-100 text-purple-900"};
+    if (act.includes("Active Conversation") || act.includes("Replied") || act.includes("SQL") || act.includes("Lead Closed")) return {dot: "bg-emerald-500", box: "bg-emerald-50 border-emerald-100 text-emerald-900"};
+    if (act.includes("Action required") || act.includes("Lead Lost")) return {dot: "bg-red-500", box: "bg-red-50 border-red-100 text-red-900"};
+    if (act.includes("No Response") || act.includes("Stopped Responding")) return {dot: "bg-amber-500", box: "bg-amber-50 border-amber-100 text-amber-900"};
+    if (act.includes("Delete") || act.includes("Revert")) return {dot: "bg-amber-500", box: "bg-amber-50 border-amber-100 text-amber-900"};
+    return {dot: "bg-zinc-400", box: "bg-zinc-50 border-black/5 text-zinc-600"};
 };
 
 export default function RequestActionModal({
@@ -107,13 +85,14 @@ export default function RequestActionModal({
                 });
             } else if (modal.type === "sales_status") {
                 setPayload({
-                    leadStatus: modal.request.leadStatus || "Action required"
+                    leadStatus: modal.request.leadStatus || "Action required",
+                    salesComment: ""
                 });
             } else {
                 if (modal.type === "advance" && modal.targetStage === "Price Agreement") {
-                    setPayload({paymentType: "Full payment"});
+                    setPayload({paymentType: "Full payment", stageComment: ""});
                 } else {
-                    setPayload({});
+                    setPayload({stageComment: ""});
                 }
             }
             setPendingFiles([]);
@@ -152,31 +131,55 @@ export default function RequestActionModal({
 
                 const validFiles = pendingFiles.filter(pf => pf.file !== null);
                 if (validFiles.length > 0) {
-                    const formData = new FormData();
-                    validFiles.forEach(pf => {
-                        formData.append("files", pf.file as File);
-                        formData.append("fieldNames", pf.fieldName || "Unnamed Document");
-                        formData.append("fileTypes", pf.fileType);
+                    const fileMeta = validFiles.map(pf => ({
+                        name: (pf.file as File).name,
+                        type: (pf.file as File).type,
+                        size: (pf.file as File).size
+                    }));
+                    const {success, uploadData, message} = await getPresignedUrls(fileMeta, "pipeline-docs");
+
+                    if (!success || !uploadData) throw new Error(message || "Failed to get upload URLs.");
+
+                    const uploadPromises = validFiles.map(async (pf, index) => {
+                        const file = pf.file as File;
+                        const {uploadUrl, fileUrl} = uploadData[index];
+
+                        const uploadRes = await fetch(uploadUrl, {
+                            method: "PUT",
+                            body: file,
+                            headers: {"Content-Type": file.type},
+                        });
+
+                        if (!uploadRes.ok) throw new Error(`Failed to upload ${file.name}`);
+
+                        return {
+                            fieldName: pf.fieldName || "Unnamed Document",
+                            fileType: pf.fileType,
+                            fileUrl: fileUrl,
+                            stageAdded: modal.targetStage
+                        };
                     });
 
-                    const uploadRes: any = await uploadToR2(formData);
-                    if (!uploadRes.success) throw new Error(uploadRes.message);
-
-                    const newDocuments = uploadRes.uploadedFiles.map((file: any) => ({
-                        ...file,
-                        stageAdded: modal.targetStage
-                    }));
+                    const newDocuments = await Promise.all(uploadPromises);
                     finalDocuments = [...finalDocuments, ...newDocuments];
                 }
 
                 await updateRequestStatus(modal.request._id, modal.targetStage, {
                     ...formattedPayload,
+                    salesComment: payload.stageComment?.trim() || "", // Map to pipeline comment backend slot
                     documents: finalDocuments
                 });
             } else if (modal.type === "revert" && modal.targetStage) {
-                await updateRequestStatus(modal.request._id, modal.targetStage, formattedPayload);
+                await updateRequestStatus(modal.request._id, modal.targetStage, {
+                    ...formattedPayload,
+                    salesComment: payload.stageComment?.trim() || "", // Map to pipeline comment backend slot
+                });
             } else if (modal.type === "details" || modal.type === "assign" || modal.type === "sales_status") {
-                await updateRequestStatus(modal.request._id, modal.request.status, formattedPayload);
+                const submitPayload = {
+                    ...formattedPayload,
+                    salesComment: modal.type === "sales_status" ? (payload.salesComment?.trim() || "") : ""
+                };
+                await updateRequestStatus(modal.request._id, modal.request.status, submitPayload);
             }
             onClose();
         } catch (error) {
@@ -213,22 +216,33 @@ export default function RequestActionModal({
                 {/* --- SALES STATUS UPDATE --- */}
                 {modal.type === "sales_status" && (
                     <div className="py-6 space-y-4">
-                        <Label className="text-zinc-600 font-bold">Current Communication Status</Label>
-                        <select
-                            className={selectClasses}
-                            value={payload.leadStatus || "Action required"}
-                            onChange={(e) => handlePayloadChange("leadStatus", e.target.value)}
-                            style={{
-                                backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%23a1a1aa' stroke-width='2'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E")`,
-                                backgroundRepeat: 'no-repeat',
-                                backgroundPosition: 'right 1rem center',
-                                backgroundSize: '1.2em'
-                            }}
-                        >
-                            {SALES_STATUSES.map(status => (
-                                <option key={status} value={status}>{status}</option>
-                            ))}
-                        </select>
+                        <div className="space-y-2">
+                            <Label className="text-zinc-600 font-bold">Current Communication Status</Label>
+                            <select
+                                className={selectClasses}
+                                value={payload.leadStatus || "Action required"}
+                                onChange={(e) => handlePayloadChange("leadStatus", e.target.value)}
+                                style={{
+                                    backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%23a1a1aa' stroke-width='2'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E")`,
+                                    backgroundRepeat: 'no-repeat',
+                                    backgroundPosition: 'right 1rem center',
+                                    backgroundSize: '1.2em'
+                                }}
+                            >
+                                {SALES_STATUSES.map(status => (
+                                    <option key={status} value={status}>{status}</option>
+                                ))}
+                            </select>
+                        </div>
+                        <div className="space-y-2 pt-2">
+                            <Label className="text-zinc-600 font-bold">Sales Status Update Note</Label>
+                            <Textarea
+                                value={payload.salesComment || ""}
+                                onChange={(e) => handlePayloadChange("salesComment", e.target.value)}
+                                className={`${inputClasses} min-h-[90px] resize-none`}
+                                placeholder="Add context regarding this communication update..."
+                            />
+                        </div>
                     </div>
                 )}
 
@@ -273,71 +287,39 @@ export default function RequestActionModal({
                 {/* --- DETAILS, HISTORY & NOTES --- */}
                 {modal.type === "details" && modal.request && (
                     <div className="space-y-8 mt-6">
-                        {/* INITIAL LEAD DATA */}
                         <div className="bg-white border border-black/5 shadow-sm rounded-2xl p-5 space-y-4 text-sm">
                             <h4 className="font-bold text-black border-b border-black/5 pb-2">Initial Lead Request</h4>
                             <div className="grid grid-cols-2 gap-x-4 gap-y-4">
-                                <div><span
-                                    className="block text-zinc-400 text-[10px] uppercase tracking-widest font-bold mb-1">Client Name</span><span
-                                    className="font-medium text-black">{modal.request.name}</span></div>
-                                <div><span
-                                    className="block text-zinc-400 text-[10px] uppercase tracking-widest font-bold mb-1">Contact Details</span><span
-                                    className="font-medium text-black">{modal.request.email}<br/>{modal.request.countryCode} {modal.request.phone}</span>
-                                </div>
-                                <div><span
-                                    className="block text-zinc-400 text-[10px] uppercase tracking-widest font-bold mb-1">Destination</span><span
-                                    className="font-medium text-black">{modal.request.countryOfImport}</span></div>
-                                <div><span
-                                    className="block text-zinc-400 text-[10px] uppercase tracking-widest font-bold mb-1">Vehicle</span><span
-                                    className="font-medium text-black">{modal.request.make} {modal.request.vehicle_model}</span>
-                                </div>
+                                <div><span className="block text-zinc-400 text-[10px] uppercase tracking-widest font-bold mb-1">Client Name</span><span className="font-medium text-black">{modal.request.name}</span></div>
+                                <div><span className="block text-zinc-400 text-[10px] uppercase tracking-widest font-bold mb-1">Contact Details</span><span className="font-medium text-black">{modal.request.email}<br/>{modal.request.countryCode} {modal.request.phone}</span></div>
+                                <div><span className="block text-zinc-400 text-[10px] uppercase tracking-widest font-bold mb-1">Destination</span><span className="font-medium text-black">{modal.request.countryOfImport}</span></div>
+                                <div><span className="block text-zinc-400 text-[10px] uppercase tracking-widest font-bold mb-1">Vehicle</span><span className="font-medium text-black">{modal.request.make} {modal.request.vehicle_model}</span></div>
                             </div>
                         </div>
 
-                        {/* PIPELINE DATA */}
                         <div className="bg-zinc-50 border border-black/5 rounded-2xl p-5 space-y-4 text-sm">
-                            <h4 className="font-bold text-black border-b border-black/5 pb-2">Collected Pipeline
-                                Data</h4>
+                            <h4 className="font-bold text-black border-b border-black/5 pb-2">Collected Pipeline Data</h4>
                             <div className="grid grid-cols-2 gap-x-4 gap-y-4">
-                                {modal.request.paymentType && <div><span
-                                    className="block text-zinc-400 text-[10px] uppercase tracking-widest font-bold mb-1">Payment Type</span><span
-                                    className="font-medium text-black">{modal.request.paymentType}</span></div>}
-                                {(modal.request.totalAmount || modal.request.agreedPrice) && <div><span
-                                    className="block text-zinc-400 text-[10px] uppercase tracking-widest font-bold mb-1">Total Agreed Price</span><span
-                                    className="font-medium text-black">${(modal.request.totalAmount || modal.request.agreedPrice).toLocaleString()}</span>
-                                </div>}
-                                {modal.request.vesselName && <div><span
-                                    className="block text-zinc-400 text-[10px] uppercase tracking-widest font-bold mb-1">Vessel</span><span
-                                    className="font-medium text-black">{modal.request.vesselName}</span></div>}
-                                {modal.request.eta && <div><span
-                                    className="block text-zinc-400 text-[10px] uppercase tracking-widest font-bold mb-1">ETA</span><span
-                                    className="font-medium text-black">{new Date(modal.request.eta).toLocaleDateString()}</span>
-                                </div>}
+                                {modal.request.paymentType && <div><span className="block text-zinc-400 text-[10px] uppercase tracking-widest font-bold mb-1">Payment Type</span><span className="font-medium text-black">{modal.request.paymentType}</span></div>}
+                                {(modal.request.totalAmount || modal.request.agreedPrice) && <div><span className="block text-zinc-400 text-[10px] uppercase tracking-widest font-bold mb-1">Total Agreed Price</span><span className="font-medium text-black">${(modal.request.totalAmount || modal.request.agreedPrice).toLocaleString()}</span></div>}
+                                {modal.request.vesselName && <div><span className="block text-zinc-400 text-[10px] uppercase tracking-widest font-bold mb-1">Vessel</span><span className="font-medium text-black">{modal.request.vesselName}</span></div>}
+                                {modal.request.eta && <div><span className="block text-zinc-400 text-[10px] uppercase tracking-widest font-bold mb-1">ETA</span><span className="font-medium text-black">{new Date(modal.request.eta).toLocaleDateString()}</span></div>}
                             </div>
                         </div>
 
-                        {/* HISTORY SECTION */}
                         <div className="space-y-3">
-                            <Label className="text-zinc-600 font-bold flex items-center gap-2">
-                                <Activity size={16}/> Activity History
-                            </Label>
-                            <div
-                                className="bg-white border border-black/5 rounded-2xl p-6 max-h-[350px] overflow-y-auto hide-scrollbar">
+                            <Label className="text-zinc-600 font-bold flex items-center gap-2"><Activity size={16}/> Activity History</Label>
+                            <div className="bg-white border border-black/5 rounded-2xl p-6 max-h-[350px] overflow-y-auto hide-scrollbar">
                                 {modal.request?.statusHistory && modal.request.statusHistory.length > 0 ? (
-                                    <div
-                                        className="relative space-y-6 before:absolute before:inset-0 before:ml-2 before:-translate-x-px md:before:mx-auto md:before:translate-x-0 before:h-full before:w-0.5 before:bg-zinc-100">
+                                    <div className="relative space-y-6 before:absolute before:inset-0 before:ml-2 before:-translate-x-px md:before:mx-auto md:before:translate-x-0 before:h-full before:w-0.5 before:bg-zinc-100">
                                         {[...modal.request.statusHistory].reverse().map((log: StatusHistoryItem, i: number) => {
                                             const styles = getStyles(log.action);
                                             return (
-                                                <div key={i}
-                                                     className="relative flex items-center justify-between md:justify-normal md:odd:flex-row-reverse group">
-                                                    <div
-                                                        className={`flex items-center justify-center w-4 h-4 rounded-full border-2 border-white ${styles.dot} shadow shrink-0 md:order-1 md:group-odd:-translate-x-1/2 md:group-even:translate-x-1/2 z-10`}></div>
-                                                    <div
-                                                        className={`w-[calc(100%-2.5rem)] md:w-[calc(50%-1.5rem)] p-4 rounded-xl border shadow-sm ${styles.box}`}>
+                                                <div key={i} className="relative flex items-center justify-between md:justify-normal md:odd:flex-row-reverse group">
+                                                    <div className={`flex items-center justify-center w-4 h-4 rounded-full border-2 border-white ${styles.dot} shadow shrink-0 md:order-1 md:group-odd:-translate-x-1/2 md:group-even:translate-x-1/2 z-10`}></div>
+                                                    <div className={`w-[calc(100%-2.5rem)] md:w-[calc(50%-1.5rem)] p-4 rounded-xl border shadow-sm ${styles.box}`}>
                                                         <div className="flex items-center justify-between mb-1">
-                                                            <div
-                                                                className="font-bold text-xs opacity-90">{log.performedBy}</div>
+                                                            <div className="font-bold text-xs opacity-90">{log.performedBy}</div>
                                                             <time className="text-[10px] font-bold opacity-60">
                                                                 {new Date(log.date).toLocaleString('en-US', {
                                                                     month: 'short',
@@ -347,53 +329,47 @@ export default function RequestActionModal({
                                                                 })}
                                                             </time>
                                                         </div>
-                                                        <div
-                                                            className="text-xs font-medium leading-relaxed">{log.action}</div>
+                                                        <div className="text-xs font-medium leading-relaxed">{log.action}</div>
+                                                        {log.comment && (
+                                                            <div className="mt-2 pt-1.5 border-t border-black/5 text-[11px] text-zinc-500 italic font-light bg-black/[0.01] px-2 py-1 rounded">
+                                                                "{log.comment}"
+                                                            </div>
+                                                        )}
                                                     </div>
                                                 </div>
                                             );
                                         })}
                                     </div>
                                 ) : (
-                                    <p className="text-xs text-center text-zinc-400 italic py-4">No activity history
-                                        found.</p>
+                                    <p className="text-xs text-center text-zinc-400 italic py-4">No activity history found.</p>
                                 )}
                             </div>
-                        </div>D
+                        </div>
 
-                        {/* ATTACHED DOCUMENTS */}
                         <div className="space-y-3">
-                            <Label className="text-zinc-600 font-bold flex items-center gap-2">
-                                <Paperclip size={16}/> Attached Documents
-                            </Label>
+                            <Label className="text-zinc-600 font-bold flex items-center gap-2"><Paperclip size={16}/> Attached Documents</Label>
                             {modal.request.documents && modal.request.documents.length > 0 ? (
                                 <div className="grid gap-2">
                                     {modal.request.documents.map((doc: any, i: number) => (
-                                        <a key={i} href={doc.fileUrl} target="_blank" rel="noopener noreferrer"
-                                           className="flex items-center gap-3 p-3 bg-white border border-black/5 rounded-xl hover:bg-zinc-50 transition-all group">
-                                            <div
-                                                className="p-2 bg-zinc-100 rounded-lg text-zinc-500 group-hover:text-black group-hover:bg-black/5 transition-colors">
+                                        <a key={i} href={doc.fileUrl} target="_blank" rel="noopener noreferrer" className="flex items-center gap-3 p-3 bg-white border border-black/5 rounded-xl hover:bg-zinc-50 transition-all group">
+                                            <div className="p-2 bg-zinc-100 rounded-lg text-zinc-500 group-hover:text-black group-hover:bg-black/5 transition-colors">
                                                 {doc.fileType === "pdf" ? <File size={18}/> : <ImageIcon size={18}/>}
                                             </div>
                                             <div className="flex-1 min-w-0">
                                                 <p className="text-sm font-semibold text-black truncate">{doc.fieldName}</p>
-                                                <Badge variant="outline"
-                                                       className="text-[9px] uppercase tracking-tighter py-0 px-1.5 h-4 bg-zinc-100 border-none text-zinc-500 mt-1">
+                                                <Badge variant="outline" className="text-[9px] uppercase tracking-tighter py-0 px-1.5 h-4 bg-zinc-100 border-none text-zinc-500 mt-1">
                                                     {doc.stageAdded}
                                                 </Badge>
                                             </div>
-                                            <ExternalLink size={14}
-                                                          className="text-zinc-300 group-hover:text-black mr-2"/>
+                                            <ExternalLink size={14} className="text-zinc-300 group-hover:text-black mr-2"/>
                                         </a>
                                     ))}
                                 </div>
                             ) : (
-                                <p className="text-xs text-zinc-400 italic py-4 text-center border border-dashed border-black/10 rounded-xl">No
-                                    files uploaded.</p>
+                                <p className="text-xs text-zinc-400 italic py-4 text-center border border-dashed border-black/10 rounded-xl">No files uploaded.</p>
                             )}
                         </div>
 
-                        {/* INTERNAL NOTES */}
                         <div className="space-y-2">
                             <Label className="text-zinc-600 font-bold">Internal Admin Notes</Label>
                             <Textarea
@@ -403,6 +379,19 @@ export default function RequestActionModal({
                                 placeholder="Add private internal notes..."
                             />
                         </div>
+                    </div>
+                )}
+
+                {/* --- PIPELINE STAGE CHANGE COMMENTS --- */}
+                {(modal.type === "advance" || modal.type === "revert") && (
+                    <div className="mt-4 space-y-2">
+                        <Label className="text-zinc-600 font-bold">Stage Update Note / Comment</Label>
+                        <Textarea
+                            value={payload.stageComment || ""}
+                            onChange={(e) => handlePayloadChange("stageComment", e.target.value)}
+                            className={`${inputClasses} min-h-[90px] resize-none`}
+                            placeholder={modal.type === "revert" ? "Why is this lead moving backwards?..." : "Add custom updates about what happened during this stage jump..."}
+                        />
                     </div>
                 )}
 
@@ -458,8 +447,7 @@ export default function RequestActionModal({
                                             <select className={selectClasses} value={payload.balancePaymentStage || ""}
                                                     onChange={(e) => handlePayloadChange("balancePaymentStage", e.target.value)}>
                                                 <option value="" disabled>Select a stage...</option>
-                                                {PIPELINE_STAGES.map(stage => <option key={stage}
-                                                                                      value={stage}>{stage}</option>)}
+                                                {PIPELINE_STAGES.map(stage => <option key={stage} value={stage}>{stage}</option>)}
                                             </select>
                                         </div>
                                     </div>
@@ -469,22 +457,10 @@ export default function RequestActionModal({
 
                         {modal.targetStage === "Shipped" && (
                             <div className="grid grid-cols-2 gap-4">
-                                <div className="col-span-2 space-y-2"><Label className="text-zinc-600 font-bold">Vessel
-                                    Name</Label><Input
-                                    onChange={(e) => handlePayloadChange("vesselName", e.target.value)}
-                                    className={inputClasses} placeholder="e.g. Ever Given"/></div>
-                                <div className="space-y-2"><Label className="text-zinc-600 font-bold">Container
-                                    #</Label><Input
-                                    onChange={(e) => handlePayloadChange("containerNumber", e.target.value)}
-                                    className={inputClasses} placeholder="e.g. HLBU1234567"/></div>
-                                <div className="space-y-2"><Label className="text-zinc-600 font-bold">Port of
-                                    Arrival</Label><Input
-                                    onChange={(e) => handlePayloadChange("portOfArrival", e.target.value)}
-                                    className={inputClasses} placeholder="e.g. Port of Los Angeles"/></div>
-                                <div className="col-span-2 space-y-2"><Label className="text-zinc-600 font-bold">ETA
-                                    (Date)</Label><Input type="date"
-                                                         onChange={(e) => handlePayloadChange("eta", e.target.value)}
-                                                         className={inputClasses}/></div>
+                                <div className="col-span-2 space-y-2"><Label className="text-zinc-600 font-bold">Vessel Name</Label><Input onChange={(e) => handlePayloadChange("vesselName", e.target.value)} className={inputClasses} placeholder="e.g. Ever Given"/></div>
+                                <div className="space-y-2"><Label className="text-zinc-600 font-bold">Container #</Label><Input onChange={(e) => handlePayloadChange("containerNumber", e.target.value)} className={inputClasses} placeholder="e.g. HLBU1234567"/></div>
+                                <div className="space-y-2"><Label className="text-zinc-600 font-bold">Port of Arrival</Label><Input onChange={(e) => handlePayloadChange("portOfArrival", e.target.value)} className={inputClasses} placeholder="e.g. Port of Los Angeles"/></div>
+                                <div className="col-span-2 space-y-2"><Label className="text-zinc-600 font-bold">ETA (Date)</Label><Input type="date" onChange={(e) => handlePayloadChange("eta", e.target.value)} className={inputClasses}/></div>
                             </div>
                         )}
 
@@ -494,19 +470,8 @@ export default function RequestActionModal({
                     </div>
                 )}
 
-                {/* --- REVERT NOTES --- */}
-                {modal.type === "revert" && (
-                    <div className="py-6 space-y-4">
-                        <Label className="text-zinc-600 font-bold">Reason for Reverting (Optional)</Label>
-                        <Textarea onChange={(e) => handlePayloadChange("adminNotes", e.target.value)}
-                                  className={`${inputClasses} min-h-[100px] resize-none`}
-                                  placeholder="Why is this moving backwards?..."/>
-                    </div>
-                )}
-
                 <DialogFooter className="mt-6 border-t border-black/5 pt-6">
-                    <Button variant="outline" onClick={onClose} disabled={isProcessing}
-                            className="border-black/10 text-zinc-600 hover:bg-zinc-50 rounded-xl px-6">
+                    <Button variant="outline" onClick={onClose} disabled={isProcessing} className="border-black/10 text-zinc-600 hover:bg-zinc-50 rounded-xl px-6">
                         Cancel
                     </Button>
                     <Button
@@ -530,7 +495,6 @@ export default function RequestActionModal({
                 .hide-scrollbar::-webkit-scrollbar {
                     display: none;
                 }
-
                 .hide-scrollbar {
                     -ms-overflow-style: none;
                     scrollbar-width: none;

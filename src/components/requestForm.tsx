@@ -5,6 +5,9 @@ import { useSearchParams } from "next/navigation";
 import { Loader2, ArrowLeft, ChevronDown, AlertCircle, User } from "lucide-react";
 import { submitCarRequest } from "@/actions/request-actions";
 import { motion, AnimatePresence } from "framer-motion";
+import PhoneInput from 'react-phone-number-input';
+import { isValidPhoneNumber } from 'libphonenumber-js';
+import 'react-phone-number-input/style.css'; // Don't forget the CSS
 
 const TOTAL_STEPS = 3;
 
@@ -385,7 +388,7 @@ interface AgentData {
     image: string;
 }
 
-export default function RequestForm() {
+export default function RequestForm({ prefill }: { prefill?: Partial<typeof initialFormState> }) {
     const searchParams = useSearchParams();
 
     const [step, setStep] = useState(1);
@@ -415,6 +418,17 @@ export default function RequestForm() {
             fbp: getCookie('_fbp') || ''
         });
     }, [searchParams]);
+
+    useEffect(() => {
+        if (prefill) {
+            setFormData(prev => ({
+                ...prev,
+                ...prefill,
+                // Ensure condition is "Used" if it's a specific car from the gallery
+                condition: "Used"
+            }));
+        }
+    }, [prefill]);
 
     useEffect(() => {
         if (!formData.make) {
@@ -484,7 +498,12 @@ export default function RequestForm() {
         if (step === 3) {
             if (!formData.name.trim()) newErrors.name = "Full name is required";
             if (!formData.email.trim() || !/^\S+@\S+\.\S+$/.test(formData.email)) newErrors.email = "Valid email is required";
-            if (!formData.phone.trim()) newErrors.phone = "Phone number is required";
+            // Robust Phone Validation
+            if (!formData.phone) {
+                newErrors.phone = "Phone number is required";
+            } else if (!isValidPhoneNumber(formData.phone)) {
+                newErrors.phone = "Invalid phone number for the selected country";
+            }
             if (!formData.countryOfImport) newErrors.countryOfImport = "Destination country is required";
         }
 
@@ -734,18 +753,22 @@ export default function RequestForm() {
                                         </div>
                                     </div>
 
-                                    <div className="grid grid-cols-1 md:grid-cols-12 gap-8">
-                                        <div className="md:col-span-4 relative">
-                                            <SelectDropdown
-                                                id="countryCode" placeholder="Code"
-                                                options={COUNTRIES.map(c => ({ label: `${c.c} ${c.n}`, value: c.c }))}
-                                                value={formData.countryCode} onChange={handleDropdownChange}
-                                            />
-                                        </div>
-                                        <div className="md:col-span-8 relative">
-                                            <input id="phone" value={formData.phone} onChange={handleInputChange} placeholder="Phone Number" className={inputClasses("phone")} />
-                                            {errors.phone && <p className="absolute -bottom-5 left-0 text-[10px] font-bold text-red-500 flex items-center gap-1"><AlertCircle size={10}/> {errors.phone}</p>}
-                                        </div>
+                                    <div className="relative">
+                                        <label className="text-[10px] font-bold text-[#4da8da] uppercase tracking-wider block mb-1">
+                                            WhatsApp / Phone Number
+                                        </label>
+                                        <PhoneInput
+                                            international
+                                            defaultCountry="US"
+                                            value={formData.phone}
+                                            onChange={(val) => setFormData(prev => ({ ...prev, phone: val || "" }))}
+                                            className={`w-full bg-transparent border-b pb-2 ${errors.phone ? "border-red-500" : "border-black/10"}`}
+                                        />
+                                        {errors.phone && (
+                                            <p className="absolute -bottom-5 left-0 text-[10px] font-bold text-red-500 flex items-center gap-1">
+                                                <AlertCircle size={10}/> {errors.phone}
+                                            </p>
+                                        )}
                                     </div>
 
                                     <div className="relative">

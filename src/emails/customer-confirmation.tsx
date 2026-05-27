@@ -35,7 +35,7 @@ export const CustomerConfirmationEmail = ({ userName, make, model, requestId, st
                         <Column style={imageColumnStyle}>
                             {/* Placeholder image matching the car from the image */}
                             <Img
-                                src="https://example.com/images/black-coupe-rear.jpg"
+                                src="https://www.providenceauto.co.uk/email.png"
                                 alt="Black Coupe Rear"
                                 width="280"
                                 height="180"

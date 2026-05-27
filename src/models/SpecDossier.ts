@@ -1,51 +1,64 @@
-import mongoose, { Schema, models } from "mongoose";
+import mongoose, {models, Schema} from "mongoose";
+
+const PriceEntrySchema = new Schema({
+    country: {type: String, required: true},
+    currency: {type: String, default: "USD"},
+    amount: {type: Number, required: true},
+    type: {type: String, enum: ["CIF", "FOB", "Landed", "Ex-Works"], default: "CIF"},
+    isPublic: {type: Boolean, default: true}
+});
 
 const SpecDossierSchema = new Schema(
     {
-            // Vehicle Overview (The Basics)
-            make: { type: String, required: true },
-            model: { type: String, required: true },
-            year: { type: String, default: "" },
-            trim: { type: String, default: "" },
-            color: { type: String, default: "" },
-            price: { type: String, default: "" },
+        // Vehicle Overview (Template details)
+        make: {type: String, required: true},
+        model: {type: String, required: true},
+        year: {type: String, default: ""},
+        trim: {type: String, default: ""},
 
-            // Provenance
-            countryOfOrigin: { type: String, default: "japan" },
-            mileage: { type: String, default: "" },
-            serviceHistory: { type: String, default: "full" },
-            owners: { type: String, default: "" },
+        // Provenance (Spec market origin)
+        countryOfOrigin: {type: String, default: "Japan"},
 
-            // Identification
-            vin: { type: String, required: true, unique: true },
-            engineNumber: { type: String, default: "" },
+        // Mechanics
+        engineConfig: {type: String, default: ""},
+        displacement: {type: String, default: ""},
+        maxPower: {type: String, default: ""},
+        maxTorque: {type: String, default: ""},
+        transmission: {type: String, default: ""},
+        fuelSystem: {type: String, default: "Petrol"},
+        steering: {type: String, default: "RHD"},
+        emissions: {type: String, default: ""},
 
-            // Mechanics
-            engineConfig: { type: String, default: "" },
-            displacement: { type: String, default: "" },
-            maxPower: { type: String, default: "" },
-            maxTorque: { type: String, default: "" },
-            transmission: { type: String, default: "" },
-            fuelSystem: { type: String, default: "Petrol" },
+        // New Pricing Matrix field
+        pricing: [PriceEntrySchema],
 
-            // Interior & Tech
-            upholstery: { type: String, default: "" },
-            infotainment: { type: String, default: "" },
-            features: [{ type: String }],
-            images: [{ type: String }], // Array to store Cloudflare R2 URLs
-            notes: { type: String, default: "" },
+        // Interior & Tech
+        upholstery: {type: String, default: ""},
+        infotainment: {type: String, default: ""},
 
-            // Compliance
-            auctionGrade: { type: String, default: "S" },
-            emissions: { type: String, default: "" },
-            steering: { type: String, default: "RHD" },
+        // Tagging & Arrays
+        features: [{type: String}], // e.g., "Panoramic Roof", "Heated Seats"
+        searchTags: [{type: String}], // e.g., "SUV", "Off-Road", "Family", "JDM"
+        heroImageUrl: { type: String, default: "" },
+        images: [{type: String}], // Array to store Cloudflare R2 URLs
 
-            // Metadata
-            status: { type: String, default: "Draft" },
+        // --- ADD THESE FIELDS INSIDE SpecDossierSchema ---
+        customData: [{
+            label: {type: String, required: true},
+            value: {type: String, required: true}
+        }],
+        valuePoints: [{
+            title: {type: String, required: true},
+            description: {type: String, required: true}
+        }],
+
+        slug: { type: String, default: "", trim: true },
+
+        // Metadata
+        notes: {type: String, default: ""},
+        status: {type: String, default: "Draft"},
     },
-    { timestamps: true }
+    {timestamps: true}
 );
 
-const SpecDossier = models.SpecDossier || mongoose.model("SpecDossier", SpecDossierSchema);
-
-export default SpecDossier;
+export const SpecDossier = models.SpecDossier || mongoose.model("SpecDossier", SpecDossierSchema);
