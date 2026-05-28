@@ -250,7 +250,7 @@ export default function IrelandCostCalculator() {
   };
 
   const [showSwipeHint, setShowSwipeHint] = useState(false);
-  const swipeRef = useRef<{ key: keyof FormState; startX: number } | null>(null);
+  const swipeRef = useRef<{ key: keyof FormState; startX: number; baseValue: number } | null>(null);
 
   useEffect(() => {
     if (!localStorage.getItem("swipeHintSeen")) {
@@ -263,24 +263,29 @@ export default function IrelandCostCalculator() {
 
   const handleSwipeStart = (key: keyof FormState, clientX: number, el: HTMLElement, pointerId: number) => {
     el.setPointerCapture(pointerId);
-    swipeRef.current = { key, startX: clientX };
+    const baseValue = key === "purchasePrice" ? form.purchasePrice
+      : key === "shippingCost" ? form.shippingCost
+      : key === "omsp" ? form.omsp : 0;
+    swipeRef.current = { key, startX: clientX, baseValue };
   };
 
-  const handleSwipeEnd = (clientX: number) => {
+  // Live update on every move — computes value from base so stale closures don't accumulate error
+  const handleSwipeMove = (clientX: number) => {
     if (!swipeRef.current) return;
-    const { key, startX } = swipeRef.current;
-    swipeRef.current = null;
-    const delta = clientX - startX;
-    if (Math.abs(delta) < 30) return;
-    const direction = delta > 0 ? 1 : -1;
+    const { key, startX, baseValue } = swipeRef.current;
+    const steps = Math.round((clientX - startX) / 32);
     if (key === "purchasePrice") {
-      const step = Math.round(500 / (EXCHANGE_RATES[form.currency] ?? 1));
-      set("purchasePrice", Math.max(step, form.purchasePrice + direction * step));
+      const stepSize = Math.round(500 / (EXCHANGE_RATES[form.currency] ?? 1));
+      set("purchasePrice", Math.max(stepSize, baseValue + steps * stepSize));
     } else if (key === "shippingCost") {
-      set("shippingCost", Math.max(0, form.shippingCost + direction * 100));
+      set("shippingCost", Math.max(0, baseValue + steps * 100));
     } else if (key === "omsp") {
-      set("omsp", Math.max(1000, form.omsp + direction * 500));
+      set("omsp", Math.max(1000, baseValue + steps * 500));
     }
+  };
+
+  const handleSwipeEnd = () => {
+    swipeRef.current = null;
   };
 
   return (
@@ -300,8 +305,9 @@ export default function IrelandCostCalculator() {
               transition={showSwipeHint ? { delay: 0.7, duration: 0.6 } : {}}
               className="flex flex-col items-start shrink-0 cursor-ew-resize select-none touch-none active:opacity-70 transition-opacity"
               onPointerDown={e => handleSwipeStart("purchasePrice", e.clientX, e.currentTarget, e.pointerId)}
-              onPointerUp={e => handleSwipeEnd(e.clientX)}
-              onPointerCancel={() => { swipeRef.current = null; }}
+              onPointerMove={e => handleSwipeMove(e.clientX)}
+              onPointerUp={handleSwipeEnd}
+              onPointerCancel={handleSwipeEnd}
             >
               <span className="text-[9px] font-semibold tracking-normal sm:tracking-[0.1em] uppercase text-zinc-400 leading-none mb-[3px]">
                 <span className="sm:hidden">Buy</span><span className="hidden sm:inline">Purchase</span>
@@ -315,8 +321,9 @@ export default function IrelandCostCalculator() {
             <div
               className="flex flex-col items-start shrink-0 cursor-ew-resize select-none touch-none active:opacity-70 transition-opacity"
               onPointerDown={e => handleSwipeStart("shippingCost", e.clientX, e.currentTarget, e.pointerId)}
-              onPointerUp={e => handleSwipeEnd(e.clientX)}
-              onPointerCancel={() => { swipeRef.current = null; }}
+              onPointerMove={e => handleSwipeMove(e.clientX)}
+              onPointerUp={handleSwipeEnd}
+              onPointerCancel={handleSwipeEnd}
             >
               <span className="text-[9px] font-semibold tracking-normal sm:tracking-[0.1em] uppercase text-zinc-400 leading-none mb-[3px]">
                 <span className="sm:hidden">Ship</span><span className="hidden sm:inline">Shipping</span>
@@ -330,8 +337,9 @@ export default function IrelandCostCalculator() {
             <div
               className="flex flex-col items-start shrink-0 cursor-ew-resize select-none touch-none active:opacity-70 transition-opacity"
               onPointerDown={e => handleSwipeStart("omsp", e.clientX, e.currentTarget, e.pointerId)}
-              onPointerUp={e => handleSwipeEnd(e.clientX)}
-              onPointerCancel={() => { swipeRef.current = null; }}
+              onPointerMove={e => handleSwipeMove(e.clientX)}
+              onPointerUp={handleSwipeEnd}
+              onPointerCancel={handleSwipeEnd}
             >
               <span className="text-[9px] font-semibold tracking-normal sm:tracking-[0.1em] uppercase text-zinc-400 leading-none mb-[3px]">OMSP</span>
               <span className="text-[13px] sm:text-sm font-bold text-black leading-none">{fmt(form.omsp)}</span>
