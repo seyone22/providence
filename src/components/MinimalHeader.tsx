@@ -1,6 +1,31 @@
+"use client";
+
 import Link from "next/link";
+import { usePathname, useRouter } from "next/navigation";
 
 export default function MinimalHeader() {
+    const pathname = usePathname();
+    const router = useRouter();
+
+    const handleBeginInquiry = () => {
+        // Home page: jump to the pathway-selection section (For Direct Buyers / For Dealerships)
+        if (pathname === "/") {
+            document.getElementById("pathway-section")?.scrollIntoView({ behavior: "smooth" });
+            return;
+        }
+
+        // Any page with an embedded inquiry form: scroll directly to it
+        const formEl = document.getElementById("inquiry-form");
+        if (formEl) {
+            formEl.scrollIntoView({ behavior: "smooth" });
+            return;
+        }
+
+        // No form on this page: navigate to /request, tagging the originating page
+        // so the form can attribute the lead correctly.
+        router.push(`/request?ref=${encodeURIComponent(pathname)}`);
+    };
+
     return (
         <header className="fixed top-0 w-full z-50 h-16 flex items-center bg-gray-500/20 backdrop-blur-md border-b border-gray-500/30 shadow-sm transition-colors duration-300">
             <div className="w-full max-w-7xl mx-auto px-6 flex justify-between items-center">
@@ -18,16 +43,16 @@ export default function MinimalHeader() {
                     </div>
                 </Link>
 
-                <Link href="/request">
-                    <button className="px-6 py-2 text-sm font-medium text-white
+                <button
+                    onClick={handleBeginInquiry}
+                    className="px-6 py-2 text-sm font-medium text-white
                         bg-sky-400/60 backdrop-blur-xl
                         border border-sky-400/30
                         shadow-[0_8px_32px_rgba(14,165,233,0.25)]
                         hover:bg-sky-500/60 hover:shadow-[0_8px_12px_rgba(a,165,233,0.4)]
                         rounded-full transition-all duration-300 active:scale-95">
-                        Begin Inquiry
-                    </button>
-                </Link>
+                    Begin Inquiry
+                </button>
             </div>
         </header>
     );
