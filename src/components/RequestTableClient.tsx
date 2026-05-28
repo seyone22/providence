@@ -204,6 +204,13 @@ export default function RequestTableClient({
                                                     <span className="px-1.5 py-0.5 bg-black/5 border border-black/10 rounded text-[10px] text-black font-medium">Brand New</span>
                                                 )}
                                             </div>
+                                            {req.source && (
+                                                <div className="mt-2">
+                                                    <span className="inline-flex items-center gap-1 px-1.5 py-0.5 bg-violet-50 border border-violet-100 rounded text-[10px] text-violet-600 font-medium">
+                                                        <MapPin size={9} /> {req.source}
+                                                    </span>
+                                                </div>
+                                            )}
                                         </TableCell>
 
                                         <TableCell className="align-top">

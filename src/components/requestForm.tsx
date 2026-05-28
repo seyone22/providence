@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { useSearchParams } from "next/navigation";
+import { useSearchParams, usePathname } from "next/navigation";
 import { Loader2, ArrowLeft, ChevronDown, AlertCircle, User } from "lucide-react";
 import { submitCarRequest } from "@/actions/request-actions";
 import { motion, AnimatePresence } from "framer-motion";
@@ -395,8 +395,26 @@ interface AgentData {
     image: string;
 }
 
+/** Map a Next.js pathname to a human-readable lead source label. */
+function pathnameToSource(pathname: string): string {
+    if (!pathname || pathname === "/") return "Home Page";
+    const slug = pathname.replace(/^\//, "").replace(/\/$/, "");
+    const MAP: Record<string, string> = {
+        "request":                            "Request Page",
+        "b2b":                                "B2B Landing",
+        "b2c":                                "B2C Landing",
+        "import-japanese-cars-to-ireland":    "Import to Ireland",
+        "ireland-cost-calculator":            "Ireland Calculator",
+    };
+    if (MAP[slug]) return MAP[slug];
+    if (slug.startsWith("campaigns/")) return `Campaign: ${slug.replace("campaigns/", "")}`;
+    // Prettify unknown slugs: kebab-case → Title Case
+    return slug.replace(/-/g, " ").replace(/\b\w/g, c => c.toUpperCase());
+}
+
 export default function RequestForm({ prefill, defaultPhoneCountry = "US" }: { prefill?: Partial<typeof initialFormState>; defaultPhoneCountry?: string }) {
     const searchParams = useSearchParams();
+    const pathname = usePathname();
 
     const [step, setStep] = useState(1);
     const [isSubmitting, setIsSubmitting] = useState(false);
@@ -598,6 +616,7 @@ export default function RequestForm({ prefill, defaultPhoneCountry = "US" }: { p
                 phone: formData.phone,
                 countryOfImport: formData.countryOfImport,
                 importTimeline: formData.importTimeline || undefined,
+                source: pathnameToSource(pathname),
                 ...trackingData
             };
 

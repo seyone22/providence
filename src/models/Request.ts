@@ -62,6 +62,8 @@ export interface IRequest extends Document {
     customsNotes?: string;
     adminNotes?: string;
 
+    source?: string;
+
     gclid?: string;
     fbclid?: string;
     fbc?: string;
@@ -119,6 +121,8 @@ const RequestSchema: Schema = new Schema(
 
         customsNotes: {type: String},
         adminNotes: {type: String},
+
+        source: {type: String},
 
         gclid: {type: String},
         fbclid: {type: String},
