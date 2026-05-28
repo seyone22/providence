@@ -47,6 +47,7 @@ export default function DashboardClient({ requests, staffUsers, currentUserId }:
     const [carFilter, setCarFilter] = useState("All");
     const [sortBy, setSortBy] = useState("newest");
     const [countryFilter, setCountryFilter] = useState("All");
+    const [sourceFilter, setSourceFilter] = useState("All");
 
     const [showDatePicker, setShowDatePicker] = useState(false);
 
@@ -78,6 +79,13 @@ export default function DashboardClient({ requests, staffUsers, currentUserId }:
         );
 
         return Array.from(countries).sort();
+    }, [requests]);
+
+    const uniqueSources = useMemo(() => {
+        const sources = new Set(
+            requests.map((req: any) => req.source).filter(Boolean)
+        );
+        return Array.from(sources).sort() as string[];
     }, [requests]);
 
     // THE MASTER FILTER LOGIC (Affects Stats, Chart, and Table)
@@ -115,15 +123,19 @@ export default function DashboardClient({ requests, staffUsers, currentUserId }:
                 const carName = `${req.make} ${req.vehicle_model}`.trim();
                 const matchesCar = carFilter === "All" || carName === carFilter;
 
+                const matchesSource =
+                    sourceFilter === "All" ||
+                    (req.source || "Unknown") === sourceFilter;
+
                 return matchesSearch && matchesStage && matchesStatus &&
-                    matchesStaff && matchesCar && matchesCountry && matchesDate;
+                    matchesStaff && matchesCar && matchesCountry && matchesDate && matchesSource;
             })
             .sort((a: any, b: any) => {
                 const dateA = new Date(a.createdAt).getTime();
                 const dateB = new Date(b.createdAt).getTime();
                 return sortBy === "newest" ? dateB - dateA : dateA - dateB;
             });
-    }, [requests, searchQuery, stageFilter, countryFilter, statusFilter, staffFilter, carFilter, sortBy]);
+    }, [requests, searchQuery, stageFilter, countryFilter, statusFilter, staffFilter, carFilter, sourceFilter, sortBy]);
 
     // Top Level Stats calculated from FILTERED data
     const stats = [
@@ -266,6 +278,17 @@ export default function DashboardClient({ requests, staffUsers, currentUserId }:
                                 <option key={status} value={status}>{status}</option>
                             ))}
                         </select>
+
+                        <select
+                            value={sourceFilter}
+                            onChange={(e) => setSourceFilter(e.target.value)}
+                            className="pl-3 pr-8 py-2 text-sm bg-white border border-zinc-200 hover:border-zinc-300 rounded-xl text-zinc-600 font-semibold cursor-pointer outline-none transition-all appearance-none bg-[url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20width%3D%2220%22%20height%3D%2220%22%20viewBox%3D%220%200%2020%2020%22%20fill%3D%22none%22%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%3E%3Cpath%20d%3D%22M5%207.5L10%2012.5L15%207.5%22%20stroke%3D%22%2371717a%22%20stroke-width%3D%221.5%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22/%3E%3C/svg%3E')] bg-[length:1.25rem_1.25rem] bg-[right_0.5rem_center] bg-no-repeat"
+                        >
+                            <option value="All">All Sources</option>
+                            {uniqueSources.map((source) => (
+                                <option key={source} value={source}>{source}</option>
+                            ))}
+                        </select>
                     </div>
 
                     <div className="flex items-center gap-2">
@@ -312,7 +335,8 @@ export default function DashboardClient({ requests, staffUsers, currentUserId }:
                             carFilter !== "All" ||
                             countryFilter !== "All" ||
                             stageFilter !== "All" ||
-                            statusFilter !== "All"
+                            statusFilter !== "All" ||
+                            sourceFilter !== "All"
                         ) && (
                             <button
                                 onClick={() => {
@@ -322,6 +346,7 @@ export default function DashboardClient({ requests, staffUsers, currentUserId }:
                                     setStageFilter("All");
                                     setStatusFilter("All");
                                     setCountryFilter("All");
+                                    setSourceFilter("All");
                                 }}
                                 className="p-2 text-red-500 hover:bg-red-50 rounded-xl transition-colors border border-transparent hover:border-red-100"
                                 title="Reset Filters"
