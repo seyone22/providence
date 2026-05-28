@@ -37,6 +37,26 @@ export const SALES_STATUSES = [
     "Lead Lost",
 ];
 
+const BASE_URL = "https://providenceauto.co.uk";
+
+/** Map a stored source label back to a full URL for the "open page" link. */
+function sourceToUrl(source: string): string {
+    const MAP: Record<string, string> = {
+        "Home Page":          `${BASE_URL}/`,
+        "Request Page":       `${BASE_URL}/request`,
+        "B2B Landing":        `${BASE_URL}/b2b`,
+        "B2C Landing":        `${BASE_URL}/b2c`,
+        "Import to Ireland":  `${BASE_URL}/import-japanese-cars-to-ireland`,
+        "Ireland Calculator": `${BASE_URL}/ireland-cost-calculator`,
+    };
+    if (MAP[source]) return MAP[source];
+    // Handle "Campaign: [slug]" → /campaigns/[slug]
+    if (source.startsWith("Campaign: ")) {
+        return `${BASE_URL}/campaigns/${source.replace("Campaign: ", "")}`;
+    }
+    return BASE_URL;
+}
+
 // ADDED "sales_status" to the type definition
 type ActionModalState = {
     isOpen: boolean;
@@ -206,9 +226,14 @@ export default function RequestTableClient({
                                             </div>
                                             {req.source && (
                                                 <div className="mt-2">
-                                                    <span className="inline-flex items-center gap-1 px-1.5 py-0.5 bg-violet-50 border border-violet-100 rounded text-[10px] text-violet-600 font-medium">
+                                                    <a
+                                                        href={sourceToUrl(req.source)}
+                                                        target="_blank"
+                                                        rel="noopener noreferrer"
+                                                        className="inline-flex items-center gap-1 px-1.5 py-0.5 bg-violet-50 border border-violet-100 rounded text-[10px] text-violet-600 font-medium hover:bg-violet-100 hover:border-violet-300 transition-colors"
+                                                    >
                                                         <MapPin size={9} /> {req.source}
-                                                    </span>
+                                                    </a>
                                                 </div>
                                             )}
                                         </TableCell>
