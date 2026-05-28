@@ -246,7 +246,7 @@ export default function IrelandCostCalculator() {
     : 0;
 
   const scrollToForm = () => {
-    document.getElementById("calculator-inputs")?.scrollIntoView({ behavior: "smooth", block: "start" });
+    document.getElementById("purchase-shipping-card")?.scrollIntoView({ behavior: "smooth", block: "start" });
   };
 
   return (
@@ -254,37 +254,27 @@ export default function IrelandCostCalculator() {
       <MinimalHeader />
 
       {/* ── Sticky "calculating for" summary bar ──────────────────────── */}
-      <div className="fixed top-20 left-0 right-0 z-40 bg-white/95 backdrop-blur-sm border-b border-black/[0.07] flex items-center min-h-[46px]">
-        <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 py-2 flex items-center justify-between gap-3 sm:gap-6">
-          {/* Left: label + values */}
-          <div className="flex items-center gap-2 sm:gap-4 min-w-0 overflow-hidden">
-            <span className="text-[10px] font-bold tracking-[0.15em] uppercase text-zinc-400 shrink-0 hidden sm:inline">
+      <div className="fixed top-20 left-0 right-0 z-40 bg-white/95 backdrop-blur-sm border-b border-black/[0.07]">
+        <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 h-[44px] flex items-center justify-between gap-3">
+
+          {/* Left: label + values — all items-center, no baseline mixing */}
+          <div className="flex items-center gap-2.5 sm:gap-3.5 min-w-0">
+            <span className="text-[10px] font-bold tracking-[0.15em] uppercase text-zinc-400 shrink-0 hidden sm:block">
               Calculating for
             </span>
-            <span className="text-zinc-200 hidden sm:inline">·</span>
+            <span className="text-zinc-300 hidden sm:block" aria-hidden>·</span>
 
-            <span className="flex items-baseline gap-1 shrink-0">
-              <span className="text-sm font-bold text-black">{fmt(calc.priceEUR)}</span>
-              <span className="text-[10px] text-zinc-400 hidden xs:inline">purchase</span>
-            </span>
+            <span className="text-sm font-bold text-black shrink-0">{fmt(calc.priceEUR)}</span>
+            <span className="text-zinc-300" aria-hidden>·</span>
+            <span className="text-sm font-bold text-black shrink-0">{fmt(form.shippingCost)}</span>
+            <span className="text-zinc-300" aria-hidden>·</span>
+            <span className="text-sm font-bold text-black shrink-0">{fmt(form.omsp)}</span>
 
-            <span className="text-zinc-200">·</span>
-
-            <span className="flex items-baseline gap-1 shrink-0">
-              <span className="text-sm font-bold text-black">{fmt(form.shippingCost)}</span>
-              <span className="text-[10px] text-zinc-400 hidden xs:inline">shipping</span>
-            </span>
-
-            <span className="text-zinc-200">·</span>
-
-            <span className="flex items-baseline gap-1 shrink-0">
-              <span className="text-sm font-bold text-black">{fmt(form.omsp)}</span>
-              <span className="text-[10px] text-zinc-400 hidden xs:inline">OMSP</span>
-            </span>
-
-            <span className="text-zinc-200 hidden lg:inline">·</span>
-            <span className="hidden lg:flex items-baseline gap-1">
-              <span className="text-[10px] text-zinc-400">Total landed</span>
+            {/* Total landed — arrow separator on mobile, dot on sm+ */}
+            <span className="text-zinc-300 sm:hidden" aria-hidden>→</span>
+            <span className="text-zinc-300 hidden sm:block" aria-hidden>·</span>
+            <span className="flex items-center gap-1.5 shrink-0">
+              <span className="text-[10px] text-zinc-400 hidden sm:block">Total landed</span>
               <span className="text-sm font-bold text-[#4da8da]">{fmt(calc.totalLanded)}</span>
             </span>
           </div>
@@ -292,7 +282,7 @@ export default function IrelandCostCalculator() {
           {/* Right: Change button */}
           <button
             onClick={scrollToForm}
-            className="flex items-center gap-1.5 text-[11px] font-bold text-sky-500 hover:text-white hover:bg-sky-500 border border-sky-400/40 hover:border-sky-500 rounded-lg px-3 py-1.5 transition-all duration-200 shrink-0"
+            className="flex items-center gap-1 text-[11px] font-bold text-sky-500 hover:text-white hover:bg-sky-500 border border-sky-400/40 hover:border-sky-500 rounded-lg px-3 py-1.5 transition-all duration-200 shrink-0"
           >
             Change <ChevronDown size={12} />
           </button>
@@ -553,7 +543,7 @@ export default function IrelandCostCalculator() {
               </Card>
 
               {/* Card: Purchase & Shipping */}
-              <Card title="Purchase & Shipping">
+              <Card id="purchase-shipping-card" title="Purchase & Shipping">
                 <div className="grid grid-cols-3 gap-4">
                   <div className="col-span-2">
                     <Field label="Purchase Price">
@@ -632,7 +622,15 @@ export default function IrelandCostCalculator() {
                     VRT is charged on Revenue's{" "}
                     <strong className="text-zinc-700">OMSP</strong> — their estimate of what
                     this car would sell for at Irish retail — not your purchase price. Check
-                    comparable listings on carzone.ie or revenue.ie to estimate this.
+                    comparable listings on{" "}
+                    <a href="https://www.carzone.ie" target="_blank" rel="noopener noreferrer" className="text-sky-500 hover:text-sky-600 underline underline-offset-2 transition-colors">
+                      carzone.ie
+                    </a>{" "}
+                    or the Revenue{" "}
+                    <a href="https://www.revenue.ie/en/importing-vehicles-duty-free-allowances/guide-to-vrt/index.aspx" target="_blank" rel="noopener noreferrer" className="text-sky-500 hover:text-sky-600 underline underline-offset-2 transition-colors">
+                      VRT estimator
+                    </a>{" "}
+                    to estimate this.
                     A high-spec or low-mileage car will carry a higher OMSP than average.
                   </p>
                 </div>
@@ -959,9 +957,9 @@ export default function IrelandCostCalculator() {
 
 // ─── Shared sub-components ────────────────────────────────────────────────────
 
-function Card({ title, children }: { title: string; children: React.ReactNode }) {
+function Card({ title, children, id }: { title: string; children: React.ReactNode; id?: string }) {
   return (
-    <div className="bg-white border border-black/5 rounded-[2rem] p-6 shadow-[0_4px_20px_rgba(0,0,0,0.03)] space-y-5">
+    <div id={id} className="bg-white border border-black/5 rounded-[2rem] p-6 shadow-[0_4px_20px_rgba(0,0,0,0.03)] space-y-5 scroll-mt-32">
       <p className="text-[10px] font-bold tracking-[0.3em] text-zinc-400 uppercase">{title}</p>
       {children}
     </div>
