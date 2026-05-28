@@ -616,7 +616,9 @@ export default function RequestForm({ prefill, defaultPhoneCountry = "US" }: { p
                 phone: formData.phone,
                 countryOfImport: formData.countryOfImport,
                 importTimeline: formData.importTimeline || undefined,
-                source: pathname, // store raw pathname so the admin link is unambiguous
+                // Prefer ?ref= (set when the header button navigates here from another page)
+                // so the lead is attributed to the originating page, not the form page itself.
+                source: searchParams?.get("ref") || pathname,
                 ...trackingData
             };
 
@@ -641,7 +643,7 @@ export default function RequestForm({ prefill, defaultPhoneCountry = "US" }: { p
         ${errors[id] ? "border-red-500 focus:border-red-600" : "border-black/10 focus:border-sky-500"}`;
 
     return (
-        <motion.div className="w-full max-w-3xl bg-white/80 backdrop-blur-xl rounded-[2.5rem] border border-black/5 shadow-[0_40px_100px_rgba(0,0,0,0.08)] overflow-visible relative text-black mx-auto">
+        <motion.div id="inquiry-form" className="w-full max-w-3xl bg-white/80 backdrop-blur-xl rounded-[2.5rem] border border-black/5 shadow-[0_40px_100px_rgba(0,0,0,0.08)] overflow-visible relative text-black mx-auto">
             {/* Progress Bar */}
             <div className="w-full h-1.5 bg-[#4da8da]/10 absolute top-0 left-0 overflow-hidden rounded-t-[2.5rem]">
                 <motion.div className="h-full bg-[#4da8da]" animate={{ width: `${(step / TOTAL_STEPS) * 100}%` }} transition={{ duration: 0.5 }} />

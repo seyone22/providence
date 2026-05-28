@@ -372,7 +372,7 @@ export default function Home() {
                         </div>
 
                         {/* Path Selections */}
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-6xl mx-auto w-full mt-8 md:mt-12">
+                        <div id="pathway-section" className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-6xl mx-auto w-full mt-8 md:mt-12">
                             <motion.div
                                 initial={{y: 30, opacity: 0}}
                                 whileInView={{y: 0, opacity: 1}}
