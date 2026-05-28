@@ -1,9 +1,9 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useRef, useEffect } from "react";
 import MinimalHeader from "@/components/MinimalHeader";
 import Link from "next/link";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import {
   Calculator,
   AlertTriangle,
@@ -249,34 +249,105 @@ export default function IrelandCostCalculator() {
     document.getElementById("purchase-shipping-card")?.scrollIntoView({ behavior: "smooth", block: "start" });
   };
 
+  const [showSwipeHint, setShowSwipeHint] = useState(false);
+  const swipeRef = useRef<{ key: keyof FormState; startX: number } | null>(null);
+
+  useEffect(() => {
+    if (!localStorage.getItem("swipeHintSeen")) {
+      setShowSwipeHint(true);
+      localStorage.setItem("swipeHintSeen", "1");
+      const t = setTimeout(() => setShowSwipeHint(false), 2500);
+      return () => clearTimeout(t);
+    }
+  }, []);
+
+  const handleSwipeStart = (key: keyof FormState, clientX: number, el: HTMLElement, pointerId: number) => {
+    el.setPointerCapture(pointerId);
+    swipeRef.current = { key, startX: clientX };
+  };
+
+  const handleSwipeEnd = (clientX: number) => {
+    if (!swipeRef.current) return;
+    const { key, startX } = swipeRef.current;
+    swipeRef.current = null;
+    const delta = clientX - startX;
+    if (Math.abs(delta) < 30) return;
+    const direction = delta > 0 ? 1 : -1;
+    if (key === "purchasePrice") {
+      const step = Math.round(500 / (EXCHANGE_RATES[form.currency] ?? 1));
+      set("purchasePrice", Math.max(step, form.purchasePrice + direction * step));
+    } else if (key === "shippingCost") {
+      set("shippingCost", Math.max(0, form.shippingCost + direction * 100));
+    } else if (key === "omsp") {
+      set("omsp", Math.max(1000, form.omsp + direction * 500));
+    }
+  };
+
   return (
     <main className="min-h-screen bg-white text-black font-sans overflow-x-hidden selection:bg-black/10 selection:text-black">
       <MinimalHeader />
 
       {/* ── Sticky "calculating for" summary bar ──────────────────────── */}
       <div className="fixed top-16 left-0 right-0 z-40 bg-white/95 backdrop-blur-sm border-b border-black/[0.07]">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 h-[44px] flex items-center justify-between gap-3">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 h-[56px] flex items-center justify-between gap-3">
 
-          {/* Left: label + values — all items-center, no baseline mixing */}
-          <div className="flex items-center gap-2.5 sm:gap-3.5 min-w-0">
-            <span className="text-[10px] font-bold tracking-[0.15em] uppercase text-zinc-400 shrink-0 hidden sm:block">
-              Calculating for
-            </span>
-            <span className="text-zinc-300 hidden sm:block" aria-hidden>·</span>
+          {/* Left: stacked label+value items, swipeable for editable fields */}
+          <div className="flex items-center gap-1 sm:gap-3 min-w-0 overflow-hidden">
 
-            <span className="text-sm font-bold text-black shrink-0">{fmt(calc.priceEUR)}</span>
-            <span className="text-zinc-300" aria-hidden>·</span>
-            <span className="text-sm font-bold text-black shrink-0">{fmt(form.shippingCost)}</span>
-            <span className="text-zinc-300" aria-hidden>·</span>
-            <span className="text-sm font-bold text-black shrink-0">{fmt(form.omsp)}</span>
+            {/* Purchase price — swipeable */}
+            <motion.div
+              animate={showSwipeHint ? { x: [0, -5, 5, -3, 3, 0] } : { x: 0 }}
+              transition={showSwipeHint ? { delay: 0.7, duration: 0.6 } : {}}
+              className="flex flex-col items-start shrink-0 cursor-ew-resize select-none touch-none active:opacity-70 transition-opacity"
+              onPointerDown={e => handleSwipeStart("purchasePrice", e.clientX, e.currentTarget, e.pointerId)}
+              onPointerUp={e => handleSwipeEnd(e.clientX)}
+              onPointerCancel={() => { swipeRef.current = null; }}
+            >
+              <span className="text-[9px] font-semibold tracking-normal sm:tracking-[0.1em] uppercase text-zinc-400 leading-none mb-[3px]">
+                <span className="sm:hidden">Buy</span><span className="hidden sm:inline">Purchase</span>
+              </span>
+              <span className="text-[13px] sm:text-sm font-bold text-black leading-none">{fmt(calc.priceEUR)}</span>
+            </motion.div>
 
-            {/* Total landed — arrow separator on mobile, dot on sm+ */}
-            <span className="text-zinc-300 sm:hidden" aria-hidden>→</span>
-            <span className="text-zinc-300 hidden sm:block" aria-hidden>·</span>
-            <span className="flex items-center gap-1.5 shrink-0">
-              <span className="text-[10px] text-zinc-400 hidden sm:block">Total landed</span>
-              <span className="text-sm font-bold text-[#4da8da]">{fmt(calc.totalLanded)}</span>
-            </span>
+            <span className="text-zinc-300 shrink-0 hidden sm:block" aria-hidden>·</span>
+
+            {/* Shipping — swipeable */}
+            <div
+              className="flex flex-col items-start shrink-0 cursor-ew-resize select-none touch-none active:opacity-70 transition-opacity"
+              onPointerDown={e => handleSwipeStart("shippingCost", e.clientX, e.currentTarget, e.pointerId)}
+              onPointerUp={e => handleSwipeEnd(e.clientX)}
+              onPointerCancel={() => { swipeRef.current = null; }}
+            >
+              <span className="text-[9px] font-semibold tracking-normal sm:tracking-[0.1em] uppercase text-zinc-400 leading-none mb-[3px]">
+                <span className="sm:hidden">Ship</span><span className="hidden sm:inline">Shipping</span>
+              </span>
+              <span className="text-[13px] sm:text-sm font-bold text-black leading-none">{fmt(form.shippingCost)}</span>
+            </div>
+
+            <span className="text-zinc-300 shrink-0 hidden sm:block" aria-hidden>·</span>
+
+            {/* OMSP — swipeable */}
+            <div
+              className="flex flex-col items-start shrink-0 cursor-ew-resize select-none touch-none active:opacity-70 transition-opacity"
+              onPointerDown={e => handleSwipeStart("omsp", e.clientX, e.currentTarget, e.pointerId)}
+              onPointerUp={e => handleSwipeEnd(e.clientX)}
+              onPointerCancel={() => { swipeRef.current = null; }}
+            >
+              <span className="text-[9px] font-semibold tracking-normal sm:tracking-[0.1em] uppercase text-zinc-400 leading-none mb-[3px]">OMSP</span>
+              <span className="text-[13px] sm:text-sm font-bold text-black leading-none">{fmt(form.omsp)}</span>
+            </div>
+
+            {/* Arrow on mobile, dot on sm+ */}
+            <span className="text-zinc-300 sm:hidden shrink-0 text-[11px]" aria-hidden>→</span>
+            <span className="text-zinc-300 hidden sm:block shrink-0" aria-hidden>·</span>
+
+            {/* Total Landed — read-only */}
+            <div className="flex flex-col items-start shrink-0">
+              <span className="text-[9px] font-semibold tracking-normal sm:tracking-[0.1em] uppercase text-zinc-400 leading-none mb-[3px]">
+                <span className="hidden sm:inline">Total </span>Landed
+              </span>
+              <span className="text-[13px] sm:text-sm font-bold text-[#4da8da] leading-none">{fmt(calc.totalLanded)}</span>
+            </div>
           </div>
 
           {/* Right: Change button */}
@@ -287,6 +358,21 @@ export default function IrelandCostCalculator() {
             Change <ChevronDown size={12} />
           </button>
         </div>
+
+        {/* First-time swipe hint — fades in then out */}
+        <AnimatePresence>
+          {showSwipeHint && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.35 }}
+              className="border-t border-sky-100/70 bg-sky-50/70 py-[3px] text-center"
+            >
+              <span className="text-[9px] text-sky-400 font-medium tracking-wider">← swipe values to adjust →</span>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
 
       {/* ── Hero ────────────────────────────────────────────────────────── */}
