@@ -245,12 +245,62 @@ export default function IrelandCostCalculator() {
     ? Math.round((calc.totalTaxes / calc.cifValue) * 100)
     : 0;
 
+  const scrollToForm = () => {
+    document.getElementById("calculator-inputs")?.scrollIntoView({ behavior: "smooth", block: "start" });
+  };
+
   return (
     <main className="min-h-screen bg-white text-black font-sans overflow-x-hidden selection:bg-black/10 selection:text-black">
       <MinimalHeader />
 
+      {/* ── Sticky "calculating for" summary bar ──────────────────────── */}
+      <div className="fixed top-20 left-0 right-0 z-40 bg-white/95 backdrop-blur-sm border-b border-black/[0.07] flex items-center min-h-[46px]">
+        <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 py-2 flex items-center justify-between gap-3 sm:gap-6">
+          {/* Left: label + values */}
+          <div className="flex items-center gap-2 sm:gap-4 min-w-0 overflow-hidden">
+            <span className="text-[10px] font-bold tracking-[0.15em] uppercase text-zinc-400 shrink-0 hidden sm:inline">
+              Calculating for
+            </span>
+            <span className="text-zinc-200 hidden sm:inline">·</span>
+
+            <span className="flex items-baseline gap-1 shrink-0">
+              <span className="text-sm font-bold text-black">{fmt(calc.priceEUR)}</span>
+              <span className="text-[10px] text-zinc-400 hidden xs:inline">purchase</span>
+            </span>
+
+            <span className="text-zinc-200">·</span>
+
+            <span className="flex items-baseline gap-1 shrink-0">
+              <span className="text-sm font-bold text-black">{fmt(form.shippingCost)}</span>
+              <span className="text-[10px] text-zinc-400 hidden xs:inline">shipping</span>
+            </span>
+
+            <span className="text-zinc-200">·</span>
+
+            <span className="flex items-baseline gap-1 shrink-0">
+              <span className="text-sm font-bold text-black">{fmt(form.omsp)}</span>
+              <span className="text-[10px] text-zinc-400 hidden xs:inline">OMSP</span>
+            </span>
+
+            <span className="text-zinc-200 hidden lg:inline">·</span>
+            <span className="hidden lg:flex items-baseline gap-1">
+              <span className="text-[10px] text-zinc-400">Total landed</span>
+              <span className="text-sm font-bold text-[#4da8da]">{fmt(calc.totalLanded)}</span>
+            </span>
+          </div>
+
+          {/* Right: Change button */}
+          <button
+            onClick={scrollToForm}
+            className="flex items-center gap-1.5 text-[11px] font-bold text-sky-500 hover:text-white hover:bg-sky-500 border border-sky-400/40 hover:border-sky-500 rounded-lg px-3 py-1.5 transition-all duration-200 shrink-0"
+          >
+            Change <ChevronDown size={12} />
+          </button>
+        </div>
+      </div>
+
       {/* ── Hero ────────────────────────────────────────────────────────── */}
-      <section className="relative pt-32 pb-16 px-6 bg-white overflow-hidden">
+      <section className="relative pt-44 pb-16 px-6 bg-white overflow-hidden">
         <div className="max-w-7xl mx-auto">
           <motion.div
             initial={{ y: 30, opacity: 0 }}
@@ -276,10 +326,11 @@ export default function IrelandCostCalculator() {
 
             {/* LEFT — Inputs ─────────────────────────────────────────────── */}
             <motion.div
+              id="calculator-inputs"
               initial={{ x: -30, opacity: 0 }}
               animate={{ x: 0, opacity: 1 }}
               transition={{ duration: 0.8, delay: 0.2, ease: appleEase }}
-              className="space-y-5"
+              className="space-y-5 scroll-mt-36"
             >
 
               {/* Card: Vehicle Details */}
