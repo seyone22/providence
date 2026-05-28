@@ -256,7 +256,7 @@ export default function IrelandCostCalculator() {
     if (!localStorage.getItem("swipeHintSeen")) {
       setShowSwipeHint(true);
       localStorage.setItem("swipeHintSeen", "1");
-      const t = setTimeout(() => setShowSwipeHint(false), 2500);
+      const t = setTimeout(() => setShowSwipeHint(false), 4000);
       return () => clearTimeout(t);
     }
   }, []);
@@ -301,8 +301,8 @@ export default function IrelandCostCalculator() {
 
             {/* Purchase price — swipeable */}
             <motion.div
-              animate={showSwipeHint ? { x: [0, -5, 5, -3, 3, 0] } : { x: 0 }}
-              transition={showSwipeHint ? { delay: 0.7, duration: 0.6 } : {}}
+              animate={showSwipeHint ? { x: [0, 0, -10, 10, -7, 7, -4, 0] } : { x: 0 }}
+              transition={showSwipeHint ? { delay: 0.5, duration: 1.0 } : {}}
               className="flex flex-col items-start shrink-0 cursor-ew-resize select-none touch-none active:opacity-70 transition-opacity"
               onPointerDown={e => handleSwipeStart("purchasePrice", e.clientX, e.currentTarget, e.pointerId)}
               onPointerMove={e => handleSwipeMove(e.clientX)}
@@ -317,8 +317,10 @@ export default function IrelandCostCalculator() {
 
             <span className="text-zinc-300 shrink-0 hidden sm:block" aria-hidden>·</span>
 
-            {/* Shipping — swipeable */}
-            <div
+            {/* Shipping */}
+            <motion.div
+              animate={showSwipeHint ? { x: [0, 0, -10, 10, -7, 7, -4, 0] } : { x: 0 }}
+              transition={showSwipeHint ? { delay: 0.65, duration: 1.0 } : {}}
               className="flex flex-col items-start shrink-0 cursor-ew-resize select-none touch-none active:opacity-70 transition-opacity"
               onPointerDown={e => handleSwipeStart("shippingCost", e.clientX, e.currentTarget, e.pointerId)}
               onPointerMove={e => handleSwipeMove(e.clientX)}
@@ -329,12 +331,14 @@ export default function IrelandCostCalculator() {
                 <span className="sm:hidden">Ship</span><span className="hidden sm:inline">Shipping</span>
               </span>
               <span className="text-[13px] sm:text-sm font-bold text-black leading-none">{fmt(form.shippingCost)}</span>
-            </div>
+            </motion.div>
 
             <span className="text-zinc-300 shrink-0 hidden sm:block" aria-hidden>·</span>
 
-            {/* OMSP — swipeable */}
-            <div
+            {/* OMSP */}
+            <motion.div
+              animate={showSwipeHint ? { x: [0, 0, -10, 10, -7, 7, -4, 0] } : { x: 0 }}
+              transition={showSwipeHint ? { delay: 0.8, duration: 1.0 } : {}}
               className="flex flex-col items-start shrink-0 cursor-ew-resize select-none touch-none active:opacity-70 transition-opacity"
               onPointerDown={e => handleSwipeStart("omsp", e.clientX, e.currentTarget, e.pointerId)}
               onPointerMove={e => handleSwipeMove(e.clientX)}
@@ -343,7 +347,7 @@ export default function IrelandCostCalculator() {
             >
               <span className="text-[9px] font-semibold tracking-normal sm:tracking-[0.1em] uppercase text-zinc-400 leading-none mb-[3px]">OMSP</span>
               <span className="text-[13px] sm:text-sm font-bold text-black leading-none">{fmt(form.omsp)}</span>
-            </div>
+            </motion.div>
 
             {/* Arrow on mobile, dot on sm+ */}
             <span className="text-zinc-300 sm:hidden shrink-0 text-[11px]" aria-hidden>→</span>
@@ -367,17 +371,29 @@ export default function IrelandCostCalculator() {
           </button>
         </div>
 
-        {/* First-time swipe hint — fades in then out */}
+        {/* First-time swipe hint */}
         <AnimatePresence>
           {showSwipeHint && (
             <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 0.35 }}
-              className="border-t border-sky-100/70 bg-sky-50/70 py-[3px] text-center"
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: "auto" }}
+              exit={{ opacity: 0, height: 0 }}
+              transition={{ duration: 0.3 }}
+              className="overflow-hidden bg-sky-500"
             >
-              <span className="text-[9px] text-sky-400 font-medium tracking-wider">← swipe values to adjust →</span>
+              <div className="flex items-center justify-center gap-3 py-2">
+                <motion.span
+                  animate={{ x: [-5, 0, -5] }}
+                  transition={{ repeat: Infinity, duration: 1.1, ease: "easeInOut" }}
+                  className="text-white/90 text-sm font-bold select-none"
+                >←</motion.span>
+                <span className="text-[11px] text-white font-semibold tracking-widest uppercase">swipe values to adjust</span>
+                <motion.span
+                  animate={{ x: [5, 0, 5] }}
+                  transition={{ repeat: Infinity, duration: 1.1, ease: "easeInOut" }}
+                  className="text-white/90 text-sm font-bold select-none"
+                >→</motion.span>
+              </div>
             </motion.div>
           )}
         </AnimatePresence>
