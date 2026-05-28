@@ -254,8 +254,8 @@ export default function IrelandCostCalculator() {
       <MinimalHeader />
 
       {/* ── Sticky "calculating for" summary bar ──────────────────────── */}
-      <div className="fixed top-20 left-0 right-0 z-40 bg-white/95 backdrop-blur-sm border-b border-black/[0.07] h-[44px]">
-        <div className="w-full h-full max-w-7xl mx-auto px-4 sm:px-6 flex items-center justify-between gap-3">
+      <div className="fixed top-16 left-0 right-0 z-40 bg-white/95 backdrop-blur-sm border-b border-black/[0.07]">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 h-[44px] flex items-center justify-between gap-3">
 
           {/* Left: label + values — all items-center, no baseline mixing */}
           <div className="flex items-center gap-2.5 sm:gap-3.5 min-w-0">
@@ -290,7 +290,7 @@ export default function IrelandCostCalculator() {
       </div>
 
       {/* ── Hero ────────────────────────────────────────────────────────── */}
-      <section className="relative pt-44 pb-16 px-6 bg-white overflow-hidden">
+      <section className="relative pt-36 pb-16 px-6 bg-white overflow-hidden">
         <div className="max-w-7xl mx-auto">
           <motion.div
             initial={{ y: 30, opacity: 0 }}
