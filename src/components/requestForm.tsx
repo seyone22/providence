@@ -432,40 +432,29 @@ export default function RequestForm({ prefill, defaultPhoneCountry = "US" }: { p
         });
     }, [searchParams]);
 
-    // Track the previous prefill make+model so we only re-apply when a NEW model card is clicked
-    const prefillMakeRef = useRef<string | undefined>(undefined);
-    const prefillModelRef = useRef<string | undefined>(undefined);
-
+    // Sync form data whenever prefill changes.
+    // The parent memoises the prefill object, so this only fires:
+    //   1. On initial mount (to apply countryOfImport / model-card data), and
+    //   2. When the user clicks a different model card.
+    // Case 2 also changes the `key` prop, which unmounts + remounts the form
+    // at step 1 automatically — so we never need to call setStep(1) here.
     useEffect(() => {
         if (!prefill) return;
 
-        const makeChanged = prefill.make !== prefillMakeRef.current;
-        const modelChanged = prefill.vehicle_model !== prefillModelRef.current;
-        const isFirstRun = prefillMakeRef.current === undefined;
-
-        // Only re-apply (and reset to step 1) when make/model actually change
-        if (isFirstRun || makeChanged || modelChanged) {
-            prefillMakeRef.current = prefill.make;
-            prefillModelRef.current = prefill.vehicle_model;
-
-            let syncedCountryCode = ALPHA2_TO_DIAL[defaultPhoneCountry] || "+1";
-            if (prefill.countryOfImport) {
-                const match = COUNTRIES.find(c => c.n === prefill.countryOfImport);
-                if (match) syncedCountryCode = match.c;
-            }
-            if (prefill.countryCode) syncedCountryCode = prefill.countryCode;
-
-            setFormData(prev => ({
-                ...prev,
-                ...prefill,
-                countryCode: syncedCountryCode,
-                condition: prefill.make ? "Used" : prev.condition,
-            }));
-
-            // Only jump back to step 1 when a model card was explicitly selected
-            if (makeChanged || modelChanged) setStep(1);
+        let syncedCountryCode = ALPHA2_TO_DIAL[defaultPhoneCountry] || "+1";
+        if (prefill.countryOfImport) {
+            const match = COUNTRIES.find(c => c.n === prefill.countryOfImport);
+            if (match) syncedCountryCode = match.c;
         }
-    }, [prefill]);
+        if (prefill.countryCode) syncedCountryCode = prefill.countryCode;
+
+        setFormData(prev => ({
+            ...prev,
+            ...prefill,
+            countryCode: syncedCountryCode,
+            condition: prefill.make ? "Used" : prev.condition,
+        }));
+    }, [prefill, defaultPhoneCountry]);
 
     useEffect(() => {
         if (!formData.make) {

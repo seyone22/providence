@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState, useEffect, Suspense } from "react";
+import { useRef, useState, useEffect, Suspense, useMemo } from "react";
 import MinimalHeader from "@/components/MinimalHeader";
 import { Landmark, Compass, Ship, ShieldCheck, ArrowRight, CheckCircle2, MapPin, Search, Zap } from "lucide-react";
 import { motion, AnimatePresence, useScroll, useTransform } from "framer-motion";
@@ -217,6 +217,13 @@ export default function ImportJapaneseCarsIreland() {
     const [selectedVehicleModel, setSelectedVehicleModel] = useState("");
     const [showPrefillNotice, setShowPrefillNotice] = useState(false);
     const [prefillNoticeText, setPrefillNoticeText] = useState("");
+
+    // Stable prefill object — only recreated when the user actually clicks a model card.
+    // Avoids triggering the form's prefill effect on every countdown re-render.
+    const prefill = useMemo(() => ({
+        countryOfImport: "Ireland",
+        ...(selectedMake ? { make: selectedMake, vehicle_model: selectedVehicleModel } : {})
+    }), [selectedMake, selectedVehicleModel]);
 
     const handleModelSelect = (model: typeof TOP_MODELS[0]) => {
         setSelectedMake(model.prefillMake);
@@ -709,10 +716,7 @@ export default function ImportJapaneseCarsIreland() {
                     >
                         <RequestForm
                             key={`${selectedMake}-${selectedVehicleModel}`}
-                            prefill={{
-                                countryOfImport: "Ireland",
-                                ...(selectedMake ? { make: selectedMake, vehicle_model: selectedVehicleModel } : {})
-                            }}
+                            prefill={prefill}
                             defaultPhoneCountry="IE"
                         />
                     </Suspense>
