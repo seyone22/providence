@@ -64,6 +64,10 @@ export interface IRequest extends Document {
 
     source?: string;
 
+    // Follow-up timer
+    followUpAt?: Date;
+    followUpSetAt?: Date;
+
     gclid?: string;
     fbclid?: string;
     fbc?: string;
@@ -123,6 +127,10 @@ const RequestSchema: Schema = new Schema(
         adminNotes: {type: String},
 
         source: {type: String},
+
+        // Follow-up timer
+        followUpAt: {type: Date},
+        followUpSetAt: {type: Date},
 
         gclid: {type: String},
         fbclid: {type: String},

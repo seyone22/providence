@@ -180,6 +180,73 @@ export async function updateRequestStatus(id: string, targetStage: string, paylo
     }
 }
 
+export async function setFollowUpTimer(id: string, followUpAt: string) {
+    try {
+        const session = await requireAuth();
+        const currentUser = session.user?.name || "System Admin";
+        await connectToDatabase();
+
+        await Request.findByIdAndUpdate(id, {
+            $set: { followUpAt: new Date(followUpAt), followUpSetAt: new Date() }
+        });
+
+        revalidatePath("/admin");
+        return { success: true };
+    } catch (error) {
+        console.error("Failed to set follow-up timer:", error);
+        return { success: false };
+    }
+}
+
+export async function clearFollowUpTimer(id: string) {
+    try {
+        await requireAuth();
+        await connectToDatabase();
+
+        await Request.findByIdAndUpdate(id, {
+            $unset: { followUpAt: "", followUpSetAt: "" }
+        });
+
+        revalidatePath("/admin");
+        return { success: true };
+    } catch (error) {
+        console.error("Failed to clear follow-up timer:", error);
+        return { success: false };
+    }
+}
+
+export async function expireFollowUpTimer(id: string) {
+    try {
+        await requireAuth();
+        await connectToDatabase();
+
+        const existingRequest = await Request.findById(id);
+        if (!existingRequest) return { success: false };
+
+        await Request.findByIdAndUpdate(id, {
+            $set: {
+                leadStatus: "Action required",
+                statusUpdatedAt: new Date()
+            },
+            $unset: { followUpAt: "", followUpSetAt: "" },
+            $push: {
+                statusHistory: {
+                    action: "Updated Sales Status: Action required",
+                    performedBy: "System (Follow-up Timer)",
+                    date: new Date(),
+                    comment: "Follow up required based on the time set up"
+                }
+            }
+        });
+
+        revalidatePath("/admin");
+        return { success: true };
+    } catch (error) {
+        console.error("Failed to expire follow-up timer:", error);
+        return { success: false };
+    }
+}
+
 export async function getUsers() {
     try {
         await requireAuth();

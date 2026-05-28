@@ -5,6 +5,7 @@ import {
     ArrowLeft, ArrowRight, ExternalLink, Eye, MoreHorizontal, Trash,
     User, UserPlus, DollarSign, Ship, Search, ListFilter, MessageCircle, MapPin, Box, Activity
 } from "lucide-react";
+import FollowUpTimer from "@/components/FollowUpTimer";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -300,6 +301,17 @@ export default function RequestTableClient({
                                                     )}
                                                 </button>
 
+                                                {/* Live Tracker quick link */}
+                                                <Link
+                                                    href={`/track/${req._id}`}
+                                                    target="_blank"
+                                                    className="inline-flex items-center gap-1 text-[11px] text-emerald-600 hover:text-emerald-700 hover:underline font-medium transition-colors"
+                                                    title="Open Live Tracker"
+                                                >
+                                                    <ExternalLink size={11} />
+                                                    <span className="hidden sm:inline">Live Tracker</span>
+                                                </Link>
+
                                             </div>
                                         </TableCell>
 
@@ -325,6 +337,24 @@ export default function RequestTableClient({
                                                         Updated: {new Date(req.statusUpdatedAt || req.updatedAt).toLocaleDateString()}
                                                     </div>
                                                 )}
+
+                                                {/* Quick action row: View Details & Follow-up Timer */}
+                                                <div className="flex items-center gap-2 mt-1.5">
+                                                    <button
+                                                        onClick={() => setModal({ isOpen: true, type: "details", request: req, targetStage: null })}
+                                                        className="inline-flex items-center gap-1 text-[11px] text-zinc-500 hover:text-zinc-800 font-medium transition-colors"
+                                                        title="View Details & Notes"
+                                                    >
+                                                        <Eye size={11} />
+                                                        <span className="hidden sm:inline">Details & Notes</span>
+                                                    </button>
+                                                    <span className="text-zinc-200 hidden sm:inline">·</span>
+                                                    <FollowUpTimer
+                                                        requestId={req._id}
+                                                        followUpAt={req.followUpAt}
+                                                        followUpSetAt={req.followUpSetAt}
+                                                    />
+                                                </div>
 
                                                 {/* --- ADDED: LATEST COMMENT SNIPPET DISPLAY --- */}
                                                 {(() => {
