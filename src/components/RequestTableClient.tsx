@@ -182,11 +182,9 @@ export default function RequestTableClient({
                                             <div className="text-[10px] uppercase font-bold text-zinc-400 mt-1">
                                                 Import to: {req.countryOfImport}
                                             </div>
-                                            {req.importTimeline && (
-                                                <div className="text-[10px] text-zinc-400 mt-0.5">
-                                                    Timeline: {req.importTimeline}
-                                                </div>
-                                            )}
+                                            <div className="text-[10px] text-zinc-400 mt-0.5">
+                                                Timeline: {req.importTimeline || <span className="text-zinc-300">—</span>}
+                                            </div>
                                             <div className="text-[10px] text-zinc-400 mt-0.5">
                                                 Created: {new Date(req.createdAt).toLocaleString()}
                                             </div>

@@ -432,21 +432,38 @@ export default function RequestForm({ prefill, defaultPhoneCountry = "US" }: { p
         });
     }, [searchParams]);
 
+    // Track the previous prefill make+model so we only re-apply when a NEW model card is clicked
+    const prefillMakeRef = useRef<string | undefined>(undefined);
+    const prefillModelRef = useRef<string | undefined>(undefined);
+
     useEffect(() => {
-        if (prefill) {
+        if (!prefill) return;
+
+        const makeChanged = prefill.make !== prefillMakeRef.current;
+        const modelChanged = prefill.vehicle_model !== prefillModelRef.current;
+        const isFirstRun = prefillMakeRef.current === undefined;
+
+        // Only re-apply (and reset to step 1) when make/model actually change
+        if (isFirstRun || makeChanged || modelChanged) {
+            prefillMakeRef.current = prefill.make;
+            prefillModelRef.current = prefill.vehicle_model;
+
             let syncedCountryCode = ALPHA2_TO_DIAL[defaultPhoneCountry] || "+1";
             if (prefill.countryOfImport) {
                 const match = COUNTRIES.find(c => c.n === prefill.countryOfImport);
                 if (match) syncedCountryCode = match.c;
             }
             if (prefill.countryCode) syncedCountryCode = prefill.countryCode;
+
             setFormData(prev => ({
                 ...prev,
                 ...prefill,
                 countryCode: syncedCountryCode,
-                condition: "Used"
+                condition: prefill.make ? "Used" : prev.condition,
             }));
-            setStep(1);
+
+            // Only jump back to step 1 when a model card was explicitly selected
+            if (makeChanged || modelChanged) setStep(1);
         }
     }, [prefill]);
 
@@ -667,9 +684,9 @@ export default function RequestForm({ prefill, defaultPhoneCountry = "US" }: { p
                     </div>
                 </motion.div>
             ) : (
-                <div className="p-8 md:p-14 min-h-[550px] flex flex-col">
-                    <div className="flex justify-between items-end border-b border-black/5 pb-6 mb-8">
-                        <h3 className="text-2xl font-bold">
+                <div className="p-5 sm:p-8 md:p-14 min-h-[520px] flex flex-col">
+                    <div className="flex justify-between items-end border-b border-black/5 pb-4 mb-6 sm:pb-6 sm:mb-8">
+                        <h3 className="text-xl sm:text-2xl font-bold">
                             {step === 1 && "1. Specifications"}
                             {step === 2 && "2. Condition & Availability"}
                             {step === 3 && "3. Delivery Details"}
@@ -681,7 +698,7 @@ export default function RequestForm({ prefill, defaultPhoneCountry = "US" }: { p
                         <motion.div key={step} initial={{ opacity: 0, x: 10 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -10 }} className="flex-1">
                             {step === 1 && (
                                 <>
-                                    <div className="grid grid-cols-1 md:grid-cols-1 gap-16">
+                                    <div className="flex flex-col gap-10 sm:gap-14">
                                         <SelectDropdown
                                             id="make"
                                             placeholder="Select Make"
@@ -693,7 +710,7 @@ export default function RequestForm({ prefill, defaultPhoneCountry = "US" }: { p
 
                                         {/* CONDITIONAL RENDER BASED ON API STATUS */}
                                         {apiFailed ? (
-                                            <div className="relative">
+                                            <div className="space-y-2">
                                                 <input
                                                     id="vehicle_model"
                                                     value={formData.vehicle_model}
@@ -701,21 +718,23 @@ export default function RequestForm({ prefill, defaultPhoneCountry = "US" }: { p
                                                     placeholder="Type Vehicle Model (e.g. Aqua, Prius, 911)"
                                                     className={inputClasses("vehicle_model")}
                                                 />
-                                                {errors.vehicle_model && (
-                                                    <p className="absolute -bottom-5 left-0 text-[10px] font-bold text-red-500 flex items-center gap-1">
-                                                        <AlertCircle size={10}/> {errors.vehicle_model}
-                                                    </p>
-                                                )}
-                                                <button
-                                                    type="button"
-                                                    onClick={() => { setApiFailed(false); setFormData(prev => ({ ...prev, vehicle_model: "" })); }}
-                                                    className="absolute -bottom-5 right-0 text-[10px] text-zinc-400 hover:text-sky-500 transition-colors"
-                                                >
-                                                    Use dropdown instead
-                                                </button>
+                                                <div className="flex items-center justify-between">
+                                                    {errors.vehicle_model ? (
+                                                        <p className="text-[10px] font-bold text-red-500 flex items-center gap-1">
+                                                            <AlertCircle size={10}/> {errors.vehicle_model}
+                                                        </p>
+                                                    ) : <span />}
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => { setApiFailed(false); setFormData(prev => ({ ...prev, vehicle_model: "" })); }}
+                                                        className="text-[10px] text-zinc-400 hover:text-sky-500 transition-colors"
+                                                    >
+                                                        Use dropdown instead
+                                                    </button>
+                                                </div>
                                             </div>
                                         ) : (
-                                            <div className="relative">
+                                            <div className="space-y-2">
                                                 <SelectDropdown
                                                     id="vehicle_model"
                                                     placeholder="Select Model"
@@ -727,13 +746,15 @@ export default function RequestForm({ prefill, defaultPhoneCountry = "US" }: { p
                                                     error={errors.vehicle_model}
                                                 />
                                                 {formData.make && !isLoadingModels && (
-                                                    <button
-                                                        type="button"
-                                                        onClick={() => setApiFailed(true)}
-                                                        className="absolute -bottom-5 right-0 text-[10px] text-zinc-400 hover:text-sky-500 transition-colors"
-                                                    >
-                                                        Type manually
-                                                    </button>
+                                                    <div className="flex justify-end">
+                                                        <button
+                                                            type="button"
+                                                            onClick={() => setApiFailed(true)}
+                                                            className="text-[10px] text-zinc-400 hover:text-sky-500 transition-colors"
+                                                        >
+                                                            Type manually
+                                                        </button>
+                                                    </div>
                                                 )}
                                             </div>
                                         )}
@@ -841,11 +862,11 @@ export default function RequestForm({ prefill, defaultPhoneCountry = "US" }: { p
                                     </AnimatePresence>
 
                                     {/* Phone: country code selector | local number — two separate columns */}
-                                    <div>
-                                        <label className="text-[10px] font-bold text-[#4da8da] uppercase tracking-wider block mb-1">
+                                    <div className="space-y-1">
+                                        <label className="text-[10px] font-bold text-[#4da8da] uppercase tracking-wider block">
                                             WhatsApp / Phone Number
                                         </label>
-                                        <div className="grid grid-cols-[150px_1fr] gap-4 items-start">
+                                        <div className="grid grid-cols-[120px_1fr] sm:grid-cols-[150px_1fr] gap-3 items-start">
                                             <SelectDropdown
                                                 id="countryCode"
                                                 placeholder="+1"
@@ -853,26 +874,25 @@ export default function RequestForm({ prefill, defaultPhoneCountry = "US" }: { p
                                                 value={formData.countryCode}
                                                 onChange={handleDropdownChange}
                                             />
-                                            <div className="relative">
-                                                <input
-                                                    id="phone"
-                                                    type="tel"
-                                                    value={formData.phone}
-                                                    onChange={handleInputChange}
-                                                    placeholder="Local number (e.g. 085 123 4567)"
-                                                    className={inputClasses("phone")}
-                                                />
-                                                {errors.phone ? (
-                                                    <p className="absolute -bottom-5 left-0 text-[10px] font-bold text-red-500 flex items-center gap-1">
-                                                        <AlertCircle size={10}/> {errors.phone}
-                                                    </p>
-                                                ) : (
-                                                    <p className="absolute -bottom-5 left-0 text-[10px] text-zinc-400">
-                                                        Enter without country code — it&apos;s already set above
-                                                    </p>
-                                                )}
-                                            </div>
+                                            <input
+                                                id="phone"
+                                                type="tel"
+                                                value={formData.phone}
+                                                onChange={handleInputChange}
+                                                placeholder="Local number (e.g. 085 123 4567)"
+                                                className={inputClasses("phone")}
+                                            />
                                         </div>
+                                        {/* Error / hint always in normal flow — no overlay */}
+                                        {errors.phone ? (
+                                            <p className="text-[10px] font-bold text-red-500 flex items-center gap-1 pt-0.5">
+                                                <AlertCircle size={10}/> {errors.phone}
+                                            </p>
+                                        ) : (
+                                            <p className="text-[10px] text-zinc-400 pt-0.5">
+                                                Enter local number only — country code is selected above
+                                            </p>
+                                        )}
                                     </div>
 
                                     <div>
@@ -880,12 +900,12 @@ export default function RequestForm({ prefill, defaultPhoneCountry = "US" }: { p
                                             When are you planning to import?
                                         </label>
                                         <div className="flex flex-wrap gap-2">
-                                            {["Immediately", "Within the next 3 months", "In the next 6 months", "Not sure", "Just Inquiring"].map((option) => (
+                                            {["Immediately", "1–3 months", "3–6 months", "Not sure", "Just Inquiring"].map((option) => (
                                                 <button
                                                     key={option}
                                                     type="button"
                                                     onClick={() => setFormData(prev => ({ ...prev, importTimeline: option }))}
-                                                    className={`px-4 py-2.5 rounded-full text-sm font-medium border transition-all ${
+                                                    className={`px-3 sm:px-4 py-2 sm:py-2.5 rounded-full text-xs sm:text-sm font-medium border transition-all ${
                                                         formData.importTimeline === option
                                                             ? "bg-[#4da8da] text-white border-[#4da8da] shadow-md"
                                                             : "bg-transparent text-zinc-500 border-black/10 hover:border-[#4da8da]/30"
