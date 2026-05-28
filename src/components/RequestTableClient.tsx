@@ -39,22 +39,48 @@ export const SALES_STATUSES = [
 
 const BASE_URL = "https://providenceauto.co.uk";
 
-/** Map a stored source label back to a full URL for the "open page" link. */
+/**
+ * Backward-compat map: leads created before the pathname-storage fix
+ * have a human-readable label stored instead of a raw path.
+ */
+const LEGACY_LABEL_TO_PATH: Record<string, string> = {
+    "Home Page":          "/",
+    "Request Page":       "/request",
+    "B2B Landing":        "/b2b",
+    "B2C Landing":        "/b2c",
+    "Import to Ireland":  "/import-japanese-cars-to-ireland",
+    "Ireland Calculator": "/ireland-cost-calculator",
+};
+
+/** Convert a stored source value → full URL. Works for both new (pathname) and legacy (label) formats. */
 function sourceToUrl(source: string): string {
-    const MAP: Record<string, string> = {
-        "Home Page":          `${BASE_URL}/`,
-        "Request Page":       `${BASE_URL}/request`,
-        "B2B Landing":        `${BASE_URL}/b2b`,
-        "B2C Landing":        `${BASE_URL}/b2c`,
-        "Import to Ireland":  `${BASE_URL}/import-japanese-cars-to-ireland`,
-        "Ireland Calculator": `${BASE_URL}/ireland-cost-calculator`,
-    };
-    if (MAP[source]) return MAP[source];
-    // Handle "Campaign: [slug]" → /campaigns/[slug]
-    if (source.startsWith("Campaign: ")) {
-        return `${BASE_URL}/campaigns/${source.replace("Campaign: ", "")}`;
-    }
+    // New format — raw pathname stored directly (e.g. "/request", "/ireland-cost-calculator")
+    if (source.startsWith("/")) return `${BASE_URL}${source}`;
+    // Legacy label format
+    const path = LEGACY_LABEL_TO_PATH[source];
+    if (path) return `${BASE_URL}${path}`;
+    if (source.startsWith("Campaign: ")) return `${BASE_URL}/campaigns/${source.replace("Campaign: ", "")}`;
     return BASE_URL;
+}
+
+/** Convert a stored source value → human-readable display label. */
+function sourceToLabel(source: string): string {
+    // Legacy format: already a readable label
+    if (!source.startsWith("/")) return source;
+    // New format: pathname → label
+    const slug = source.replace(/^\//, "").replace(/\/$/, "");
+    if (!slug) return "Home Page";
+    const MAP: Record<string, string> = {
+        "request":                            "Request Page",
+        "b2b":                                "B2B Landing",
+        "b2c":                                "B2C Landing",
+        "import-japanese-cars-to-ireland":    "Import to Ireland",
+        "ireland-cost-calculator":            "Ireland Calculator",
+    };
+    if (MAP[slug]) return MAP[slug];
+    if (slug.startsWith("campaigns/")) return `Campaign: ${slug.replace("campaigns/", "")}`;
+    // Prettify unknown slugs: kebab-case → Title Case
+    return slug.replace(/-/g, " ").replace(/\b\w/g, c => c.toUpperCase());
 }
 
 // ADDED "sales_status" to the type definition
@@ -232,7 +258,7 @@ export default function RequestTableClient({
                                                         rel="noopener noreferrer"
                                                         className="inline-flex items-center gap-1 px-1.5 py-0.5 bg-violet-50 border border-violet-100 rounded text-[10px] text-violet-600 font-medium hover:bg-violet-100 hover:border-violet-300 transition-colors"
                                                     >
-                                                        <MapPin size={9} /> {req.source}
+                                                        <MapPin size={9} /> {sourceToLabel(req.source)}
                                                     </a>
                                                 </div>
                                             )}
