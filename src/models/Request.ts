@@ -22,6 +22,7 @@ export interface IRequest extends Document {
     countryCode: string;
     phone: string;
     countryOfImport: string;
+    importTimeline?: string;
     status: string;
     leadStatus: string;
     statusUpdatedAt?: Date; // Added missing type from previous step
@@ -88,6 +89,7 @@ const RequestSchema: Schema = new Schema(
         countryCode: {type: String, required: true},
         phone: {type: String, required: true},
         countryOfImport: {type: String, required: true},
+        importTimeline: {type: String},
         status: {type: String, default: 'New'},
         leadStatus: {type: String, default: 'Action required'}, // Updated default
         statusUpdatedAt: {type: Date},

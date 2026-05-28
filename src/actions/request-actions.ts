@@ -19,6 +19,7 @@ export async function submitCarRequest(data: {
     countryCode: string;
     phone: string;
     countryOfImport: string;
+    importTimeline?: string;
     // S2S Tracking Fields
     gclid?: string;
     fbclid?: string;
