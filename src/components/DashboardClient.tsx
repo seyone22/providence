@@ -81,9 +81,27 @@ export default function DashboardClient({ requests, staffUsers, currentUserId }:
         return Array.from(countries).sort();
     }, [requests]);
 
+    /** Normalise a stored source value (raw pathname or legacy label) → display label. */
+    const normalizeSource = (source: string): string => {
+        if (!source) return "";
+        if (!source.startsWith("/")) return source; // already a label
+        const slug = source.replace(/^\//, "").replace(/\/$/, "");
+        if (!slug) return "Home Page";
+        const MAP: Record<string, string> = {
+            "request":                            "Request Page",
+            "b2b":                                "B2B Landing",
+            "b2c":                                "B2C Landing",
+            "import-japanese-cars-to-ireland":    "Import to Ireland",
+            "ireland-cost-calculator":            "Ireland Calculator",
+        };
+        if (MAP[slug]) return MAP[slug];
+        if (slug.startsWith("campaigns/")) return `Campaign: ${slug.replace("campaigns/", "")}`;
+        return slug.replace(/-/g, " ").replace(/\b\w/g, c => c.toUpperCase());
+    };
+
     const uniqueSources = useMemo(() => {
         const sources = new Set(
-            requests.map((req: any) => req.source).filter(Boolean)
+            requests.map((req: any) => req.source ? normalizeSource(req.source) : null).filter(Boolean)
         );
         return Array.from(sources).sort() as string[];
     }, [requests]);
@@ -125,7 +143,7 @@ export default function DashboardClient({ requests, staffUsers, currentUserId }:
 
                 const matchesSource =
                     sourceFilter === "All" ||
-                    (req.source || "Unknown") === sourceFilter;
+                    normalizeSource(req.source || "") === sourceFilter;
 
                 return matchesSearch && matchesStage && matchesStatus &&
                     matchesStaff && matchesCar && matchesCountry && matchesDate && matchesSource;

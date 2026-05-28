@@ -616,7 +616,7 @@ export default function RequestForm({ prefill, defaultPhoneCountry = "US" }: { p
                 phone: formData.phone,
                 countryOfImport: formData.countryOfImport,
                 importTimeline: formData.importTimeline || undefined,
-                source: pathnameToSource(pathname),
+                source: pathname, // store raw pathname so the admin link is unambiguous
                 ...trackingData
             };
 
