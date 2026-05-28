@@ -5,9 +5,7 @@ import { useSearchParams } from "next/navigation";
 import { Loader2, ArrowLeft, ChevronDown, AlertCircle, User } from "lucide-react";
 import { submitCarRequest } from "@/actions/request-actions";
 import { motion, AnimatePresence } from "framer-motion";
-import PhoneInput from 'react-phone-number-input';
 import { isValidPhoneNumber } from 'libphonenumber-js';
-import 'react-phone-number-input/style.css'; // Don't forget the CSS
 
 const TOTAL_STEPS = 3;
 
@@ -268,6 +266,15 @@ const COUNTRIES = [
     { n: "Zimbabwe", c: "+263" }
 ].sort((a, b) => a.n.localeCompare(b.n));
 
+// Alpha-2 → dial code for defaultPhoneCountry prop
+const ALPHA2_TO_DIAL: Record<string, string> = {
+    US: "+1", GB: "+44", IE: "+353", AU: "+61", CA: "+1", NZ: "+64",
+    DE: "+49", FR: "+33", ES: "+34", IT: "+39", NL: "+31", BE: "+32",
+    SE: "+46", NO: "+47", DK: "+45", FI: "+358", JP: "+81", SG: "+65",
+    AE: "+971", ZA: "+27", IN: "+91", NG: "+234", KE: "+254", GH: "+233",
+    PK: "+92", LK: "+94", CN: "+86", BR: "+55", MX: "+52", AR: "+54",
+};
+
 // --- HELPER: Read Cookies for Meta Pixel Data ---
 function getCookie(name: string) {
     if (typeof document === 'undefined') return undefined;
@@ -322,8 +329,8 @@ const SelectDropdown = ({
                     type="text"
                     disabled={disabled || isLoading}
                     className="bg-transparent w-full outline-none placeholder:text-zinc-400 text-black"
-                    placeholder={selectedLabel || placeholder}
-                    value={isOpen ? searchTerm : (selectedLabel || "")}
+                    placeholder={selectedLabel || value || placeholder}
+                    value={isOpen ? searchTerm : (selectedLabel || value || "")}
                     onChange={(e) => setSearchTerm(e.target.value)}
                     onFocus={() => setIsOpen(true)}
                 />
@@ -378,7 +385,7 @@ const initialFormState = {
     make: "", vehicle_model: "", condition: "New",
     yearRange: "2024-2026", mileageRange: "Under 5,000",
     specs: "", name: "", email: "", phone: "",
-    countryCode: "+1", countryOfImport: ""
+    countryCode: "+1", countryOfImport: "", importTimeline: ""
 };
 
 // Type for the returned agent
@@ -388,7 +395,7 @@ interface AgentData {
     image: string;
 }
 
-export default function RequestForm({ prefill }: { prefill?: Partial<typeof initialFormState> }) {
+export default function RequestForm({ prefill, defaultPhoneCountry = "US" }: { prefill?: Partial<typeof initialFormState>; defaultPhoneCountry?: string }) {
     const searchParams = useSearchParams();
 
     const [step, setStep] = useState(1);
@@ -401,9 +408,15 @@ export default function RequestForm({ prefill }: { prefill?: Partial<typeof init
 
     const [availableModels, setAvailableModels] = useState<string[]>([]);
     const [isLoadingModels, setIsLoadingModels] = useState(false);
-    const [apiFailed, setApiFailed] = useState(false); // <-- NEW
+    const [apiFailed, setApiFailed] = useState(false);
 
-    const [formData, setFormData] = useState(initialFormState);
+    const [countryCodeUpdated, setCountryCodeUpdated] = useState(false);
+    const [updatedCountryCodeLabel, setUpdatedCountryCodeLabel] = useState("");
+
+    const [formData, setFormData] = useState(() => ({
+        ...initialFormState,
+        countryCode: ALPHA2_TO_DIAL[defaultPhoneCountry] || "+1"
+    }));
     const [errors, setErrors] = useState<Record<string, string>>({});
 
     // Identity keys for Server-to-Server tracking
@@ -421,12 +434,19 @@ export default function RequestForm({ prefill }: { prefill?: Partial<typeof init
 
     useEffect(() => {
         if (prefill) {
+            let syncedCountryCode = ALPHA2_TO_DIAL[defaultPhoneCountry] || "+1";
+            if (prefill.countryOfImport) {
+                const match = COUNTRIES.find(c => c.n === prefill.countryOfImport);
+                if (match) syncedCountryCode = match.c;
+            }
+            if (prefill.countryCode) syncedCountryCode = prefill.countryCode;
             setFormData(prev => ({
                 ...prev,
                 ...prefill,
-                // Ensure condition is "Used" if it's a specific car from the gallery
+                countryCode: syncedCountryCode,
                 condition: "Used"
             }));
+            setStep(1);
         }
     }, [prefill]);
 
@@ -473,6 +493,13 @@ export default function RequestForm({ prefill }: { prefill?: Partial<typeof init
         return () => clearTimeout(delayDebounceFn);
     }, [formData.make]);
 
+    // If a prefilled model doesn't exist in API results, fall back to manual entry
+    useEffect(() => {
+        if (!isLoadingModels && availableModels.length > 0 && formData.vehicle_model && !availableModels.includes(formData.vehicle_model)) {
+            setApiFailed(true);
+        }
+    }, [availableModels, isLoadingModels]);
+
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
         const { id, value } = e.target;
         setFormData(prev => ({ ...prev, [id]: value }));
@@ -480,10 +507,20 @@ export default function RequestForm({ prefill }: { prefill?: Partial<typeof init
     };
 
     const handleDropdownChange = (id: string, value: string) => {
-        setFormData(prev => {
-            if (id === "make" && prev.make !== value) return { ...prev, [id]: value, vehicle_model: "" };
-            return { ...prev, [id]: value };
-        });
+        if (id === "countryOfImport") {
+            const match = COUNTRIES.find(c => c.n === value);
+            const newCode = match ? match.c : formData.countryCode;
+            setFormData(prev => ({ ...prev, countryOfImport: value, countryCode: newCode }));
+            if (match && match.c !== formData.countryCode) {
+                setUpdatedCountryCodeLabel(`${match.c} (${match.n})`);
+                setCountryCodeUpdated(true);
+                setTimeout(() => setCountryCodeUpdated(false), 4500);
+            }
+        } else if (id === "make" && formData.make !== value) {
+            setFormData(prev => ({ ...prev, make: value, vehicle_model: "" }));
+        } else {
+            setFormData(prev => ({ ...prev, [id]: value }));
+        }
         if (errors[id]) setErrors(prev => ({ ...prev, [id]: "" }));
     };
 
@@ -498,11 +535,17 @@ export default function RequestForm({ prefill }: { prefill?: Partial<typeof init
         if (step === 3) {
             if (!formData.name.trim()) newErrors.name = "Full name is required";
             if (!formData.email.trim() || !/^\S+@\S+\.\S+$/.test(formData.email)) newErrors.email = "Valid email is required";
-            // Robust Phone Validation
-            if (!formData.phone) {
+            if (!formData.phone.trim()) {
                 newErrors.phone = "Phone number is required";
-            } else if (!isValidPhoneNumber(formData.phone)) {
-                newErrors.phone = "Invalid phone number for the selected country";
+            } else {
+                const dialDigits = formData.countryCode.replace(/[^\d]/g, '');
+                const localDigits = formData.phone.replace(/\D/g, '').replace(/^0+/, '');
+                const fullE164 = `+${dialDigits}${localDigits}`;
+                try {
+                    if (!isValidPhoneNumber(fullE164)) newErrors.phone = "Invalid phone number for the selected country";
+                } catch {
+                    newErrors.phone = "Invalid phone number for the selected country";
+                }
             }
             if (!formData.countryOfImport) newErrors.countryOfImport = "Destination country is required";
         }
@@ -548,6 +591,7 @@ export default function RequestForm({ prefill }: { prefill?: Partial<typeof init
                 countryCode: formData.countryCode,
                 phone: formData.phone,
                 countryOfImport: formData.countryOfImport,
+                importTimeline: formData.importTimeline || undefined,
                 ...trackingData
             };
 
@@ -654,7 +698,7 @@ export default function RequestForm({ prefill }: { prefill?: Partial<typeof init
                                                     id="vehicle_model"
                                                     value={formData.vehicle_model}
                                                     onChange={handleInputChange}
-                                                    placeholder="Type Vehicle Model (e.g. 911, M3)"
+                                                    placeholder="Type Vehicle Model (e.g. Aqua, Prius, 911)"
                                                     className={inputClasses("vehicle_model")}
                                                 />
                                                 {errors.vehicle_model && (
@@ -662,21 +706,36 @@ export default function RequestForm({ prefill }: { prefill?: Partial<typeof init
                                                         <AlertCircle size={10}/> {errors.vehicle_model}
                                                     </p>
                                                 )}
-                                                <p className="absolute -bottom-5 right-0 text-[10px] text-zinc-400">
-                                                    Manual Entry Mode
-                                                </p>
+                                                <button
+                                                    type="button"
+                                                    onClick={() => { setApiFailed(false); setFormData(prev => ({ ...prev, vehicle_model: "" })); }}
+                                                    className="absolute -bottom-5 right-0 text-[10px] text-zinc-400 hover:text-sky-500 transition-colors"
+                                                >
+                                                    Use dropdown instead
+                                                </button>
                                             </div>
                                         ) : (
-                                            <SelectDropdown
-                                                id="vehicle_model"
-                                                placeholder="Select Model"
-                                                options={availableModels.map(m => ({ label: m, value: m }))}
-                                                value={formData.vehicle_model}
-                                                onChange={handleDropdownChange}
-                                                disabled={!formData.make}
-                                                isLoading={isLoadingModels}
-                                                error={errors.vehicle_model}
-                                            />
+                                            <div className="relative">
+                                                <SelectDropdown
+                                                    id="vehicle_model"
+                                                    placeholder="Select Model"
+                                                    options={availableModels.map(m => ({ label: m, value: m }))}
+                                                    value={formData.vehicle_model}
+                                                    onChange={handleDropdownChange}
+                                                    disabled={!formData.make}
+                                                    isLoading={isLoadingModels}
+                                                    error={errors.vehicle_model}
+                                                />
+                                                {formData.make && !isLoadingModels && (
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => setApiFailed(true)}
+                                                        className="absolute -bottom-5 right-0 text-[10px] text-zinc-400 hover:text-sky-500 transition-colors"
+                                                    >
+                                                        Type manually
+                                                    </button>
+                                                )}
+                                            </div>
                                         )}
                                     </div>
                                 </>
@@ -753,31 +812,89 @@ export default function RequestForm({ prefill }: { prefill?: Partial<typeof init
                                         </div>
                                     </div>
 
+                                    {/* Country of Import — before phone so selection auto-fills the country code */}
                                     <div className="relative">
                                         <label className="text-[10px] font-bold text-[#4da8da] uppercase tracking-wider block mb-1">
-                                            WhatsApp / Phone Number
+                                            Where are you importing to?
                                         </label>
-                                        <PhoneInput
-                                            international
-                                            defaultCountry="US"
-                                            value={formData.phone}
-                                            onChange={(val) => setFormData(prev => ({ ...prev, phone: val || "" }))}
-                                            className={`w-full bg-transparent border-b pb-2 ${errors.phone ? "border-red-500" : "border-black/10"}`}
-                                        />
-                                        {errors.phone && (
-                                            <p className="absolute -bottom-5 left-0 text-[10px] font-bold text-red-500 flex items-center gap-1">
-                                                <AlertCircle size={10}/> {errors.phone}
-                                            </p>
-                                        )}
-                                    </div>
-
-                                    <div className="relative">
                                         <SelectDropdown
                                             id="countryOfImport" placeholder="Destination Country..."
                                             options={COUNTRIES.map(c => ({ label: c.n, value: c.n }))}
                                             value={formData.countryOfImport} onChange={handleDropdownChange}
                                             error={errors.countryOfImport}
                                         />
+                                    </div>
+
+                                    {/* Sync notification */}
+                                    <AnimatePresence>
+                                        {countryCodeUpdated && (
+                                            <motion.p
+                                                initial={{ opacity: 0, y: -4 }}
+                                                animate={{ opacity: 1, y: 0 }}
+                                                exit={{ opacity: 0 }}
+                                                transition={{ duration: 0.3 }}
+                                                className="text-xs text-sky-500 font-medium -mt-4 pl-1"
+                                            >
+                                                Country code updated to {updatedCountryCodeLabel} based on your import destination.
+                                            </motion.p>
+                                        )}
+                                    </AnimatePresence>
+
+                                    {/* Phone: country code selector | local number — two separate columns */}
+                                    <div>
+                                        <label className="text-[10px] font-bold text-[#4da8da] uppercase tracking-wider block mb-1">
+                                            WhatsApp / Phone Number
+                                        </label>
+                                        <div className="grid grid-cols-[150px_1fr] gap-4 items-start">
+                                            <SelectDropdown
+                                                id="countryCode"
+                                                placeholder="+1"
+                                                options={COUNTRIES.map(c => ({ label: `${c.c}  ${c.n}`, value: c.c }))}
+                                                value={formData.countryCode}
+                                                onChange={handleDropdownChange}
+                                            />
+                                            <div className="relative">
+                                                <input
+                                                    id="phone"
+                                                    type="tel"
+                                                    value={formData.phone}
+                                                    onChange={handleInputChange}
+                                                    placeholder="Local number (e.g. 085 123 4567)"
+                                                    className={inputClasses("phone")}
+                                                />
+                                                {errors.phone ? (
+                                                    <p className="absolute -bottom-5 left-0 text-[10px] font-bold text-red-500 flex items-center gap-1">
+                                                        <AlertCircle size={10}/> {errors.phone}
+                                                    </p>
+                                                ) : (
+                                                    <p className="absolute -bottom-5 left-0 text-[10px] text-zinc-400">
+                                                        Enter without country code — it&apos;s already set above
+                                                    </p>
+                                                )}
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div>
+                                        <label className="text-[10px] font-bold text-[#4da8da] uppercase tracking-wider block mb-3">
+                                            When are you planning to import?
+                                        </label>
+                                        <div className="flex flex-wrap gap-2">
+                                            {["Immediately", "Within the next 3 months", "In the next 6 months", "Not sure", "Just Inquiring"].map((option) => (
+                                                <button
+                                                    key={option}
+                                                    type="button"
+                                                    onClick={() => setFormData(prev => ({ ...prev, importTimeline: option }))}
+                                                    className={`px-4 py-2.5 rounded-full text-sm font-medium border transition-all ${
+                                                        formData.importTimeline === option
+                                                            ? "bg-[#4da8da] text-white border-[#4da8da] shadow-md"
+                                                            : "bg-transparent text-zinc-500 border-black/10 hover:border-[#4da8da]/30"
+                                                    }`}
+                                                >
+                                                    {option}
+                                                </button>
+                                            ))}
+                                        </div>
                                     </div>
 
                                     {errors.submit && (
