@@ -275,12 +275,12 @@ export default function IrelandCostCalculator() {
     const { key, startX, baseValue } = swipeRef.current;
     const steps = Math.round((clientX - startX) / 32);
     if (key === "purchasePrice") {
-      const stepSize = Math.round(500 / (EXCHANGE_RATES[form.currency] ?? 1));
+      const stepSize = Math.round(50 / (EXCHANGE_RATES[form.currency] ?? 1));
       set("purchasePrice", Math.max(stepSize, baseValue + steps * stepSize));
     } else if (key === "shippingCost") {
-      set("shippingCost", Math.max(0, baseValue + steps * 100));
+      set("shippingCost", Math.max(0, baseValue + steps * 50));
     } else if (key === "omsp") {
-      set("omsp", Math.max(1000, baseValue + steps * 500));
+      set("omsp", Math.max(1000, baseValue + steps * 50));
     }
   };
 
