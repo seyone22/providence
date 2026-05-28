@@ -245,7 +245,7 @@ export default function ImportJapaneseCarsIreland() {
             <MinimalHeader />
 
             {/* ── EV DEADLINE COUNTDOWN BANNER ─────────────── */}
-            <div className="fixed top-20 left-0 right-0 z-40 bg-black/95 backdrop-blur-sm border-b border-white/[0.06] flex items-center min-h-[42px]">
+            <div className="fixed top-16 left-0 right-0 z-40 bg-black/95 backdrop-blur-sm border-b border-white/[0.06] flex items-center min-h-[42px]">
                 <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 py-2 flex items-center justify-center gap-3 sm:gap-6">
                     <span className="text-white/60 text-[10px] sm:text-[11px] font-medium tracking-[0.12em] uppercase shrink-0">
                         EV VRT Relief — €5,000
@@ -266,7 +266,7 @@ export default function ImportJapaneseCarsIreland() {
             </div>
 
             {/* ── HERO ─────────────────────────────────────── */}
-            <section ref={heroRef} className="relative min-h-screen flex flex-col justify-center items-start px-6 pt-40 md:pt-32 bg-white overflow-hidden">
+            <section ref={heroRef} className="relative min-h-screen flex flex-col justify-center items-start px-6 pt-36 md:pt-28 bg-white overflow-hidden">
                 <motion.div
                     initial={{ scale: 1.05, opacity: 0 }}
                     animate={{ scale: 1, opacity: 1 }}
