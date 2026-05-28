@@ -297,7 +297,7 @@ export default function IrelandCostCalculator() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 h-[56px] flex items-center justify-between gap-3">
 
           {/* Left: stacked label+value items, swipeable for editable fields */}
-          <div className="flex items-center gap-1 sm:gap-3 min-w-0 overflow-hidden">
+          <div className="flex items-center gap-3 sm:gap-4 min-w-0 overflow-hidden">
 
             {/* Purchase price — swipeable */}
             <motion.div
@@ -315,8 +315,6 @@ export default function IrelandCostCalculator() {
               <span className="text-[13px] sm:text-sm font-bold text-black leading-none">{fmt(calc.priceEUR)}</span>
             </motion.div>
 
-            <span className="text-zinc-300 shrink-0 hidden sm:block" aria-hidden>·</span>
-
             {/* Shipping */}
             <motion.div
               animate={showSwipeHint ? { x: [0, 0, -10, 10, -7, 7, -4, 0] } : { x: 0 }}
@@ -333,8 +331,6 @@ export default function IrelandCostCalculator() {
               <span className="text-[13px] sm:text-sm font-bold text-black leading-none">{fmt(form.shippingCost)}</span>
             </motion.div>
 
-            <span className="text-zinc-300 shrink-0 hidden sm:block" aria-hidden>·</span>
-
             {/* OMSP */}
             <motion.div
               animate={showSwipeHint ? { x: [0, 0, -10, 10, -7, 7, -4, 0] } : { x: 0 }}
@@ -348,10 +344,6 @@ export default function IrelandCostCalculator() {
               <span className="text-[9px] font-semibold tracking-normal sm:tracking-[0.1em] uppercase text-zinc-400 leading-none mb-[3px]">OMSP</span>
               <span className="text-[13px] sm:text-sm font-bold text-black leading-none">{fmt(form.omsp)}</span>
             </motion.div>
-
-            {/* Arrow on mobile, dot on sm+ */}
-            <span className="text-zinc-300 sm:hidden shrink-0 text-[11px]" aria-hidden>→</span>
-            <span className="text-zinc-300 hidden sm:block shrink-0" aria-hidden>·</span>
 
             {/* Total Landed — read-only */}
             <div className="flex flex-col items-start shrink-0">
