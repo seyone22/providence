@@ -238,27 +238,28 @@ export default function ImportJapaneseCarsIreland() {
             <MinimalHeader />
 
             {/* ── EV DEADLINE COUNTDOWN BANNER ─────────────── */}
-            <div className="fixed top-20 left-0 right-0 z-40 bg-black/95 backdrop-blur-sm border-b border-white/[0.06]">
-                <div className="max-w-7xl mx-auto px-6 py-2.5 flex items-center justify-center gap-6 flex-wrap">
-                    <span className="text-white/60 text-[11px] font-medium tracking-[0.15em] uppercase">
-                        EV VRT Relief — €5,000 · Closes 31 Dec 2026
+            <div className="fixed top-20 left-0 right-0 z-40 bg-black/95 backdrop-blur-sm border-b border-white/[0.06] flex items-center min-h-[42px]">
+                <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 py-2 flex items-center justify-center gap-3 sm:gap-6">
+                    <span className="text-white/60 text-[10px] sm:text-[11px] font-medium tracking-[0.12em] uppercase shrink-0">
+                        EV VRT Relief — €5,000
                     </span>
-                    <div className="flex items-center gap-3 text-[11px] font-bold tracking-[0.1em]">
+                    <span className="text-white/20 hidden sm:inline">·</span>
+                    <div className="flex items-center gap-2 sm:gap-3 text-[11px] font-bold tracking-[0.1em]">
                         <span className="text-[#4da8da]">{timeLeft.months}<span className="text-white/40 font-normal ml-0.5">mo</span></span>
                         <span className="text-white/20">·</span>
                         <span className="text-[#4da8da]">{timeLeft.days}<span className="text-white/40 font-normal ml-0.5">d</span></span>
                         <span className="text-white/20">·</span>
                         <span className="text-[#4da8da]">{timeLeft.hours}<span className="text-white/40 font-normal ml-0.5">h</span></span>
-                        <span className="text-white/40 font-normal">remaining</span>
+                        <span className="text-white/40 font-normal hidden sm:inline">remaining</span>
                     </div>
-                    <a href="#inquiry" className="text-[11px] font-bold text-white/50 hover:text-white transition-colors tracking-[0.1em] uppercase">
+                    <a href="#inquiry" className="text-[10px] sm:text-[11px] font-bold text-[#4da8da] hover:text-white transition-colors tracking-[0.1em] uppercase shrink-0">
                         Enquire →
                     </a>
                 </div>
             </div>
 
             {/* ── HERO ─────────────────────────────────────── */}
-            <section ref={heroRef} className="relative min-h-screen flex flex-col justify-center items-start px-6 pt-32 bg-white overflow-hidden">
+            <section ref={heroRef} className="relative min-h-screen flex flex-col justify-center items-start px-6 pt-40 md:pt-32 bg-white overflow-hidden">
                 <motion.div
                     initial={{ scale: 1.05, opacity: 0 }}
                     animate={{ scale: 1, opacity: 1 }}
@@ -332,12 +333,12 @@ export default function ImportJapaneseCarsIreland() {
             </section>
 
             {/* ── TRUST BADGES ────────────────────────────── */}
-            <section className="py-6 px-6 border-y border-black/5 bg-white relative z-10">
+            <section className="py-5 px-6 border-y border-black/5 bg-white relative z-10">
                 <div className="max-w-5xl mx-auto">
-                    <div className="flex flex-wrap items-center justify-center gap-x-10 gap-y-3">
+                    <div className="grid grid-cols-2 sm:flex sm:flex-wrap items-center sm:justify-center gap-x-8 gap-y-2.5">
                         {TRUST_BADGES.map((badge) => (
-                            <div key={badge} className="flex items-center gap-2 text-zinc-500 text-sm font-medium">
-                                <CheckCircle2 size={14} className="text-sky-500 shrink-0" />
+                            <div key={badge} className="flex items-center gap-1.5 text-zinc-500 text-xs sm:text-sm font-medium">
+                                <CheckCircle2 size={12} className="text-sky-500 shrink-0" />
                                 {badge}
                             </div>
                         ))}
