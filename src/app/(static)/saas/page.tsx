@@ -38,8 +38,12 @@ export default function SaaSSignup() {
     return (
         <main className="min-h-screen bg-white text-black relative font-sans overflow-x-hidden selection:bg-black/10 selection:text-black">
 
-            {/* Very subtle background texture/gradient for depth */}
-            <div className="absolute inset-0 z-0 pointer-events-none bg-[radial-gradient(ellipse_at_top,rgba(0,0,0,0.03)_0%,rgba(255,255,255,0)_70%)]" />
+            {/* Gradient mesh background (hero band) */}
+            <div aria-hidden className="pointer-events-none absolute inset-x-0 top-0 h-[760px] z-0 overflow-hidden">
+                <div className="pa-mesh absolute inset-0" />
+                <div className="pa-grid absolute inset-0" />
+                <div className="absolute inset-x-0 bottom-0 h-40 bg-gradient-to-b from-transparent to-white" />
+            </div>
 
             <MinimalHeader />
 
@@ -48,7 +52,7 @@ export default function SaaSSignup() {
                 {/* === HERO SECTION === */}
                 <div className="text-center mb-32 max-w-4xl mx-auto">
                     <Reveal immediate y={30} scale={0.95} delay={0.1} duration={1}>
-                        <h1 className="text-5xl md:text-7xl lg:text-8xl font-bold tracking-tighter mb-6 bg-clip-text text-transparent bg-gradient-to-b from-black via-black/80 to-black/50 leading-[1.05]">
+                        <h1 className="pa-headline-gradient text-5xl md:text-7xl lg:text-8xl font-bold tracking-tighter mb-6 leading-[1.05]">
                             Welcome to the<br />Global Portal.
                         </h1>
                     </Reveal>

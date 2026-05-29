@@ -2,32 +2,16 @@
 
 import { Suspense } from "react";
 import MinimalHeader from "@/components/MinimalHeader";
-import { motion } from "framer-motion";
-import { Reveal, appleEase } from "@/components/Reveal";
+import { Reveal } from "@/components/Reveal";
+import GradientMesh from "@/components/GradientMesh";
 import RequestForm from "@/components/requestForm"; // Adjust path if necessary
 
 export default function RequestCar() {
     return (
         <div className="min-h-screen bg-white text-black flex flex-col relative overflow-x-hidden font-sans selection:bg-black/10 selection:text-black">
 
-            {/* === BACKGROUND LAYER === */}
-            <motion.div
-                initial={{ scale: 1.05, opacity: 0 }}
-                animate={{ scale: 1, opacity: 1 }}
-                transition={{ duration: 1.5, ease: appleEase }}
-                className="absolute inset-0 z-0 pointer-events-none fixed"
-            >
-                {/* Clean, detailed interior or bright studio car shot */}
-                <img
-                    src="https://images.unsplash.com/photo-1552519507-da3b142c6e3d?q=80&w=3000&auto=format&fit=crop"
-                    alt="Premium automotive interior"
-                    className="w-full h-full object-cover object-center"
-                />
-                {/* Frosted washes to ensure the form and text pop */}
-                <div className="absolute inset-0 bg-white/40 backdrop-blur-[2px]" />
-                <div className="absolute inset-0 bg-gradient-to-b from-white/60 to-transparent h-1/3" />
-                <div className="absolute inset-0 bg-gradient-to-t from-white via-white/80 to-transparent" />
-            </motion.div>
+            {/* === GRADIENT MESH BACKGROUND === */}
+            <GradientMesh />
 
             <MinimalHeader />
 
@@ -41,7 +25,7 @@ export default function RequestCar() {
                         y={20}
                         delay={0.1}
                         duration={0.8}
-                        className="text-4xl md:text-6xl font-bold tracking-tighter text-black mb-4 drop-shadow-[0_0_15px_rgba(255,255,255,1)]"
+                        className="pa-headline-gradient text-4xl md:text-6xl font-bold tracking-tighter mb-4 drop-shadow-[0_0_15px_rgba(255,255,255,1)]"
                     >
                         Create your inquiry.
                     </Reveal>

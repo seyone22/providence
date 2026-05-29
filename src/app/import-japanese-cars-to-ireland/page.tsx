@@ -5,6 +5,7 @@ import MinimalHeader from "@/components/MinimalHeader";
 import { Landmark, Compass, Ship, ShieldCheck, ArrowRight, CheckCircle2, MapPin, Search, Zap } from "lucide-react";
 import { motion, AnimatePresence, useScroll, useTransform } from "framer-motion";
 import { Reveal, appleEase } from "@/components/Reveal";
+import GradientMesh from "@/components/GradientMesh";
 import RequestForm from "@/components/requestForm";
 import FAQSection from "@/components/faqSection";
 import type { LandingPageConfig } from "@/config/landing-pages";
@@ -266,22 +267,7 @@ export default function ImportJapaneseCarsIreland() {
 
             {/* ── HERO ─────────────────────────────────────── */}
             <section ref={heroRef} className="relative min-h-screen flex flex-col justify-center items-start px-6 pt-36 md:pt-28 bg-white overflow-hidden">
-                <motion.div
-                    initial={{ scale: 1.05, opacity: 0 }}
-                    animate={{ scale: 1, opacity: 1 }}
-                    transition={{ duration: 1.5, ease: appleEase }}
-                    className="absolute inset-0 z-0 pointer-events-none"
-                >
-                    <img
-                        src="https://images.unsplash.com/photo-1614162692292-7ac56d7f7f1e?q=80&w=3000&auto=format&fit=cover"
-                        alt="Import Japanese Cars to Ireland — Providence Auto"
-                        style={{ height: "100vh", width: "100vw", objectFit: "cover", objectPosition: "center" }}
-                    />
-                    <div className="absolute inset-0 bg-white/10 backdrop-blur-[2px]" />
-                    <div className="absolute inset-0 bg-gradient-to-b from-white/40 to-transparent h-[30%]" />
-                    <div className="absolute top-1/2 bottom-0 w-full bg-gradient-to-t from-white via-white/30 to-transparent" />
-                    <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,rgba(255,255,255,0.7)_0%,transparent_50%)]" />
-                </motion.div>
+                <GradientMesh />
 
                 <motion.div
                     style={{ scale: heroScale, opacity: heroOpacity, y: heroY }}
@@ -305,7 +291,7 @@ export default function ImportJapaneseCarsIreland() {
                         scale={0.95}
                         delay={0.3}
                         duration={1}
-                        className="text-4xl md:text-7xl lg:text-8xl font-bold tracking-tighter mb-6 bg-clip-text text-transparent bg-gradient-to-b from-black via-black/80 to-black/50 leading-[1.1] drop-shadow-[0_0_15px_rgba(255,255,255,1)]"
+                        className="pa-headline-gradient text-4xl md:text-7xl lg:text-8xl font-bold tracking-tighter mb-6 leading-[1.1] drop-shadow-[0_0_15px_rgba(255,255,255,1)]"
                     >
                         Import a Japanese Car<br />to Ireland.
                     </Reveal>
@@ -392,11 +378,10 @@ export default function ImportJapaneseCarsIreland() {
                     {JAPAN_ADVANTAGES.map((adv, index) => (
                         <Reveal
                             key={index}
-                            y={40}
-                            scale={0.95}
-                            delay={index * 0.1}
-                            duration={0.8}
-                            className="relative overflow-hidden group flex flex-col p-8 rounded-[2rem] border border-black/5 bg-white hover:bg-zinc-50 transition-all duration-500 hover:shadow-[0_20px_40px_rgba(0,0,0,0.05)]"
+                            y={20}
+                            delay={index * 0.08}
+                            duration={0.6}
+                            className="pa-lift relative overflow-hidden group flex flex-col p-8 rounded-[2rem] border border-black/[0.07] bg-white hover:bg-zinc-50"
                         >
                             <div className={`absolute -bottom-24 -right-24 w-64 h-64 rounded-full blur-[80px] bg-transparent transition-colors duration-700 ${adv.glowColor}`} />
                             <div className="relative z-10">
@@ -466,9 +451,8 @@ export default function ImportJapaneseCarsIreland() {
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-start">
                         {/* Breakdown card */}
                         <Reveal
-                            y={40}
-                            scale={0.97}
-                            duration={0.8}
+                            y={24}
+                            duration={0.6}
                             className="bg-white rounded-[2rem] border border-black/8 shadow-[0_20px_40px_rgba(0,0,0,0.06)] overflow-hidden"
                         >
                             <div className="bg-black px-8 py-6">
@@ -500,10 +484,9 @@ export default function ImportJapaneseCarsIreland() {
 
                         {/* Comparison + context */}
                         <Reveal
-                            y={40}
-                            scale={0.97}
-                            delay={0.15}
-                            duration={0.8}
+                            y={24}
+                            delay={0.12}
+                            duration={0.6}
                             className="flex flex-col gap-5"
                         >
                             <div className="bg-zinc-50 rounded-[2rem] border border-black/5 p-8">

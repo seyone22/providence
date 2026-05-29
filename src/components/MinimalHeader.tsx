@@ -27,8 +27,9 @@ export default function MinimalHeader() {
     };
 
     return (
-        <header className="fixed top-0 w-full z-50 h-16 flex items-center bg-gray-500/20 backdrop-blur-md border-b border-gray-500/30 shadow-sm transition-colors duration-300">
-            <div className="w-full max-w-7xl mx-auto px-6 flex justify-between items-center">
+        <header className="fixed top-0 inset-x-0 z-50">
+            <div className="mx-auto max-w-6xl px-4 sm:px-6">
+                <div className="mt-3 flex justify-between items-center rounded-2xl border border-black/5 bg-white/70 backdrop-blur-xl px-4 sm:px-5 py-2.5 shadow-[0_8px_30px_rgba(2,6,23,0.06)]">
 
                 <Link href="/" className="flex items-center gap-0">
                     <img src="/logo.png" width={44} alt="Providence Auto Logo" className="block" />
@@ -53,6 +54,7 @@ export default function MinimalHeader() {
                         rounded-full transition-all duration-300 active:scale-95">
                     Begin Inquiry
                 </button>
+                </div>
             </div>
         </header>
     );
