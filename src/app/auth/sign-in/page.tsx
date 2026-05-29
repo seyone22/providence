@@ -7,7 +7,8 @@ import { ArrowLeft, Eye, EyeOff, Loader2, AlertCircle } from "lucide-react";
 import { toast } from "sonner";
 import { signIn } from "@/lib/auth-client";
 import { motion, AnimatePresence } from "framer-motion";
-import { Reveal, appleEase } from "@/components/Reveal";
+import { Reveal } from "@/components/Reveal";
+import GradientMesh from "@/components/GradientMesh";
 
 export default function SignIn() {
     const router = useRouter();
@@ -109,25 +110,8 @@ export default function SignIn() {
         <main
             className="min-h-screen bg-white text-black relative flex items-center justify-center px-4 font-sans selection:bg-black/10 selection:text-black overflow-hidden">
 
-            {/* === BACKGROUND LAYER === */}
-            <motion.div
-                initial={{ scale: 1.05, opacity: 0 }}
-                animate={{ scale: 1, opacity: 1 }}
-                transition={{ duration: 1.5, ease: appleEase }}
-                className="absolute inset-0 z-0 pointer-events-none"
-            >
-                {/* High-key premium car image */}
-                <img
-                    src="https://images.unsplash.com/photo-1614162692292-7ac56d7f7f1e?q=80&w=3000&auto=format&fit=crop"
-                    alt="Premium automotive background"
-                    className="w-full h-full object-cover object-center"
-                />
-                {/* Frosted washes to ensure the login card pops */}
-                <div className="absolute inset-0 bg-white/30 backdrop-blur-[4px]" />
-                <div className="absolute inset-0 bg-gradient-to-t from-white via-white/80 to-transparent" />
-                <div
-                    className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(255,255,255,0.2)_0%,rgba(255,255,255,0.8)_100%)]" />
-            </motion.div>
+            {/* === GRADIENT MESH BACKGROUND === */}
+            <GradientMesh />
 
             {/* Back Button */}
             <Link href="/"
@@ -146,7 +130,7 @@ export default function SignIn() {
                 className="relative z-10 w-full max-w-[440px] bg-white/80 backdrop-blur-2xl border border-black/5 rounded-[2.5rem] p-10 shadow-[0_40px_100px_rgba(0,0,0,0.08)]"
             >
                 <div className="text-center mb-10">
-                    <h1 className="text-3xl font-bold tracking-tight text-black mb-2">
+                    <h1 className="pa-headline-gradient text-3xl font-bold tracking-tight mb-2">
                         Welcome Back
                     </h1>
                     <p className="text-zinc-500 font-light text-sm">

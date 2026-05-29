@@ -3,8 +3,8 @@
 import MinimalHeader from "@/components/MinimalHeader";
 import Link from "next/link";
 import { Layers, ShieldCheck, Globe, Zap } from "lucide-react";
-import { motion } from "framer-motion";
-import { Reveal, appleEase } from "@/components/Reveal";
+import { Reveal } from "@/components/Reveal";
+import GradientMesh from "@/components/GradientMesh";
 
 export default function B2BLanding() {
     return (
@@ -14,32 +14,13 @@ export default function B2BLanding() {
             {/* SECTION 1: The Hero */}
             <section className="relative min-h-screen flex flex-col justify-center items-center px-6 pt-20 overflow-hidden">
 
-                {/* === NEW BACKGROUND IMAGE LAYER === */}
-                <motion.div
-                    initial={{ scale: 1.05, opacity: 0 }}
-                    animate={{ scale: 1, opacity: 1 }}
-                    transition={{ duration: 1.5, ease: appleEase }}
-                    className="absolute inset-0 z-0 pointer-events-none"
-                >
-                    <img
-                        src="https://images.unsplash.com/photo-1494976388531-d1058494cdd8?q=80&w=3000&auto=format&fit=crop"
-                        alt="Premium automotive inventory"
-                        className="object-cover object-center"
-                        style={{height:'100vh', width:'100vw', objectFit: 'cover'}}
-                    />
-                    {/* Drastically reduced the white wash and added a slight blur for text readability */}
-                    <div className="absolute inset-0 bg-white/20 backdrop-blur-[1px]" />
-                    <div className="absolute inset-0 bg-linear-to-t from-white via-white/20 to-transparent" />
-                    <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(255,255,255,0)_0%,rgba(255,255,255,0.7)_100%)]" />
-                </motion.div>
-
-                {/* Subtle top light gradient to give depth */}
-                <div className="absolute top-0 w-full h-[800px] bg-[radial-gradient(ellipse_at_top,rgba(0,0,0,0.05)_0%,rgba(255,255,255,0)_70%)] pointer-events-none z-0" />
+                {/* === GRADIENT MESH BACKGROUND === */}
+                <GradientMesh />
 
                 <div className="relative z-10 text-center max-w-5xl mx-auto flex flex-col items-center mt-12">
                     {/* Above-the-fold hero content animates on mount so it shows immediately on load. */}
                     <Reveal immediate y={30} scale={0.95} duration={1}>
-                        <h1 className="text-5xl md:text-7xl lg:text-8xl font-bold tracking-tighter mb-6 bg-clip-text text-transparent bg-gradient-to-b from-black via-black/80 to-black/60 leading-[1.05] drop-shadow-[0_0_15px_rgba(255,255,255,0.8)]">
+                        <h1 className="pa-headline-gradient text-5xl md:text-7xl lg:text-8xl font-bold tracking-tighter mb-6 leading-[1.05] drop-shadow-[0_0_15px_rgba(255,255,255,0.8)]">
                             Inventory.<br />On Demand.
                         </h1>
                     </Reveal>
@@ -158,11 +139,12 @@ export default function B2BLanding() {
             </section>
 
             {/* SECTION 5: Final Call to Action */}
-            <section className="py-32 px-6 flex justify-center border-t border-black/5 bg-zinc-50 overflow-hidden">
-                <Reveal y={40} scale={0.95} duration={1}>
+            <section className="relative py-32 px-6 flex justify-center border-t border-black/5 bg-zinc-50 overflow-hidden">
+                <GradientMesh fade={false} />
+                <Reveal y={40} scale={0.95} duration={1} className="relative z-10">
                     <Link href="/saas" className="group flex flex-col items-center">
                         <p className="text-zinc-400 font-medium mb-4 group-hover:text-black transition-colors">Ready to scale?</p>
-                        <h2 className="text-4xl md:text-6xl font-bold tracking-tighter text-black flex items-center gap-4">
+                        <h2 className="pa-headline-gradient text-4xl md:text-6xl font-bold tracking-tighter flex items-center gap-4">
                             Join the Network
                             <span className="bg-black text-white rounded-full p-3 group-hover:rotate-45 group-hover:scale-110 transition-transform duration-300 shadow-md">
                                 <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>

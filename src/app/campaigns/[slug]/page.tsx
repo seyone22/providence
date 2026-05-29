@@ -4,7 +4,8 @@ import { useRef, Suspense } from "react";
 import MinimalHeader from "@/components/MinimalHeader";
 import { ArrowRight, Star, Play } from "lucide-react";
 import { motion, useScroll, useTransform } from "framer-motion";
-import { Reveal, appleEase } from "@/components/Reveal";
+import { Reveal } from "@/components/Reveal";
+import GradientMesh from "@/components/GradientMesh";
 import RequestForm from "@/components/requestForm";
 import FAQSection from "@/components/faqSection";
 import { lhdCampaignConfig } from "@/config/landing-pages"; // Adjust path as needed
@@ -51,22 +52,7 @@ export default function ConfigurableLanding() {
 
             {/* Configurable Hero Section */}
             <section ref={heroRef} className="relative min-h-screen flex flex-col justify-center items-start px-6 pt-20 bg-white overflow-hidden">
-                <motion.div
-                    initial={{ scale: 1.05, opacity: 0 }}
-                    animate={{ scale: 1, opacity: 1 }}
-                    transition={{ duration: 1.5, ease: appleEase }}
-                    className="absolute inset-0 z-0 pointer-events-none"
-                >
-                    <img
-                        src={config.hero.backgroundImage}
-                        alt={config.hero.title}
-                        className="object-cover object-center w-full h-full"
-                    />
-                    <div className="absolute inset-0 bg-white/10 backdrop-blur-[2px]" />
-                    <div className="absolute inset-0 bg-gradient-to-b from-white/40 to-transparent h-[30%]" />
-                    <div className="absolute top-1/2 bottom-0 w-full bg-gradient-to-t from-white via-white/40 to-transparent" />
-                    <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,rgba(255,255,255,0.7)_0%,transparent_50%)]" />
-                </motion.div>
+                <GradientMesh />
 
                 <motion.div
                     style={{ scale: heroScale, opacity: heroOpacity, y: heroY }}
@@ -89,7 +75,7 @@ export default function ConfigurableLanding() {
                         scale={0.95}
                         delay={0.3}
                         duration={1}
-                        className="text-4xl md:text-8xl lg:text-9xl font-bold tracking-tighter mb-6 bg-clip-text text-transparent bg-gradient-to-b from-black via-black/80 to-black/50 leading-[1.1] drop-shadow-[0_0_15px_rgba(255,255,255,1)] whitespace-pre-line"
+                        className="pa-headline-gradient text-4xl md:text-8xl lg:text-9xl font-bold tracking-tighter mb-6 leading-[1.1] drop-shadow-[0_0_15px_rgba(255,255,255,1)] whitespace-pre-line"
                     >
                         {config.hero.title}
                     </Reveal>

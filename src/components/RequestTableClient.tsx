@@ -300,18 +300,6 @@ export default function RequestTableClient({
                                                         </div>
                                                     )}
                                                 </button>
-
-                                                {/* Live Tracker quick link */}
-                                                <Link
-                                                    href={`/track/${req._id}`}
-                                                    target="_blank"
-                                                    className="inline-flex items-center gap-1 text-[11px] text-emerald-600 hover:text-emerald-700 hover:underline font-medium transition-colors"
-                                                    title="Open Live Tracker"
-                                                >
-                                                    <ExternalLink size={11} />
-                                                    <span className="hidden sm:inline">Live Tracker</span>
-                                                </Link>
-
                                             </div>
                                         </TableCell>
 
@@ -338,17 +326,25 @@ export default function RequestTableClient({
                                                     </div>
                                                 )}
 
-                                                {/* Quick action row: View Details & Follow-up Timer */}
-                                                <div className="flex items-center gap-2 mt-1.5">
+                                                {/* Quick action row: Live Tracker · Notes · Reminder — uniform aligned pills */}
+                                                <div className="flex flex-wrap items-center gap-1.5 mt-2">
+                                                    <Link
+                                                        href={`/track/${req._id}`}
+                                                        target="_blank"
+                                                        className="inline-flex items-center justify-center gap-1.5 h-8 px-2.5 rounded-lg bg-emerald-50 border border-emerald-200 text-emerald-700 hover:bg-emerald-100 text-[11px] font-semibold transition-colors"
+                                                        title="Open Live Tracker"
+                                                    >
+                                                        <ExternalLink size={15} className="shrink-0" />
+                                                        <span className="hidden sm:inline">Tracker</span>
+                                                    </Link>
                                                     <button
                                                         onClick={() => setModal({ isOpen: true, type: "details", request: req, targetStage: null })}
-                                                        className="inline-flex items-center gap-1 text-[11px] text-zinc-500 hover:text-zinc-800 font-medium transition-colors"
+                                                        className="inline-flex items-center justify-center gap-1.5 h-8 px-2.5 rounded-lg bg-sky-50 border border-sky-200 text-sky-700 hover:bg-sky-100 text-[11px] font-semibold transition-colors"
                                                         title="View Details & Notes"
                                                     >
-                                                        <Eye size={11} />
-                                                        <span className="hidden sm:inline">Details & Notes</span>
+                                                        <Eye size={15} className="shrink-0" />
+                                                        <span className="hidden sm:inline">Notes</span>
                                                     </button>
-                                                    <span className="text-zinc-200 hidden sm:inline">·</span>
                                                     <FollowUpTimer
                                                         requestId={req._id}
                                                         followUpAt={req.followUpAt}

@@ -175,18 +175,25 @@ export default function FollowUpTimer({ requestId, followUpAt, followUpSetAt, on
                         ? `Follow-up set for ${followUpAtDate.toLocaleDateString()}`
                         : "Set follow-up reminder"
                 }
-                className="inline-flex items-center gap-1 hover:opacity-80 transition-opacity focus:outline-none group"
+                className={`inline-flex items-center justify-center gap-1.5 h-8 px-2.5 rounded-lg border text-[11px] font-semibold transition-colors focus:outline-none group ${
+                    hasTimer
+                        ? "bg-amber-50 border-amber-200 text-amber-700 hover:bg-amber-100"
+                        : "bg-zinc-50 border-zinc-200 text-zinc-500 hover:bg-zinc-100 hover:text-zinc-700"
+                }`}
             >
                 {hasTimer && ratio !== null ? (
                     <TimerRing ratio={ratio} />
                 ) : (
                     // Inactive clock icon
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" className="text-zinc-300 group-hover:text-zinc-500 transition-colors">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" className="shrink-0">
                         <circle cx="12" cy="12" r="9" stroke="currentColor" strokeWidth="2" fill="none" strokeDasharray="3 2" />
                         <circle cx="12" cy="12" r="1.5" fill="currentColor" />
                         <line x1="12" y1="12" x2="12" y2="7" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
                     </svg>
                 )}
+                <span className="hidden sm:inline">
+                    {hasTimer && followUpAtDate ? followUpAtDate.toLocaleDateString() : "Reminder"}
+                </span>
             </button>
 
             <Dialog open={open} onOpenChange={setOpen}>

@@ -129,6 +129,45 @@ html {
   }
 }
 
+/* ── Design system: gradient mesh, grid overlay, gradient headline, hover lift ── */
+
+/* Stripe-style soft gradient mesh — use as a hero/section background layer */
+.pa-mesh {
+  background:
+    radial-gradient(40% 50% at 12% 18%, rgba(56, 189, 248, 0.30), transparent 70%),
+    radial-gradient(45% 55% at 82% 12%, rgba(139, 92, 246, 0.26), transparent 70%),
+    radial-gradient(50% 60% at 65% 88%, rgba(236, 72, 153, 0.18), transparent 70%),
+    radial-gradient(40% 50% at 25% 80%, rgba(45, 212, 191, 0.22), transparent 70%);
+  filter: saturate(1.1);
+}
+
+/* Fine grid overlay, faded toward the edges */
+.pa-grid {
+  background-image:
+    linear-gradient(to right, rgba(2, 6, 23, 0.04) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(2, 6, 23, 0.04) 1px, transparent 1px);
+  background-size: 56px 56px;
+  -webkit-mask-image: radial-gradient(ellipse 75% 65% at 50% 40%, #000 30%, transparent 82%);
+          mask-image: radial-gradient(ellipse 75% 65% at 50% 40%, #000 30%, transparent 82%);
+}
+
+/* Gradient-accent headline — clips a sky→violet→pink gradient to text */
+.pa-headline-gradient {
+  background-image: linear-gradient(100deg, #0ea5e9 0%, #8b5cf6 50%, #ec4899 100%);
+  -webkit-background-clip: text;
+          background-clip: text;
+  color: transparent;
+}
+
+/* Crisp card hover-lift */
+.pa-lift {
+  transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.4s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.4s;
+}
+.pa-lift:hover {
+  transform: translateY(-6px);
+  box-shadow: 0 30px 60px rgba(2, 6, 23, 0.08);
+}
+
 /* Respect users who ask for reduced motion: stop smooth scrolling, neutralize
    long transitions/animations, and pause the CSS marquees (which are not
    framer-motion and so aren't covered by MotionConfig). */

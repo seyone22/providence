@@ -7,6 +7,7 @@ import {ArrowRight, Building, Globe, Images, Ship, User} from "lucide-react";
 import {motion, useScroll, useTransform} from "framer-motion";
 import {useRef} from "react";
 import {Reveal, appleEase} from "@/components/Reveal";
+import GradientMesh from "@/components/GradientMesh";
 
 const brandLogos = [
     {src: "audi logo.png", alt: "Audi Logo"},
@@ -165,6 +166,9 @@ export default function Home() {
                         <div className="absolute inset-0 bg-gradient-to-t from-white via-white/80 to-transparent"/>
                     </motion.div>
 
+                    {/* Gradient-mesh style layered over the hero image (image kept) */}
+                    <GradientMesh fade={false} className="z-0 opacity-80"/>
+
                     <MinimalHeader/>
 
                     <div className="relative z-10 flex flex-col justify-center max-w-7xl mx-auto px-4 sm:px-6 w-full">
@@ -176,7 +180,7 @@ export default function Home() {
                                 scale={0.95}
                                 delay={0.2}
                                 duration={1}
-                                className="text-4xl sm:text-6xl md:text-8xl lg:text-9xl font-bold tracking-tighter mb-4 md:mb-6 bg-clip-text text-transparent bg-gradient-to-b from-black via-black to-zinc-600 leading-[1.1] md:leading-[0.9]"
+                                className="pa-headline-gradient text-4xl sm:text-6xl md:text-8xl lg:text-9xl font-bold tracking-tighter mb-4 md:mb-6 leading-[1.1] md:leading-[0.9]"
                             >
                                 World’s Largest Borderless Showroom.
                             </Reveal>
@@ -330,11 +334,10 @@ export default function Home() {
                                 ].map((item, index) => (
                                     <Reveal
                                         key={index}
-                                        y={30}
-                                        scale={0.98}
-                                        delay={index * 0.1}
-                                        duration={0.8}
-                                        className="relative overflow-hidden group flex flex-col items-start p-8 md:p-10 rounded-[2rem] md:rounded-[2.5rem] bg-zinc-50/50 hover:bg-zinc-50 transition-all duration-500 border border-black/5 hover:border-black/10 hover:shadow-[0_20px_40px_rgba(0,0,0,0.04)]"
+                                        y={20}
+                                        delay={index * 0.08}
+                                        duration={0.6}
+                                        className="pa-lift relative overflow-hidden group flex flex-col items-start p-8 md:p-10 rounded-[2rem] md:rounded-[2.5rem] bg-zinc-50/50 hover:bg-zinc-50 border border-black/[0.07] hover:border-black/10"
                                     >
                                         {/* Subtle Glow Orb Effect */}
                                         <div
@@ -376,8 +379,10 @@ export default function Home() {
                             <Reveal y={30} delay={0.1} duration={0.8} className="h-full">
                                 <Link
                                     href="/b2c"
-                                    className="group relative bg-zinc-50 border border-black/5 rounded-[2rem] md:rounded-[2.5rem] p-8 md:p-10 flex flex-col justify-between h-full hover:bg-white hover:shadow-[0_30px_60px_rgba(0,0,0,0.08)] hover:border-black/10 transition-all duration-500 overflow-hidden min-h-[350px] md:min-h-[400px]"
+                                    className="pa-lift group relative bg-zinc-50 border border-black/[0.07] rounded-[2rem] md:rounded-[2.5rem] p-8 md:p-10 flex flex-col justify-between h-full hover:bg-white hover:border-black/10 overflow-hidden min-h-[350px] md:min-h-[400px]"
                                 >
+                                    {/* Colorful gradient wash — on by default on mobile, on hover on desktop */}
+                                    <div className="pointer-events-none absolute inset-0 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity duration-700 bg-[radial-gradient(90%_90%_at_88%_95%,rgba(56,189,248,0.20),rgba(139,92,246,0.15)_38%,rgba(236,72,153,0.10)_62%,transparent_78%)]"/>
                                     <div className="relative z-10">
                                         <div
                                             className="h-12 w-12 bg-white rounded-2xl flex items-center justify-center mb-6 md:mb-8 border border-black/10 shadow-sm group-hover:bg-black group-hover:text-white transition-all duration-500">
@@ -411,8 +416,10 @@ export default function Home() {
                             <Reveal y={30} delay={0.2} duration={0.8} className="h-full">
                                 <Link
                                     href="/b2b"
-                                    className="group relative bg-zinc-50 border border-black/5 rounded-[2rem] md:rounded-[2.5rem] p-8 md:p-10 flex flex-col justify-between h-full hover:bg-white hover:shadow-[0_30px_60px_rgba(0,0,0,0.08)] hover:border-black/10 transition-all duration-500 overflow-hidden min-h-[350px] md:min-h-[400px]"
+                                    className="pa-lift group relative bg-zinc-50 border border-black/[0.07] rounded-[2rem] md:rounded-[2.5rem] p-8 md:p-10 flex flex-col justify-between h-full hover:bg-white hover:border-black/10 overflow-hidden min-h-[350px] md:min-h-[400px]"
                                 >
+                                    {/* Colorful gradient wash — on by default on mobile, on hover on desktop */}
+                                    <div className="pointer-events-none absolute inset-0 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity duration-700 bg-[radial-gradient(90%_90%_at_88%_95%,rgba(16,185,129,0.18),rgba(56,189,248,0.15)_38%,rgba(99,102,241,0.11)_62%,transparent_78%)]"/>
                                     <div className="relative z-10">
                                         <div
                                             className="h-12 w-12 bg-white rounded-2xl flex items-center justify-center mb-6 md:mb-8 border border-black/10 shadow-sm group-hover:bg-black group-hover:text-white transition-all duration-500">
