@@ -193,7 +193,7 @@ export default function RequestActionModal({
     return (
         <Dialog open={modal.isOpen} onOpenChange={onClose}>
             <DialogContent
-                className="bg-white border-black/5 text-black shadow-2xl sm:rounded-[2rem] max-w-4xl min-w-3xl p-8 max-h-[90vh] overflow-y-auto hide-scrollbar">
+                className="bg-white border-black/5 text-black shadow-2xl sm:rounded-[2rem] max-w-[calc(100vw-2rem)] sm:max-w-4xl sm:min-w-3xl p-5 sm:p-8 max-h-[90vh] overflow-y-auto hide-scrollbar">
                 <DialogHeader>
                     <DialogTitle className="text-2xl font-bold tracking-tight">
                         {modal.type === "delete" && "Delete Lead"}

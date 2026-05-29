@@ -6,8 +6,7 @@ import Image from "next/image";
 import {ArrowRight, Building, Globe, Images, Ship, User} from "lucide-react";
 import {motion, useScroll, useTransform} from "framer-motion";
 import {useRef} from "react";
-
-const appleEase: any = [0.16, 1, 0.3, 1];
+import {Reveal, appleEase} from "@/components/Reveal";
 
 const brandLogos = [
     {src: "audi logo.png", alt: "Audi Logo"},
@@ -170,30 +169,36 @@ export default function Home() {
 
                     <div className="relative z-10 flex flex-col justify-center max-w-7xl mx-auto px-4 sm:px-6 w-full">
                         <div className="text-center max-w-5xl mx-auto mt-8 md:mt-12">
-                            <motion.h1
-                                initial={{y: 20, opacity: 0, scale: 0.95}}
-                                animate={{y: 0, opacity: 1, scale: 1}}
-                                transition={{duration: 1, delay: 0.2, ease: appleEase}}
+                            <Reveal
+                                immediate
+                                as="h1"
+                                y={20}
+                                scale={0.95}
+                                delay={0.2}
+                                duration={1}
                                 className="text-4xl sm:text-6xl md:text-8xl lg:text-9xl font-bold tracking-tighter mb-4 md:mb-6 bg-clip-text text-transparent bg-gradient-to-b from-black via-black to-zinc-600 leading-[1.1] md:leading-[0.9]"
                             >
                                 World’s Largest Borderless Showroom.
-                            </motion.h1>
+                            </Reveal>
 
-                            <motion.p
-                                initial={{y: 15, opacity: 0}}
-                                animate={{y: 0, opacity: 1}}
-                                transition={{duration: 0.8, delay: 0.4, ease: appleEase}}
+                            <Reveal
+                                immediate
+                                as="p"
+                                y={15}
+                                delay={0.4}
+                                duration={0.8}
                                 className="text-xl sm:text-2xl md:text-3xl text-zinc-700 font-medium tracking-tight mt-6 md:mt-8 mb-4 md:mb-6"
                             >
                                 Any Car. Any Country. Any Port.
-                            </motion.p>
+                            </Reveal>
                         </div>
 
                         {/* BRAND LOGO CAROUSEL */}
-                        <motion.div
-                            initial={{opacity: 0, y: 10}}
-                            animate={{opacity: 1, y: 0}}
-                            transition={{duration: 0.8, delay: 0.45, ease: appleEase}}
+                        <Reveal
+                            immediate
+                            y={10}
+                            delay={0.45}
+                            duration={0.8}
                             className="w-full mt-4 md:mt-8"
                         >
                             <div className="marquee-container border-y border-black/10">
@@ -213,7 +218,7 @@ export default function Home() {
                                     ))}
                                 </div>
                             </div>
-                        </motion.div>
+                        </Reveal>
 
                         <section
                             ref={manifestoRef}
@@ -239,10 +244,11 @@ export default function Home() {
                         </section>
 
                         {/* FLAG LOGO CAROUSEL */}
-                        <motion.div
-                            initial={{opacity: 0, y: 10}}
-                            animate={{opacity: 1, y: 0}}
-                            transition={{duration: 0.8, delay: 0.45, ease: appleEase}}
+                        <Reveal
+                            immediate
+                            y={10}
+                            delay={0.45}
+                            duration={0.8}
                             className="w-full mb-12"
                         >
                             <div className="marquee-container border-y border-black/10">
@@ -261,7 +267,7 @@ export default function Home() {
                                     ))}
                                 </div>
                             </div>
-                        </motion.div>
+                        </Reveal>
                     </div>
                 </section>
 
@@ -273,17 +279,11 @@ export default function Home() {
 
                         {/* HOW IT WORKS */}
                         <div className="pt-8 md:pt-12 pb-16 md:pb-20">
-                            <motion.div
-                                initial={{y: 30, opacity: 0}}
-                                whileInView={{y: 0, opacity: 1}}
-                                viewport={{once: true, margin: "-50px"}}
-                                transition={{duration: 0.8, ease: appleEase}}
-                                className="mb-12 md:mb-20 text-center"
-                            >
+                            <Reveal y={30} duration={0.8} className="mb-12 md:mb-20 text-center">
                                 <h2 className="text-3xl sm:text-4xl md:text-6xl font-bold tracking-tighter text-black">
                                     How it works
                                 </h2>
-                            </motion.div>
+                            </Reveal>
 
                             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 md:gap-8 text-left">
                                 {[
@@ -328,12 +328,12 @@ export default function Home() {
                                         desc: "Your car is purchased, quality checked, fully documented, and shipped. You get real-time updates at every stage. It arrives cleared, compliant, and ready to register.",
                                     },
                                 ].map((item, index) => (
-                                    <motion.div
+                                    <Reveal
                                         key={index}
-                                        initial={{y: 30, opacity: 0, scale: 0.98}}
-                                        whileInView={{y: 0, opacity: 1, scale: 1}}
-                                        viewport={{once: true, margin: "-50px"}}
-                                        transition={{duration: 0.8, delay: index * 0.1, ease: appleEase}}
+                                        y={30}
+                                        scale={0.98}
+                                        delay={index * 0.1}
+                                        duration={0.8}
                                         className="relative overflow-hidden group flex flex-col items-start p-8 md:p-10 rounded-[2rem] md:rounded-[2.5rem] bg-zinc-50/50 hover:bg-zinc-50 transition-all duration-500 border border-black/5 hover:border-black/10 hover:shadow-[0_20px_40px_rgba(0,0,0,0.04)]"
                                     >
                                         {/* Subtle Glow Orb Effect */}
@@ -366,20 +366,14 @@ export default function Home() {
                                                 {item.desc}
                                             </p>
                                         </div>
-                                    </motion.div>
+                                    </Reveal>
                                 ))}
                             </div>
                         </div>
 
                         {/* Path Selections */}
                         <div id="pathway-section" className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-6xl mx-auto w-full mt-8 md:mt-12">
-                            <motion.div
-                                initial={{y: 30, opacity: 0}}
-                                whileInView={{y: 0, opacity: 1}}
-                                viewport={{once: true, margin: "-50px"}}
-                                transition={{duration: 0.8, delay: 0.1, ease: appleEase}}
-                                className="h-full"
-                            >
+                            <Reveal y={30} delay={0.1} duration={0.8} className="h-full">
                                 <Link
                                     href="/b2c"
                                     className="group relative bg-zinc-50 border border-black/5 rounded-[2rem] md:rounded-[2.5rem] p-8 md:p-10 flex flex-col justify-between h-full hover:bg-white hover:shadow-[0_30px_60px_rgba(0,0,0,0.08)] hover:border-black/10 transition-all duration-500 overflow-hidden min-h-[350px] md:min-h-[400px]"
@@ -412,15 +406,9 @@ export default function Home() {
                                         </div>
                                     </div>
                                 </Link>
-                            </motion.div>
+                            </Reveal>
 
-                            <motion.div
-                                initial={{y: 30, opacity: 0}}
-                                whileInView={{y: 0, opacity: 1}}
-                                viewport={{once: true, margin: "-50px"}}
-                                transition={{duration: 0.8, delay: 0.2, ease: appleEase}}
-                                className="h-full"
-                            >
+                            <Reveal y={30} delay={0.2} duration={0.8} className="h-full">
                                 <Link
                                     href="/b2b"
                                     className="group relative bg-zinc-50 border border-black/5 rounded-[2rem] md:rounded-[2.5rem] p-8 md:p-10 flex flex-col justify-between h-full hover:bg-white hover:shadow-[0_30px_60px_rgba(0,0,0,0.08)] hover:border-black/10 transition-all duration-500 overflow-hidden min-h-[350px] md:min-h-[400px]"
@@ -453,7 +441,7 @@ export default function Home() {
                                         </div>
                                     </div>
                                 </Link>
-                            </motion.div>
+                            </Reveal>
                         </div>
 
                         {/*/!* Gallery Promo Section *!/*/}
@@ -499,29 +487,19 @@ export default function Home() {
                         {/*</section>*/}
 
                         {/* PARTNERS/AFFILIATES SECTION */}
-                        <motion.div
-                            initial={{y: 30, opacity: 0}}
-                            whileInView={{y: 0, opacity: 1}}
-                            viewport={{once: true}}
-                            transition={{duration: 1, ease: appleEase}}
-                            className="mt-24 md:mt-32 max-w-5xl mx-auto w-full text-center"
-                        >
+                        <Reveal y={30} duration={1} className="mt-24 md:mt-32 max-w-5xl mx-auto w-full text-center">
                             <p className="text-[10px] md:text-xs font-bold tracking-[0.25em] md:tracking-[0.3em] text-zinc-400 uppercase mb-8 md:mb-10 drop-shadow-sm">
                                 Trusted by our global partners
                             </p>
 
                             <div className="flex flex-nowrap justify-center items-center gap-3 sm:gap-6 md:gap-10 lg:gap-16 w-full">
                                 {[1, 2, 3, 4, 5, 6, 7].map((num, index) => (
-                                    <motion.div
+                                    <Reveal
                                         key={num}
-                                        initial={{opacity: 0, scale: 0.95}}
-                                        whileInView={{opacity: 1, scale: 1}}
-                                        viewport={{once: true}}
-                                        transition={{
-                                            duration: 0.8,
-                                            delay: index * 0.1,
-                                            ease: appleEase,
-                                        }}
+                                        y={0}
+                                        scale={0.95}
+                                        delay={index * 0.1}
+                                        duration={0.8}
                                         className="relative shrink h-6 w-12 sm:h-8 sm:w-16 md:h-12 md:w-24 lg:h-16 lg:w-32 opacity-40 grayscale hover:grayscale-0 hover:opacity-100 hover:scale-105 transition-all duration-500 cursor-pointer"
                                     >
                                         <Image
@@ -530,10 +508,10 @@ export default function Home() {
                                             fill
                                             className="object-contain"
                                         />
-                                    </motion.div>
+                                    </Reveal>
                                 ))}
                             </div>
-                        </motion.div>
+                        </Reveal>
                     </div>
                 </section>
             </div>

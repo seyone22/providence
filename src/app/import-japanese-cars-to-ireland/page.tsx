@@ -4,11 +4,10 @@ import { useRef, useState, useEffect, Suspense, useMemo } from "react";
 import MinimalHeader from "@/components/MinimalHeader";
 import { Landmark, Compass, Ship, ShieldCheck, ArrowRight, CheckCircle2, MapPin, Search, Zap } from "lucide-react";
 import { motion, AnimatePresence, useScroll, useTransform } from "framer-motion";
+import { Reveal, appleEase } from "@/components/Reveal";
 import RequestForm from "@/components/requestForm";
 import FAQSection from "@/components/faqSection";
 import type { LandingPageConfig } from "@/config/landing-pages";
-
-const appleEase: any = [0.16, 1, 0.3, 1];
 
 // ── DATA ────────────────────────────────────────────────────────────────────
 
@@ -288,37 +287,45 @@ export default function ImportJapaneseCarsIreland() {
                     style={{ scale: heroScale, opacity: heroOpacity, y: heroY }}
                     className="relative z-10 text-center max-w-5xl mx-auto flex flex-col items-center"
                 >
-                    <motion.p
-                        initial={{ y: 20, opacity: 0 }}
-                        animate={{ y: 0, opacity: 1 }}
-                        transition={{ duration: 0.8, delay: 0.2, ease: appleEase }}
+                    <Reveal
+                        immediate
+                        as="p"
+                        y={20}
+                        delay={0.2}
+                        duration={0.8}
                         className="text-sm font-bold tracking-[0.4em] text-zinc-500 uppercase mb-8"
                     >
                         Japan → Ireland · End-to-End Import Service
-                    </motion.p>
+                    </Reveal>
 
-                    <motion.h1
-                        initial={{ y: 30, opacity: 0, scale: 0.95 }}
-                        animate={{ y: 0, opacity: 1, scale: 1 }}
-                        transition={{ duration: 1, delay: 0.3, ease: appleEase }}
+                    <Reveal
+                        immediate
+                        as="h1"
+                        y={30}
+                        scale={0.95}
+                        delay={0.3}
+                        duration={1}
                         className="text-4xl md:text-7xl lg:text-8xl font-bold tracking-tighter mb-6 bg-clip-text text-transparent bg-gradient-to-b from-black via-black/80 to-black/50 leading-[1.1] drop-shadow-[0_0_15px_rgba(255,255,255,1)]"
                     >
                         Import a Japanese Car<br />to Ireland.
-                    </motion.h1>
+                    </Reveal>
 
-                    <motion.p
-                        initial={{ y: 20, opacity: 0 }}
-                        animate={{ y: 0, opacity: 1 }}
-                        transition={{ duration: 0.8, delay: 0.5, ease: appleEase }}
+                    <Reveal
+                        immediate
+                        as="p"
+                        y={20}
+                        delay={0.5}
+                        duration={0.8}
                         className="text-xl md:text-2xl text-zinc-600 font-medium tracking-tight mb-10 max-w-2xl drop-shadow-[0_0_10px_rgba(255,255,255,1)]"
                     >
                         We source, ship, clear customs, and deliver to your door.<br className="hidden md:block" /> You choose the car. We handle everything else.
-                    </motion.p>
+                    </Reveal>
 
-                    <motion.div
-                        initial={{ y: 20, opacity: 0 }}
-                        animate={{ y: 0, opacity: 1 }}
-                        transition={{ duration: 0.8, delay: 0.6, ease: appleEase }}
+                    <Reveal
+                        immediate
+                        y={20}
+                        delay={0.6}
+                        duration={0.8}
                         className="flex flex-col sm:flex-row items-center gap-4"
                     >
                         <a
@@ -335,7 +342,7 @@ export default function ImportJapaneseCarsIreland() {
                         >
                             Estimate your import costs <ArrowRight size={15} className="group-hover:translate-x-1 transition-transform" />
                         </a>
-                    </motion.div>
+                    </Reveal>
                 </motion.div>
             </section>
 
@@ -371,13 +378,7 @@ export default function ImportJapaneseCarsIreland() {
 
             {/* ── WHY JAPAN ───────────────────────────────── */}
             <section className="py-32 px-6 max-w-7xl mx-auto relative z-10">
-                <motion.div
-                    initial={{ y: 40, opacity: 0 }}
-                    whileInView={{ y: 0, opacity: 1 }}
-                    viewport={{ once: true, margin: "-100px" }}
-                    transition={{ duration: 0.8, ease: appleEase }}
-                    className="text-center mb-20"
-                >
+                <Reveal y={40} duration={0.8} className="text-center mb-20">
                     <p className="text-sm font-bold tracking-[0.3em] text-zinc-400 uppercase mb-4">Why Japan</p>
                     <h2 className="text-4xl md:text-6xl font-bold tracking-tighter text-black mb-6">
                         The world's best source<br />for Irish car imports.
@@ -385,16 +386,16 @@ export default function ImportJapaneseCarsIreland() {
                     <p className="text-xl text-zinc-500 max-w-2xl mx-auto font-light">
                         Three structural advantages that make Japan the standout choice — especially since February 2026.
                     </p>
-                </motion.div>
+                </Reveal>
 
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
                     {JAPAN_ADVANTAGES.map((adv, index) => (
-                        <motion.div
+                        <Reveal
                             key={index}
-                            initial={{ y: 40, opacity: 0, scale: 0.95 }}
-                            whileInView={{ y: 0, opacity: 1, scale: 1 }}
-                            viewport={{ once: true, margin: "-50px" }}
-                            transition={{ duration: 0.8, delay: index * 0.1, ease: appleEase }}
+                            y={40}
+                            scale={0.95}
+                            delay={index * 0.1}
+                            duration={0.8}
                             className="relative overflow-hidden group flex flex-col p-8 rounded-[2rem] border border-black/5 bg-white hover:bg-zinc-50 transition-all duration-500 hover:shadow-[0_20px_40px_rgba(0,0,0,0.05)]"
                         >
                             <div className={`absolute -bottom-24 -right-24 w-64 h-64 rounded-full blur-[80px] bg-transparent transition-colors duration-700 ${adv.glowColor}`} />
@@ -408,7 +409,7 @@ export default function ImportJapaneseCarsIreland() {
                                 </h3>
                                 <p className="text-zinc-500 text-base leading-relaxed font-light">{adv.desc}</p>
                             </div>
-                        </motion.div>
+                        </Reveal>
                     ))}
                 </div>
             </section>
@@ -416,13 +417,7 @@ export default function ImportJapaneseCarsIreland() {
             {/* ── PROCESS ─────────────────────────────────── */}
             <section className="py-32 px-6 bg-zinc-50 border-y border-black/5 relative z-10">
                 <div className="max-w-6xl mx-auto">
-                    <motion.div
-                        initial={{ y: 40, opacity: 0 }}
-                        whileInView={{ y: 0, opacity: 1 }}
-                        viewport={{ once: true, margin: "-100px" }}
-                        transition={{ duration: 0.8, ease: appleEase }}
-                        className="text-center mb-20"
-                    >
+                    <Reveal y={40} duration={0.8} className="text-center mb-20">
                         <p className="text-sm font-bold tracking-[0.3em] text-zinc-400 uppercase mb-4">How It Works</p>
                         <h2 className="text-4xl md:text-6xl font-bold tracking-tighter text-black mb-6">
                             Source. Ship. Clear. Deliver.
@@ -430,16 +425,15 @@ export default function ImportJapaneseCarsIreland() {
                         <p className="text-xl text-zinc-500 max-w-2xl mx-auto font-light">
                             Every single step handled by Providence. Zero paperwork on your end.
                         </p>
-                    </motion.div>
+                    </Reveal>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                         {PROCESS_STEPS.map((step, index) => (
-                            <motion.div
+                            <Reveal
                                 key={index}
-                                initial={{ y: 40, opacity: 0 }}
-                                whileInView={{ y: 0, opacity: 1 }}
-                                viewport={{ once: true, margin: "-50px" }}
-                                transition={{ duration: 0.6, delay: index * 0.1, ease: appleEase }}
+                                y={40}
+                                delay={index * 0.1}
+                                duration={0.6}
                                 className="relative bg-white rounded-[2rem] p-8 border border-black/5 shadow-[0_10px_30px_rgba(0,0,0,0.04)] flex flex-col"
                             >
                                 <span className="text-7xl font-bold text-black/[0.04] absolute top-5 right-6 leading-none select-none pointer-events-none">
@@ -450,7 +444,7 @@ export default function ImportJapaneseCarsIreland() {
                                 </div>
                                 <h3 className="text-xl font-bold text-black mb-3">{step.title}</h3>
                                 <p className="text-zinc-500 text-sm leading-relaxed font-light">{step.desc}</p>
-                            </motion.div>
+                            </Reveal>
                         ))}
                     </div>
                 </div>
@@ -459,13 +453,7 @@ export default function ImportJapaneseCarsIreland() {
             {/* ── COST BREAKDOWN ──────────────────────────── */}
             <section className="py-32 px-6 bg-white relative z-10">
                 <div className="max-w-5xl mx-auto">
-                    <motion.div
-                        initial={{ y: 40, opacity: 0 }}
-                        whileInView={{ y: 0, opacity: 1 }}
-                        viewport={{ once: true, margin: "-100px" }}
-                        transition={{ duration: 0.8, ease: appleEase }}
-                        className="text-center mb-16"
-                    >
+                    <Reveal y={40} duration={0.8} className="text-center mb-16">
                         <p className="text-sm font-bold tracking-[0.3em] text-zinc-400 uppercase mb-4">The Numbers</p>
                         <h2 className="text-4xl md:text-6xl font-bold tracking-tighter text-black mb-6">
                             Three costs. Fully transparent.
@@ -473,15 +461,14 @@ export default function ImportJapaneseCarsIreland() {
                         <p className="text-xl text-zinc-500 max-w-2xl mx-auto font-light">
                             Every Irish import carries the same three charges. Here's what they look like on a typical Japanese hybrid — and how they compare to buying the same car in Ireland.
                         </p>
-                    </motion.div>
+                    </Reveal>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-start">
                         {/* Breakdown card */}
-                        <motion.div
-                            initial={{ y: 40, opacity: 0, scale: 0.97 }}
-                            whileInView={{ y: 0, opacity: 1, scale: 1 }}
-                            viewport={{ once: true }}
-                            transition={{ duration: 0.8, ease: appleEase }}
+                        <Reveal
+                            y={40}
+                            scale={0.97}
+                            duration={0.8}
                             className="bg-white rounded-[2rem] border border-black/8 shadow-[0_20px_40px_rgba(0,0,0,0.06)] overflow-hidden"
                         >
                             <div className="bg-black px-8 py-6">
@@ -509,14 +496,14 @@ export default function ImportJapaneseCarsIreland() {
                                     <span className="font-bold text-2xl text-black">~€17,775</span>
                                 </div>
                             </div>
-                        </motion.div>
+                        </Reveal>
 
                         {/* Comparison + context */}
-                        <motion.div
-                            initial={{ y: 40, opacity: 0, scale: 0.97 }}
-                            whileInView={{ y: 0, opacity: 1, scale: 1 }}
-                            viewport={{ once: true }}
-                            transition={{ duration: 0.8, delay: 0.15, ease: appleEase }}
+                        <Reveal
+                            y={40}
+                            scale={0.97}
+                            delay={0.15}
+                            duration={0.8}
                             className="flex flex-col gap-5"
                         >
                             <div className="bg-zinc-50 rounded-[2rem] border border-black/5 p-8">
@@ -542,7 +529,7 @@ export default function ImportJapaneseCarsIreland() {
                             <p className="text-xs text-zinc-400 font-light px-2 leading-relaxed">
                                 Figures are indicative. Actual VRT is charged on Revenue's OMSP and varies by model, year, and mileage. We provide a full landed-cost breakdown before authorising any purchase.
                             </p>
-                        </motion.div>
+                        </Reveal>
                     </div>
                 </div>
             </section>
@@ -550,13 +537,7 @@ export default function ImportJapaneseCarsIreland() {
             {/* ── TOP MODELS ──────────────────────────────── */}
             <section className="py-32 px-6 bg-zinc-50 border-y border-black/5 relative z-10">
                 <div className="max-w-6xl mx-auto">
-                    <motion.div
-                        initial={{ y: 40, opacity: 0 }}
-                        whileInView={{ y: 0, opacity: 1 }}
-                        viewport={{ once: true, margin: "-100px" }}
-                        transition={{ duration: 0.8, ease: appleEase }}
-                        className="text-center mb-16"
-                    >
+                    <Reveal y={40} duration={0.8} className="text-center mb-16">
                         <p className="text-sm font-bold tracking-[0.3em] text-zinc-400 uppercase mb-4">Top Picks</p>
                         <h2 className="text-4xl md:text-6xl font-bold tracking-tighter text-black mb-6">
                             Most popular Japanese imports<br className="hidden md:block" /> for Ireland.
@@ -564,16 +545,15 @@ export default function ImportJapaneseCarsIreland() {
                         <p className="text-xl text-zinc-500 max-w-2xl mx-auto font-light">
                             These models tick every box: 0% duty, low CO2, favourable VRT, and strong Irish demand.
                         </p>
-                    </motion.div>
+                    </Reveal>
 
                     <div className="space-y-12">
                         {Object.entries(modelsByBrand).map(([brand, models], brandIndex) => (
-                            <motion.div
+                            <Reveal
                                 key={brand}
-                                initial={{ y: 30, opacity: 0 }}
-                                whileInView={{ y: 0, opacity: 1 }}
-                                viewport={{ once: true, margin: "-40px" }}
-                                transition={{ duration: 0.6, delay: brandIndex * 0.08, ease: appleEase }}
+                                y={30}
+                                delay={brandIndex * 0.08}
+                                duration={0.6}
                             >
                                 {/* Brand header */}
                                 <div className="flex items-center gap-4 mb-5">
@@ -614,7 +594,7 @@ export default function ImportJapaneseCarsIreland() {
                                         </motion.button>
                                     ))}
                                 </div>
-                            </motion.div>
+                            </Reveal>
                         ))}
 
                         {/* Don't see your car */}
@@ -641,13 +621,7 @@ export default function ImportJapaneseCarsIreland() {
             {/* ── EV URGENCY ──────────────────────────────── */}
             <section className="py-14 px-6 bg-black relative z-10">
                 <div className="max-w-5xl mx-auto">
-                    <motion.div
-                        initial={{ y: 20, opacity: 0 }}
-                        whileInView={{ y: 0, opacity: 1 }}
-                        viewport={{ once: true }}
-                        transition={{ duration: 0.6, ease: appleEase }}
-                        className="flex flex-col md:flex-row items-center gap-8 md:gap-12"
-                    >
+                    <Reveal y={20} duration={0.6} className="flex flex-col md:flex-row items-center gap-8 md:gap-12">
                         <div className="text-center md:text-left flex-1">
                             <p className="text-xs font-bold tracking-[0.3em] text-[#4da8da] uppercase mb-3">
                                 Closing Window — Act Before 31 December 2026
@@ -665,7 +639,7 @@ export default function ImportJapaneseCarsIreland() {
                         >
                             Enquire Now
                         </a>
-                    </motion.div>
+                    </Reveal>
                 </div>
             </section>
 
@@ -674,13 +648,7 @@ export default function ImportJapaneseCarsIreland() {
                 id="inquiry"
                 className="py-32 px-6 relative flex flex-col justify-center items-center bg-zinc-50 border-t border-black/5 z-10 overflow-hidden"
             >
-                <motion.div
-                    initial={{ y: 40, opacity: 0 }}
-                    whileInView={{ y: 0, opacity: 1 }}
-                    viewport={{ once: true, margin: "-100px" }}
-                    transition={{ duration: 1, ease: appleEase }}
-                    className="relative z-10 text-center max-w-4xl mx-auto mb-16"
-                >
+                <Reveal y={40} duration={1} className="relative z-10 text-center max-w-4xl mx-auto mb-16">
                     <p className="text-sm font-bold tracking-[0.3em] text-zinc-400 uppercase mb-4">Free · No Commitment</p>
                     <h2 className="text-4xl md:text-5xl lg:text-6xl font-bold tracking-tighter text-black mb-6">
                         Tell us exactly what<br />you want to import.
@@ -689,7 +657,7 @@ export default function ImportJapaneseCarsIreland() {
                         We'll come back with a{" "}
                         <span className="text-black font-medium">full landed-cost quote</span> — car price, shipping, VRT, and customs included — before you commit to a single euro.
                     </p>
-                </motion.div>
+                </Reveal>
 
                 {/* Prefill notice */}
                 <AnimatePresence>

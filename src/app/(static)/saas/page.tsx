@@ -6,9 +6,7 @@ import Image from "next/image";
 import { useState } from "react";
 import { Globe, RefreshCw, LayoutDashboard, ArrowRight } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
-
-// Apple-style smooth easing curve
-const appleEase: any = [0.16, 1, 0.3, 1];
+import { Reveal, appleEase } from "@/components/Reveal";
 
 export default function SaaSSignup() {
     const [activeTab, setActiveTab] = useState(0);
@@ -49,41 +47,39 @@ export default function SaaSSignup() {
 
                 {/* === HERO SECTION === */}
                 <div className="text-center mb-32 max-w-4xl mx-auto">
-                    <motion.div
-                        initial={{ y: 30, opacity: 0, scale: 0.95 }}
-                        animate={{ y: 0, opacity: 1, scale: 1 }}
-                        transition={{ duration: 1, delay: 0.1, ease: appleEase }}
-                    >
+                    <Reveal immediate y={30} scale={0.95} delay={0.1} duration={1}>
                         <h1 className="text-5xl md:text-7xl lg:text-8xl font-bold tracking-tighter mb-6 bg-clip-text text-transparent bg-gradient-to-b from-black via-black/80 to-black/50 leading-[1.05]">
                             Welcome to the<br />Global Portal.
                         </h1>
-                    </motion.div>
+                    </Reveal>
 
-                    <motion.p
-                        initial={{ y: 20, opacity: 0 }}
-                        animate={{ y: 0, opacity: 1 }}
-                        transition={{ duration: 0.8, delay: 0.3, ease: appleEase }}
+                    <Reveal
+                        immediate
+                        as="p"
+                        y={20}
+                        delay={0.3}
+                        duration={0.8}
                         className="text-2xl md:text-3xl text-zinc-500 font-medium tracking-tight mb-6"
                     >
                         Transform your website into a borderless lot.
-                    </motion.p>
+                    </Reveal>
 
-                    <motion.p
-                        initial={{ y: 20, opacity: 0 }}
-                        animate={{ y: 0, opacity: 1 }}
-                        transition={{ duration: 0.8, delay: 0.4, ease: appleEase }}
+                    <Reveal
+                        immediate
+                        as="p"
+                        y={20}
+                        delay={0.4}
+                        duration={0.8}
                         className="text-xl text-zinc-400 font-light max-w-2xl mx-auto"
                     >
                         The ultimate B2B sourcing software. Fulfill customer inquiries faster, manage global orders seamlessly, and leverage AI to find the perfect vehicles.
-                    </motion.p>
+                    </Reveal>
                 </div>
 
                 {/* === THE PROBLEM === */}
-                <motion.div
-                    initial={{ y: 40, opacity: 0 }}
-                    whileInView={{ y: 0, opacity: 1 }}
-                    viewport={{ once: true, margin: "-100px" }}
-                    transition={{ duration: 0.8, ease: appleEase }}
+                <Reveal
+                    y={40}
+                    duration={0.8}
                     className="bg-zinc-50 border border-black/5 rounded-[3rem] p-12 md:p-16 mb-32 text-center max-w-4xl mx-auto shadow-[0_20px_60px_rgba(0,0,0,0.03)] hover:shadow-[0_20px_60px_rgba(0,0,0,0.06)] transition-shadow duration-500"
                 >
                     <h2 className="text-red-500 font-bold tracking-[0.2em] uppercase text-sm mb-6">The Bottleneck</h2>
@@ -91,20 +87,14 @@ export default function SaaSSignup() {
                     <p className="text-zinc-500 text-lg md:text-xl leading-relaxed font-light">
                         Tracking shipments on spreadsheets, checking dozens of international sites, and manually calculating import taxes is a barrier to your growth. It's time to let software do the heavy lifting.
                     </p>
-                </motion.div>
+                </Reveal>
 
                 {/* === INTERACTIVE TABS (THE SOLUTION) === */}
                 <div className="mb-32">
-                    <motion.div
-                        initial={{ y: 40, opacity: 0 }}
-                        whileInView={{ y: 0, opacity: 1 }}
-                        viewport={{ once: true, margin: "-100px" }}
-                        transition={{ duration: 0.8, ease: appleEase }}
-                        className="text-center mb-16"
-                    >
+                    <Reveal y={40} duration={0.8} className="text-center mb-16">
                         <h2 className="text-blue-600 font-bold tracking-[0.2em] uppercase text-sm mb-4">The Solution</h2>
                         <h3 className="text-4xl md:text-5xl font-bold text-black tracking-tight">Your New Unfair Advantage.</h3>
-                    </motion.div>
+                    </Reveal>
 
                     <div className="grid lg:grid-cols-2 gap-12 items-center bg-zinc-50 border border-black/5 rounded-[3rem] p-6 md:p-10 shadow-[0_20px_60px_rgba(0,0,0,0.03)]">
 
@@ -161,11 +151,10 @@ export default function SaaSSignup() {
                 </div>
 
                 {/* === THE FOMO & FINAL CTA === */}
-                <motion.div
-                    initial={{ y: 40, opacity: 0, scale: 0.95 }}
-                    whileInView={{ y: 0, opacity: 1, scale: 1 }}
-                    viewport={{ once: true, margin: "-100px" }}
-                    transition={{ duration: 1, ease: appleEase }}
+                <Reveal
+                    y={40}
+                    scale={0.95}
+                    duration={1}
                     className="text-center max-w-4xl mx-auto py-20 border-t border-black/5"
                 >
                     <h2 className="text-4xl md:text-5xl font-bold mb-6 text-black tracking-tight">Don't get left behind.</h2>
@@ -177,7 +166,7 @@ export default function SaaSSignup() {
                         Sign up now — Free Forever
                         <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
                     </Link>
-                </motion.div>
+                </Reveal>
             </div>
         </main>
     );
