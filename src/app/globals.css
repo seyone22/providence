@@ -128,3 +128,26 @@ html {
     @apply bg-background text-foreground;
   }
 }
+
+/* Respect users who ask for reduced motion: stop smooth scrolling, neutralize
+   long transitions/animations, and pause the CSS marquees (which are not
+   framer-motion and so aren't covered by MotionConfig). */
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+
+  .marquee-content,
+  .marquee-content.reverse {
+    animation: none !important;
+  }
+}

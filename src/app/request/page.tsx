@@ -3,10 +3,8 @@
 import { Suspense } from "react";
 import MinimalHeader from "@/components/MinimalHeader";
 import { motion } from "framer-motion";
+import { Reveal, appleEase } from "@/components/Reveal";
 import RequestForm from "@/components/requestForm"; // Adjust path if necessary
-
-// Apple-style smooth easing curve
-const appleEase: any = [0.16, 1, 0.3, 1];
 
 export default function RequestCar() {
     return (
@@ -37,22 +35,26 @@ export default function RequestCar() {
 
                 {/* Header Text */}
                 <div className="text-center mb-12 mt-10">
-                    <motion.h2
-                        initial={{ y: 20, opacity: 0 }}
-                        animate={{ y: 0, opacity: 1 }}
-                        transition={{ duration: 0.8, delay: 0.1, ease: appleEase }}
+                    <Reveal
+                        immediate
+                        as="h2"
+                        y={20}
+                        delay={0.1}
+                        duration={0.8}
                         className="text-4xl md:text-6xl font-bold tracking-tighter text-black mb-4 drop-shadow-[0_0_15px_rgba(255,255,255,1)]"
                     >
                         Create your inquiry.
-                    </motion.h2>
-                    <motion.p
-                        initial={{ y: 20, opacity: 0 }}
-                        animate={{ y: 0, opacity: 1 }}
-                        transition={{ duration: 0.8, delay: 0.2, ease: appleEase }}
+                    </Reveal>
+                    <Reveal
+                        immediate
+                        as="p"
+                        y={20}
+                        delay={0.2}
+                        duration={0.8}
                         className="text-zinc-500 text-lg md:text-xl max-w-xl mx-auto font-light drop-shadow-[0_0_10px_rgba(255,255,255,1)]"
                     >
                         Provide your exact specifications, and our concierge will handle the rest.
-                    </motion.p>
+                    </Reveal>
                 </div>
 
                 {/* Main Form Component */}

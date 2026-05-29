@@ -7,9 +7,7 @@ import { ArrowLeft, Eye, EyeOff, Loader2, AlertCircle } from "lucide-react";
 import { toast } from "sonner";
 import { signIn } from "@/lib/auth-client";
 import { motion, AnimatePresence } from "framer-motion";
-
-// Apple-style smooth easing curve
-const appleEase: any = [0.16, 1, 0.3, 1];
+import { Reveal, appleEase } from "@/components/Reveal";
 
 export default function SignIn() {
     const router = useRouter();
@@ -139,10 +137,12 @@ export default function SignIn() {
             </Link>
 
             {/* === LOGIN CARD === */}
-            <motion.div
-                initial={{ y: 40, opacity: 0, scale: 0.95 }}
-                animate={{ y: 0, opacity: 1, scale: 1 }}
-                transition={{ duration: 0.8, delay: 0.2, ease: appleEase }}
+            <Reveal
+                immediate
+                y={40}
+                scale={0.95}
+                delay={0.2}
+                duration={0.8}
                 className="relative z-10 w-full max-w-[440px] bg-white/80 backdrop-blur-2xl border border-black/5 rounded-[2.5rem] p-10 shadow-[0_40px_100px_rgba(0,0,0,0.08)]"
             >
                 <div className="text-center mb-10">
@@ -270,7 +270,7 @@ export default function SignIn() {
                         Discord
                     </button>
                 </div>
-            </motion.div>
+            </Reveal>
         </main>
     );
 }

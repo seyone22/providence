@@ -2,15 +2,13 @@
 
 import {useRef, useState} from "react";
 import MinimalHeader from "@/components/MinimalHeader";
-import {motion} from "framer-motion";
+import {Reveal} from "@/components/Reveal";
 import {ArrowLeft, FileText, Loader2, Mail, Globe, Zap} from "lucide-react";
 import Link from "next/link";
 import {generateDossierPdfAction} from "@/actions/pdf-actions";
 import RequestForm from "@/components/requestForm";
 import FAQSection from "@/components/faqSection";
 import {getLogoFilename} from "@/lib/logo-utils";
-
-const appleEase: any = [0.16, 1, 0.3, 1];
 
 // Updated Type to include Pricing Matrix
 type PriceEntry = {
@@ -126,10 +124,10 @@ export default function GalleryDetailClient({car}: { car: Dossier }) {
                 </Link>
 
                 <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-24 items-start">
-                    <motion.div
-                        initial={{opacity: 0, y: 30}}
-                        animate={{opacity: 1, y: 0}}
-                        transition={{duration: 0.8, ease: appleEase}}
+                    <Reveal
+                        immediate
+                        y={30}
+                        duration={0.8}
                         className="lg:col-span-5 flex flex-col justify-center sticky top-32"
                     >
                         {/* Logo Display */}
@@ -152,12 +150,14 @@ export default function GalleryDetailClient({car}: { car: Dossier }) {
                         <div className="prose prose-lg text-zinc-600 font-light leading-relaxed">
                             {car.notes ? <p>{car.notes}</p> : <p>A pristine example of engineering and design...</p>}
                         </div>
-                    </motion.div>
+                    </Reveal>
 
-                    <motion.div
-                        initial={{opacity: 0, scale: 0.95}}
-                        animate={{opacity: 1, scale: 1}}
-                        transition={{duration: 1, ease: appleEase, delay: 0.1}}
+                    <Reveal
+                        immediate
+                        y={0}
+                        scale={0.95}
+                        duration={1}
+                        delay={0.1}
                         className="lg:col-span-7"
                     >
                         <div className="relative aspect-[16/10] w-full rounded-[2rem] overflow-hidden bg-black flex items-center justify-center shadow-[0_20px_50px_rgba(0,0,0,0.1)]">
@@ -168,7 +168,7 @@ export default function GalleryDetailClient({car}: { car: Dossier }) {
                                 className="w-full h-full object-cover animate-in fade-in zoom-in-95 duration-500"
                             />
                         </div>
-                    </motion.div>
+                    </Reveal>
                 </div>
             </section>
 
@@ -177,13 +177,7 @@ export default function GalleryDetailClient({car}: { car: Dossier }) {
                 <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-24">
 
                     {/* Left Column */}
-                    <motion.div
-                        initial={{opacity: 0, y: 30}}
-                        whileInView={{opacity: 1, y: 0}}
-                        viewport={{once: true, margin: "-100px"}}
-                        transition={{duration: 0.8, ease: appleEase}}
-                        className="lg:col-span-5 flex flex-col"
-                    >
+                    <Reveal y={30} duration={0.8} className="lg:col-span-5 flex flex-col">
                         <h2 className="text-3xl md:text-5xl font-bold tracking-tighter mb-12 uppercase leading-tight">
                             Vehicle <br/> Details
                         </h2>
@@ -295,16 +289,10 @@ export default function GalleryDetailClient({car}: { car: Dossier }) {
                                 </div>
                             </div>
                         )}
-                    </motion.div>
+                    </Reveal>
 
                     {/* Right Column: Interactive Gallery */}
-                    <motion.div
-                        initial={{opacity: 0, y: 30}}
-                        whileInView={{opacity: 1, y: 0}}
-                        viewport={{once: true, margin: "-100px"}}
-                        transition={{duration: 0.8, ease: appleEase, delay: 0.2}}
-                        className="lg:col-span-7 flex flex-col gap-6"
-                    >
+                    <Reveal y={30} duration={0.8} delay={0.2} className="lg:col-span-7 flex flex-col gap-6">
                         <div className="relative aspect-[16/10] w-full rounded-[2rem] overflow-hidden bg-black flex items-center justify-center shadow-[0_20px_50px_rgba(0,0,0,0.1)]">
                             <img key={activeImage} src={displayImages[activeImage]} alt={`${car.make} - View ${activeImage + 1}`} className="w-full h-full object-cover animate-in fade-in zoom-in-95 duration-500"/>
                         </div>
@@ -317,7 +305,7 @@ export default function GalleryDetailClient({car}: { car: Dossier }) {
                                 ))}
                             </div>
                         )}
-                    </motion.div>
+                    </Reveal>
                 </div>
             </section>
 

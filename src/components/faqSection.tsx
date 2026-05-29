@@ -1,6 +1,6 @@
 "use client";
 
-import { motion } from 'framer-motion';
+import { Reveal } from "@/components/Reveal";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { LandingPageConfig } from "@/config/landing-pages";
 
@@ -101,31 +101,19 @@ export default function FAQSection({ data = DEFAULT_FAQ_CONFIG }: FAQSectionProp
         <section className="py-32 px-6 bg-[#FAFAFA] border-t border-black/5">
             <div className="max-w-4xl mx-auto">
                 {/* Header */}
-                <motion.div
-                    initial={{ opacity: 0, y: 30 }}
-                    whileInView={{ opacity: 1, y: 0 }}
-                    viewport={{ once: true }}
-                    transition={{ duration: 0.8 }}
-                    className="text-center mb-16"
-                >
+                <Reveal y={30} duration={0.8} className="text-center mb-16">
                     <h2 className="text-4xl md:text-6xl font-bold tracking-tighter mb-6 uppercase">
                         {data.title}
                     </h2>
                     <p className="text-zinc-500 font-light text-lg md:text-xl">
                         {data.subtitle}
                     </p>
-                </motion.div>
+                </Reveal>
 
                 {/* Categories */}
                 <div className="space-y-16">
                     {data.categories.map((section, idx) => (
-                        <motion.div
-                            key={idx}
-                            initial={{ opacity: 0, y: 20 }}
-                            whileInView={{ opacity: 1, y: 0 }}
-                            viewport={{ once: true }}
-                            transition={{ duration: 0.5, delay: idx * 0.1 }}
-                        >
+                        <Reveal key={idx} y={20} duration={0.5} delay={idx * 0.1}>
                             <h3 className="text-xs font-bold tracking-[0.3em] uppercase text-zinc-400 mb-8 ml-2">
                                 {section.category}
                             </h3>
@@ -153,7 +141,7 @@ export default function FAQSection({ data = DEFAULT_FAQ_CONFIG }: FAQSectionProp
                                     ))}
                                 </Accordion>
                             </div>
-                        </motion.div>
+                        </Reveal>
                     ))}
                 </div>
             </div>

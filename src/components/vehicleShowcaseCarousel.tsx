@@ -1,12 +1,10 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { motion } from "framer-motion";
+import { Reveal } from "@/components/Reveal";
 import { ArrowUpRight, ShieldCheck, Globe } from "lucide-react";
 import Link from "next/link";
 import { getSpecDossiersByTags } from "@/actions/spec-actions";
-
-const appleEase = [0.16, 1, 0.3, 1];
 
 export default function VehicleShowcaseCarousel({ tags }: { tags: string[] }) {
     const [vehicles, setVehicles] = useState<any[]>([]);
@@ -56,12 +54,11 @@ export default function VehicleShowcaseCarousel({ tags }: { tags: string[] }) {
                         : null;
 
                     return (
-                        <motion.div
+                        <Reveal
                             key={car._id}
-                            initial={{ opacity: 0, y: 20 }}
-                            whileInView={{ opacity: 1, y: 0 }}
-                            viewport={{ once: true }}
-                            transition={{ duration: 0.6, delay: i * 0.05 }}
+                            y={20}
+                            duration={0.6}
+                            delay={i * 0.05}
                             className="min-w-[320px] md:min-w-[420px] bg-white border border-black/5 rounded-[2.5rem] overflow-hidden snap-start flex flex-col group shadow-sm hover:shadow-[0_30px_60px_rgba(0,0,0,0.04)] transition-all duration-500"
                         >
                             {/* Graphic Frame */}
@@ -128,7 +125,7 @@ export default function VehicleShowcaseCarousel({ tags }: { tags: string[] }) {
                                     </div>
                                 )}
                             </div>
-                        </motion.div>
+                        </Reveal>
                     );
                 })}
             </div>

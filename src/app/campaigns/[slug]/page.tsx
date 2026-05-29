@@ -4,12 +4,11 @@ import { useRef, Suspense } from "react";
 import MinimalHeader from "@/components/MinimalHeader";
 import { ArrowRight, Star, Play } from "lucide-react";
 import { motion, useScroll, useTransform } from "framer-motion";
+import { Reveal, appleEase } from "@/components/Reveal";
 import RequestForm from "@/components/requestForm";
 import FAQSection from "@/components/faqSection";
 import { lhdCampaignConfig } from "@/config/landing-pages"; // Adjust path as needed
 import VehicleShowcaseCarousel from "@/components/vehicleShowcaseCarousel";
-
-const appleEase: any = [0.16, 1, 0.3, 1];
 
 // Hardcoded array using the specific files you highlighted
 const highlightedCarLogos = [
@@ -73,65 +72,71 @@ export default function ConfigurableLanding() {
                     style={{ scale: heroScale, opacity: heroOpacity, y: heroY }}
                     className="relative z-10 text-center max-w-5xl mx-auto flex flex-col items-center mt-0"
                 >
-                    <motion.p
-                        initial={{ y: 20, opacity: 0 }}
-                        animate={{ y: 0, opacity: 1 }}
-                        transition={{ duration: 0.8, delay: 0.2, ease: appleEase }}
+                    <Reveal
+                        immediate
+                        as="p"
+                        y={20}
+                        delay={0.2}
+                        duration={0.8}
                         className="text-sm font-bold tracking-[0.4em] text-zinc-500 uppercase mb-8"
                     >
                         {config.hero.tagline}
-                    </motion.p>
-                    <motion.h1
-                        initial={{ y: 30, opacity: 0, scale: 0.95 }}
-                        animate={{ y: 0, opacity: 1, scale: 1 }}
-                        transition={{ duration: 1, delay: 0.3, ease: appleEase }}
+                    </Reveal>
+                    <Reveal
+                        immediate
+                        as="h1"
+                        y={30}
+                        scale={0.95}
+                        delay={0.3}
+                        duration={1}
                         className="text-4xl md:text-8xl lg:text-9xl font-bold tracking-tighter mb-6 bg-clip-text text-transparent bg-gradient-to-b from-black via-black/80 to-black/50 leading-[1.1] drop-shadow-[0_0_15px_rgba(255,255,255,1)] whitespace-pre-line"
                     >
                         {config.hero.title}
-                    </motion.h1>
-                    <motion.p
-                        initial={{ y: 20, opacity: 0 }}
-                        animate={{ y: 0, opacity: 1 }}
-                        transition={{ duration: 0.8, delay: 0.5, ease: appleEase }}
+                    </Reveal>
+                    <Reveal
+                        immediate
+                        as="p"
+                        y={20}
+                        delay={0.5}
+                        duration={0.8}
                         className="text-xl md:text-3xl text-zinc-600 font-medium tracking-tight mb-12 max-w-2xl drop-shadow-[0_0_10px_rgba(255,255,255,1)]"
                     >
                         {config.hero.subtitle}
-                    </motion.p>
-                    <motion.div
-                        initial={{ y: 20, opacity: 0 }}
-                        animate={{ y: 0, opacity: 1 }}
-                        transition={{ duration: 0.8, delay: 0.6, ease: appleEase }}
+                    </Reveal>
+                    <Reveal
+                        immediate
+                        y={20}
+                        delay={0.6}
+                        duration={0.8}
                     >
                         <a href="#inquiry" className="group relative inline-flex items-center justify-center px-10 py-5 text-lg font-bold text-white bg-black rounded-full overflow-hidden transition-transform hover:scale-105 shadow-[0_10px_40px_rgba(0,0,0,0.1)]">
                             <span className="relative z-10 flex items-center gap-2">
                                 Begin Your Inquiry <ArrowRight size={18} className="group-hover:translate-x-1 transition-transform" />
                             </span>
                         </a>
-                    </motion.div>
+                    </Reveal>
                 </motion.div>
             </section>
 
             {/* Hardcoded Brand Logos Section */}
             <section className="py-16 md:py-20 px-6 bg-white relative z-10 border-t border-black/5">
                 <div className="max-w-[1400px] mx-auto flex flex-col items-center">
-                    <motion.p
-                        initial={{ opacity: 0, y: 10 }}
-                        whileInView={{ opacity: 1, y: 0 }}
-                        viewport={{ once: true }}
-                        transition={{ duration: 0.5, ease: appleEase }}
+                    <Reveal
+                        as="p"
+                        y={10}
+                        duration={0.5}
                         className="text-xs font-bold tracking-[0.2em] text-zinc-400 uppercase mb-10"
                     >
                         Sourcing the world's finest
-                    </motion.p>
+                    </Reveal>
 
                     <div className="flex flex-wrap justify-center items-center gap-10 md:gap-16 lg:gap-24 opacity-60">
                         {highlightedCarLogos.map((logo, index) => (
-                            <motion.div
+                            <Reveal
                                 key={index}
-                                initial={{ opacity: 0, y: 20 }}
-                                whileInView={{ opacity: 1, y: 0 }}
-                                viewport={{ once: true }}
-                                transition={{ duration: 0.6, delay: index * 0.1, ease: appleEase }}
+                                y={20}
+                                delay={index * 0.1}
+                                duration={0.6}
                                 className="w-16 md:w-20 lg:w-24 grayscale hover:grayscale-0 hover:scale-110 transition-all duration-300 cursor-pointer"
                             >
                                 <img
@@ -139,7 +144,7 @@ export default function ConfigurableLanding() {
                                     alt={logo.alt}
                                     className="w-full h-auto object-contain"
                                 />
-                            </motion.div>
+                            </Reveal>
                         ))}
                     </div>
                 </div>
@@ -163,27 +168,21 @@ export default function ConfigurableLanding() {
 
             {/* Configurable Value Props Section */}
             <section className="py-32 px-6 max-w-[1400px] mx-auto bg-white relative z-10">
-                <motion.div
-                    initial={{ y: 40, opacity: 0 }}
-                    whileInView={{ y: 0, opacity: 1 }}
-                    viewport={{ once: true, margin: "-100px" }}
-                    transition={{ duration: 0.8, ease: appleEase }}
-                    className="text-center mb-24"
-                >
+                <Reveal y={40} duration={0.8} className="text-center mb-24">
                     <h2 className="text-4xl md:text-6xl font-bold tracking-tighter text-black mb-6 uppercase">
                         {config.valueProps.title}
                     </h2>
-                </motion.div>
+                </Reveal>
 
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 lg:gap-24 items-center mb-24">
                     <div className="space-y-6">
                         {config.valueProps.features.map((feature, index) => (
-                            <motion.div
+                            <Reveal
                                 key={index}
-                                initial={{ y: 40, opacity: 0, x: -20 }}
-                                whileInView={{ y: 0, opacity: 1, x: 0 }}
-                                viewport={{ once: true, margin: "-50px" }}
-                                transition={{ duration: 0.8, delay: index * 0.1, ease: appleEase }}
+                                y={40}
+                                x={-20}
+                                delay={index * 0.1}
+                                duration={0.8}
                                 className="relative overflow-hidden group flex flex-col items-start p-8 rounded-[2rem] bg-transparent hover:bg-zinc-50 transition-all duration-500 border border-transparent hover:border-black/5 hover:shadow-[0_20px_40px_rgba(0,0,0,0.04)]"
                             >
                                 <div className={`absolute -bottom-24 -right-24 w-64 h-64 rounded-full blur-[80px] bg-transparent transition-colors duration-700 ${feature.glowColor}`} />
@@ -200,15 +199,14 @@ export default function ConfigurableLanding() {
                                         {feature.desc}
                                     </p>
                                 </div>
-                            </motion.div>
+                            </Reveal>
                         ))}
                     </div>
 
-                    <motion.div
-                        initial={{ opacity: 0, scale: 0.95 }}
-                        whileInView={{ opacity: 1, scale: 1 }}
-                        viewport={{ once: true, margin: "-100px" }}
-                        transition={{ duration: 1, ease: appleEase }}
+                    <Reveal
+                        y={0}
+                        scale={0.95}
+                        duration={1}
                         className="relative h-[600px] lg:h-[800px] rounded-[2.5rem] overflow-hidden bg-zinc-200"
                     >
                         <img
@@ -216,7 +214,7 @@ export default function ConfigurableLanding() {
                             alt="Logistics"
                             className="w-full h-full object-cover"
                         />
-                    </motion.div>
+                    </Reveal>
                 </div>
             </section>
 
@@ -245,12 +243,12 @@ export default function ConfigurableLanding() {
 
                     <div className="flex overflow-x-auto gap-6 pb-12 snap-x snap-mandatory hide-scrollbar -mx-6 px-6 lg:mx-0 lg:px-0">
                         {config.reviews.items.map((review, i) => (
-                            <motion.div
+                            <Reveal
                                 key={i}
-                                initial={{ opacity: 0, x: 20 }}
-                                whileInView={{ opacity: 1, x: 0 }}
-                                viewport={{ once: true }}
-                                transition={{ duration: 0.5, delay: i * 0.1, ease: appleEase }}
+                                y={0}
+                                x={20}
+                                delay={i * 0.1}
+                                duration={0.5}
                                 className="min-w-[320px] md:min-w-[400px] bg-white border border-black/5 rounded-[2rem] p-8 snap-start hover:shadow-xl transition-shadow duration-300"
                             >
                                 <div className="flex gap-1 mb-4">
@@ -272,16 +270,14 @@ export default function ConfigurableLanding() {
                                         <p className="text-zinc-400 text-xs">{review.date}</p>
                                     </div>
                                 </div>
-                            </motion.div>
+                            </Reveal>
                         ))}
                     </div>
 
                     {/* Featured Video Block */}
-                    <motion.div
-                        initial={{ opacity: 0, y: 30 }}
-                        whileInView={{ opacity: 1, y: 0 }}
-                        viewport={{ once: true, margin: "-100px" }}
-                        transition={{ duration: 0.8, ease: appleEase }}
+                    <Reveal
+                        y={30}
+                        duration={0.8}
                         className="mt-16 bg-white rounded-[2.5rem] p-4 md:p-8 border border-black/5 grid grid-cols-1 md:grid-cols-2 gap-8 lg:gap-16 items-center shadow-sm"
                     >
                         <div className="relative aspect-video rounded-[1.5rem] overflow-hidden group cursor-pointer">
@@ -317,26 +313,20 @@ export default function ConfigurableLanding() {
                                 Read the full review
                             </button>
                         </div>
-                    </motion.div>
+                    </Reveal>
                 </div>
             </section>
 
             {/* Existing Forms and FAQs */}
             <section id="inquiry" className="py-32 px-6 relative flex flex-col justify-center items-center bg-zinc-50 border-t border-black/5 z-10 overflow-hidden">
-                <motion.div
-                    initial={{ y: 40, opacity: 0 }}
-                    whileInView={{ y: 0, opacity: 1 }}
-                    viewport={{ once: true, margin: "-100px" }}
-                    transition={{ duration: 1, ease: appleEase }}
-                    className="relative z-10 text-center max-w-4xl mx-auto mb-16"
-                >
+                <Reveal y={40} duration={1} className="relative z-10 text-center max-w-4xl mx-auto mb-16">
                     <h2 className="text-4xl md:text-5xl lg:text-6xl font-bold tracking-tighter text-black mb-6">
                         Tell us exactly what you want.
                     </h2>
                     <p className="text-xl md:text-2xl text-zinc-500 font-light max-w-2xl mx-auto">
                         Like an <span className="text-black font-medium">Aston Martin Chiron</span>. Our team will find that version in the global markets where it costs you the least.
                     </p>
-                </motion.div>
+                </Reveal>
 
                 <div className="w-full relative z-20">
                     <Suspense fallback={

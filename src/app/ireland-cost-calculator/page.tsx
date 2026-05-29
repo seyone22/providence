@@ -4,6 +4,7 @@ import { useState, useMemo, useRef, useEffect } from "react";
 import MinimalHeader from "@/components/MinimalHeader";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
+import { Reveal } from "@/components/Reveal";
 import {
   Calculator,
   AlertTriangle,
@@ -12,8 +13,6 @@ import {
   ArrowRight,
   ChevronDown,
 } from "lucide-react";
-
-const appleEase: any = [0.16, 1, 0.3, 1];
 
 // ─── Exchange rates (indicative mid-2026) ───────────────────────────────────
 const EXCHANGE_RATES: Record<string, number> = {
@@ -394,12 +393,7 @@ export default function IrelandCostCalculator() {
       {/* ── Hero ────────────────────────────────────────────────────────── */}
       <section className="relative pt-36 pb-16 px-6 bg-white overflow-hidden">
         <div className="max-w-7xl mx-auto">
-          <motion.div
-            initial={{ y: 30, opacity: 0 }}
-            animate={{ y: 0, opacity: 1 }}
-            transition={{ duration: 0.8, ease: appleEase }}
-            className="text-center mb-16"
-          >
+          <Reveal immediate y={30} duration={0.8} className="text-center mb-16">
             <p className="text-sm font-bold tracking-[0.4em] text-zinc-400 uppercase mb-6">
               Ireland Import Tool · 2026 Revenue Rates
             </p>
@@ -411,17 +405,19 @@ export default function IrelandCostCalculator() {
               any car into Ireland — based on 2026 Revenue rates and current
               EU trade agreements.
             </p>
-          </motion.div>
+          </Reveal>
 
           {/* ── Two-column: Form | Results ──────────────────────────────── */}
           <div className="grid grid-cols-1 lg:grid-cols-[1fr_420px] gap-8 max-w-6xl mx-auto items-start">
 
             {/* LEFT — Inputs ─────────────────────────────────────────────── */}
-            <motion.div
+            <Reveal
+              immediate
               id="calculator-inputs"
-              initial={{ x: -30, opacity: 0 }}
-              animate={{ x: 0, opacity: 1 }}
-              transition={{ duration: 0.8, delay: 0.2, ease: appleEase }}
+              x={-30}
+              y={0}
+              delay={0.2}
+              duration={0.8}
               className="space-y-5 scroll-mt-36"
             >
 
@@ -737,13 +733,15 @@ export default function IrelandCostCalculator() {
                   </p>
                 </div>
               </Card>
-            </motion.div>
+            </Reveal>
 
             {/* RIGHT — Results ─────────────────────────────────────────────── */}
-            <motion.div
-              initial={{ x: 30, opacity: 0 }}
-              animate={{ x: 0, opacity: 1 }}
-              transition={{ duration: 0.8, delay: 0.3, ease: appleEase }}
+            <Reveal
+              immediate
+              x={30}
+              y={0}
+              delay={0.3}
+              duration={0.8}
               className="lg:sticky lg:top-24 space-y-4"
             >
               <div className="bg-zinc-50 border border-black/5 rounded-[2rem] p-7 shadow-[0_20px_40px_rgba(0,0,0,0.04)]">
@@ -871,7 +869,7 @@ export default function IrelandCostCalculator() {
               <p className="text-center text-xs text-zinc-400">
                 We handle customs, VRT, NCTS and delivery end-to-end
               </p>
-            </motion.div>
+            </Reveal>
           </div>
         </div>
       </section>
@@ -879,20 +877,14 @@ export default function IrelandCostCalculator() {
       {/* ── How Irish import tax works ───────────────────────────────────── */}
       <section className="py-24 px-6 bg-zinc-50 border-t border-black/5 relative z-10">
         <div className="max-w-5xl mx-auto">
-          <motion.div
-            initial={{ y: 30, opacity: 0 }}
-            whileInView={{ y: 0, opacity: 1 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.8, ease: appleEase }}
-            className="text-center mb-16"
-          >
+          <Reveal y={30} duration={0.8} className="text-center mb-16">
             <h2 className="text-4xl md:text-5xl font-bold tracking-tighter text-black mb-4">
               How Irish import tax works
             </h2>
             <p className="text-lg text-zinc-500 font-light max-w-xl mx-auto">
               Three charges stack in order. Each is calculated on top of the last.
             </p>
-          </motion.div>
+          </Reveal>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
             {[
@@ -943,12 +935,11 @@ export default function IrelandCostCalculator() {
                 ],
               },
             ].map((card, i) => (
-              <motion.div
+              <Reveal
                 key={i}
-                initial={{ y: 30, opacity: 0 }}
-                whileInView={{ y: 0, opacity: 1 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.8, delay: i * 0.1, ease: appleEase }}
+                y={30}
+                delay={i * 0.1}
+                duration={0.8}
                 className={`p-6 rounded-[1.5rem] border ${card.color}`}
               >
                 <div className="flex items-baseline gap-3 mb-5">
@@ -963,7 +954,7 @@ export default function IrelandCostCalculator() {
                     </li>
                   ))}
                 </ul>
-              </motion.div>
+              </Reveal>
             ))}
           </div>
         </div>
@@ -972,26 +963,19 @@ export default function IrelandCostCalculator() {
       {/* ── VRT band reference table ─────────────────────────────────────── */}
       <section className="py-24 px-6 bg-white border-t border-black/5">
         <div className="max-w-4xl mx-auto">
-          <motion.div
-            initial={{ y: 30, opacity: 0 }}
-            whileInView={{ y: 0, opacity: 1 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.8, ease: appleEase }}
-            className="mb-12 text-center"
-          >
+          <Reveal y={30} duration={0.8} className="mb-12 text-center">
             <h2 className="text-3xl md:text-4xl font-bold tracking-tighter text-black mb-3">
               2026 VRT CO₂ Band Reference
             </h2>
             <p className="text-zinc-500 font-light">
               VRT is a percentage of Irish OMSP. Lower emissions = dramatically less tax.
             </p>
-          </motion.div>
+          </Reveal>
 
-          <motion.div
-            initial={{ y: 20, opacity: 0 }}
-            whileInView={{ y: 0, opacity: 1 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.8, delay: 0.1, ease: appleEase }}
+          <Reveal
+            y={20}
+            delay={0.1}
+            duration={0.8}
             className="overflow-hidden rounded-[1.5rem] border border-black/5 shadow-[0_4px_20px_rgba(0,0,0,0.04)]"
           >
             <table className="w-full text-sm">
@@ -1031,7 +1015,7 @@ export default function IrelandCostCalculator() {
                 ))}
               </tbody>
             </table>
-          </motion.div>
+          </Reveal>
         </div>
       </section>
 

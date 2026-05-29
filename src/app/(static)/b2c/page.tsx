@@ -5,10 +5,9 @@ import Link from "next/link";
 import MinimalHeader from "@/components/MinimalHeader";
 import { Landmark, Compass, Ship, ShieldCheck, ArrowRight, Images } from "lucide-react";
 import { motion, useScroll, useTransform } from "framer-motion";
+import { Reveal, appleEase } from "@/components/Reveal";
 import RequestForm from "@/components/requestForm";
 import FAQSection from "@/components/faqSection";
-
-const appleEase: any = [0.16, 1, 0.3, 1];
 
 export default function B2CLanding() {
     const heroRef = useRef(null);
@@ -57,41 +56,49 @@ export default function B2CLanding() {
                     style={{ scale: heroScale, opacity: heroOpacity, y: heroY }}
                     className="relative z-10 text-center max-w-5xl mx-auto flex flex-col items-center mt-0"
                 >
-                    <motion.p
-                        initial={{ y: 20, opacity: 0 }}
-                        animate={{ y: 0, opacity: 1 }}
-                        transition={{ duration: 0.8, delay: 0.2, ease: appleEase }}
+                    <Reveal
+                        immediate
+                        as="p"
+                        y={20}
+                        delay={0.2}
+                        duration={0.8}
                         className="text-sm font-bold tracking-[0.4em] text-zinc-500 uppercase mb-8"
                     >
                         Direct Import Network
-                    </motion.p>
-                    <motion.h1
-                        initial={{ y: 30, opacity: 0, scale: 0.95 }}
-                        animate={{ y: 0, opacity: 1, scale: 1 }}
-                        transition={{ duration: 1, delay: 0.3, ease: appleEase }}
+                    </Reveal>
+                    <Reveal
+                        immediate
+                        as="h1"
+                        y={30}
+                        scale={0.95}
+                        delay={0.3}
+                        duration={1}
                         className="text-4xl md:text-8xl lg:text-12xl font-bold tracking-tighter mb-6 bg-clip-text text-transparent bg-gradient-to-b from-black via-black/80 to-black/50 leading-[1.1] drop-shadow-[0_0_15px_rgba(255,255,255,1)]"
                     >
                         The Global<br/> Shortcut to <br/>Your Dream Car.
-                    </motion.h1>
-                    <motion.p
-                        initial={{ y: 20, opacity: 0 }}
-                        animate={{ y: 0, opacity: 1 }}
-                        transition={{ duration: 0.8, delay: 0.5, ease: appleEase }}
+                    </Reveal>
+                    <Reveal
+                        immediate
+                        as="p"
+                        y={20}
+                        delay={0.5}
+                        duration={0.8}
                         className="text-xl md:text-3xl text-zinc-600 font-medium tracking-tight mb-12 max-w-2xl drop-shadow-[0_0_10px_rgba(255,255,255,1)]"
                     >
                         Don't settle for what's on the lot.
-                    </motion.p>
-                    <motion.div
-                        initial={{ y: 20, opacity: 0 }}
-                        animate={{ y: 0, opacity: 1 }}
-                        transition={{ duration: 0.8, delay: 0.6, ease: appleEase }}
+                    </Reveal>
+                    <Reveal
+                        immediate
+                        y={20}
+                        delay={0.6}
+                        duration={0.8}
                     >
                         <a href="#inquiry" className="group relative inline-flex items-center justify-center px-10 py-5 text-lg font-bold  text-white bg-black rounded-full overflow-hidden transition-transform hover:scale-105 shadow-[0_10px_40px_rgba(0,0,0,0.1)]">
                             <span className="relative z-10 flex items-center gap-2">
                                 Begin Your Inquiry <ArrowRight size={18} className="group-hover:translate-x-1 transition-transform" />
                             </span>
                         </a>
-                    </motion.div>
+                    </Reveal>
                 </motion.div>
             </section>
 
@@ -107,20 +114,14 @@ export default function B2CLanding() {
             </section>
 
             <section className="py-32 px-6 max-w-7xl mx-auto bg-white relative z-10">
-                <motion.div
-                    initial={{ y: 40, opacity: 0 }}
-                    whileInView={{ y: 0, opacity: 1 }}
-                    viewport={{ once: true, margin: "-100px" }}
-                    transition={{ duration: 0.8, ease: appleEase }}
-                    className="text-center mb-24"
-                >
+                <Reveal y={40} duration={0.8} className="text-center mb-24">
                     <h2 className="text-4xl md:text-6xl font-bold tracking-tighter text-black mb-6">
                         Never compromise again.
                     </h2>
                     <p className="text-xl text-zinc-500 max-w-2xl mx-auto font-light">
                         We are industry experts. We know exactly where to source your desired vehicle for the cheapest price, with the exact specifications you demand.
                     </p>
-                </motion.div>
+                </Reveal>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-16">
                     {[
@@ -129,12 +130,12 @@ export default function B2CLanding() {
                         { icon: Ship, title: "White-Glove Logistics", desc: "From the showroom floor in Germany to your driveway. We handle every single form, marine insurance policy, and freight mile for you. Zero friction.", glowColor: "group-hover:bg-indigo-500/15" },
                         { icon: ShieldCheck, title: "15 Years of Heritage", desc: "We aren't a startup guessing how to ship cars. We have over a decade of established infrastructure, delivering the most reliable service in the industry.", glowColor: "group-hover:bg-amber-500/15" }
                     ].map((feature, index) => (
-                        <motion.div
+                        <Reveal
                             key={index}
-                            initial={{ y: 40, opacity: 0, scale: 0.95 }}
-                            whileInView={{ y: 0, opacity: 1, scale: 1 }}
-                            viewport={{ once: true, margin: "-50px" }}
-                            transition={{ duration: 0.8, delay: index * 0.1, ease: appleEase }}
+                            y={40}
+                            scale={0.95}
+                            delay={index * 0.1}
+                            duration={0.8}
                             className="relative overflow-hidden group flex flex-col items-start p-8 rounded-[2rem] bg-transparent hover:bg-zinc-50 transition-all duration-500 border border-transparent hover:border-black/5 hover:shadow-[0_20px_40px_rgba(0,0,0,0.04)]"
                         >
                             <div className={`absolute -bottom-24 -right-24 w-64 h-64 rounded-full blur-[80px] bg-transparent transition-colors duration-700 ${feature.glowColor}`} />
@@ -151,7 +152,7 @@ export default function B2CLanding() {
                                     {feature.desc}
                                 </p>
                             </div>
-                        </motion.div>
+                        </Reveal>
                     ))}
                 </div>
             </section>
@@ -199,20 +200,14 @@ export default function B2CLanding() {
             {/*</section>*/}
 
             <section id="inquiry" className="py-32 px-6 relative flex flex-col justify-center items-center bg-zinc-50 border-t border-black/5 z-10 overflow-hidden">
-                <motion.div
-                    initial={{ y: 40, opacity: 0 }}
-                    whileInView={{ y: 0, opacity: 1 }}
-                    viewport={{ once: true, margin: "-100px" }}
-                    transition={{ duration: 1, ease: appleEase }}
-                    className="relative z-10 text-center max-w-4xl mx-auto mb-16"
-                >
+                <Reveal y={40} duration={1} className="relative z-10 text-center max-w-4xl mx-auto mb-16">
                     <h2 className="text-4xl md:text-5xl lg:text-6xl font-bold tracking-tighter text-black mb-6">
                         Tell us exactly what you want.
                     </h2>
                     <p className="text-xl md:text-2xl text-zinc-500 font-light max-w-2xl mx-auto">
                         Like a <span className="text-black font-medium">2023 Defender in Fuji White</span>. Our team will find that version in the global markets where it costs you the least.
                     </p>
-                </motion.div>
+                </Reveal>
 
                 <div className="w-full relative z-20">
                     <Suspense fallback={

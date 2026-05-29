@@ -1,7 +1,7 @@
 "use client";
 
 import MinimalHeader from "@/components/MinimalHeader";
-import { motion, AnimatePresence } from "framer-motion";
+import { Reveal } from "@/components/Reveal";
 import {
     MapPin,
     Calendar,
@@ -16,8 +16,6 @@ import {
 import Link from "next/link";
 import { useState, useMemo } from "react";
 import FAQSection from "@/components/faqSection";
-
-const appleEase: any = [0.16, 1, 0.3, 1];
 
 // Updated to perfectly match your Blueprint Schema
 type Dossier = {
@@ -76,10 +74,10 @@ export default function GalleryClient({ dossiers }: { dossiers: Dossier[] }) {
 
             {/* Hero Section */}
             <section className="relative pt-40 pb-10 px-6 bg-white overflow-hidden">
-                <motion.div
-                    initial={{ y: 40, opacity: 0 }}
-                    animate={{ y: 0, opacity: 1 }}
-                    transition={{ duration: 1, ease: appleEase }}
+                <Reveal
+                    immediate
+                    y={40}
+                    duration={1}
                     className="relative z-10 text-center max-w-4xl mx-auto"
                 >
                     <p className="text-sm font-bold tracking-[0.4em] text-zinc-400 uppercase mb-6">
@@ -91,7 +89,7 @@ export default function GalleryClient({ dossiers }: { dossiers: Dossier[] }) {
                     <p className="text-xl md:text-2xl text-zinc-500 font-light max-w-2xl mx-auto">
                         A curated selection of globally-sourced vehicle specifications, ready to be commissioned to your exacting standards.
                     </p>
-                </motion.div>
+                </Reveal>
 
                 <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[400px] bg-zinc-100 blur-[120px] rounded-full pointer-events-none -z-10" />
             </section>
@@ -150,12 +148,12 @@ export default function GalleryClient({ dossiers }: { dossiers: Dossier[] }) {
                 ) : (
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 gap-y-16">
                         {filteredDossiers.map((car, index) => (
-                            <motion.div
+                            <Reveal
                                 key={car._id}
-                                initial={{ y: 40, opacity: 0, scale: 0.98 }}
-                                whileInView={{ y: 0, opacity: 1, scale: 1 }}
-                                viewport={{ once: true, margin: "-50px" }}
-                                transition={{ duration: 0.8, delay: (index % 3) * 0.1, ease: appleEase }}
+                                y={40}
+                                scale={0.98}
+                                delay={(index % 3) * 0.1}
+                                duration={0.8}
                                 className="group relative flex flex-col rounded-[2rem] bg-white border border-black/5 overflow-hidden hover:shadow-[0_30px_60px_rgba(0,0,0,0.06)] hover:border-black/10 transition-all duration-700 cursor-pointer"
                             >
                                 <Link href={`/b2c/gallery/${car._id}`} className="flex flex-col h-full outline-none">
@@ -226,7 +224,7 @@ export default function GalleryClient({ dossiers }: { dossiers: Dossier[] }) {
                                         )}
                                     </div>
                                 </Link>
-                            </motion.div>
+                            </Reveal>
                         ))}
                     </div>
                 )}
@@ -235,12 +233,7 @@ export default function GalleryClient({ dossiers }: { dossiers: Dossier[] }) {
             {/* Value Propositions Section */}
             <section className="py-32 px-6 bg-[#FAFAFA] border-y border-black/5">
                 <div className="max-w-[1400px] mx-auto grid grid-cols-1 lg:grid-cols-2 gap-16 lg:gap-24 items-center">
-                    <motion.div
-                        initial={{ opacity: 0, y: 30 }}
-                        whileInView={{ opacity: 1, y: 0 }}
-                        viewport={{ once: true, margin: "-100px" }}
-                        transition={{ duration: 0.8, ease: appleEase }}
-                    >
+                    <Reveal y={30} duration={0.8}>
                         <h2 className="text-3xl md:text-5xl lg:text-6xl font-bold tracking-tighter mb-16 uppercase leading-tight">
                             Why Import From <br/>Providence Auto
                         </h2>
@@ -258,13 +251,12 @@ export default function GalleryClient({ dossiers }: { dossiers: Dossier[] }) {
                                 </div>
                             ))}
                         </div>
-                    </motion.div>
+                    </Reveal>
 
-                    <motion.div
-                        initial={{ opacity: 0, scale: 0.95 }}
-                        whileInView={{ opacity: 1, scale: 1 }}
-                        viewport={{ once: true, margin: "-100px" }}
-                        transition={{ duration: 1, ease: appleEase }}
+                    <Reveal
+                        y={0}
+                        scale={0.95}
+                        duration={1}
                         className="relative h-[600px] lg:h-[800px] rounded-[2.5rem] overflow-hidden bg-zinc-200"
                     >
                         <img
@@ -272,7 +264,7 @@ export default function GalleryClient({ dossiers }: { dossiers: Dossier[] }) {
                             alt="Vehicles being loaded into a shipping container"
                             className="w-full h-full object-cover"
                         />
-                    </motion.div>
+                    </Reveal>
                 </div>
             </section>
 
@@ -309,12 +301,12 @@ export default function GalleryClient({ dossiers }: { dossiers: Dossier[] }) {
                             { name: "Michael H.", date: "1 month ago", title: "Seamless customs clearance", desc: "I didn't have to fill out a single confusing form. They managed the entire tax and compliance process. True white-glove service." },
                             { name: "James L.", date: "2 months ago", title: "Highly professional outfit", desc: "Their market knowledge is unparalleled. They advised me to wait two weeks for a better exchange rate, saving me thousands." }
                         ].map((review, i) => (
-                            <motion.div
+                            <Reveal
                                 key={i}
-                                initial={{ opacity: 0, x: 20 }}
-                                whileInView={{ opacity: 1, x: 0 }}
-                                viewport={{ once: true }}
-                                transition={{ duration: 0.5, delay: i * 0.1, ease: appleEase }}
+                                y={0}
+                                x={20}
+                                delay={i * 0.1}
+                                duration={0.5}
                                 className="min-w-[320px] md:min-w-[400px] bg-[#FDFCFB] border border-black/5 rounded-[2rem] p-8 snap-start hover:shadow-xl transition-shadow duration-300"
                             >
                                 <div className="flex gap-1 mb-4">
@@ -330,16 +322,14 @@ export default function GalleryClient({ dossiers }: { dossiers: Dossier[] }) {
                                     <p className="font-medium text-sm">{review.name}</p>
                                     <p className="text-zinc-400 text-xs">{review.date}</p>
                                 </div>
-                            </motion.div>
+                            </Reveal>
                         ))}
                     </div>
 
                     {/* Featured Video / Review Block */}
-                    <motion.div
-                        initial={{ opacity: 0, y: 30 }}
-                        whileInView={{ opacity: 1, y: 0 }}
-                        viewport={{ once: true, margin: "-100px" }}
-                        transition={{ duration: 0.8, ease: appleEase }}
+                    <Reveal
+                        y={30}
+                        duration={0.8}
                         className="mt-16 bg-[#FAFAFA] rounded-[2.5rem] p-4 md:p-8 border border-black/5 grid grid-cols-1 md:grid-cols-2 gap-8 lg:gap-16 items-center"
                     >
                         <div className="relative aspect-video rounded-[1.5rem] overflow-hidden group cursor-pointer">
@@ -370,7 +360,7 @@ export default function GalleryClient({ dossiers }: { dossiers: Dossier[] }) {
                                 Read the full review
                             </button>
                         </div>
-                    </motion.div>
+                    </Reveal>
                 </div>
             </section>
 
