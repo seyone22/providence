@@ -7,23 +7,24 @@ interface ContactScheduledEmailProps {
     model: string;
     requestId: string;
     agent: { name: string; email: string; image: string };
-    contactMethod: string;
+    contactMethods: string[];
     contactDays: string[];
     contactTimeWindow: string;
     contactTimezoneLabel: string;
 }
 
 export const ContactScheduledEmail = ({
-    userName, make, model, requestId, agent, contactMethod, contactDays, contactTimeWindow, contactTimezoneLabel,
+    userName, make, model, requestId, agent, contactMethods, contactDays, contactTimeWindow, contactTimezoneLabel,
 }: ContactScheduledEmailProps) => {
     const trackingUrl = `${process.env.NEXT_PUBLIC_BASE_URL}/track/${requestId}`;
     const firstName = userName?.split(' ')[0] || 'there';
     const daysLabel = Array.isArray(contactDays) && contactDays.length ? contactDays.join(', ') : 'your preferred day';
+    const methodsLabel = Array.isArray(contactMethods) && contactMethods.length ? contactMethods.join(' & ') : '—';
 
     return (
         <Html>
             <Head />
-            <Preview>{`${agent.name} will reach out via ${contactMethod} — here's the plan for your ${make} ${model}.`}</Preview>
+            <Preview>{`${agent.name} will reach out via ${methodsLabel} — here's the plan for your ${make} ${model}.`}</Preview>
             <Body style={mainStyle}>
                 <Container style={containerStyle}>
                     <Heading style={brandStyle}>
@@ -62,7 +63,7 @@ export const ContactScheduledEmail = ({
                     <Section style={planCardStyle}>
                         <Row>
                             <Column style={planLabelCol}><Text style={planLabel}>How</Text></Column>
-                            <Column><Text style={planValue}>{contactMethod}</Text></Column>
+                            <Column><Text style={planValue}>{methodsLabel}</Text></Column>
                         </Row>
                         <Row>
                             <Column style={planLabelCol}><Text style={planLabel}>When</Text></Column>

@@ -25,7 +25,7 @@ export interface IRequest extends Document {
     importTimeline?: string;
 
     // Contact preferences (captured after delivery details)
-    contactMethod?: string;            // WhatsApp | Call | WhatsApp Call | Email
+    contactMethods?: string[];         // one or more of: WhatsApp | Call | WhatsApp Call | Email
     contactDays?: string[];            // e.g. ["Today"], ["Weekdays"], ["Monday","Wednesday"]
     contactTimeWindow?: string;        // Morning (9–12) | Afternoon (12–5) | Evening (5–8)
     contactTimezone?: string;          // IANA zone the customer selected (e.g. "Europe/Dublin")
@@ -107,7 +107,7 @@ const RequestSchema: Schema = new Schema(
         importTimeline: {type: String},
 
         // Contact preferences
-        contactMethod: {type: String},
+        contactMethods: {type: [String], default: undefined},
         contactDays: {type: [String], default: undefined},
         contactTimeWindow: {type: String},
         contactTimezone: {type: String},

@@ -162,7 +162,7 @@ export async function submitCarRequest(data: {
  */
 export async function submitContactPreferences(input: {
     requestId: string;
-    contactMethod: string;
+    contactMethods: string[];
     contactDays: string[];
     contactTimeWindow: string;
     contactTimezone: string;
@@ -185,7 +185,7 @@ export async function submitContactPreferences(input: {
 
         // 2. Persist preferences + wire the existing follow-up reminder so the
         //    countdown ring lights up automatically in the dashboard.
-        request.contactMethod = input.contactMethod;
+        request.contactMethods = input.contactMethods;
         request.contactDays = input.contactDays;
         request.contactTimeWindow = input.contactTimeWindow;
         request.contactTimezone = input.contactTimezone;
@@ -198,7 +198,7 @@ export async function submitContactPreferences(input: {
             action: "Contact preferences submitted",
             performedBy: "Customer (Inquiry Form)",
             date: new Date(),
-            comment: `Prefers ${input.contactMethod} · ${input.contactTimeWindow} · ${input.contactDays.join(", ")} — reminder set for ${formatInIST(preferredContactAt)}`,
+            comment: `Prefers ${input.contactMethods.join(", ")} · ${input.contactTimeWindow} · ${input.contactDays.join(", ")} — reminder set for ${formatInIST(preferredContactAt)}`,
         });
         await request.save();
 
@@ -230,7 +230,7 @@ export async function submitContactPreferences(input: {
                 model: request.vehicle_model,
                 requestId: input.requestId,
                 agent,
-                contactMethod: input.contactMethod,
+                contactMethods: input.contactMethods,
                 contactDays: input.contactDays,
                 contactTimeWindow: input.contactTimeWindow,
                 contactTimezoneLabel: input.contactTimezoneLabel || input.contactTimezone,
@@ -244,7 +244,7 @@ export async function submitContactPreferences(input: {
                 phone: request.phone,
                 countryOfImport: request.countryOfImport,
                 importTimeline: request.importTimeline,
-                contactMethod: input.contactMethod,
+                contactMethods: input.contactMethods,
                 contactDays: input.contactDays,
                 contactTimeWindow: input.contactTimeWindow,
                 preferredContactIST: formatInIST(preferredContactAt),

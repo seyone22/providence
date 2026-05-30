@@ -109,7 +109,7 @@ export const emailService = {
         model: string,
         requestId: string,
         agent: { name: string; email: string; image: string },
-        contactMethod: string,
+        contactMethods: string[],
         contactDays: string[],
         contactTimeWindow: string,
         contactTimezoneLabel: string,

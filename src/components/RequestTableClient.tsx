@@ -352,7 +352,7 @@ export default function RequestTableClient({
                                                         followUpSetAt={req.followUpSetAt}
                                                     />
                                                     <ContactPreferenceBadge
-                                                        contactMethod={req.contactMethod}
+                                                        contactMethods={req.contactMethods}
                                                         contactDays={req.contactDays}
                                                         contactTimeWindow={req.contactTimeWindow}
                                                         contactTimezone={req.contactTimezone}
