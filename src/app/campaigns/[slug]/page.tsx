@@ -32,7 +32,7 @@ export default function ConfigurableLanding() {
 
             {/* Configurable Hero Section */}
             <section className="relative min-h-screen flex flex-col justify-center items-start px-6 pt-20 bg-white overflow-hidden">
-                <GradientMesh />
+                <GradientMesh image={config.hero.backgroundImage} />
 
                 <div className="relative z-10 text-center max-w-5xl mx-auto flex flex-col items-center mt-0">
                     <Reveal

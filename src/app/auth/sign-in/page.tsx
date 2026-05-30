@@ -110,8 +110,8 @@ export default function SignIn() {
         <main
             className="min-h-screen bg-white text-black relative flex items-center justify-center px-4 font-sans selection:bg-black/10 selection:text-black overflow-hidden">
 
-            {/* === GRADIENT MESH BACKGROUND === */}
-            <GradientMesh />
+            {/* === HERO IMAGE + GRADIENT MESH BACKGROUND === */}
+            <GradientMesh image="https://images.unsplash.com/photo-1614162692292-7ac56d7f7f1e?q=80&w=3000&auto=format&fit=crop" />
 
             {/* Back Button */}
             <Link href="/"

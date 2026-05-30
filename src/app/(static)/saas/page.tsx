@@ -41,7 +41,6 @@ export default function SaaSSignup() {
             {/* Gradient mesh background (hero band) */}
             <div aria-hidden className="pointer-events-none absolute inset-x-0 top-0 h-[760px] z-0 overflow-hidden">
                 <div className="pa-mesh absolute inset-0" />
-                <div className="pa-grid absolute inset-0" />
                 <div className="absolute inset-x-0 bottom-0 h-40 bg-gradient-to-b from-transparent to-white" />
             </div>
 

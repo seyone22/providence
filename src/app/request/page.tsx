@@ -10,8 +10,8 @@ export default function RequestCar() {
     return (
         <div className="min-h-screen bg-white text-black flex flex-col relative overflow-x-hidden font-sans selection:bg-black/10 selection:text-black">
 
-            {/* === GRADIENT MESH BACKGROUND === */}
-            <GradientMesh />
+            {/* === HERO IMAGE + GRADIENT MESH BACKGROUND === */}
+            <GradientMesh image="https://images.unsplash.com/photo-1552519507-da3b142c6e3d?q=80&w=3000&auto=format&fit=crop" />
 
             <MinimalHeader />
 
