@@ -62,12 +62,12 @@ type RevealProps = {
  */
 export function Reveal({
     as = "div",
-    y = 24,
+    y = 16,
     x = 0,
     scale = 1,
     delay = 0,
-    duration = 0.6,
-    amount = 0.2,
+    duration = 0.5,
+    amount = 0.15,
     once = true,
     immediate = false,
     className,
