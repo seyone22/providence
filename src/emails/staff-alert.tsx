@@ -34,6 +34,28 @@ export const StaffAlertEmail = ({ data, requestId }: StaffAlertEmailProps) => {
                         "{data.specs}"
                     </Text>
                 )}
+
+                {data.contactMethod && (
+                    <>
+                        <div style={{ margin: '20px 0', borderBottom: '1px solid #e4e4e7' }} />
+                        <Text style={labelStyle}>Preferred Contact</Text>
+                        <Text style={valueStyle}>Method: {data.contactMethod}</Text>
+                        <Text style={valueStyle}>
+                            When: {data.contactTimeWindow}
+                            {Array.isArray(data.contactDays) && data.contactDays.length ? ` · ${data.contactDays.join(", ")}` : ""}
+                        </Text>
+                        {data.preferredContactIST && (
+                            <Text style={{ ...valueStyle, fontWeight: 'bold', color: '#0369a1' }}>
+                                Follow up by: {data.preferredContactIST}
+                            </Text>
+                        )}
+                        {data.contactTimezoneLabel && (
+                            <Text style={{ ...valueStyle, fontSize: '12px', color: '#71717a' }}>
+                                Customer timezone: {data.contactTimezoneLabel}
+                            </Text>
+                        )}
+                    </>
+                )}
             </Section>
 
             <Section style={{ textAlign: 'center', marginTop: '32px' }}>

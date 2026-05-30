@@ -16,6 +16,7 @@ import {
 import LeadDistributionChart from "@/components/LeadDistributionChart";
 import RequestTableClient from "./RequestTableClient";
 import { format, isWithinInterval, startOfDay, endOfDay } from "date-fns";
+import { CONTACT_DUE_OPTIONS, contactDueMatches, type ContactDueBucket } from "@/lib/contactScheduling";
 import { DayPicker } from "react-day-picker";
 import "react-day-picker/dist/style.css"; // Basic styles
 
@@ -48,6 +49,7 @@ export default function DashboardClient({ requests, staffUsers, currentUserId }:
     const [sortBy, setSortBy] = useState("newest");
     const [countryFilter, setCountryFilter] = useState("All");
     const [sourceFilter, setSourceFilter] = useState("All");
+    const [contactDueFilter, setContactDueFilter] = useState("All");
 
     const [showDatePicker, setShowDatePicker] = useState(false);
 
@@ -145,15 +147,19 @@ export default function DashboardClient({ requests, staffUsers, currentUserId }:
                     sourceFilter === "All" ||
                     normalizeSource(req.source || "") === sourceFilter;
 
+                const matchesContactDue =
+                    contactDueFilter === "All" ||
+                    contactDueMatches(req.preferredContactAt, contactDueFilter as ContactDueBucket);
+
                 return matchesSearch && matchesStage && matchesStatus &&
-                    matchesStaff && matchesCar && matchesCountry && matchesDate && matchesSource;
+                    matchesStaff && matchesCar && matchesCountry && matchesDate && matchesSource && matchesContactDue;
             })
             .sort((a: any, b: any) => {
                 const dateA = new Date(a.createdAt).getTime();
                 const dateB = new Date(b.createdAt).getTime();
                 return sortBy === "newest" ? dateB - dateA : dateA - dateB;
             });
-    }, [requests, searchQuery, stageFilter, countryFilter, statusFilter, staffFilter, carFilter, sourceFilter, sortBy]);
+    }, [requests, searchQuery, stageFilter, countryFilter, statusFilter, staffFilter, carFilter, sourceFilter, contactDueFilter, sortBy]);
 
     // Top Level Stats calculated from FILTERED data
     const stats = [
@@ -307,6 +313,19 @@ export default function DashboardClient({ requests, staffUsers, currentUserId }:
                                 <option key={source} value={source}>{source}</option>
                             ))}
                         </select>
+
+                        {/* Contact-due filter — sales team plans follow-ups (times in IST) */}
+                        <select
+                            value={contactDueFilter}
+                            onChange={(e) => setContactDueFilter(e.target.value)}
+                            title="Filter by when the lead asked to be contacted (IST)"
+                            className={`pl-3 pr-8 py-2 text-sm border rounded-xl font-semibold cursor-pointer outline-none transition-all appearance-none bg-[length:1.25rem_1.25rem] bg-[right_0.5rem_center] bg-no-repeat bg-[url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20width%3D%2220%22%20height%3D%2220%22%20viewBox%3D%220%200%2020%2020%22%20fill%3D%22none%22%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%3E%3Cpath%20d%3D%22M5%207.5L10%2012.5L15%207.5%22%20stroke%3D%22%2371717a%22%20stroke-width%3D%221.5%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22/%3E%3C/svg%3E')] ${contactDueFilter !== "All" ? "bg-indigo-50 border-indigo-200 text-indigo-700" : "bg-white border-zinc-200 hover:border-zinc-300 text-zinc-600"}`}
+                        >
+                            <option value="All">Contact due: Any</option>
+                            {CONTACT_DUE_OPTIONS.map((opt) => (
+                                <option key={opt.value} value={opt.value}>Due: {opt.label}</option>
+                            ))}
+                        </select>
                     </div>
 
                     <div className="flex items-center gap-2">
@@ -354,7 +373,8 @@ export default function DashboardClient({ requests, staffUsers, currentUserId }:
                             countryFilter !== "All" ||
                             stageFilter !== "All" ||
                             statusFilter !== "All" ||
-                            sourceFilter !== "All"
+                            sourceFilter !== "All" ||
+                            contactDueFilter !== "All"
                         ) && (
                             <button
                                 onClick={() => {
@@ -365,6 +385,7 @@ export default function DashboardClient({ requests, staffUsers, currentUserId }:
                                     setStatusFilter("All");
                                     setCountryFilter("All");
                                     setSourceFilter("All");
+                                    setContactDueFilter("All");
                                 }}
                                 className="p-2 text-red-500 hover:bg-red-50 rounded-xl transition-colors border border-transparent hover:border-red-100"
                                 title="Reset Filters"

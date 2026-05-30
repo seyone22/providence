@@ -23,6 +23,15 @@ export interface IRequest extends Document {
     phone: string;
     countryOfImport: string;
     importTimeline?: string;
+
+    // Contact preferences (captured after delivery details)
+    contactMethod?: string;            // WhatsApp | Call | WhatsApp Call | Email
+    contactDays?: string[];            // e.g. ["Today"], ["Weekdays"], ["Monday","Wednesday"]
+    contactTimeWindow?: string;        // Morning (9–12) | Afternoon (12–5) | Evening (5–8)
+    contactTimezone?: string;          // IANA zone the customer selected (e.g. "Europe/Dublin")
+    contactTimezoneLabel?: string;     // Human label shown to the customer (e.g. "Ireland (GMT)")
+    preferredContactAt?: Date;         // Concrete UTC instant computed from day + window + tz
+
     status: string;
     leadStatus: string;
     statusUpdatedAt?: Date; // Added missing type from previous step
@@ -96,6 +105,15 @@ const RequestSchema: Schema = new Schema(
         phone: {type: String, required: true},
         countryOfImport: {type: String, required: true},
         importTimeline: {type: String},
+
+        // Contact preferences
+        contactMethod: {type: String},
+        contactDays: {type: [String], default: undefined},
+        contactTimeWindow: {type: String},
+        contactTimezone: {type: String},
+        contactTimezoneLabel: {type: String},
+        preferredContactAt: {type: Date},
+
         status: {type: String, default: 'New'},
         leadStatus: {type: String, default: 'Action required'}, // Updated default
         statusUpdatedAt: {type: Date},

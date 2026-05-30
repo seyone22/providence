@@ -329,7 +329,7 @@ export default function ImportJapaneseCarsIreland() {
                         as="p"
                         className="text-3xl md:text-5xl lg:text-6xl font-medium tracking-tight leading-tight text-zinc-400"
                     >
-                        For 15 years, we supplied the top car dealers in Ireland. Now we're going direct —{" "}
+                        For 15 years, we supplied the top car dealers around the world. Now we're going direct —{" "}
                         <span className="text-black drop-shadow-sm">
                             offering every Irish buyer the same wholesale sourcing network
                         </span>
