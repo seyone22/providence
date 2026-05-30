@@ -41,74 +41,127 @@ const WEEKDAY_INDEX: Record<string, number> = {
     Sunday: 0, Monday: 1, Tuesday: 2, Wednesday: 3, Thursday: 4, Friday: 5, Saturday: 6,
 };
 
-// --- Country → timezone map -----------------------------------------------
-// Curated for realistic import destinations. Unknown countries fall back to a
-// sensible default and the customer can override via the timezone dropdown.
-export const COUNTRY_TIMEZONES: Record<string, { tz: string; label: string }> = {
-    "Ireland": { tz: "Europe/Dublin", label: "Ireland (Dublin)" },
-    "United Kingdom": { tz: "Europe/London", label: "United Kingdom (London)" },
-    "Northern Ireland": { tz: "Europe/London", label: "Northern Ireland (London)" },
-    "United States": { tz: "America/New_York", label: "United States (Eastern)" },
-    "Canada": { tz: "America/Toronto", label: "Canada (Eastern)" },
-    "Australia": { tz: "Australia/Sydney", label: "Australia (Sydney)" },
-    "New Zealand": { tz: "Pacific/Auckland", label: "New Zealand (Auckland)" },
-    "Germany": { tz: "Europe/Berlin", label: "Germany (Berlin)" },
-    "France": { tz: "Europe/Paris", label: "France (Paris)" },
-    "Spain": { tz: "Europe/Madrid", label: "Spain (Madrid)" },
-    "Italy": { tz: "Europe/Rome", label: "Italy (Rome)" },
-    "Netherlands": { tz: "Europe/Amsterdam", label: "Netherlands (Amsterdam)" },
-    "Belgium": { tz: "Europe/Brussels", label: "Belgium (Brussels)" },
-    "Sweden": { tz: "Europe/Stockholm", label: "Sweden (Stockholm)" },
-    "Norway": { tz: "Europe/Oslo", label: "Norway (Oslo)" },
-    "Denmark": { tz: "Europe/Copenhagen", label: "Denmark (Copenhagen)" },
-    "Finland": { tz: "Europe/Helsinki", label: "Finland (Helsinki)" },
-    "Portugal": { tz: "Europe/Lisbon", label: "Portugal (Lisbon)" },
-    "Switzerland": { tz: "Europe/Zurich", label: "Switzerland (Zurich)" },
-    "Austria": { tz: "Europe/Vienna", label: "Austria (Vienna)" },
-    "Malta": { tz: "Europe/Malta", label: "Malta (Valletta)" },
-    "Cyprus": { tz: "Asia/Nicosia", label: "Cyprus (Nicosia)" },
-    "Japan": { tz: "Asia/Tokyo", label: "Japan (Tokyo)" },
-    "Singapore": { tz: "Asia/Singapore", label: "Singapore" },
-    "Hong Kong": { tz: "Asia/Hong_Kong", label: "Hong Kong" },
-    "China": { tz: "Asia/Shanghai", label: "China (Shanghai)" },
-    "United Arab Emirates": { tz: "Asia/Dubai", label: "UAE (Dubai)" },
-    "Saudi Arabia": { tz: "Asia/Riyadh", label: "Saudi Arabia (Riyadh)" },
-    "Qatar": { tz: "Asia/Qatar", label: "Qatar (Doha)" },
-    "South Africa": { tz: "Africa/Johannesburg", label: "South Africa (Johannesburg)" },
-    "Nigeria": { tz: "Africa/Lagos", label: "Nigeria (Lagos)" },
-    "Kenya": { tz: "Africa/Nairobi", label: "Kenya (Nairobi)" },
-    "Ghana": { tz: "Africa/Accra", label: "Ghana (Accra)" },
-    "India": { tz: "Asia/Kolkata", label: "India (IST)" },
-    "Pakistan": { tz: "Asia/Karachi", label: "Pakistan (Karachi)" },
-    "Sri Lanka": { tz: "Asia/Colombo", label: "Sri Lanka (Colombo)" },
-};
+// --- Time zones ------------------------------------------------------------
+// One entry per distinct time zone (same UTC offset AND DST behaviour), rather
+// than one per country. Countries that share a zone are grouped and listed in
+// `places`, and `abbr` carries the common abbreviation(s) — both are baked into
+// the option label so the dropdown's text search matches on a country name
+// ("India"), an abbreviation ("IST", "GMT", "EST"), or the offset ("+5:30").
+// `tz` is the canonical IANA zone used for the actual reminder computation.
+interface TzZone { tz: string; abbr: string; places: string; }
 
-// Curated dropdown for manual override.
-export const TIMEZONE_OPTIONS: { tz: string; label: string }[] = [
-    { tz: "Europe/Dublin", label: "Ireland / UK (GMT/IST)" },
-    { tz: "Europe/London", label: "United Kingdom (London)" },
-    { tz: "Europe/Paris", label: "Central Europe (Paris/Berlin)" },
-    { tz: "Europe/Helsinki", label: "Eastern Europe (Helsinki)" },
-    { tz: "America/New_York", label: "US Eastern (New York)" },
-    { tz: "America/Chicago", label: "US Central (Chicago)" },
-    { tz: "America/Denver", label: "US Mountain (Denver)" },
-    { tz: "America/Los_Angeles", label: "US Pacific (Los Angeles)" },
-    { tz: "America/Toronto", label: "Canada Eastern (Toronto)" },
-    { tz: "Asia/Dubai", label: "Gulf (Dubai)" },
-    { tz: "Asia/Karachi", label: "Pakistan (Karachi)" },
-    { tz: "Asia/Kolkata", label: "India (IST)" },
-    { tz: "Asia/Colombo", label: "Sri Lanka (Colombo)" },
-    { tz: "Asia/Singapore", label: "Singapore / Hong Kong" },
-    { tz: "Asia/Tokyo", label: "Japan (Tokyo)" },
-    { tz: "Australia/Sydney", label: "Australia (Sydney)" },
-    { tz: "Pacific/Auckland", label: "New Zealand (Auckland)" },
-    { tz: "Africa/Johannesburg", label: "South Africa (Johannesburg)" },
-    { tz: "Africa/Lagos", label: "West Africa (Lagos)" },
+const TZ_ZONES: TzZone[] = [
+    { tz: "Etc/GMT+12",                      abbr: "AoE",         places: "Baker Island, Howland Island" },
+    { tz: "Pacific/Pago_Pago",               abbr: "SST",         places: "American Samoa, Niue, Midway" },
+    { tz: "Pacific/Honolulu",                abbr: "HST",         places: "Hawaii (USA), Tahiti, Cook Islands" },
+    { tz: "Pacific/Marquesas",               abbr: "MART",        places: "Marquesas Islands" },
+    { tz: "America/Anchorage",               abbr: "AKST/AKDT",   places: "Alaska (USA)" },
+    { tz: "America/Los_Angeles",             abbr: "PST/PDT",     places: "US Pacific, Canada (Vancouver), Mexico (Tijuana)" },
+    { tz: "America/Denver",                  abbr: "MST/MDT",     places: "US Mountain, Canada (Edmonton)" },
+    { tz: "America/Phoenix",                 abbr: "MST",         places: "Arizona (USA), Mexico (Hermosillo)" },
+    { tz: "America/Chicago",                 abbr: "CST/CDT",     places: "US Central, Canada (Winnipeg)" },
+    { tz: "America/Mexico_City",             abbr: "CST",         places: "Mexico, Guatemala, Costa Rica, El Salvador, Honduras" },
+    { tz: "America/New_York",                abbr: "EST/EDT",     places: "US Eastern, Canada (Toronto), Cuba, Bahamas" },
+    { tz: "America/Bogota",                  abbr: "COT/PET",     places: "Colombia, Peru, Ecuador, Panama, Jamaica" },
+    { tz: "America/Halifax",                 abbr: "AST/ADT",     places: "Canada (Halifax), Bermuda" },
+    { tz: "America/Santo_Domingo",           abbr: "AST",         places: "Dominican Rep., Puerto Rico, Venezuela, Bolivia, Guyana" },
+    { tz: "America/Santiago",                abbr: "CLT/CLST",    places: "Chile" },
+    { tz: "America/St_Johns",                abbr: "NST/NDT",     places: "Newfoundland (Canada)" },
+    { tz: "America/Sao_Paulo",               abbr: "BRT",         places: "Brazil (São Paulo, Brasília)" },
+    { tz: "America/Argentina/Buenos_Aires",  abbr: "ART",         places: "Argentina, Uruguay, French Guiana" },
+    { tz: "Atlantic/South_Georgia",          abbr: "GST",         places: "South Georgia, Fernando de Noronha" },
+    { tz: "Atlantic/Azores",                 abbr: "AZOT/AZOST",  places: "Azores (Portugal)" },
+    { tz: "Atlantic/Cape_Verde",             abbr: "CVT",         places: "Cape Verde" },
+    { tz: "Europe/London",                   abbr: "GMT/BST",     places: "United Kingdom, Ireland, Portugal" },
+    { tz: "Africa/Accra",                    abbr: "GMT",         places: "Ghana, Senegal, Ivory Coast, Iceland, Mali" },
+    { tz: "Europe/Paris",                    abbr: "CET/CEST",    places: "Germany, France, Spain, Italy, Netherlands, Belgium, Switzerland, Austria, Poland, Sweden, Norway, Denmark, Malta" },
+    { tz: "Africa/Lagos",                    abbr: "WAT",         places: "Nigeria, Cameroon, Angola, DR Congo (Kinshasa)" },
+    { tz: "Europe/Helsinki",                 abbr: "EET/EEST",    places: "Finland, Greece, Romania, Ukraine, Cyprus, Bulgaria" },
+    { tz: "Africa/Cairo",                    abbr: "EET",         places: "Egypt, Libya" },
+    { tz: "Africa/Johannesburg",             abbr: "SAST",        places: "South Africa, Zambia, Zimbabwe, Botswana" },
+    { tz: "Asia/Jerusalem",                  abbr: "IST/IDT",     places: "Israel, Palestine" },
+    { tz: "Asia/Riyadh",                     abbr: "AST",         places: "Saudi Arabia, Kuwait, Qatar, Bahrain, Iraq, Yemen" },
+    { tz: "Africa/Nairobi",                  abbr: "EAT",         places: "Kenya, Ethiopia, Tanzania, Uganda, Somalia" },
+    { tz: "Europe/Moscow",                   abbr: "MSK",         places: "Russia (Moscow), Belarus" },
+    { tz: "Europe/Istanbul",                 abbr: "TRT",         places: "Turkey" },
+    { tz: "Asia/Tehran",                     abbr: "IRST",        places: "Iran" },
+    { tz: "Asia/Dubai",                      abbr: "GST",         places: "UAE, Oman, Azerbaijan, Armenia, Georgia, Mauritius" },
+    { tz: "Asia/Kabul",                      abbr: "AFT",         places: "Afghanistan" },
+    { tz: "Asia/Karachi",                    abbr: "PKT",         places: "Pakistan, Uzbekistan, Turkmenistan, Maldives, Tajikistan" },
+    { tz: "Asia/Kolkata",                    abbr: "IST",         places: "India, Sri Lanka" },
+    { tz: "Asia/Kathmandu",                  abbr: "NPT",         places: "Nepal" },
+    { tz: "Asia/Dhaka",                      abbr: "BDT",         places: "Bangladesh, Bhutan, Kazakhstan (Almaty)" },
+    { tz: "Asia/Yangon",                     abbr: "MMT",         places: "Myanmar, Cocos Islands" },
+    { tz: "Asia/Bangkok",                    abbr: "ICT",         places: "Thailand, Vietnam, Cambodia, Laos, Indonesia (Jakarta)" },
+    { tz: "Asia/Singapore",                  abbr: "SGT/CST/HKT", places: "Singapore, China, Hong Kong, Taiwan, Malaysia, Philippines, Australia (Perth)" },
+    { tz: "Asia/Tokyo",                      abbr: "JST/KST",     places: "Japan, South Korea, North Korea" },
+    { tz: "Australia/Darwin",                abbr: "ACST",        places: "Australia – Northern Territory" },
+    { tz: "Australia/Adelaide",              abbr: "ACST/ACDT",   places: "Australia – South Australia" },
+    { tz: "Australia/Brisbane",              abbr: "AEST",        places: "Australia – Queensland, Papua New Guinea" },
+    { tz: "Australia/Sydney",                abbr: "AEST/AEDT",   places: "Australia – NSW, Victoria, Canberra, Tasmania" },
+    { tz: "Pacific/Guadalcanal",             abbr: "SBT",         places: "Solomon Islands, New Caledonia, Vanuatu" },
+    { tz: "Pacific/Auckland",                abbr: "NZST/NZDT",   places: "New Zealand" },
+    { tz: "Pacific/Tarawa",                  abbr: "GILT",        places: "Kiribati (Gilbert), Marshall Islands, Tuvalu, Nauru, Fiji" },
+    { tz: "Pacific/Tongatapu",               abbr: "TOT",         places: "Tonga, Samoa" },
+    { tz: "Pacific/Kiritimati",              abbr: "LINT",        places: "Kiribati (Line Islands)" },
 ];
 
+/** Current GMT offset for a zone, e.g. "GMT+5:30" / "GMT-8". */
+function formatGmtOffset(tz: string): string {
+    // Offsets are whole minutes; round away sub-second drift from Date.now().
+    const totalMinutes = Math.round(tzOffsetMs(tz, new Date()) / 60_000);
+    const sign = totalMinutes < 0 ? "-" : "+";
+    const abs = Math.abs(totalMinutes);
+    const h = Math.floor(abs / 60);
+    const m = abs % 60;
+    return `GMT${sign}${h}${m ? ":" + String(m).padStart(2, "0") : ""}`;
+}
+
+// Full dropdown list. Label = "(GMT±off) ABBR — Countries" so it's searchable
+// by offset, abbreviation, or country name.
+export const TIMEZONE_OPTIONS: { tz: string; label: string }[] = TZ_ZONES.map((z) => ({
+    tz: z.tz,
+    label: `(${formatGmtOffset(z.tz)}) ${z.abbr} — ${z.places}`,
+}));
+
+// Map the form's import-country names → the canonical zone above, so the
+// timezone can be pre-selected from the chosen destination.
+const COUNTRY_TO_TZ: Record<string, string> = {
+    "Ireland": "Europe/London",
+    "United Kingdom": "Europe/London",
+    "Northern Ireland": "Europe/London",
+    "Portugal": "Europe/London",
+    "United States": "America/New_York",
+    "Canada": "America/New_York",
+    "Australia": "Australia/Sydney",
+    "New Zealand": "Pacific/Auckland",
+    "Germany": "Europe/Paris", "France": "Europe/Paris", "Spain": "Europe/Paris",
+    "Italy": "Europe/Paris", "Netherlands": "Europe/Paris", "Belgium": "Europe/Paris",
+    "Sweden": "Europe/Paris", "Norway": "Europe/Paris", "Denmark": "Europe/Paris",
+    "Switzerland": "Europe/Paris", "Austria": "Europe/Paris", "Malta": "Europe/Paris",
+    "Finland": "Europe/Helsinki", "Cyprus": "Europe/Helsinki", "Greece": "Europe/Helsinki",
+    "Japan": "Asia/Tokyo", "South Korea": "Asia/Tokyo",
+    "Singapore": "Asia/Singapore", "Hong Kong": "Asia/Singapore", "China": "Asia/Singapore",
+    "Malaysia": "Asia/Singapore", "Philippines": "Asia/Singapore", "Taiwan": "Asia/Singapore",
+    "United Arab Emirates": "Asia/Dubai", "Oman": "Asia/Dubai",
+    "Saudi Arabia": "Asia/Riyadh", "Qatar": "Asia/Riyadh", "Kuwait": "Asia/Riyadh", "Bahrain": "Asia/Riyadh",
+    "South Africa": "Africa/Johannesburg",
+    "Nigeria": "Africa/Lagos",
+    "Kenya": "Africa/Nairobi",
+    "Ghana": "Africa/Accra",
+    "India": "Asia/Kolkata", "Sri Lanka": "Asia/Kolkata",
+    "Pakistan": "Asia/Karachi",
+    "Egypt": "Africa/Cairo",
+    "Turkey": "Europe/Istanbul",
+    "Brazil": "America/Sao_Paulo",
+};
+
+const DEFAULT_TZ = "Europe/London";
+
 export function timezoneForCountry(country?: string): { tz: string; label: string } {
-    if (country && COUNTRY_TIMEZONES[country]) return COUNTRY_TIMEZONES[country];
-    return { tz: "Europe/Dublin", label: "Ireland / UK (GMT)" };
+    const tz = (country && COUNTRY_TO_TZ[country]) || DEFAULT_TZ;
+    const opt = TIMEZONE_OPTIONS.find((o) => o.tz === tz) || TIMEZONE_OPTIONS.find((o) => o.tz === DEFAULT_TZ)!;
+    return { tz: opt.tz, label: opt.label };
 }
 
 // --- Timezone math (native Intl, DST-correct, no extra deps) ---------------
