@@ -104,27 +104,24 @@ export default function SaaSSignup() {
                         {/* Tabs List */}
                         <div className="space-y-4 flex flex-col justify-center h-full">
                             {features.map((feature, idx) => (
-                                <motion.button
-                                    key={idx}
-                                    onClick={() => setActiveTab(idx)}
-                                    initial={{ opacity: 0, x: -20 }}
-                                    whileInView={{ opacity: 1, x: 0 }}
-                                    viewport={{ once: true }}
-                                    transition={{ duration: 0.5, delay: idx * 0.1, ease: appleEase }}
-                                    className={`w-full text-left p-6 md:p-8 rounded-[2rem] transition-all duration-300 relative overflow-hidden ${
-                                        activeTab === idx
-                                            ? "bg-white shadow-[0_10px_40px_rgba(0,0,0,0.08)] border border-black/5"
-                                            : "hover:bg-black/5 border border-transparent opacity-60 hover:opacity-100"
-                                    }`}
-                                >
-                                    <div className="relative z-10 flex items-center gap-5 mb-3">
-                                        <div className={`p-3 rounded-2xl transition-colors duration-300 ${activeTab === idx ? "bg-black text-white" : "bg-black/10 text-black"}`}>
-                                            {feature.icon}
+                                <Reveal key={idx} x={-20} y={0} delay={idx * 0.1} duration={0.5}>
+                                    <button
+                                        onClick={() => setActiveTab(idx)}
+                                        className={`w-full text-left p-6 md:p-8 rounded-[2rem] transition-all duration-300 relative overflow-hidden ${
+                                            activeTab === idx
+                                                ? "bg-white shadow-[0_10px_40px_rgba(0,0,0,0.08)] border border-black/5"
+                                                : "hover:bg-black/5 border border-transparent opacity-60 hover:opacity-100"
+                                        }`}
+                                    >
+                                        <div className="relative z-10 flex items-center gap-5 mb-3">
+                                            <div className={`p-3 rounded-2xl transition-colors duration-300 ${activeTab === idx ? "bg-black text-white" : "bg-black/10 text-black"}`}>
+                                                {feature.icon}
+                                            </div>
+                                            <h4 className="text-2xl font-bold text-black tracking-tight">{feature.title}</h4>
                                         </div>
-                                        <h4 className="text-2xl font-bold text-black tracking-tight">{feature.title}</h4>
-                                    </div>
-                                    <p className="text-zinc-500 text-lg font-light leading-relaxed pl-[4.5rem] relative z-10">{feature.desc}</p>
-                                </motion.button>
+                                        <p className="text-zinc-500 text-lg font-light leading-relaxed pl-[4.5rem] relative z-10">{feature.desc}</p>
+                                    </button>
+                                </Reveal>
                             ))}
                         </div>
 

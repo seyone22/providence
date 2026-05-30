@@ -4,7 +4,7 @@ import { useState, useEffect, Suspense, useMemo } from "react";
 import MinimalHeader from "@/components/MinimalHeader";
 import { Landmark, Compass, Ship, ShieldCheck, ArrowRight, CheckCircle2, MapPin, Search, Zap } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Reveal, appleEase } from "@/components/Reveal";
+import { Reveal } from "@/components/Reveal";
 import GradientMesh from "@/components/GradientMesh";
 import RequestForm from "@/components/requestForm";
 import FAQSection from "@/components/faqSection";
@@ -161,8 +161,6 @@ function getTimeLeft() {
     const now = Date.now();
     const diff = deadline - now;
     if (diff <= 0) return { months: 0, days: 0, hours: 0 };
-    const totalMs = diff;
-    const totalHours = Math.floor(totalMs / (1000 * 60 * 60));
     const nowDate = new Date();
     const deadlineDate = new Date("2027-01-01T00:00:00Z");
     let months = (deadlineDate.getFullYear() - nowDate.getFullYear()) * 12 + (deadlineDate.getMonth() - nowDate.getMonth());
@@ -524,13 +522,13 @@ export default function ImportJapaneseCarsIreland() {
 
                                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                                     {models.map((model, index) => (
-                                        <motion.button
+                                        <Reveal
+                                            as="button"
                                             key={`${model.make}-${model.model}`}
                                             onClick={() => handleModelSelect(model)}
-                                            initial={{ y: 20, opacity: 0 }}
-                                            whileInView={{ y: 0, opacity: 1 }}
-                                            viewport={{ once: true }}
-                                            transition={{ duration: 0.5, delay: index * 0.06, ease: appleEase }}
+                                            y={20}
+                                            delay={index * 0.05}
+                                            duration={0.5}
                                             className="bg-white rounded-[1.5rem] border border-black/5 p-6 shadow-[0_10px_30px_rgba(0,0,0,0.04)] flex flex-col gap-3 text-left hover:shadow-[0_20px_40px_rgba(0,0,0,0.08)] hover:border-sky-500/20 transition-all duration-300 group cursor-pointer"
                                         >
                                             {model.badge && (
@@ -552,19 +550,18 @@ export default function ImportJapaneseCarsIreland() {
                                             <div className="flex items-center gap-1.5 text-sky-500 text-xs font-bold mt-1 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
                                                 Enquire with this model pre-filled <ArrowRight size={12} />
                                             </div>
-                                        </motion.button>
+                                        </Reveal>
                                     ))}
                                 </div>
                             </Reveal>
                         ))}
 
                         {/* Don't see your car */}
-                        <motion.a
+                        <Reveal
+                            as="a"
                             href="#inquiry"
-                            initial={{ y: 30, opacity: 0 }}
-                            whileInView={{ y: 0, opacity: 1 }}
-                            viewport={{ once: true, margin: "-30px" }}
-                            transition={{ duration: 0.6, ease: appleEase }}
+                            y={24}
+                            duration={0.6}
                             className="bg-black rounded-[1.5rem] p-6 flex flex-col gap-3 hover:bg-zinc-900 transition-colors duration-300 cursor-pointer group"
                         >
                             <h3 className="text-xl font-bold text-white">Don't see your car?</h3>
@@ -574,7 +571,7 @@ export default function ImportJapaneseCarsIreland() {
                             <div className="flex items-center gap-2 text-white font-bold text-sm mt-2">
                                 Start your inquiry <ArrowRight size={15} className="group-hover:translate-x-1 transition-transform" />
                             </div>
-                        </motion.a>
+                        </Reveal>
                     </div>
                 </div>
             </section>

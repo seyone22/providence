@@ -131,6 +131,10 @@ export default function RootLayout({
                 type="application/ld+json"
                 dangerouslySetInnerHTML={{__html: JSON.stringify(categorySchema)}}
             />
+            {/* If JS is unavailable, show scroll-reveal content instead of leaving it hidden */}
+            <noscript>
+                <style>{`.pa-reveal{opacity:1 !important;transform:none !important}`}</style>
+            </noscript>
         </head>
         <GoogleTagManager gtmId="GTM-K7GCCZXQ"/>
         <body className={`${geistSans.variable} ${geistMono.variable} antialiased flex flex-col min-h-screen`}>
