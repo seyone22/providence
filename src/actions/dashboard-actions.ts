@@ -19,7 +19,8 @@ export async function getDashboardData() {
         await connectToDatabase();
 
         // Fetch all requests - using .lean() for performance since it's read-only
-        const requests = await Request.find({}).lean();
+        // Exclude drafts (incomplete inquiries without contact preferences).
+        const requests = await Request.find({ isDraft: { $ne: true } }).lean();
 
         // 1. Calculate Aggregates
         const grossPipeline = requests.reduce((acc, req) => acc + (req.agreedPrice || 0), 0);

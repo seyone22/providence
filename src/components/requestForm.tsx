@@ -455,6 +455,32 @@ export default function RequestForm({ prefill, defaultPhoneCountry = "US" }: { p
     // Identity keys for Server-to-Server tracking
     const [trackingData, setTrackingData] = useState({ gclid: '', fbclid: '', fbc: '', fbp: '' });
 
+    // Best-effort cleanup: if the customer abandons the contact-preferences step
+    // (closes/refreshes the tab) without submitting, discard the draft lead so
+    // it never lingers in the admin pipeline. A server-side TTL purge is the
+    // safety net for cases where the beacon doesn't fire.
+    const shouldDiscardRef = useRef(false);
+    const discardIdRef = useRef("");
+
+    useEffect(() => {
+        shouldDiscardRef.current = step === 3 && !!submittedRequestId && !isSuccess;
+        discardIdRef.current = submittedRequestId;
+    }, [step, submittedRequestId, isSuccess]);
+
+    useEffect(() => {
+        const discardDraft = () => {
+            if (!shouldDiscardRef.current || !discardIdRef.current) return;
+            try {
+                const blob = new Blob([JSON.stringify({ id: discardIdRef.current })], { type: "application/json" });
+                navigator.sendBeacon("/api/v1/leads/discard", blob);
+            } catch {
+                /* best-effort only */
+            }
+        };
+        window.addEventListener("pagehide", discardDraft);
+        return () => window.removeEventListener("pagehide", discardDraft);
+    }, []);
+
     // Capture URL params and Cookies on mount
     useEffect(() => {
         setTrackingData({

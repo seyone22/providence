@@ -121,11 +121,14 @@ export async function submitCarRequest(data: {
             image: assignedAgent?.image || "https://pub-0c6552f09f244121ac51914a1f782578.r2.dev/profiles/1775233164832-498582237.jpg"
         };
 
-        // 2. Create the database record, appending the assigned agent's details
+        // 2. Create the database record, appending the assigned agent's details.
+        //    Marked as a draft until the customer submits contact preferences —
+        //    drafts are hidden from the admin pipeline and purged if abandoned.
         const newRequest = await Request.create({
             ...data,
             assignedToId: agentData.id,
-            assignedToName: agentData.name
+            assignedToName: agentData.name,
+            isDraft: true
         });
 
         const requestId = newRequest._id.toString();
@@ -193,6 +196,7 @@ export async function submitContactPreferences(input: {
         request.preferredContactAt = preferredContactAt;
         request.followUpAt = preferredContactAt;
         request.followUpSetAt = new Date();
+        request.isDraft = false; // promote from draft → live lead
         request.statusHistory = request.statusHistory || [];
         request.statusHistory.push({
             action: "Contact preferences submitted",

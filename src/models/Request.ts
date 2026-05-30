@@ -32,6 +32,11 @@ export interface IRequest extends Document {
     contactTimezoneLabel?: string;     // Human label shown to the customer (e.g. "Ireland (GMT)")
     preferredContactAt?: Date;         // Concrete UTC instant computed from day + window + tz
 
+    // True while the lead has been created (delivery details captured) but the
+    // customer hasn't submitted contact preferences yet. Drafts are hidden from
+    // the admin pipeline and purged if abandoned.
+    isDraft?: boolean;
+
     status: string;
     leadStatus: string;
     statusUpdatedAt?: Date; // Added missing type from previous step
@@ -113,6 +118,7 @@ const RequestSchema: Schema = new Schema(
         contactTimezone: {type: String},
         contactTimezoneLabel: {type: String},
         preferredContactAt: {type: Date},
+        isDraft: {type: Boolean, default: false},
 
         status: {type: String, default: 'New'},
         leadStatus: {type: String, default: 'Action required'}, // Updated default
