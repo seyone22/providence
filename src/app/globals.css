@@ -134,55 +134,64 @@ html {
 /* Stripe-style soft gradient mesh — use as a hero/section background layer */
 .pa-mesh {
   background:
-    radial-gradient(40% 50% at 12% 18%, rgba(56, 189, 248, 0.30), transparent 70%),
-    radial-gradient(45% 55% at 82% 12%, rgba(139, 92, 246, 0.26), transparent 70%),
-    radial-gradient(50% 60% at 65% 88%, rgba(236, 72, 153, 0.18), transparent 70%),
-    radial-gradient(40% 50% at 25% 80%, rgba(45, 212, 191, 0.22), transparent 70%);
+    radial-gradient(
+      40% 50% at 12% 18%,
+      rgba(56, 189, 248, 0.3),
+      transparent 70%
+    ),
+    radial-gradient(
+      45% 55% at 82% 12%,
+      rgba(139, 92, 246, 0.26),
+      transparent 70%
+    ),
+    radial-gradient(
+      50% 60% at 65% 88%,
+      rgba(236, 72, 153, 0.18),
+      transparent 70%
+    ),
+    radial-gradient(
+      40% 50% at 25% 80%,
+      rgba(45, 212, 191, 0.22),
+      transparent 70%
+    );
   filter: saturate(1.1);
 }
 
 /* ── Appear animation (one shared reveal for every object) ──────────────────
-   Compositor-only (opacity + transform) via a CSS *animation* (not a
-   transition), so it never conflicts with elements' own `transition-*` / hover
-   styles. The .pa-revealed class is added once by a shared IntersectionObserver
-   and never removed, and the resting state is opacity:1 with no transform set —
-   so reveals can't re-trigger or re-hide on scroll-back, and hover-lift
-   transforms stay free once the reveal has played. */
-.pa-reveal {
+   The revealed state is DECLARATIVE (opacity:1) so it can never get stuck
+   invisible — the motion itself is played by the Web Animations API in the
+   reveal-runtime script (see layout.tsx), which doesn't touch the CSS
+   transition/animation properties and so never conflicts with an element's own
+   hover/transition styles. Elements start hidden; the runtime adds .pa-revealed
+   once (and never removes it) when they enter the viewport. */
+.pa-reveal,
+.pa-reveal-immediate {
   opacity: 0;
 }
-.pa-reveal.pa-revealed {
+.pa-reveal.pa-revealed,
+.pa-reveal-immediate.pa-revealed {
   opacity: 1;
-  animation: pa-reveal-in var(--reveal-duration, 0.5s) cubic-bezier(0.16, 1, 0.3, 1) var(--reveal-delay, 0s) backwards;
-}
-
-/* Above-the-fold content: animate on load (works without JS, no observer). */
-.pa-reveal-immediate {
-  opacity: 1;
-  animation: pa-reveal-in var(--reveal-duration, 0.6s) cubic-bezier(0.16, 1, 0.3, 1) var(--reveal-delay, 0s) backwards;
-}
-@keyframes pa-reveal-in {
-  from {
-    opacity: 0;
-    transform: translate3d(var(--reveal-x, 0px), var(--reveal-y, 16px), 0) scale(var(--reveal-scale, 1));
-  }
-  to {
-    opacity: 1;
-    transform: translate3d(0, 0, 0) scale(1);
-  }
 }
 
 /* Gradient-accent headline — clips a sky→violet→pink gradient to text */
 .pa-headline-gradient {
-  background-image: linear-gradient(100deg, #0ea5e9 0%, #8b5cf6 50%, #ec4899 100%);
+  background-image: linear-gradient(
+    100deg,
+    #0ea5e9 0%,
+    #8b5cf6 50%,
+    #ec4899 100%
+  );
   -webkit-background-clip: text;
-          background-clip: text;
+  background-clip: text;
   color: transparent;
 }
 
 /* Crisp card hover-lift */
 .pa-lift {
-  transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.4s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.4s;
+  transition:
+    transform 0.4s cubic-bezier(0.16, 1, 0.3, 1),
+    box-shadow 0.4s cubic-bezier(0.16, 1, 0.3, 1),
+    border-color 0.4s;
 }
 .pa-lift:hover {
   transform: translateY(-6px);
