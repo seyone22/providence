@@ -4,7 +4,7 @@ import { useState, useEffect, Suspense, useMemo } from "react";
 import MinimalHeader from "@/components/MinimalHeader";
 import { Landmark, Compass, Ship, ShieldCheck, ArrowRight, CheckCircle2, MapPin, Search, Zap } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Reveal, appleEase } from "@/components/Reveal";
+import { Reveal } from "@/components/Reveal";
 import GradientMesh from "@/components/GradientMesh";
 import RequestForm from "@/components/requestForm";
 import FAQSection from "@/components/faqSection";
