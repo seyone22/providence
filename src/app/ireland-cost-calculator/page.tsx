@@ -858,7 +858,7 @@ export default function IrelandCostCalculator() {
 
               {/* CTA */}
               <Link
-                href="/request"
+                href="/import-japanese-cars-to-ireland"
                 className="group flex items-center justify-between w-full px-7 py-5 bg-sky-500 hover:bg-sky-600 text-white rounded-2xl font-bold text-base transition-all duration-300 shadow-[0_10px_40px_rgba(14,165,233,0.25)]"
               >
                 <span>Source This Vehicle With Providence</span>
