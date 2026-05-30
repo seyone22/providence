@@ -141,14 +141,36 @@ html {
   filter: saturate(1.1);
 }
 
-/* Fine grid overlay, faded toward the edges */
-.pa-grid {
-  background-image:
-    linear-gradient(to right, rgba(2, 6, 23, 0.04) 1px, transparent 1px),
-    linear-gradient(to bottom, rgba(2, 6, 23, 0.04) 1px, transparent 1px);
-  background-size: 56px 56px;
-  -webkit-mask-image: radial-gradient(ellipse 75% 65% at 50% 40%, #000 30%, transparent 82%);
-          mask-image: radial-gradient(ellipse 75% 65% at 50% 40%, #000 30%, transparent 82%);
+/* ── Appear animation (one shared reveal for every object) ──────────────────
+   Pure CSS, compositor-only (opacity + transform). The .pa-revealed class is
+   added once by a shared IntersectionObserver and never removed, so reveals
+   cannot re-trigger or re-hide on scroll-back. */
+.pa-reveal {
+  opacity: 0;
+  transform: translate3d(var(--reveal-x, 0px), var(--reveal-y, 16px), 0) scale(var(--reveal-scale, 1));
+  transition:
+    opacity var(--reveal-duration, 0.5s) cubic-bezier(0.16, 1, 0.3, 1) var(--reveal-delay, 0s),
+    transform var(--reveal-duration, 0.5s) cubic-bezier(0.16, 1, 0.3, 1) var(--reveal-delay, 0s);
+}
+.pa-reveal.pa-revealed {
+  opacity: 1;
+  transform: translate3d(0, 0, 0) scale(1);
+}
+
+/* Above-the-fold content: animate on load via a self-playing keyframe (works
+   without JS, no observer, no hydration wait). */
+.pa-reveal-immediate {
+  animation: pa-reveal-in var(--reveal-duration, 0.6s) cubic-bezier(0.16, 1, 0.3, 1) var(--reveal-delay, 0s) both;
+}
+@keyframes pa-reveal-in {
+  from {
+    opacity: 0;
+    transform: translate3d(var(--reveal-x, 0px), var(--reveal-y, 16px), 0) scale(var(--reveal-scale, 1));
+  }
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0) scale(1);
+  }
 }
 
 /* Gradient-accent headline — clips a sky→violet→pink gradient to text */
@@ -183,6 +205,15 @@ html {
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
     scroll-behavior: auto !important;
+  }
+
+  /* Show all reveals instantly, with no movement */
+  .pa-reveal,
+  .pa-reveal-immediate {
+    animation: none !important;
+    transition: none !important;
+    transform: none !important;
+    opacity: 1 !important;
   }
 
   .marquee-content,
