@@ -2,10 +2,21 @@
 
 import { useState, useEffect, useRef } from "react";
 import { useSearchParams, usePathname } from "next/navigation";
-import { Loader2, ArrowLeft, ChevronDown, AlertCircle, User } from "lucide-react";
-import { submitCarRequest } from "@/actions/request-actions";
+import { Loader2, ArrowLeft, ChevronDown, AlertCircle, User, MessageCircle, Phone, PhoneCall, Mail, Clock, Globe, CalendarDays, CheckCircle2 } from "lucide-react";
+import { submitCarRequest, submitContactPreferences } from "@/actions/request-actions";
 import { motion, AnimatePresence } from "framer-motion";
 import { isValidPhoneNumber } from 'libphonenumber-js';
+import {
+    CONTACT_METHODS, TIME_WINDOWS, DAY_OPTIONS, TIMEZONE_OPTIONS,
+    timezoneForCountry, formatInTz, computePreferredContactAt,
+} from "@/lib/contactScheduling";
+
+const CONTACT_METHOD_ICONS: Record<string, any> = {
+    "WhatsApp": MessageCircle,
+    "Call": Phone,
+    "WhatsApp Call": PhoneCall,
+    "Email": Mail,
+};
 
 const TOTAL_STEPS = 3;
 
@@ -385,14 +396,17 @@ const initialFormState = {
     make: "", vehicle_model: "", condition: "New",
     yearRange: "2024-2026", mileageRange: "Under 5,000",
     specs: "", name: "", email: "", phone: "",
-    countryCode: "+1", countryOfImport: "", importTimeline: ""
+    countryCode: "+1", countryOfImport: "", importTimeline: "",
+    // Contact preferences (step 3)
+    contactMethod: "", contactDays: [] as string[], contactTimeWindow: TIME_WINDOWS[0].label,
+    contactTimezone: "", contactTimezoneLabel: "",
 };
 
 // Type for the returned agent
 interface AgentData {
     name: string;
-    email: string;
-    image: string;
+    email?: string;
+    image?: string;
 }
 
 /** Map a Next.js pathname to a human-readable lead source label. */
@@ -418,6 +432,7 @@ export default function RequestForm({ prefill, defaultPhoneCountry = "US" }: { p
 
     const [step, setStep] = useState(1);
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const [isCreatingLead, setIsCreatingLead] = useState(false);
 
     // Success States
     const [isSuccess, setIsSuccess] = useState(false);
@@ -556,7 +571,7 @@ export default function RequestForm({ prefill, defaultPhoneCountry = "US" }: { p
             if (!formData.vehicle_model) newErrors.vehicle_model = "Please select a model";
         }
 
-        if (step === 3) {
+        if (step === 2) {
             if (!formData.name.trim()) newErrors.name = "Full name is required";
             if (!formData.email.trim() || !/^\S+@\S+\.\S+$/.test(formData.email)) newErrors.email = "Valid email is required";
             if (!formData.phone.trim()) {
@@ -574,60 +589,120 @@ export default function RequestForm({ prefill, defaultPhoneCountry = "US" }: { p
             if (!formData.countryOfImport) newErrors.countryOfImport = "Destination country is required";
         }
 
+        if (step === 3) {
+            if (!formData.contactMethod) newErrors.contactMethod = "Please choose how we should contact you";
+            if (!formData.contactDays || formData.contactDays.length === 0) newErrors.contactDays = "Pick at least one day that suits you";
+            if (!formData.contactTimeWindow) newErrors.contactTimeWindow = "Choose a time window";
+            if (!formData.contactTimezone) newErrors.contactTimezone = "Select your timezone";
+        }
+
         setErrors(newErrors);
         return Object.keys(newErrors).length === 0;
     };
 
-    const handleNext = () => {
-        if (validateStep()) {
-            setStep((prev) => Math.min(prev + 1, TOTAL_STEPS));
+    // Create the lead + assign an agent when leaving the Delivery step, so the
+    // contact-preferences step can show who's handling the inquiry. No email is
+    // sent yet — that happens after the customer submits their preferences.
+    const createLead = async (): Promise<boolean> => {
+        let yearFrom = "", yearTo = "";
+        if (formData.condition === "Used" && formData.yearRange) {
+            const parts = formData.yearRange.split("-");
+            yearFrom = parts[0];
+            yearTo = parts[1] || parts[0];
         }
+
+        const payload = {
+            // If a lead was already created (user went Back then forward again),
+            // update it in place instead of creating a duplicate.
+            id: submittedRequestId || undefined,
+            make: formData.make,
+            vehicle_model: formData.vehicle_model,
+            condition: formData.condition,
+            yearFrom: yearFrom || undefined,
+            yearTo: yearTo || undefined,
+            mileage: formData.condition === "Used" ? formData.mileageRange : undefined,
+            specs: formData.specs,
+            name: formData.name,
+            email: formData.email,
+            countryCode: formData.countryCode,
+            phone: formData.phone,
+            countryOfImport: formData.countryOfImport,
+            importTimeline: formData.importTimeline || undefined,
+            // Prefer ?ref= (set when the header button navigates here from another page)
+            // so the lead is attributed to the originating page, not the form page itself.
+            source: searchParams?.get("ref") || pathname,
+            ...trackingData
+        };
+
+        const response = await submitCarRequest(payload);
+        if (response.success) {
+            // Only capture the agent + id on first creation; on update the
+            // assignment is unchanged and the agent's full details (image/email)
+            // already live in state.
+            if (!submittedRequestId) {
+                setAssignedAgent(response.agent);
+                setSubmittedRequestId(response.requestId);
+            }
+            return true;
+        }
+        setErrors({ submit: response.message });
+        return false;
+    };
+
+    const handleNext = async () => {
+        if (!validateStep()) return;
+
+        // Leaving Delivery (step 2) → record the lead, then default the timezone
+        // from the chosen import country before showing the preferences step.
+        if (step === 2) {
+            setIsCreatingLead(true);
+            try {
+                const created = await createLead();
+                if (!created) return;
+                if (!formData.contactTimezone) {
+                    const tz = timezoneForCountry(formData.countryOfImport);
+                    setFormData(prev => ({ ...prev, contactTimezone: tz.tz, contactTimezoneLabel: tz.label }));
+                }
+            } catch {
+                setErrors({ submit: "Something went wrong. Please try again." });
+                return;
+            } finally {
+                setIsCreatingLead(false);
+            }
+        }
+
+        setStep((prev) => Math.min(prev + 1, TOTAL_STEPS));
     };
 
     const handlePrev = () => {
         setStep((prev) => Math.max(prev - 1, 1));
     };
 
+    const toggleContactDay = (day: string) => {
+        setFormData(prev => {
+            const exists = prev.contactDays.includes(day);
+            return { ...prev, contactDays: exists ? prev.contactDays.filter(d => d !== day) : [...prev.contactDays, day] };
+        });
+        if (errors.contactDays) setErrors(prev => ({ ...prev, contactDays: "" }));
+    };
+
+    // Final step: save contact preferences, set the reminder, send the emails.
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         if (!validateStep()) return;
 
         setIsSubmitting(true);
         try {
-            // Map the form UI data back into the structure expected by the backend
-            let yearFrom = "", yearTo = "";
-            if (formData.condition === "Used" && formData.yearRange) {
-                const parts = formData.yearRange.split("-");
-                yearFrom = parts[0];
-                yearTo = parts[1] || parts[0];
-            }
-
-            const payload = {
-                make: formData.make,
-                vehicle_model: formData.vehicle_model,
-                condition: formData.condition,
-                yearFrom: yearFrom || undefined,
-                yearTo: yearTo || undefined,
-                mileage: formData.condition === "Used" ? formData.mileageRange : undefined,
-                specs: formData.specs,
-                name: formData.name,
-                email: formData.email,
-                countryCode: formData.countryCode,
-                phone: formData.phone,
-                countryOfImport: formData.countryOfImport,
-                importTimeline: formData.importTimeline || undefined,
-                // Prefer ?ref= (set when the header button navigates here from another page)
-                // so the lead is attributed to the originating page, not the form page itself.
-                source: searchParams?.get("ref") || pathname,
-                ...trackingData
-            };
-
-            const response = await submitCarRequest(payload);
+            const response = await submitContactPreferences({
+                requestId: submittedRequestId,
+                contactMethod: formData.contactMethod,
+                contactDays: formData.contactDays,
+                contactTimeWindow: formData.contactTimeWindow,
+                contactTimezone: formData.contactTimezone,
+                contactTimezoneLabel: formData.contactTimezoneLabel,
+            });
 
             if (response.success) {
-                // Save the returned data to state
-                setAssignedAgent(response.agent);
-                setSubmittedRequestId(response.requestId);
                 setIsSuccess(true);
             } else {
                 setErrors({ submit: response.message });
@@ -657,7 +732,7 @@ export default function RequestForm({ prefill, defaultPhoneCountry = "US" }: { p
                     className="p-10 md:p-16 text-center flex flex-col items-center justify-center min-h-[500px]"
                 >
                     <h2 className="text-3xl md:text-4xl font-extrabold text-[#4da8da] mb-10 tracking-tight">
-                        Thank you for submitting your inquiry!
+                        You're all set, {formData.name.split(' ')[0]}!
                     </h2>
 
                     <div className="w-32 h-32 rounded-full border-4 border-[#e6f3fa] overflow-hidden mb-6 shadow-sm bg-[#f2f8fc] flex items-center justify-center">
@@ -668,10 +743,29 @@ export default function RequestForm({ prefill, defaultPhoneCountry = "US" }: { p
                         )}
                     </div>
 
-                    <p className="text-zinc-800 text-base md:text-lg leading-relaxed max-w-xl mb-10">
-                        Hi {formData.name.split(' ')[0]}, I'm {assignedAgent?.name} and I'll be handling your inquiry from here.<br/>
-                        To get started, we just need to verify your inquiry. I've sent you an authentication email from <a href={`mailto:${assignedAgent?.email}`} className="text-zinc-800 underline decoration-1 underline-offset-4 font-medium">{assignedAgent?.email}</a> with a live tracking link — if you don't see it, check your spam folder. You can also tap the Track my inquiry button to follow your progress.<br/>
-                        Looking forward to helping you!
+                    <p className="text-zinc-800 text-base md:text-lg leading-relaxed max-w-xl mb-6">
+                        Hi {formData.name.split(' ')[0]}, I'm {assignedAgent?.name} and I'll be handling your inquiry personally from here.<br/>
+                        I'll reach out via <strong>{formData.contactMethod}</strong>{formData.contactTimeWindow ? <> during the <strong>{formData.contactTimeWindow}</strong></> : null}{formData.contactDays?.length ? <> on <strong>{formData.contactDays.join(', ')}</strong></> : null} to talk through pricing, availability and shipping.
+                    </p>
+
+                    {/* Contact plan summary card */}
+                    <div className="w-full max-w-md bg-[#f0f9ff] border border-[#bae6fd] rounded-2xl p-5 mb-8 text-left space-y-2">
+                        <div className="flex items-center gap-2 text-sm text-zinc-700">
+                            {(() => { const Icon = CONTACT_METHOD_ICONS[formData.contactMethod] || MessageCircle; return <Icon size={16} className="text-[#0369a1]" />; })()}
+                            <span className="font-semibold">{formData.contactMethod || "—"}</span>
+                        </div>
+                        <div className="flex items-center gap-2 text-sm text-zinc-700">
+                            <Clock size={16} className="text-[#0369a1]" />
+                            <span>{formData.contactTimeWindow} · {formData.contactDays?.join(', ')}</span>
+                        </div>
+                        <div className="flex items-center gap-2 text-sm text-zinc-700">
+                            <Globe size={16} className="text-[#0369a1]" />
+                            <span>{formData.contactTimezoneLabel || formData.contactTimezone}</span>
+                        </div>
+                    </div>
+
+                    <p className="text-zinc-500 text-sm max-w-xl mb-8">
+                        I've emailed you a summary and a live tracking link from <a href={`mailto:${assignedAgent?.email}`} className="text-zinc-700 underline decoration-1 underline-offset-4 font-medium">{assignedAgent?.email}</a> — if you don't see it, check your spam folder.
                     </p>
 
                     <div className="flex flex-col items-center gap-6 w-full max-w-md">
@@ -679,13 +773,16 @@ export default function RequestForm({ prefill, defaultPhoneCountry = "US" }: { p
                             href={`/track/${submittedRequestId}`}
                             className="w-full bg-[#4da8da] hover:bg-[#3d92c2] text-white py-4 px-6 rounded-2xl font-bold text-lg transition-colors text-center shadow-md shadow-[#4da8da]/20"
                         >
-                            Authenticate and Track My Inquiry
+                            Track My Inquiry
                         </a>
                         <button
                             onClick={() => {
                                 setIsSuccess(false);
                                 setStep(1);
                                 setFormData(initialFormState);
+                                setSubmittedRequestId("");
+                                setAssignedAgent(null);
+                                setErrors({});
                             }}
                             className="text-[#4da8da] font-bold hover:text-[#3d92c2] transition-colors underline decoration-2 underline-offset-4 text-base"
                         >
@@ -697,9 +794,9 @@ export default function RequestForm({ prefill, defaultPhoneCountry = "US" }: { p
                 <div className="p-5 sm:p-8 md:p-14 min-h-[520px] flex flex-col">
                     <div className="flex justify-between items-end border-b border-black/5 pb-4 mb-6 sm:pb-6 sm:mb-8">
                         <h3 className="text-xl sm:text-2xl font-bold">
-                            {step === 1 && "1. Specifications"}
-                            {step === 2 && "2. Condition & Availability"}
-                            {step === 3 && "3. Delivery Details"}
+                            {step === 1 && "1. Vehicle & Specs"}
+                            {step === 2 && "2. Delivery Details"}
+                            {step === 3 && "3. How should we reach you?"}
                         </h3>
                         <span className="text-[#4da8da] text-xs font-bold uppercase tracking-widest">Step {step}/{TOTAL_STEPS}</span>
                     </div>
@@ -769,68 +866,71 @@ export default function RequestForm({ prefill, defaultPhoneCountry = "US" }: { p
                                             </div>
                                         )}
                                     </div>
-                                </>
-                            )}
 
-                            {step === 2 && (
-                                <>
-                                    <div className="flex gap-4">
-                                        {["New", "Used"].map((cond) => (
-                                            <button
-                                                key={cond}
-                                                onClick={() => setFormData({...formData, condition: cond as any})}
-                                                className={`flex-1 py-4 rounded-2xl font-bold border transition-all ${formData.condition === cond ? "bg-[#4da8da] text-white border-[#4da8da] shadow-md" : "bg-transparent text-zinc-400 border-black/10 hover:border-[#4da8da]/30"}`}
-                                            >
-                                                {cond === "New" ? "Brand New" : "Pre-Owned"}
-                                            </button>
-                                        ))}
+                                    {/* Condition */}
+                                    <div className="mt-12">
+                                        <label className="text-[10px] font-bold text-[#4da8da] uppercase tracking-wider block mb-3">Condition</label>
+                                        <div className="flex gap-4">
+                                            {["New", "Used"].map((cond) => (
+                                                <button
+                                                    key={cond}
+                                                    type="button"
+                                                    onClick={() => setFormData({...formData, condition: cond as any})}
+                                                    className={`flex-1 py-4 rounded-2xl font-bold border transition-all ${formData.condition === cond ? "bg-[#4da8da] text-white border-[#4da8da] shadow-md" : "bg-transparent text-zinc-400 border-black/10 hover:border-[#4da8da]/30"}`}
+                                                >
+                                                    {cond === "New" ? "Brand New" : "Pre-Owned"}
+                                                </button>
+                                            ))}
+                                        </div>
+
+                                        <AnimatePresence>
+                                            {formData.condition === "Used" && (
+                                                <motion.div
+                                                    initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} exit={{ opacity: 0, height: 0 }}
+                                                    className="grid grid-cols-1 md:grid-cols-2 gap-8 overflow-visible mt-6"
+                                                >
+                                                    <div className="relative">
+                                                        <label className="text-[10px] font-bold text-[#4da8da] uppercase tracking-wider block mb-1">Year Range</label>
+                                                        <SelectDropdown
+                                                            id="yearRange" placeholder="Select Year"
+                                                            options={["2024-2026", "2021-2023", "2018-2020", "Vintage / Classic"].map(y => ({label: y, value: y}))}
+                                                            value={formData.yearRange} onChange={handleDropdownChange}
+                                                        />
+                                                    </div>
+                                                    <div className="relative">
+                                                        <label className="text-[10px] font-bold text-[#4da8da] uppercase tracking-wider block mb-1">Max Mileage</label>
+                                                        <SelectDropdown
+                                                            id="mileageRange" placeholder="Select Mileage"
+                                                            options={["Delivery Miles Only", "Under 5,000", "Under 20,000", "Under 50,000", "Over 50,000"].map(m => ({label: m, value: m}))}
+                                                            value={formData.mileageRange} onChange={handleDropdownChange}
+                                                        />
+                                                    </div>
+                                                </motion.div>
+                                            )}
+                                        </AnimatePresence>
+
+                                        {formData.condition === "New" && (
+                                            <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-zinc-500 italic text-center py-4 text-sm">
+                                                New vehicles will be sourced with 2025/2026 factory specifications.
+                                            </motion.p>
+                                        )}
                                     </div>
 
-                                    <AnimatePresence>
-                                        {formData.condition === "Used" && (
-                                            <motion.div
-                                                initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} exit={{ opacity: 0, height: 0 }}
-                                                className="grid grid-cols-1 md:grid-cols-2 gap-8 overflow-visible"
-                                            >
-                                                <div className="relative">
-                                                    <label className="text-[10px] font-bold text-[#4da8da] uppercase tracking-wider block mb-1">Year Range</label>
-                                                    <SelectDropdown
-                                                        id="yearRange" placeholder="Select Year"
-                                                        options={["2024-2026", "2021-2023", "2018-2020", "Vintage / Classic"].map(y => ({label: y, value: y}))}
-                                                        value={formData.yearRange} onChange={handleDropdownChange}
-                                                    />
-                                                </div>
-                                                <div className="relative">
-                                                    <label className="text-[10px] font-bold text-[#4da8da] uppercase tracking-wider block mb-1">Max Mileage</label>
-                                                    <SelectDropdown
-                                                        id="mileageRange" placeholder="Select Mileage"
-                                                        options={["Delivery Miles Only", "Under 5,000", "Under 20,000", "Under 50,000", "Over 50,000"].map(m => ({label: m, value: m}))}
-                                                        value={formData.mileageRange} onChange={handleDropdownChange}
-                                                    />
-                                                </div>
-                                            </motion.div>
-                                        )}
-                                    </AnimatePresence>
-
-                                    {formData.condition === "New" && (
-                                        <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-zinc-500 italic text-center py-4 text-sm">
-                                            New vehicles will be sourced with 2025/2026 factory specifications.
-                                        </motion.p>
-                                    )}
-
-                                    <div className="relative pt-4">
+                                    {/* Specs */}
+                                    <div className="relative mt-10">
+                                        <label className="text-[10px] font-bold text-[#4da8da] uppercase tracking-wider block mb-2">Specification requests (optional)</label>
                                         <textarea
                                             id="specs"
                                             value={formData.specs}
                                             onChange={handleInputChange}
-                                            placeholder="Specification Requests (e.g. Carbon Fiber Pack, Magma Red Interior, Night Package...)"
-                                            className={`${inputClasses("specs")} min-h-[120px] resize-none`}
+                                            placeholder="e.g. Carbon Fiber Pack, Magma Red Interior, Night Package..."
+                                            className={`${inputClasses("specs")} min-h-[100px] resize-none`}
                                         />
                                     </div>
                                 </>
                             )}
 
-                            {step === 3 && (
+                            {step === 2 && (
                                 <div className="space-y-8">
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                                         <div className="relative">
@@ -934,6 +1034,139 @@ export default function RequestForm({ prefill, defaultPhoneCountry = "US" }: { p
                                     )}
                                 </div>
                             )}
+
+                            {step === 3 && (
+                                <div className="space-y-8">
+                                    {/* Assigned agent header */}
+                                    <div className="flex items-center gap-4 bg-[#f0f9ff] border border-[#bae6fd] rounded-2xl p-4">
+                                        <div className="w-14 h-14 rounded-full border-2 border-white overflow-hidden bg-[#e6f3fa] shrink-0 flex items-center justify-center shadow-sm">
+                                            {assignedAgent?.image ? (
+                                                <img src={assignedAgent.image} alt={assignedAgent.name} className="w-full h-full object-cover" />
+                                            ) : (
+                                                <User className="h-7 w-7 text-[#4da8da]" />
+                                            )}
+                                        </div>
+                                        <div className="text-sm">
+                                            <p className="text-zinc-800">
+                                                Hi {formData.name.split(' ')[0] || "there"}, I'm <strong>{assignedAgent?.name || "your specialist"}</strong>. I'll be in touch to discuss pricing, availability and shipping.
+                                            </p>
+                                            <p className="text-zinc-500 text-xs mt-1">Just let me know how and when works best for you.</p>
+                                        </div>
+                                    </div>
+
+                                    {/* Contact method */}
+                                    <div>
+                                        <label className="text-[10px] font-bold text-[#4da8da] uppercase tracking-wider block mb-3">How should we contact you?</label>
+                                        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                                            {CONTACT_METHODS.map((method) => {
+                                                const Icon = CONTACT_METHOD_ICONS[method];
+                                                const active = formData.contactMethod === method;
+                                                return (
+                                                    <button
+                                                        key={method}
+                                                        type="button"
+                                                        onClick={() => { setFormData(prev => ({ ...prev, contactMethod: method })); if (errors.contactMethod) setErrors(prev => ({ ...prev, contactMethod: "" })); }}
+                                                        className={`flex flex-col items-center justify-center gap-1.5 py-3 rounded-2xl border text-xs font-semibold transition-all ${active ? "bg-[#4da8da] text-white border-[#4da8da] shadow-md" : "bg-transparent text-zinc-500 border-black/10 hover:border-[#4da8da]/40"}`}
+                                                    >
+                                                        <Icon size={18} />
+                                                        {method}
+                                                    </button>
+                                                );
+                                            })}
+                                        </div>
+                                        {errors.contactMethod && <p className="text-[10px] font-bold text-red-500 flex items-center gap-1 mt-2"><AlertCircle size={10}/> {errors.contactMethod}</p>}
+                                    </div>
+
+                                    {/* Preferred day(s) */}
+                                    <div>
+                                        <label className="text-[10px] font-bold text-[#4da8da] uppercase tracking-wider block mb-3 flex items-center gap-1.5">
+                                            <CalendarDays size={12} /> Which day(s) suit you?
+                                        </label>
+                                        <div className="flex flex-wrap gap-2">
+                                            {DAY_OPTIONS.map((day) => {
+                                                const active = formData.contactDays.includes(day);
+                                                return (
+                                                    <button
+                                                        key={day}
+                                                        type="button"
+                                                        onClick={() => toggleContactDay(day)}
+                                                        className={`px-3 py-2 rounded-full text-xs font-medium border transition-all ${active ? "bg-[#4da8da] text-white border-[#4da8da] shadow-md" : "bg-transparent text-zinc-500 border-black/10 hover:border-[#4da8da]/40"}`}
+                                                    >
+                                                        {day}
+                                                    </button>
+                                                );
+                                            })}
+                                        </div>
+                                        {errors.contactDays && <p className="text-[10px] font-bold text-red-500 flex items-center gap-1 mt-2"><AlertCircle size={10}/> {errors.contactDays}</p>}
+                                    </div>
+
+                                    {/* Time window */}
+                                    <div>
+                                        <label className="text-[10px] font-bold text-[#4da8da] uppercase tracking-wider block mb-3 flex items-center gap-1.5">
+                                            <Clock size={12} /> Best time of day
+                                        </label>
+                                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                                            {TIME_WINDOWS.map((w) => {
+                                                const active = formData.contactTimeWindow === w.label;
+                                                return (
+                                                    <button
+                                                        key={w.label}
+                                                        type="button"
+                                                        onClick={() => { setFormData(prev => ({ ...prev, contactTimeWindow: w.label })); if (errors.contactTimeWindow) setErrors(prev => ({ ...prev, contactTimeWindow: "" })); }}
+                                                        className={`py-3 rounded-2xl border text-sm font-semibold transition-all ${active ? "bg-[#4da8da] text-white border-[#4da8da] shadow-md" : "bg-transparent text-zinc-500 border-black/10 hover:border-[#4da8da]/40"}`}
+                                                    >
+                                                        {w.label}
+                                                    </button>
+                                                );
+                                            })}
+                                        </div>
+                                        {errors.contactTimeWindow && <p className="text-[10px] font-bold text-red-500 flex items-center gap-1 mt-2"><AlertCircle size={10}/> {errors.contactTimeWindow}</p>}
+                                    </div>
+
+                                    {/* Timezone */}
+                                    <div className="relative">
+                                        <label className="text-[10px] font-bold text-[#4da8da] uppercase tracking-wider block mb-1 flex items-center gap-1.5">
+                                            <Globe size={12} /> Your timezone
+                                        </label>
+                                        <SelectDropdown
+                                            id="contactTimezone" placeholder="Select your timezone..."
+                                            options={TIMEZONE_OPTIONS.map(t => ({ label: t.label, value: t.tz }))}
+                                            value={formData.contactTimezone}
+                                            onChange={(_id, val) => {
+                                                const opt = TIMEZONE_OPTIONS.find(o => o.tz === val);
+                                                setFormData(prev => ({ ...prev, contactTimezone: val, contactTimezoneLabel: opt?.label || val }));
+                                                if (errors.contactTimezone) setErrors(prev => ({ ...prev, contactTimezone: "" }));
+                                            }}
+                                            error={errors.contactTimezone}
+                                        />
+                                        {formData.countryOfImport && (
+                                            <p className="text-[10px] text-zinc-400 mt-1">Auto-set from {formData.countryOfImport} — change it if you're elsewhere.</p>
+                                        )}
+                                    </div>
+
+                                    {/* Preview */}
+                                    {formData.contactMethod && formData.contactDays.length > 0 && formData.contactTimezone && (
+                                        <div className="bg-zinc-50 border border-black/5 rounded-xl px-4 py-3 text-xs text-zinc-600 flex items-start gap-2">
+                                            <CheckCircle2 size={14} className="text-[#4da8da] mt-0.5 shrink-0" />
+                                            <span>
+                                                We'll reach you via <strong>{formData.contactMethod}</strong> during the <strong>{formData.contactTimeWindow}</strong> on <strong>{formData.contactDays.join(', ')}</strong>.
+                                                {(() => {
+                                                    try {
+                                                        const when = computePreferredContactAt(formData.contactDays, formData.contactTimeWindow, formData.contactTimezone);
+                                                        return <> Approx. <strong>{formatInTz(when, formData.contactTimezone)}</strong> your time.</>;
+                                                    } catch { return null; }
+                                                })()}
+                                            </span>
+                                        </div>
+                                    )}
+
+                                    {errors.submit && (
+                                        <div className="p-4 bg-red-50 border border-red-200 rounded-xl text-red-600 text-sm font-medium text-center">
+                                            {errors.submit}
+                                        </div>
+                                    )}
+                                </div>
+                            )}
                         </motion.div>
                     </AnimatePresence>
 
@@ -942,10 +1175,12 @@ export default function RequestForm({ prefill, defaultPhoneCountry = "US" }: { p
                             <ArrowLeft size={18} /> Back
                         </button>
                         {step < TOTAL_STEPS ? (
-                            <button onClick={handleNext} className="bg-[#4da8da] text-white px-10 py-4 rounded-full font-bold hover:bg-[#3d92c2] hover:scale-105 transition-all shadow-[0_10px_20px_rgba(77,168,218,0.3)]">Continue</button>
+                            <button onClick={handleNext} disabled={isCreatingLead} className="bg-[#4da8da] text-white px-10 py-4 rounded-full font-bold hover:bg-[#3d92c2] hover:scale-105 transition-all shadow-[0_10px_20px_rgba(77,168,218,0.3)] disabled:opacity-50 disabled:hover:scale-100 flex items-center gap-2">
+                                {isCreatingLead ? <><Loader2 className="animate-spin" size={18} /> Saving...</> : "Continue"}
+                            </button>
                         ) : (
                             <button onClick={handleSubmit} disabled={isSubmitting} className="bg-[#4da8da] text-white px-10 py-4 rounded-full font-bold hover:bg-[#3d92c2] hover:scale-105 transition-all shadow-[0_10px_20px_rgba(77,168,218,0.3)] disabled:opacity-50 disabled:hover:scale-100 flex items-center gap-2">
-                                {isSubmitting ? <><Loader2 className="animate-spin" size={18} /> Processing...</> : "Submit Inquiry"}
+                                {isSubmitting ? <><Loader2 className="animate-spin" size={18} /> Sending...</> : "Submit"}
                             </button>
                         )}
                     </div>

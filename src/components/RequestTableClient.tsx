@@ -6,6 +6,7 @@ import {
     User, UserPlus, DollarSign, Ship, Search, ListFilter, MessageCircle, MapPin, Box, Activity
 } from "lucide-react";
 import FollowUpTimer from "@/components/FollowUpTimer";
+import ContactPreferenceBadge from "@/components/ContactPreferenceBadge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -349,6 +350,14 @@ export default function RequestTableClient({
                                                         requestId={req._id}
                                                         followUpAt={req.followUpAt}
                                                         followUpSetAt={req.followUpSetAt}
+                                                    />
+                                                    <ContactPreferenceBadge
+                                                        contactMethod={req.contactMethod}
+                                                        contactDays={req.contactDays}
+                                                        contactTimeWindow={req.contactTimeWindow}
+                                                        contactTimezone={req.contactTimezone}
+                                                        contactTimezoneLabel={req.contactTimezoneLabel}
+                                                        preferredContactAt={req.preferredContactAt}
                                                     />
                                                 </div>
 
