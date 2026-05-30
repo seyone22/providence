@@ -121,11 +121,14 @@ export async function submitCarRequest(data: {
             image: assignedAgent?.image || "https://pub-0c6552f09f244121ac51914a1f782578.r2.dev/profiles/1775233164832-498582237.jpg"
         };
 
-        // 2. Create the database record, appending the assigned agent's details
+        // 2. Create the database record, appending the assigned agent's details.
+        //    Marked as a draft until the customer submits contact preferences —
+        //    drafts are hidden from the admin pipeline and purged if abandoned.
         const newRequest = await Request.create({
             ...data,
             assignedToId: agentData.id,
-            assignedToName: agentData.name
+            assignedToName: agentData.name,
+            isDraft: true
         });
 
         const requestId = newRequest._id.toString();
@@ -162,7 +165,7 @@ export async function submitCarRequest(data: {
  */
 export async function submitContactPreferences(input: {
     requestId: string;
-    contactMethod: string;
+    contactMethods: string[];
     contactDays: string[];
     contactTimeWindow: string;
     contactTimezone: string;
@@ -185,7 +188,7 @@ export async function submitContactPreferences(input: {
 
         // 2. Persist preferences + wire the existing follow-up reminder so the
         //    countdown ring lights up automatically in the dashboard.
-        request.contactMethod = input.contactMethod;
+        request.contactMethods = input.contactMethods;
         request.contactDays = input.contactDays;
         request.contactTimeWindow = input.contactTimeWindow;
         request.contactTimezone = input.contactTimezone;
@@ -193,12 +196,13 @@ export async function submitContactPreferences(input: {
         request.preferredContactAt = preferredContactAt;
         request.followUpAt = preferredContactAt;
         request.followUpSetAt = new Date();
+        request.isDraft = false; // promote from draft → live lead
         request.statusHistory = request.statusHistory || [];
         request.statusHistory.push({
             action: "Contact preferences submitted",
             performedBy: "Customer (Inquiry Form)",
             date: new Date(),
-            comment: `Prefers ${input.contactMethod} · ${input.contactTimeWindow} · ${input.contactDays.join(", ")} — reminder set for ${formatInIST(preferredContactAt)}`,
+            comment: `Prefers ${input.contactMethods.join(", ")} · ${input.contactTimeWindow} · ${input.contactDays.join(", ")} — reminder set for ${formatInIST(preferredContactAt)}`,
         });
         await request.save();
 
@@ -230,7 +234,7 @@ export async function submitContactPreferences(input: {
                 model: request.vehicle_model,
                 requestId: input.requestId,
                 agent,
-                contactMethod: input.contactMethod,
+                contactMethods: input.contactMethods,
                 contactDays: input.contactDays,
                 contactTimeWindow: input.contactTimeWindow,
                 contactTimezoneLabel: input.contactTimezoneLabel || input.contactTimezone,
@@ -244,7 +248,7 @@ export async function submitContactPreferences(input: {
                 phone: request.phone,
                 countryOfImport: request.countryOfImport,
                 importTimeline: request.importTimeline,
-                contactMethod: input.contactMethod,
+                contactMethods: input.contactMethods,
                 contactDays: input.contactDays,
                 contactTimeWindow: input.contactTimeWindow,
                 preferredContactIST: formatInIST(preferredContactAt),

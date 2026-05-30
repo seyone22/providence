@@ -25,12 +25,17 @@ export interface IRequest extends Document {
     importTimeline?: string;
 
     // Contact preferences (captured after delivery details)
-    contactMethod?: string;            // WhatsApp | Call | WhatsApp Call | Email
+    contactMethods?: string[];         // one or more of: WhatsApp | Call | WhatsApp Call | Email
     contactDays?: string[];            // e.g. ["Today"], ["Weekdays"], ["Monday","Wednesday"]
     contactTimeWindow?: string;        // Morning (9–12) | Afternoon (12–5) | Evening (5–8)
     contactTimezone?: string;          // IANA zone the customer selected (e.g. "Europe/Dublin")
     contactTimezoneLabel?: string;     // Human label shown to the customer (e.g. "Ireland (GMT)")
     preferredContactAt?: Date;         // Concrete UTC instant computed from day + window + tz
+
+    // True while the lead has been created (delivery details captured) but the
+    // customer hasn't submitted contact preferences yet. Drafts are hidden from
+    // the admin pipeline and purged if abandoned.
+    isDraft?: boolean;
 
     status: string;
     leadStatus: string;
@@ -107,12 +112,13 @@ const RequestSchema: Schema = new Schema(
         importTimeline: {type: String},
 
         // Contact preferences
-        contactMethod: {type: String},
+        contactMethods: {type: [String], default: undefined},
         contactDays: {type: [String], default: undefined},
         contactTimeWindow: {type: String},
         contactTimezone: {type: String},
         contactTimezoneLabel: {type: String},
         preferredContactAt: {type: Date},
+        isDraft: {type: Boolean, default: false},
 
         status: {type: String, default: 'New'},
         leadStatus: {type: String, default: 'Action required'}, // Updated default

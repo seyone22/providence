@@ -398,7 +398,7 @@ const initialFormState = {
     specs: "", name: "", email: "", phone: "",
     countryCode: "+1", countryOfImport: "", importTimeline: "",
     // Contact preferences (step 3)
-    contactMethod: "", contactDays: [] as string[], contactTimeWindow: TIME_WINDOWS[0].label,
+    contactMethods: [] as string[], contactDays: [] as string[], contactTimeWindow: TIME_WINDOWS[0].label,
     contactTimezone: "", contactTimezoneLabel: "",
 };
 
@@ -454,6 +454,32 @@ export default function RequestForm({ prefill, defaultPhoneCountry = "US" }: { p
 
     // Identity keys for Server-to-Server tracking
     const [trackingData, setTrackingData] = useState({ gclid: '', fbclid: '', fbc: '', fbp: '' });
+
+    // Best-effort cleanup: if the customer abandons the contact-preferences step
+    // (closes/refreshes the tab) without submitting, discard the draft lead so
+    // it never lingers in the admin pipeline. A server-side TTL purge is the
+    // safety net for cases where the beacon doesn't fire.
+    const shouldDiscardRef = useRef(false);
+    const discardIdRef = useRef("");
+
+    useEffect(() => {
+        shouldDiscardRef.current = step === 3 && !!submittedRequestId && !isSuccess;
+        discardIdRef.current = submittedRequestId;
+    }, [step, submittedRequestId, isSuccess]);
+
+    useEffect(() => {
+        const discardDraft = () => {
+            if (!shouldDiscardRef.current || !discardIdRef.current) return;
+            try {
+                const blob = new Blob([JSON.stringify({ id: discardIdRef.current })], { type: "application/json" });
+                navigator.sendBeacon("/api/v1/leads/discard", blob);
+            } catch {
+                /* best-effort only */
+            }
+        };
+        window.addEventListener("pagehide", discardDraft);
+        return () => window.removeEventListener("pagehide", discardDraft);
+    }, []);
 
     // Capture URL params and Cookies on mount
     useEffect(() => {
@@ -590,7 +616,7 @@ export default function RequestForm({ prefill, defaultPhoneCountry = "US" }: { p
         }
 
         if (step === 3) {
-            if (!formData.contactMethod) newErrors.contactMethod = "Please choose how we should contact you";
+            if (!formData.contactMethods || formData.contactMethods.length === 0) newErrors.contactMethods = "Please choose how we should contact you";
             if (!formData.contactDays || formData.contactDays.length === 0) newErrors.contactDays = "Pick at least one day that suits you";
             if (!formData.contactTimeWindow) newErrors.contactTimeWindow = "Choose a time window";
             if (!formData.contactTimezone) newErrors.contactTimezone = "Select your timezone";
@@ -686,6 +712,14 @@ export default function RequestForm({ prefill, defaultPhoneCountry = "US" }: { p
         if (errors.contactDays) setErrors(prev => ({ ...prev, contactDays: "" }));
     };
 
+    const toggleContactMethod = (method: string) => {
+        setFormData(prev => {
+            const exists = prev.contactMethods.includes(method);
+            return { ...prev, contactMethods: exists ? prev.contactMethods.filter(m => m !== method) : [...prev.contactMethods, method] };
+        });
+        if (errors.contactMethods) setErrors(prev => ({ ...prev, contactMethods: "" }));
+    };
+
     // Final step: save contact preferences, set the reminder, send the emails.
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -695,7 +729,7 @@ export default function RequestForm({ prefill, defaultPhoneCountry = "US" }: { p
         try {
             const response = await submitContactPreferences({
                 requestId: submittedRequestId,
-                contactMethod: formData.contactMethod,
+                contactMethods: formData.contactMethods,
                 contactDays: formData.contactDays,
                 contactTimeWindow: formData.contactTimeWindow,
                 contactTimezone: formData.contactTimezone,
@@ -745,14 +779,14 @@ export default function RequestForm({ prefill, defaultPhoneCountry = "US" }: { p
 
                     <p className="text-zinc-800 text-base md:text-lg leading-relaxed max-w-xl mb-6">
                         Hi {formData.name.split(' ')[0]}, I'm {assignedAgent?.name} and I'll be handling your inquiry personally from here.<br/>
-                        I'll reach out via <strong>{formData.contactMethod}</strong>{formData.contactTimeWindow ? <> during the <strong>{formData.contactTimeWindow}</strong></> : null}{formData.contactDays?.length ? <> on <strong>{formData.contactDays.join(', ')}</strong></> : null} to talk through pricing, availability and shipping.
+                        I'll reach out via <strong>{formData.contactMethods.join(' & ')}</strong>{formData.contactTimeWindow ? <> during the <strong>{formData.contactTimeWindow}</strong></> : null}{formData.contactDays?.length ? <> on <strong>{formData.contactDays.join(', ')}</strong></> : null} to talk through pricing, availability and shipping.
                     </p>
 
                     {/* Contact plan summary card */}
                     <div className="w-full max-w-md bg-[#f0f9ff] border border-[#bae6fd] rounded-2xl p-5 mb-8 text-left space-y-2">
                         <div className="flex items-center gap-2 text-sm text-zinc-700">
-                            {(() => { const Icon = CONTACT_METHOD_ICONS[formData.contactMethod] || MessageCircle; return <Icon size={16} className="text-[#0369a1]" />; })()}
-                            <span className="font-semibold">{formData.contactMethod || "—"}</span>
+                            {(() => { const Icon = CONTACT_METHOD_ICONS[formData.contactMethods[0]] || MessageCircle; return <Icon size={16} className="text-[#0369a1]" />; })()}
+                            <span className="font-semibold">{formData.contactMethods.join(' & ') || "—"}</span>
                         </div>
                         <div className="flex items-center gap-2 text-sm text-zinc-700">
                             <Clock size={16} className="text-[#0369a1]" />
@@ -1054,27 +1088,30 @@ export default function RequestForm({ prefill, defaultPhoneCountry = "US" }: { p
                                         </div>
                                     </div>
 
-                                    {/* Contact method */}
+                                    {/* Contact method (multi-select) */}
                                     <div>
-                                        <label className="text-[10px] font-bold text-[#4da8da] uppercase tracking-wider block mb-3">How should we contact you?</label>
+                                        <label className="text-[10px] font-bold text-[#4da8da] uppercase tracking-wider block mb-1">How should we contact you?</label>
+                                        <p className="text-[11px] text-zinc-400 mb-3">Pick all that work — e.g. WhatsApp and WhatsApp Call.</p>
                                         <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
                                             {CONTACT_METHODS.map((method) => {
                                                 const Icon = CONTACT_METHOD_ICONS[method];
-                                                const active = formData.contactMethod === method;
+                                                const active = formData.contactMethods.includes(method);
                                                 return (
                                                     <button
                                                         key={method}
                                                         type="button"
-                                                        onClick={() => { setFormData(prev => ({ ...prev, contactMethod: method })); if (errors.contactMethod) setErrors(prev => ({ ...prev, contactMethod: "" })); }}
-                                                        className={`flex flex-col items-center justify-center gap-1.5 py-3 rounded-2xl border text-xs font-semibold transition-all ${active ? "bg-[#4da8da] text-white border-[#4da8da] shadow-md" : "bg-transparent text-zinc-500 border-black/10 hover:border-[#4da8da]/40"}`}
+                                                        aria-pressed={active}
+                                                        onClick={() => toggleContactMethod(method)}
+                                                        className={`relative flex flex-col items-center justify-center gap-1.5 py-3 rounded-2xl border text-xs font-semibold transition-all ${active ? "bg-[#4da8da] text-white border-[#4da8da] shadow-md" : "bg-transparent text-zinc-500 border-black/10 hover:border-[#4da8da]/40"}`}
                                                     >
+                                                        {active && <CheckCircle2 size={14} className="absolute top-1.5 right-1.5 text-white" />}
                                                         <Icon size={18} />
                                                         {method}
                                                     </button>
                                                 );
                                             })}
                                         </div>
-                                        {errors.contactMethod && <p className="text-[10px] font-bold text-red-500 flex items-center gap-1 mt-2"><AlertCircle size={10}/> {errors.contactMethod}</p>}
+                                        {errors.contactMethods && <p className="text-[10px] font-bold text-red-500 flex items-center gap-1 mt-2"><AlertCircle size={10}/> {errors.contactMethods}</p>}
                                     </div>
 
                                     {/* Preferred day(s) */}
@@ -1145,11 +1182,11 @@ export default function RequestForm({ prefill, defaultPhoneCountry = "US" }: { p
                                     </div>
 
                                     {/* Preview */}
-                                    {formData.contactMethod && formData.contactDays.length > 0 && formData.contactTimezone && (
+                                    {formData.contactMethods.length > 0 && formData.contactDays.length > 0 && formData.contactTimezone && (
                                         <div className="bg-zinc-50 border border-black/5 rounded-xl px-4 py-3 text-xs text-zinc-600 flex items-start gap-2">
                                             <CheckCircle2 size={14} className="text-[#4da8da] mt-0.5 shrink-0" />
                                             <span>
-                                                We'll reach you via <strong>{formData.contactMethod}</strong> during the <strong>{formData.contactTimeWindow}</strong> on <strong>{formData.contactDays.join(', ')}</strong>.
+                                                We'll reach you via <strong>{formData.contactMethods.join(' & ')}</strong> during the <strong>{formData.contactTimeWindow}</strong> on <strong>{formData.contactDays.join(', ')}</strong>.
                                                 {(() => {
                                                     try {
                                                         const when = computePreferredContactAt(formData.contactDays, formData.contactTimeWindow, formData.contactTimezone);

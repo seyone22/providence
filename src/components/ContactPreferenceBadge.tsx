@@ -13,7 +13,7 @@ const METHOD_ICONS: Record<string, any> = {
 };
 
 interface Props {
-    contactMethod?: string;
+    contactMethods?: string[];
     contactDays?: string[];
     contactTimeWindow?: string;
     contactTimezone?: string;
@@ -22,14 +22,15 @@ interface Props {
 }
 
 export default function ContactPreferenceBadge({
-    contactMethod, contactDays, contactTimeWindow, contactTimezone, contactTimezoneLabel, preferredContactAt,
+    contactMethods, contactDays, contactTimeWindow, contactTimezone, contactTimezoneLabel, preferredContactAt,
 }: Props) {
     const [open, setOpen] = useState(false);
 
     // Nothing captured yet — don't render the badge.
-    if (!contactMethod) return null;
+    if (!contactMethods || contactMethods.length === 0) return null;
 
-    const Icon = METHOD_ICONS[contactMethod] || MessageCircle;
+    const methodsLabel = contactMethods.join(" · ");
+    const Icon = METHOD_ICONS[contactMethods[0]] || MessageCircle;
     const istShort = preferredContactAt ? formatInIST(preferredContactAt) : null;
 
     return (
@@ -41,7 +42,7 @@ export default function ContactPreferenceBadge({
                 className="inline-flex items-center justify-center gap-1.5 h-8 px-2.5 rounded-lg border border-indigo-200 bg-indigo-50 text-indigo-700 hover:bg-indigo-100 text-[11px] font-semibold transition-colors"
             >
                 <Icon size={14} className="shrink-0" />
-                <span className="hidden sm:inline">{istShort || contactMethod}</span>
+                <span className="hidden sm:inline">{istShort || methodsLabel}</span>
             </button>
 
             <Dialog open={open} onOpenChange={setOpen}>
@@ -53,7 +54,7 @@ export default function ContactPreferenceBadge({
                     </DialogHeader>
 
                     <div className="space-y-3 py-1 text-sm">
-                        <Row icon={<Icon size={14} className="text-indigo-600" />} label="Method" value={contactMethod} />
+                        <Row icon={<Icon size={14} className="text-indigo-600" />} label="Method" value={methodsLabel} />
                         <Row
                             icon={<CalendarDays size={14} className="text-indigo-600" />}
                             label="When"

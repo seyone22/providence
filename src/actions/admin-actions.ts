@@ -24,12 +24,27 @@ async function requireAuth() {
     return session;
 }
 
+// Drafts (delivery details captured but contact preferences never submitted)
+// older than this are considered abandoned and deleted on the next admin load.
+const DRAFT_TTL_MS = 30 * 60 * 1000; // 30 minutes
+
 export async function getRequests() {
     try {
         await requireAuth();
         await connectToDatabase();
 
-        const requests = await Request.find({}).sort({ createdAt: -1 }).lean();
+        // Purge abandoned drafts so they never linger in the pipeline. The TTL
+        // window leaves a customer who's mid-way through the contact step alone.
+        await Request.deleteMany({
+            isDraft: true,
+            createdAt: { $lt: new Date(Date.now() - DRAFT_TTL_MS) },
+        });
+
+        // Only return live leads — drafts are hidden until contact preferences
+        // are submitted (which flips isDraft to false).
+        const requests = await Request.find({ isDraft: { $ne: true } })
+            .sort({ createdAt: -1 })
+            .lean();
         return JSON.parse(JSON.stringify(requests));
     } catch (error) {
         console.error("Failed to fetch requests:", error);

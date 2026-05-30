@@ -35,11 +35,11 @@ export const StaffAlertEmail = ({ data, requestId }: StaffAlertEmailProps) => {
                     </Text>
                 )}
 
-                {data.contactMethod && (
+                {Array.isArray(data.contactMethods) && data.contactMethods.length > 0 && (
                     <>
                         <div style={{ margin: '20px 0', borderBottom: '1px solid #e4e4e7' }} />
                         <Text style={labelStyle}>Preferred Contact</Text>
-                        <Text style={valueStyle}>Method: {data.contactMethod}</Text>
+                        <Text style={valueStyle}>Method: {data.contactMethods.join(", ")}</Text>
                         <Text style={valueStyle}>
                             When: {data.contactTimeWindow}
                             {Array.isArray(data.contactDays) && data.contactDays.length ? ` · ${data.contactDays.join(", ")}` : ""}
