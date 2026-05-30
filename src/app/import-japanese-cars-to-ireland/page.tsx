@@ -161,8 +161,6 @@ function getTimeLeft() {
     const now = Date.now();
     const diff = deadline - now;
     if (diff <= 0) return { months: 0, days: 0, hours: 0 };
-    const totalMs = diff;
-    const totalHours = Math.floor(totalMs / (1000 * 60 * 60));
     const nowDate = new Date();
     const deadlineDate = new Date("2027-01-01T00:00:00Z");
     let months = (deadlineDate.getFullYear() - nowDate.getFullYear()) * 12 + (deadlineDate.getMonth() - nowDate.getMonth());

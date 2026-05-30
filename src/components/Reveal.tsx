@@ -94,10 +94,8 @@ export function Reveal({
     className = "",
     style,
     children,
-    // biome-ignore lint/correctness/noUnusedVariables: destructured to keep legacy prop out of ...rest
-    amount,
-    // biome-ignore lint/correctness/noUnusedVariables: destructured to keep legacy prop out of ...rest
-    once,
+    amount: _amount,
+    once: _once,
     ...rest
 }: RevealProps) {
     const ref = useRef<HTMLElement>(null);
