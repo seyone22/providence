@@ -1,16 +1,8 @@
-"use client";
-
-import {
-    type CSSProperties,
-    type HTMLAttributes,
-    type ReactNode,
-    useEffect,
-    useRef,
-} from "react";
+import type { HTMLAttributes, ReactNode } from "react";
 
 /**
- * Shared Apple-style easing curve. Exported so framer-motion call sites that
- * still need an ease (hero image zoom, button micro-interactions) can reuse it.
+ * Shared Apple-style easing curve. Exported so the few remaining framer-motion
+ * call sites (hero image zoom, AnimatePresence interactions) can reuse it.
  */
 export const appleEase = [0.16, 1, 0.3, 1] as const;
 
@@ -38,96 +30,57 @@ type RevealProps = {
     scale?: number;
     /** Delay before the animation starts (s). Default 0. */
     delay?: number;
-    /** Animation duration (s). Default 0.5. */
+    /** Animation duration (s). Default 0.6. */
     duration?: number;
-    /**
-     * Animate on load (CSS keyframe, no JS/observer) instead of on scroll.
-     * Use for above-the-fold hero content.
-     */
+    /** Animate on load instead of on scroll (for above-the-fold content). */
     immediate?: boolean;
-    /** Accepted for backwards-compat with old call sites; no longer used. */
+    /** Legacy props, accepted but unused. */
     amount?: number;
     once?: boolean;
-    /** Anchor pass-throughs (used when `as="a"`). */
     href?: string;
     target?: string;
     children?: ReactNode;
 } & HTMLAttributes<HTMLElement>;
 
 /**
- * One shared IntersectionObserver for every scroll reveal on the page.
- * On first intersection it adds `.pa-revealed` and unobserves the element, so a
- * reveal happens exactly once and can NEVER be reverted — no re-appearing
- * glitch, no re-hiding when scrolling back. The motion itself is a pure CSS
- * animation (compositor-only opacity + transform), so it runs no per-frame
- * JavaScript during scroll.
+ * Presentational reveal wrapper. It renders the hidden state and the motion
+ * parameters as data-* attributes; the actual reveal is driven by the
+ * reveal-runtime script injected in layout.tsx (a single IntersectionObserver
+ * that runs before React hydration and animates via the Web Animations API).
+ *
+ * Why no hooks / no observer here:
+ *  - Decoupling from React hydration means reveals fire as soon as the HTML is
+ *    parsed, even on heavy pages — no "blank then everything pops in" once the
+ *    JS bundle finally hydrates.
+ *  - The revealed state is declarative CSS (opacity:1), so an element can never
+ *    get stuck invisible if an animation is interrupted.
  */
-let sharedObserver: IntersectionObserver | null = null;
-function getObserver(): IntersectionObserver | null {
-    if (typeof window === "undefined" || !("IntersectionObserver" in window)) {
-        return null;
-    }
-    if (!sharedObserver) {
-        sharedObserver = new IntersectionObserver(
-            (entries, obs) => {
-                for (const entry of entries) {
-                    if (entry.isIntersecting) {
-                        entry.target.classList.add("pa-revealed");
-                        obs.unobserve(entry.target);
-                    }
-                }
-            },
-            { root: null, rootMargin: "0px 0px -6% 0px", threshold: 0.01 },
-        );
-    }
-    return sharedObserver;
-}
-
 export function Reveal({
     as = "div",
     y = 16,
     x = 0,
     scale = 1,
     delay = 0,
-    duration = 0.5,
+    duration = 0.6,
     immediate = false,
     className = "",
-    style,
     children,
     amount: _amount,
     once: _once,
     ...rest
 }: RevealProps) {
-    const ref = useRef<HTMLElement>(null);
-
-    useEffect(() => {
-        // `immediate` reveals run via a pure-CSS keyframe on load — no observer.
-        if (immediate) return;
-        const el = ref.current;
-        if (!el || el.classList.contains("pa-revealed")) return;
-
-        const obs = getObserver();
-        if (!obs) {
-            el.classList.add("pa-revealed");
-            return;
-        }
-        obs.observe(el);
-        return () => obs.unobserve(el);
-    }, [immediate]);
-
-    const vars = {
-        "--reveal-y": `${y}px`,
-        "--reveal-x": `${x}px`,
-        "--reveal-scale": `${scale}`,
-        "--reveal-delay": `${delay}s`,
-        "--reveal-duration": `${duration}s`,
-        ...style,
-    } as CSSProperties;
-
     // biome-ignore lint/suspicious/noExplicitAny: dynamic tag name
     const Comp = as as any;
     return (
-        <Comp ref={ref} className={`${immediate ? "pa-reveal-immediate" : "pa-reveal"} ${className}`} style={vars} {...rest}>
+        <Comp
+            className={`${immediate ? "pa-reveal-immediate" : "pa-reveal"} ${className}`}
+            data-ry={y}
+            data-rx={x}
+            data-rs={scale}
+            data-rd={Math.round(duration * 1000)}
+            data-rdelay={Math.round(delay * 1000)}
+            {...rest}
+        >
             {children}
         </Comp>
     );

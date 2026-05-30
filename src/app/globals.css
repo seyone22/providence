@@ -142,34 +142,19 @@ html {
 }
 
 /* ── Appear animation (one shared reveal for every object) ──────────────────
-   Compositor-only (opacity + transform) via a CSS *animation* (not a
-   transition), so it never conflicts with elements' own `transition-*` / hover
-   styles. The .pa-revealed class is added once by a shared IntersectionObserver
-   and never removed, and the resting state is opacity:1 with no transform set —
-   so reveals can't re-trigger or re-hide on scroll-back, and hover-lift
-   transforms stay free once the reveal has played. */
-.pa-reveal {
+   The revealed state is DECLARATIVE (opacity:1) so it can never get stuck
+   invisible — the motion itself is played by the Web Animations API in the
+   reveal-runtime script (see layout.tsx), which doesn't touch the CSS
+   transition/animation properties and so never conflicts with an element's own
+   hover/transition styles. Elements start hidden; the runtime adds .pa-revealed
+   once (and never removes it) when they enter the viewport. */
+.pa-reveal,
+.pa-reveal-immediate {
   opacity: 0;
 }
-.pa-reveal.pa-revealed {
+.pa-reveal.pa-revealed,
+.pa-reveal-immediate.pa-revealed {
   opacity: 1;
-  animation: pa-reveal-in var(--reveal-duration, 0.5s) cubic-bezier(0.16, 1, 0.3, 1) var(--reveal-delay, 0s) backwards;
-}
-
-/* Above-the-fold content: animate on load (works without JS, no observer). */
-.pa-reveal-immediate {
-  opacity: 1;
-  animation: pa-reveal-in var(--reveal-duration, 0.6s) cubic-bezier(0.16, 1, 0.3, 1) var(--reveal-delay, 0s) backwards;
-}
-@keyframes pa-reveal-in {
-  from {
-    opacity: 0;
-    transform: translate3d(var(--reveal-x, 0px), var(--reveal-y, 16px), 0) scale(var(--reveal-scale, 1));
-  }
-  to {
-    opacity: 1;
-    transform: translate3d(0, 0, 0) scale(1);
-  }
 }
 
 /* Gradient-accent headline — clips a sky→violet→pink gradient to text */

@@ -133,8 +133,68 @@ export default function RootLayout({
             />
             {/* If JS is unavailable, show scroll-reveal content instead of leaving it hidden */}
             <noscript>
-                <style>{`.pa-reveal{opacity:1 !important;transform:none !important}`}</style>
+                <style>{`.pa-reveal,.pa-reveal-immediate{opacity:1 !important;transform:none !important}`}</style>
             </noscript>
+            {/* Reveal runtime — decoupled from React so reveals fire as the HTML
+                parses (not after hydration). One IntersectionObserver; motion via
+                the Web Animations API so it never conflicts with hover/transition
+                styles and the revealed state stays declaratively visible. */}
+            <script
+                dangerouslySetInnerHTML={{
+                    __html: `(function(){
+  var RM = !!(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches);
+  var EASE = 'cubic-bezier(0.16,1,0.3,1)';
+  function reveal(el){
+    if(el.__par || el.classList.contains('pa-revealed')) return;
+    el.__par = 1;
+    el.classList.add('pa-revealed');
+    if(RM || typeof el.animate !== 'function') return;
+    var y=el.getAttribute('data-ry')||0, x=el.getAttribute('data-rx')||0, s=el.getAttribute('data-rs')||1;
+    var d=parseInt(el.getAttribute('data-rd')||'600',10), delay=parseInt(el.getAttribute('data-rdelay')||'0',10);
+    try{
+      el.animate(
+        [
+          {opacity:0, transform:'translate3d('+x+'px,'+y+'px,0) scale('+s+')'},
+          {opacity:1, transform:'translate3d(0,0,0) scale(1)'}
+        ],
+        {duration:d, delay:delay, easing:EASE, fill:'backwards'}
+      );
+    }catch(e){}
+  }
+  var io = ('IntersectionObserver' in window) ? new IntersectionObserver(function(es){
+    for(var i=0;i<es.length;i++){ if(es[i].isIntersecting){ var t=es[i].target; reveal(t); io.unobserve(t); } }
+  }, {rootMargin:'0px 0px -8% 0px', threshold:0}) : null;
+  function add(el){
+    if(el.classList.contains('pa-reveal-immediate')){ reveal(el); return; }
+    if(!io){ reveal(el); return; }
+    io.observe(el);
+  }
+  function scan(root){
+    var els=(root||document).querySelectorAll('.pa-reveal:not(.pa-revealed),.pa-reveal-immediate:not(.pa-revealed)');
+    for(var i=0;i<els.length;i++) add(els[i]);
+  }
+  function init(){
+    scan();
+    if(window.MutationObserver){
+      new MutationObserver(function(muts){
+        for(var i=0;i<muts.length;i++){
+          var nodes=muts[i].addedNodes;
+          for(var j=0;j<nodes.length;j++){
+            var n=nodes[j];
+            if(n.nodeType===1){
+              if(n.classList && (n.classList.contains('pa-reveal')||n.classList.contains('pa-reveal-immediate'))) add(n);
+              if(n.querySelectorAll) scan(n);
+            }
+          }
+        }
+      }).observe(document.body||document.documentElement,{childList:true,subtree:true});
+    }
+  }
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded', init);
+  else init();
+})();`,
+                }}
+            />
         </head>
         <GoogleTagManager gtmId="GTM-K7GCCZXQ"/>
         <body className={`${geistSans.variable} ${geistMono.variable} antialiased flex flex-col min-h-screen`}>
