@@ -14,8 +14,8 @@ export default function B2BLanding() {
             {/* SECTION 1: The Hero */}
             <section className="relative min-h-screen flex flex-col justify-center items-center px-6 pt-20 overflow-hidden">
 
-                {/* === GRADIENT MESH BACKGROUND === */}
-                <GradientMesh />
+                {/* === HERO IMAGE + GRADIENT MESH BACKGROUND === */}
+                <GradientMesh image="https://images.unsplash.com/photo-1494976388531-d1058494cdd8?q=80&w=3000&auto=format&fit=crop" />
 
                 <div className="relative z-10 text-center max-w-5xl mx-auto flex flex-col items-center mt-12">
                     {/* Above-the-fold hero content animates on mount so it shows immediately on load. */}

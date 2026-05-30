@@ -4,8 +4,7 @@ import MinimalHeader from "@/components/MinimalHeader";
 import Link from "next/link";
 import Image from "next/image";
 import {ArrowRight, Building, Globe, Images, Ship, User} from "lucide-react";
-import {motion, useScroll, useTransform} from "framer-motion";
-import {useRef} from "react";
+import {motion} from "framer-motion";
 import {Reveal, appleEase} from "@/components/Reveal";
 import GradientMesh from "@/components/GradientMesh";
 
@@ -54,15 +53,6 @@ const flagLogos = [
 ];
 
 export default function Home() {
-    const manifestoRef = useRef(null);
-    const {scrollYProgress: manifestoScroll} = useScroll({
-        target: manifestoRef,
-        offset: ["start end", "center center"],
-    });
-
-    const manifestoScale = useTransform(manifestoScroll, [0, 1], [0.9, 1]);
-    const manifestoOpacity = useTransform(manifestoScroll, [0, 1], [0.2, 1]);
-
     return (
         // Replaced overflow-x-hidden on main with a wrapping div strategy for better iOS support
         <main className="min-h-screen w-full bg-white text-black selection:bg-black/10 selection:text-black font-sans">
@@ -224,18 +214,8 @@ export default function Home() {
                             </div>
                         </Reveal>
 
-                        <section
-                            ref={manifestoRef}
-                            className="relative z-10 w-full py-16 md:py-24"
-                        >
-                            <motion.div
-                                style={{
-                                    scale: manifestoScale,
-                                    opacity: manifestoOpacity,
-                                    willChange: "transform, opacity" // Hardware acceleration for iOS Safari
-                                }}
-                                className="max-w-4xl mx-auto px-4 text-center"
-                            >
+                        <section className="relative z-10 w-full py-16 md:py-24">
+                            <Reveal className="max-w-4xl mx-auto px-4 text-center">
                                 <p className="text-xl sm:text-2xl md:text-3xl font-light tracking-tight leading-relaxed text-zinc-700">
                                     Welcome to Providence Auto. We are building the world’s largest
                                     borderless showroom. Whether you are a car enthusiast looking
@@ -244,7 +224,7 @@ export default function Home() {
                                     the most tax-efficient markets on earth and deliver them right
                                     to your country with zero logistical friction.
                                 </p>
-                            </motion.div>
+                            </Reveal>
                         </section>
 
                         {/* FLAG LOGO CAROUSEL */}

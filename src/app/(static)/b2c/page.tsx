@@ -1,46 +1,22 @@
 "use client";
 
-import { useRef, Suspense } from "react";
-import Link from "next/link";
+import { Suspense } from "react";
 import MinimalHeader from "@/components/MinimalHeader";
-import { Landmark, Compass, Ship, ShieldCheck, ArrowRight, Images } from "lucide-react";
-import { motion, useScroll, useTransform } from "framer-motion";
+import { Landmark, Compass, Ship, ShieldCheck, ArrowRight } from "lucide-react";
 import { Reveal } from "@/components/Reveal";
 import GradientMesh from "@/components/GradientMesh";
 import RequestForm from "@/components/requestForm";
 import FAQSection from "@/components/faqSection";
 
 export default function B2CLanding() {
-    const heroRef = useRef(null);
-    const { scrollYProgress: heroScroll } = useScroll({
-        target: heroRef,
-        offset: ["start start", "end start"]
-    });
-
-    const heroScale = useTransform(heroScroll, [0, 1], [1, 0.8]);
-    const heroOpacity = useTransform(heroScroll, [0, 0.8], [1, 0]);
-    const heroY = useTransform(heroScroll, [0, 1], ["0%", "30%"]);
-
-    const manifestoRef = useRef(null);
-    const { scrollYProgress: manifestoScroll } = useScroll({
-        target: manifestoRef,
-        offset: ["start end", "center center"]
-    });
-
-    const manifestoScale = useTransform(manifestoScroll, [0, 1], [0.85, 1]);
-    const manifestoOpacity = useTransform(manifestoScroll, [0, 1], [0.3, 1]);
-
     return (
         <main className="min-h-screen bg-white text-black selection:bg-black/10 selection:text-black font-sans overflow-x-hidden">
             <MinimalHeader />
 
-            <section ref={heroRef} className="relative min-h-screen flex flex-col justify-center items-start px-6 pt-20 bg-white overflow-hidden">
-                <GradientMesh />
+            <section className="relative min-h-screen flex flex-col justify-center items-start px-6 pt-20 bg-white overflow-hidden">
+                <GradientMesh image="https://images.unsplash.com/photo-1614162692292-7ac56d7f7f1e?q=80&w=3000&auto=format&fit=cover" />
 
-                <motion.div
-                    style={{ scale: heroScale, opacity: heroOpacity, y: heroY }}
-                    className="relative z-10 text-center max-w-5xl mx-auto flex flex-col items-center mt-0"
-                >
+                <div className="relative z-10 text-center max-w-5xl mx-auto flex flex-col items-center mt-0">
                     <Reveal
                         immediate
                         as="p"
@@ -84,17 +60,17 @@ export default function B2CLanding() {
                             </span>
                         </a>
                     </Reveal>
-                </motion.div>
+                </div>
             </section>
 
-            <section ref={manifestoRef} className="py-32 md:py-48 px-6 bg-white border-y border-black/5 relative z-10 overflow-hidden">
+            <section className="py-32 md:py-48 px-6 bg-white border-y border-black/5 relative z-10 overflow-hidden">
                 <div className="max-w-5xl mx-auto text-center">
-                    <motion.p
-                        style={{ scale: manifestoScale, opacity: manifestoOpacity }}
+                    <Reveal
+                        as="p"
                         className="text-3xl md:text-5xl lg:text-6xl font-medium tracking-tight leading-tight text-zinc-400"
                     >
                         For the last 15 years, we’ve supplied the top car dealers in your country. For the first time ever, we are <span className="text-black drop-shadow-sm">cutting out the middleman</span> and offering our global sourcing network <span className="text-black drop-shadow-sm">directly to you</span>.
-                    </motion.p>
+                    </Reveal>
                 </div>
             </section>
 

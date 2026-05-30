@@ -1,9 +1,9 @@
 "use client";
 
-import { useRef, useState, useEffect, Suspense, useMemo } from "react";
+import { useState, useEffect, Suspense, useMemo } from "react";
 import MinimalHeader from "@/components/MinimalHeader";
 import { Landmark, Compass, Ship, ShieldCheck, ArrowRight, CheckCircle2, MapPin, Search, Zap } from "lucide-react";
-import { motion, AnimatePresence, useScroll, useTransform } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { Reveal, appleEase } from "@/components/Reveal";
 import GradientMesh from "@/components/GradientMesh";
 import RequestForm from "@/components/requestForm";
@@ -188,23 +188,6 @@ const TRUST_BADGES = [
 // ── PAGE ────────────────────────────────────────────────────────────────────
 
 export default function ImportJapaneseCarsIreland() {
-    const heroRef = useRef(null);
-    const { scrollYProgress: heroScroll } = useScroll({
-        target: heroRef,
-        offset: ["start start", "end start"]
-    });
-    const heroScale = useTransform(heroScroll, [0, 1], [1, 0.8]);
-    const heroOpacity = useTransform(heroScroll, [0, 0.8], [1, 0]);
-    const heroY = useTransform(heroScroll, [0, 1], ["0%", "30%"]);
-
-    const manifestoRef = useRef(null);
-    const { scrollYProgress: manifestoScroll } = useScroll({
-        target: manifestoRef,
-        offset: ["start end", "center center"]
-    });
-    const manifestoScale = useTransform(manifestoScroll, [0, 1], [0.85, 1]);
-    const manifestoOpacity = useTransform(manifestoScroll, [0, 1], [0.3, 1]);
-
     // Countdown to Dec 31, 2026
     const [timeLeft, setTimeLeft] = useState(getTimeLeft);
     useEffect(() => {
@@ -245,34 +228,29 @@ export default function ImportJapaneseCarsIreland() {
             <MinimalHeader />
 
             {/* ── EV DEADLINE COUNTDOWN BANNER ─────────────── */}
-            <div className="fixed top-16 left-0 right-0 z-40 bg-black/95 backdrop-blur-sm border-b border-white/[0.06] flex items-center min-h-[42px]">
-                <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 py-2 flex items-center justify-center gap-3 sm:gap-6">
-                    <span className="text-white/60 text-[10px] sm:text-[11px] font-medium tracking-[0.12em] uppercase shrink-0">
-                        EV VRT Relief — €5,000
+            <div className="fixed top-[80px] left-0 right-0 z-40 bg-black/95 backdrop-blur-sm border-y border-white/[0.06] flex items-center min-h-[42px]">
+                <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 py-2 flex items-center justify-center gap-2.5 sm:gap-4">
+                    <span className="text-white text-[10px] sm:text-[11px] font-semibold tracking-[0.04em] shrink-0">
+                        Save €5,000 on EV imports
                     </span>
-                    <span className="text-white/20 hidden sm:inline">·</span>
-                    <div className="flex items-center gap-2 sm:gap-3 text-[11px] font-bold tracking-[0.1em]">
-                        <span className="text-[#4da8da]">{timeLeft.months}<span className="text-white/40 font-normal ml-0.5">mo</span></span>
-                        <span className="text-white/20">·</span>
-                        <span className="text-[#4da8da]">{timeLeft.days}<span className="text-white/40 font-normal ml-0.5">d</span></span>
-                        <span className="text-white/20">·</span>
-                        <span className="text-[#4da8da]">{timeLeft.hours}<span className="text-white/40 font-normal ml-0.5">h</span></span>
-                        <span className="text-white/40 font-normal hidden sm:inline">remaining</span>
-                    </div>
-                    <a href="#inquiry" className="text-[10px] sm:text-[11px] font-bold text-[#4da8da] hover:text-white transition-colors tracking-[0.1em] uppercase shrink-0">
-                        Enquire →
+                    <span className="text-white/20">·</span>
+                    <span className="flex items-center gap-1.5 text-[11px] font-bold tracking-[0.04em] whitespace-nowrap shrink-0">
+                        <span className="text-white/40 font-normal hidden sm:inline">ends in</span>
+                        <span className="text-[#4da8da]">{timeLeft.months}<span className="text-white/40 font-normal">mo</span></span>
+                        <span className="text-[#4da8da]">{timeLeft.days}<span className="text-white/40 font-normal">d</span></span>
+                        <span className="text-[#4da8da]">{timeLeft.hours}<span className="text-white/40 font-normal">h</span></span>
+                    </span>
+                    <a href="#inquiry" className="shrink-0 text-[10px] sm:text-[11px] font-bold uppercase tracking-[0.1em] text-[#4da8da] border border-[#4da8da]/50 rounded-full px-3 py-1 hover:bg-[#4da8da] hover:text-white transition-colors">
+                        Enquire
                     </a>
                 </div>
             </div>
 
             {/* ── HERO ─────────────────────────────────────── */}
-            <section ref={heroRef} className="relative min-h-screen flex flex-col justify-center items-start px-6 pt-36 md:pt-28 bg-white overflow-hidden">
-                <GradientMesh />
+            <section className="relative min-h-screen flex flex-col justify-center items-start px-6 pt-40 md:pt-36 bg-white overflow-hidden">
+                <GradientMesh image="https://images.unsplash.com/photo-1614162692292-7ac56d7f7f1e?q=80&w=3000&auto=format&fit=cover" />
 
-                <motion.div
-                    style={{ scale: heroScale, opacity: heroOpacity, y: heroY }}
-                    className="relative z-10 text-center max-w-5xl mx-auto flex flex-col items-center"
-                >
+                <div className="relative z-10 text-center max-w-5xl mx-auto flex flex-col items-center">
                     <Reveal
                         immediate
                         as="p"
@@ -329,7 +307,7 @@ export default function ImportJapaneseCarsIreland() {
                             Estimate your import costs <ArrowRight size={15} className="group-hover:translate-x-1 transition-transform" />
                         </a>
                     </Reveal>
-                </motion.div>
+                </div>
             </section>
 
             {/* ── TRUST BADGES ────────────────────────────── */}
@@ -347,10 +325,10 @@ export default function ImportJapaneseCarsIreland() {
             </section>
 
             {/* ── MANIFESTO ───────────────────────────────── */}
-            <section ref={manifestoRef} className="py-32 md:py-48 px-6 bg-white border-b border-black/5 relative z-10 overflow-hidden">
+            <section className="py-32 md:py-48 px-6 bg-white border-b border-black/5 relative z-10 overflow-hidden">
                 <div className="max-w-5xl mx-auto text-center">
-                    <motion.p
-                        style={{ scale: manifestoScale, opacity: manifestoOpacity }}
+                    <Reveal
+                        as="p"
                         className="text-3xl md:text-5xl lg:text-6xl font-medium tracking-tight leading-tight text-zinc-400"
                     >
                         For 15 years, we supplied the top car dealers in Ireland. Now we're going direct —{" "}
@@ -358,7 +336,7 @@ export default function ImportJapaneseCarsIreland() {
                             offering every Irish buyer the same wholesale sourcing network
                         </span>
                         , plus full customs clearance and doorstep delivery, for the first time.
-                    </motion.p>
+                    </Reveal>
                 </div>
             </section>
 
