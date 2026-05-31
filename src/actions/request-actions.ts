@@ -211,6 +211,7 @@ export async function submitContactPreferences(input: {
             name: "Providence Support",
             email: "info@providenceauto.uk.com",
             image: "https://pub-0c6552f09f244121ac51914a1f782578.r2.dev/profiles/1775233164832-498582237.jpg",
+            whatsappNumber: "",
         };
         let agent = { ...fallbackAgent, name: request.assignedToName || fallbackAgent.name };
         if (request.assignedToId && mongoose.connection.db) {
@@ -222,6 +223,7 @@ export async function submitContactPreferences(input: {
                     name: user.name || agent.name,
                     email: user.email || fallbackAgent.email,
                     image: user.image || fallbackAgent.image,
+                    whatsappNumber: user.whatsappNumber || fallbackAgent.whatsappNumber,
                 };
             }
         }

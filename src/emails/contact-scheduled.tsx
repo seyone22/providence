@@ -6,7 +6,7 @@ interface ContactScheduledEmailProps {
     make: string;
     model: string;
     requestId: string;
-    agent: { name: string; email: string; image: string };
+    agent: { name: string; email: string; image: string; whatsappNumber?: string };
     contactMethods: string[];
     contactDays: string[];
     contactTimeWindow: string;
@@ -20,6 +20,14 @@ export const ContactScheduledEmail = ({
     const firstName = userName?.split(' ')[0] || 'there';
     const daysLabel = Array.isArray(contactDays) && contactDays.length ? contactDays.join(', ') : 'your preferred day';
     const methodsLabel = Array.isArray(contactMethods) && contactMethods.length ? contactMethods.join(' & ') : '—';
+
+    // wa.me requires bare international digits (no +, spaces or dashes).
+    const waDigits = (agent.whatsappNumber || '').replace(/\D/g, '');
+    const whatsappUrl = waDigits
+        ? `https://wa.me/${waDigits}?text=${encodeURIComponent(`Hi ${agent.name.split(' ')[0]}, I'm following up on my inquiry for the ${make} ${model}.`)}`
+        : '';
+    // Rep's personal Providence inbox — comes straight to them.
+    const emailUrl = `mailto:${agent.email}?subject=${encodeURIComponent(`My ${make} ${model} inquiry`)}`;
 
     return (
         <Html>
@@ -80,10 +88,30 @@ export const ContactScheduledEmail = ({
                         straight to me.
                     </Text>
 
-                    <Section style={{ textAlign: 'center', margin: '28px 0' }}>
-                        <Link href={trackingUrl} style={buttonStyle}>
-                            Track My Inquiry
-                        </Link>
+                    <Section style={{ margin: '28px 0' }}>
+                        {whatsappUrl && (
+                            <Row>
+                                <Column style={btnCol}>
+                                    <Link href={whatsappUrl} style={whatsappButtonStyle}>
+                                        Talk to me on WhatsApp
+                                    </Link>
+                                </Column>
+                            </Row>
+                        )}
+                        <Row>
+                            <Column style={btnCol}>
+                                <Link href={emailUrl} style={emailButtonStyle}>
+                                    Email me
+                                </Link>
+                            </Column>
+                        </Row>
+                        <Row>
+                            <Column style={btnCol}>
+                                <Link href={trackingUrl} style={buttonStyle}>
+                                    Track My Inquiry
+                                </Link>
+                            </Column>
+                        </Row>
                     </Section>
 
                     <Text style={signatureStyle}>
@@ -133,11 +161,16 @@ const planCardStyle = {
 const planLabelCol = { width: '92px', verticalAlign: 'top' as const };
 const planLabel = { fontSize: '12px', fontWeight: '700', color: '#0369a1', textTransform: 'uppercase' as const, letterSpacing: '0.05em', margin: '6px 0' };
 const planValue = { fontSize: '15px', color: '#0f172a', fontWeight: '600', margin: '6px 0' };
-const buttonStyle = {
-    backgroundColor: '#4da8da', color: '#ffffff', padding: '14px 32px',
-    borderRadius: '12px', fontSize: '16px', fontWeight: 'bold',
-    textDecoration: 'none', display: 'inline-block',
+const btnCol = { textAlign: 'center' as const, verticalAlign: 'middle' as const, padding: '5px 0' };
+const baseButtonStyle = {
+    color: '#ffffff', padding: '13px 32px',
+    borderRadius: '10px', fontSize: '15px', fontWeight: 'bold',
+    textDecoration: 'none', display: 'inline-block', textAlign: 'center' as const,
+    minWidth: '220px',
 };
+const buttonStyle = { ...baseButtonStyle, backgroundColor: '#4da8da' };
+const whatsappButtonStyle = { ...baseButtonStyle, backgroundColor: '#25D366' };
+const emailButtonStyle = { ...baseButtonStyle, backgroundColor: '#334155' };
 const signatureStyle = { fontSize: '15px', lineHeight: '22px', color: '#334155', marginTop: '8px' };
 const hrStyle = { borderColor: '#e2e8f0', margin: '28px 0 16px 0', borderTop: '1px solid #e2e8f0' };
 const footerTextStyle = { fontSize: '12px', color: '#94a3b8', lineHeight: '1.6' };

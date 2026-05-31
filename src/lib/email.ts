@@ -108,7 +108,7 @@ export const emailService = {
         make: string,
         model: string,
         requestId: string,
-        agent: { name: string; email: string; image: string },
+        agent: { name: string; email: string; image: string; whatsappNumber?: string },
         contactMethods: string[],
         contactDays: string[],
         contactTimeWindow: string,
