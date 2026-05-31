@@ -20,6 +20,31 @@ const CONTACT_METHOD_ICONS: Record<string, any> = {
 
 const TOTAL_STEPS = 3;
 
+// --- USED-CAR SPEC RANGES ---
+const MILEAGE_MIN = 0;
+const MILEAGE_MAX = 150_000;
+const MILEAGE_STEP = 2_500;
+
+/** Format a mileage value for display; the top of the range reads as "150,000+". */
+const formatMileage = (v: number) =>
+    v >= MILEAGE_MAX ? `${MILEAGE_MAX.toLocaleString()}+` : v.toLocaleString();
+
+/** Human-readable label stored on the request (e.g. "Up to 60,000 mi", "20,000–80,000 mi"). */
+const mileageRangeLabel = (lo: number, hi: number) => {
+    const hiTxt = hi >= MILEAGE_MAX ? `${MILEAGE_MAX.toLocaleString()}+` : hi.toLocaleString();
+    return lo <= MILEAGE_MIN ? `Up to ${hiTxt} mi` : `${lo.toLocaleString()}–${hiTxt} mi`;
+};
+
+// Year presets grouped the way buyers actually think ("2020 or newer"), each
+// mapping to a concrete numeric from/to so the request stores clean years.
+const CURRENT_YEAR = new Date().getFullYear();
+const YEAR_PRESETS: { label: string; from: number; to: number }[] = [
+    { label: "2024 & newer", from: 2024, to: CURRENT_YEAR },
+    { label: "2020 – 2023", from: 2020, to: 2023 },
+    { label: "2016 – 2019", from: 2016, to: 2019 },
+    { label: "2015 & older", from: 1990, to: 2015 },
+];
+
 const CAR_MAKES = [
     "Acura", "Alfa Romeo", "Aston Martin", "Audi", "Bentley", "BMW", "Bugatti",
     "Buick", "BYD", "Cadillac", "Chevrolet", "Chrysler", "Citroën", "Dacia",
@@ -390,11 +415,50 @@ const SelectDropdown = ({
     );
 };
 
+// Dual-thumb range slider. Two stacked native range inputs (styled in
+// globals.css as .pa-range) let each end be dragged independently; the visible
+// track + active fill are the divs behind them.
+const DualRangeSlider = ({
+    min, max, step, valueMin, valueMax, onChange,
+}: {
+    min: number; max: number; step: number;
+    valueMin: number; valueMax: number;
+    onChange: (lo: number, hi: number) => void;
+}) => {
+    const minPct = ((valueMin - min) / (max - min)) * 100;
+    const maxPct = ((valueMax - min) / (max - min)) * 100;
+    // When both thumbs sit at the very top the min input would cover the max
+    // thumb and trap it; lift the min input above only in that corner case.
+    const minOnTop = valueMin > max - (max - min) * 0.04;
+
+    return (
+        <div className="relative h-6 flex items-center touch-none">
+            <div className="absolute h-1.5 w-full rounded-full bg-black/10" />
+            <div
+                className="absolute h-1.5 rounded-full bg-[#4da8da]"
+                style={{ left: `${minPct}%`, right: `${100 - maxPct}%` }}
+            />
+            <input
+                type="range" className="pa-range" style={{ zIndex: minOnTop ? 5 : 3 }}
+                min={min} max={max} step={step} value={valueMin}
+                aria-label="Minimum mileage"
+                onChange={(e) => onChange(Math.min(Number(e.target.value), valueMax - step), valueMax)}
+            />
+            <input
+                type="range" className="pa-range" style={{ zIndex: 4 }}
+                min={min} max={max} step={step} value={valueMax}
+                aria-label="Maximum mileage"
+                onChange={(e) => onChange(valueMin, Math.max(Number(e.target.value), valueMin + step))}
+            />
+        </div>
+    );
+};
+
 // --- MAIN FORM COMPONENT ---
 
 const initialFormState = {
-    make: "", vehicle_model: "", condition: "New",
-    yearRange: "2024-2026", mileageRange: "Under 5,000",
+    make: "", vehicle_model: "", condition: "",
+    yearRange: YEAR_PRESETS[0].label, mileageMin: MILEAGE_MIN, mileageMax: MILEAGE_MAX,
     specs: "", name: "", email: "", phone: "",
     countryCode: "+1", countryOfImport: "", importTimeline: "",
     // Contact preferences (step 3)
@@ -595,6 +659,7 @@ export default function RequestForm({ prefill, defaultPhoneCountry = "US" }: { p
         if (step === 1) {
             if (!formData.make) newErrors.make = "Please select a make";
             if (!formData.vehicle_model) newErrors.vehicle_model = "Please select a model";
+            if (!formData.condition) newErrors.condition = "Please choose Brand New or Pre-Owned";
         }
 
         if (step === 2) {
@@ -630,11 +695,10 @@ export default function RequestForm({ prefill, defaultPhoneCountry = "US" }: { p
     // contact-preferences step can show who's handling the inquiry. No email is
     // sent yet — that happens after the customer submits their preferences.
     const createLead = async (): Promise<boolean> => {
-        let yearFrom = "", yearTo = "";
+        let yearFrom: number | undefined, yearTo: number | undefined;
         if (formData.condition === "Used" && formData.yearRange) {
-            const parts = formData.yearRange.split("-");
-            yearFrom = parts[0];
-            yearTo = parts[1] || parts[0];
+            const preset = YEAR_PRESETS.find(p => p.label === formData.yearRange);
+            if (preset) { yearFrom = preset.from; yearTo = preset.to; }
         }
 
         const payload = {
@@ -644,9 +708,9 @@ export default function RequestForm({ prefill, defaultPhoneCountry = "US" }: { p
             make: formData.make,
             vehicle_model: formData.vehicle_model,
             condition: formData.condition,
-            yearFrom: yearFrom || undefined,
-            yearTo: yearTo || undefined,
-            mileage: formData.condition === "Used" ? formData.mileageRange : undefined,
+            yearFrom,
+            yearTo,
+            mileage: formData.condition === "Used" ? mileageRangeLabel(formData.mileageMin, formData.mileageMax) : undefined,
             specs: formData.specs,
             name: formData.name,
             email: formData.email,
@@ -909,35 +973,64 @@ export default function RequestForm({ prefill, defaultPhoneCountry = "US" }: { p
                                                 <button
                                                     key={cond}
                                                     type="button"
-                                                    onClick={() => setFormData({...formData, condition: cond as any})}
-                                                    className={`flex-1 py-4 rounded-2xl font-bold border transition-all ${formData.condition === cond ? "bg-[#4da8da] text-white border-[#4da8da] shadow-md" : "bg-transparent text-zinc-400 border-black/10 hover:border-[#4da8da]/30"}`}
+                                                    aria-pressed={formData.condition === cond}
+                                                    onClick={() => {
+                                                        setFormData(prev => ({ ...prev, condition: cond }));
+                                                        if (errors.condition) setErrors(prev => ({ ...prev, condition: "" }));
+                                                    }}
+                                                    className={`flex-1 py-4 rounded-2xl font-bold border transition-all ${formData.condition === cond ? "bg-[#4da8da] text-white border-[#4da8da] shadow-md" : `bg-transparent text-zinc-400 hover:border-[#4da8da]/30 ${errors.condition ? "border-red-300" : "border-black/10"}`}`}
                                                 >
                                                     {cond === "New" ? "Brand New" : "Pre-Owned"}
                                                 </button>
                                             ))}
                                         </div>
 
+                                        {errors.condition && (
+                                            <p className="text-[10px] font-bold text-red-500 flex items-center gap-1 mt-3">
+                                                <AlertCircle size={10}/> {errors.condition}
+                                            </p>
+                                        )}
+
                                         <AnimatePresence>
                                             {formData.condition === "Used" && (
                                                 <motion.div
                                                     initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} exit={{ opacity: 0, height: 0 }}
-                                                    className="grid grid-cols-1 md:grid-cols-2 gap-8 overflow-visible mt-6"
+                                                    className="overflow-hidden mt-8 space-y-8"
                                                 >
-                                                    <div className="relative">
-                                                        <label className="text-[10px] font-bold text-[#4da8da] uppercase tracking-wider block mb-1">Year Range</label>
-                                                        <SelectDropdown
-                                                            id="yearRange" placeholder="Select Year"
-                                                            options={["2024-2026", "2021-2023", "2018-2020", "Vintage / Classic"].map(y => ({label: y, value: y}))}
-                                                            value={formData.yearRange} onChange={handleDropdownChange}
-                                                        />
+                                                    {/* Model year — quick presets */}
+                                                    <div>
+                                                        <label className="text-[10px] font-bold text-[#4da8da] uppercase tracking-wider block mb-3">Model Year</label>
+                                                        <div className="flex flex-wrap gap-2">
+                                                            {YEAR_PRESETS.map((p) => {
+                                                                const active = formData.yearRange === p.label;
+                                                                return (
+                                                                    <button
+                                                                        key={p.label}
+                                                                        type="button"
+                                                                        onClick={() => setFormData(prev => ({ ...prev, yearRange: p.label }))}
+                                                                        className={`px-4 py-2.5 rounded-full text-sm font-medium border transition-all ${active ? "bg-[#4da8da] text-white border-[#4da8da] shadow-md" : "bg-transparent text-zinc-500 border-black/10 hover:border-[#4da8da]/40"}`}
+                                                                    >
+                                                                        {p.label}
+                                                                    </button>
+                                                                );
+                                                            })}
+                                                        </div>
                                                     </div>
-                                                    <div className="relative">
-                                                        <label className="text-[10px] font-bold text-[#4da8da] uppercase tracking-wider block mb-1">Max Mileage</label>
-                                                        <SelectDropdown
-                                                            id="mileageRange" placeholder="Select Mileage"
-                                                            options={["Delivery Miles Only", "Under 5,000", "Under 20,000", "Under 50,000", "Over 50,000"].map(m => ({label: m, value: m}))}
-                                                            value={formData.mileageRange} onChange={handleDropdownChange}
-                                                        />
+
+                                                    {/* Mileage — draggable min/max range */}
+                                                    <div>
+                                                        <label className="text-[10px] font-bold text-[#4da8da] uppercase tracking-wider block mb-5">Mileage Range</label>
+                                                        <div className="px-2.5">
+                                                            <DualRangeSlider
+                                                                min={MILEAGE_MIN} max={MILEAGE_MAX} step={MILEAGE_STEP}
+                                                                valueMin={formData.mileageMin} valueMax={formData.mileageMax}
+                                                                onChange={(lo, hi) => setFormData(prev => ({ ...prev, mileageMin: lo, mileageMax: hi }))}
+                                                            />
+                                                        </div>
+                                                        <div className="flex justify-between mt-4 text-sm">
+                                                            <span className="text-zinc-500">Minimum <strong className="text-black font-bold">{formatMileage(formData.mileageMin)} mi</strong></span>
+                                                            <span className="text-zinc-500">Maximum <strong className="text-black font-bold">{formatMileage(formData.mileageMax)} mi</strong></span>
+                                                        </div>
                                                     </div>
                                                 </motion.div>
                                             )}
