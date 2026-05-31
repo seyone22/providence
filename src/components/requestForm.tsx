@@ -678,6 +678,7 @@ export default function RequestForm({ prefill, defaultPhoneCountry = "US" }: { p
                 }
             }
             if (!formData.countryOfImport) newErrors.countryOfImport = "Destination country is required";
+            if (!formData.importTimeline) newErrors.importTimeline = "Please select when you're planning to import";
         }
 
         if (step === 3) {
@@ -1134,14 +1135,17 @@ export default function RequestForm({ prefill, defaultPhoneCountry = "US" }: { p
 
                                     <div>
                                         <label className="text-[10px] font-bold text-[#4da8da] uppercase tracking-wider block mb-3">
-                                            When are you planning to import?
+                                            When are you planning to import? <span className="text-red-500">*</span>
                                         </label>
                                         <div className="flex flex-wrap gap-2">
                                             {["Immediately", "1–3 months", "3–6 months", "Not sure", "Just Inquiring"].map((option) => (
                                                 <button
                                                     key={option}
                                                     type="button"
-                                                    onClick={() => setFormData(prev => ({ ...prev, importTimeline: option }))}
+                                                    onClick={() => {
+                                                        setFormData(prev => ({ ...prev, importTimeline: option }));
+                                                        if (errors.importTimeline) setErrors(prev => ({ ...prev, importTimeline: "" }));
+                                                    }}
                                                     className={`px-3 sm:px-4 py-2 sm:py-2.5 rounded-full text-xs sm:text-sm font-medium border transition-all ${
                                                         formData.importTimeline === option
                                                             ? "bg-[#4da8da] text-white border-[#4da8da] shadow-md"
@@ -1152,6 +1156,11 @@ export default function RequestForm({ prefill, defaultPhoneCountry = "US" }: { p
                                                 </button>
                                             ))}
                                         </div>
+                                        {errors.importTimeline && (
+                                            <p className="text-[10px] font-bold text-red-500 flex items-center gap-1 pt-2">
+                                                <AlertCircle size={10}/> {errors.importTimeline}
+                                            </p>
+                                        )}
                                     </div>
 
                                     {errors.submit && (
