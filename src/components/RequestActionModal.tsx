@@ -49,6 +49,30 @@ interface RequestActionModalProps {
     currentUserId: string;
 }
 
+/**
+ * Safari on macOS intermittently aborts the first Server Action POST at the
+ * network layer with a `TypeError: Load failed` (its version of "Failed to
+ * fetch"), which then succeeds on a retry — this is the "load fail on first
+ * try, works on second" report. Transparently retry network-level failures so
+ * the user never sees them. Real server/validation errors are plain Errors
+ * with descriptive messages and are NOT retried — they surface immediately.
+ */
+async function withNetworkRetry<T>(fn: () => Promise<T>, retries = 2): Promise<T> {
+    for (let attempt = 0; ; attempt++) {
+        try {
+            return await fn();
+        } catch (err) {
+            const msg = err instanceof Error ? err.message : String(err);
+            const isNetworkError =
+                err instanceof TypeError ||
+                /load failed|failed to fetch|networkerror|the network connection was lost/i.test(msg);
+            if (!isNetworkError || attempt >= retries) throw err;
+            // Brief backoff before retrying (300ms, then 600ms).
+            await new Promise((resolve) => setTimeout(resolve, 300 * (attempt + 1)));
+        }
+    }
+}
+
 const getStyles = (action: string | undefined): HistoryStyle => {
     const act = action || "";
     if (act.includes("Cleared Customs")) return {dot: "bg-emerald-500", box: "bg-emerald-50 border-emerald-100 text-emerald-900"};
@@ -125,7 +149,7 @@ export default function RequestActionModal({
             }
 
             if (modal.type === "delete") {
-                await deleteRequest(modal.request._id);
+                await withNetworkRetry(() => deleteRequest(modal.request._id));
             } else if (modal.type === "advance" && modal.targetStage) {
                 let finalDocuments = modal.request.documents ? [...modal.request.documents] : [];
 
@@ -164,22 +188,22 @@ export default function RequestActionModal({
                     finalDocuments = [...finalDocuments, ...newDocuments];
                 }
 
-                await updateRequestStatus(modal.request._id, modal.targetStage, {
+                await withNetworkRetry(() => updateRequestStatus(modal.request._id, modal.targetStage as string, {
                     ...formattedPayload,
                     salesComment: payload.stageComment?.trim() || "", // Map to pipeline comment backend slot
                     documents: finalDocuments
-                });
+                }));
             } else if (modal.type === "revert" && modal.targetStage) {
-                await updateRequestStatus(modal.request._id, modal.targetStage, {
+                await withNetworkRetry(() => updateRequestStatus(modal.request._id, modal.targetStage as string, {
                     ...formattedPayload,
                     salesComment: payload.stageComment?.trim() || "", // Map to pipeline comment backend slot
-                });
+                }));
             } else if (modal.type === "details" || modal.type === "assign" || modal.type === "sales_status") {
                 const submitPayload = {
                     ...formattedPayload,
                     salesComment: modal.type === "sales_status" ? (payload.salesComment?.trim() || "") : ""
                 };
-                await updateRequestStatus(modal.request._id, modal.request.status, submitPayload);
+                await withNetworkRetry(() => updateRequestStatus(modal.request._id, modal.request.status, submitPayload));
             }
             onClose();
         } catch (error) {

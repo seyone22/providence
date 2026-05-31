@@ -3,6 +3,7 @@
 import {useState, useMemo, useEffect} from "react";
 import {
     Users,
+    User,
     AlertCircle,
     MessageSquareText,
     ArchiveX,
@@ -50,6 +51,7 @@ export default function DashboardClient({ requests, staffUsers, currentUserId }:
     const [countryFilter, setCountryFilter] = useState("All");
     const [sourceFilter, setSourceFilter] = useState("All");
     const [contactDueFilter, setContactDueFilter] = useState("All");
+    const [myLeadsOnly, setMyLeadsOnly] = useState(false);
 
     const [showDatePicker, setShowDatePicker] = useState(false);
 
@@ -140,6 +142,11 @@ export default function DashboardClient({ requests, staffUsers, currentUserId }:
                 const assignedValue = req.assignedToName || "Unassigned";
                 const matchesStaff = staffFilter === "All" || assignedValue === staffFilter;
 
+                // "My Leads" quick toggle — match leads assigned to the logged-in user.
+                const matchesMine =
+                    !myLeadsOnly ||
+                    (!!currentUserId && String(req.assignedToId || "") === String(currentUserId));
+
                 const carName = `${req.make} ${req.vehicle_model}`.trim();
                 const matchesCar = carFilter === "All" || carName === carFilter;
 
@@ -152,14 +159,14 @@ export default function DashboardClient({ requests, staffUsers, currentUserId }:
                     contactDueMatches(req.preferredContactAt, contactDueFilter as ContactDueBucket);
 
                 return matchesSearch && matchesStage && matchesStatus &&
-                    matchesStaff && matchesCar && matchesCountry && matchesDate && matchesSource && matchesContactDue;
+                    matchesStaff && matchesCar && matchesCountry && matchesDate && matchesSource && matchesContactDue && matchesMine;
             })
             .sort((a: any, b: any) => {
                 const dateA = new Date(a.createdAt).getTime();
                 const dateB = new Date(b.createdAt).getTime();
                 return sortBy === "newest" ? dateB - dateA : dateA - dateB;
             });
-    }, [requests, searchQuery, stageFilter, countryFilter, statusFilter, staffFilter, carFilter, sourceFilter, contactDueFilter, sortBy]);
+    }, [requests, searchQuery, stageFilter, countryFilter, statusFilter, staffFilter, carFilter, sourceFilter, contactDueFilter, myLeadsOnly, currentUserId, sortBy]);
 
     // Top Level Stats calculated from FILTERED data
     const stats = [
@@ -243,6 +250,22 @@ export default function DashboardClient({ requests, staffUsers, currentUserId }:
                 {/* Row 2: Filters & Actions */}
                 <div className="flex flex-wrap items-center justify-between gap-3">
                     <div className="flex flex-wrap items-center gap-2">
+                        {/* My Leads quick toggle — show only leads assigned to me */}
+                        <button
+                            type="button"
+                            onClick={() => setMyLeadsOnly((v) => !v)}
+                            aria-pressed={myLeadsOnly}
+                            title="Show only leads assigned to me"
+                            className={`flex items-center gap-2 pl-3 pr-3.5 py-2 text-sm font-semibold rounded-xl border transition-all ${
+                                myLeadsOnly
+                                    ? "bg-blue-600 border-blue-600 text-white shadow-sm hover:bg-blue-700"
+                                    : "bg-white border-zinc-200 text-zinc-600 hover:border-zinc-300"
+                            }`}
+                        >
+                            <User size={16} />
+                            My Leads
+                        </button>
+
                         {/* Dynamic Width Dropdowns */}
                         <select
                             value={staffFilter}
@@ -374,7 +397,8 @@ export default function DashboardClient({ requests, staffUsers, currentUserId }:
                             stageFilter !== "All" ||
                             statusFilter !== "All" ||
                             sourceFilter !== "All" ||
-                            contactDueFilter !== "All"
+                            contactDueFilter !== "All" ||
+                            myLeadsOnly
                         ) && (
                             <button
                                 onClick={() => {
@@ -386,6 +410,7 @@ export default function DashboardClient({ requests, staffUsers, currentUserId }:
                                     setCountryFilter("All");
                                     setSourceFilter("All");
                                     setContactDueFilter("All");
+                                    setMyLeadsOnly(false);
                                 }}
                                 className="p-2 text-red-500 hover:bg-red-50 rounded-xl transition-colors border border-transparent hover:border-red-100"
                                 title="Reset Filters"
