@@ -364,7 +364,7 @@ const SelectDropdown = ({
                 <input
                     type="text"
                     disabled={disabled || isLoading}
-                    className="bg-transparent w-full outline-none placeholder:text-zinc-400 text-black"
+                    className="font-sans bg-transparent w-full outline-none placeholder:text-zinc-400 text-black"
                     placeholder={selectedLabel || value || placeholder}
                     value={isOpen ? searchTerm : (selectedLabel || value || "")}
                     onChange={(e) => setSearchTerm(e.target.value)}
@@ -462,7 +462,7 @@ const initialFormState = {
     specs: "", name: "", email: "", phone: "",
     countryCode: "+1", countryOfImport: "", importTimeline: "",
     // Contact preferences (step 3)
-    contactMethods: [] as string[], contactDays: [] as string[], contactTimeWindow: TIME_WINDOWS[0].label,
+    contactMethods: [] as string[], contactDays: [] as string[], contactTimeWindow: [] as string[],
     contactTimezone: "", contactTimezoneLabel: "",
 };
 
@@ -678,12 +678,13 @@ export default function RequestForm({ prefill, defaultPhoneCountry = "US" }: { p
                 }
             }
             if (!formData.countryOfImport) newErrors.countryOfImport = "Destination country is required";
+            if (!formData.importTimeline) newErrors.importTimeline = "Please select when you're planning to import";
         }
 
         if (step === 3) {
             if (!formData.contactMethods || formData.contactMethods.length === 0) newErrors.contactMethods = "Please choose how we should contact you";
             if (!formData.contactDays || formData.contactDays.length === 0) newErrors.contactDays = "Pick at least one day that suits you";
-            if (!formData.contactTimeWindow) newErrors.contactTimeWindow = "Choose a time window";
+            if (!formData.contactTimeWindow || formData.contactTimeWindow.length === 0) newErrors.contactTimeWindow = "Pick at least one time that works for you";
             if (!formData.contactTimezone) newErrors.contactTimezone = "Select your timezone";
         }
 
@@ -784,6 +785,19 @@ export default function RequestForm({ prefill, defaultPhoneCountry = "US" }: { p
         if (errors.contactMethods) setErrors(prev => ({ ...prev, contactMethods: "" }));
     };
 
+    const toggleContactTimeWindow = (label: string) => {
+        setFormData(prev => {
+            const exists = prev.contactTimeWindow.includes(label);
+            return { ...prev, contactTimeWindow: exists ? prev.contactTimeWindow.filter(w => w !== label) : [...prev.contactTimeWindow, label] };
+        });
+        if (errors.contactTimeWindow) setErrors(prev => ({ ...prev, contactTimeWindow: "" }));
+    };
+
+    // Earliest selected window label (for the reminder-time preview).
+    const earliestTimeWindow = () =>
+        TIME_WINDOWS.filter(w => formData.contactTimeWindow.includes(w.label))
+            .sort((a, b) => a.startHour - b.startHour)[0]?.label;
+
     // Final step: save contact preferences, set the reminder, send the emails.
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -795,7 +809,7 @@ export default function RequestForm({ prefill, defaultPhoneCountry = "US" }: { p
                 requestId: submittedRequestId,
                 contactMethods: formData.contactMethods,
                 contactDays: formData.contactDays,
-                contactTimeWindow: formData.contactTimeWindow,
+                contactTimeWindow: formData.contactTimeWindow.join(", "),
                 contactTimezone: formData.contactTimezone,
                 contactTimezoneLabel: formData.contactTimezoneLabel,
             });
@@ -812,11 +826,11 @@ export default function RequestForm({ prefill, defaultPhoneCountry = "US" }: { p
         }
     };
 
-    const inputClasses = (id: string) => `w-full bg-transparent border-b text-black placeholder:text-zinc-400 focus:outline-none transition-colors rounded-none px-0 py-3 text-lg
+    const inputClasses = (id: string) => `w-full font-sans bg-transparent border-b text-black placeholder:text-zinc-400 focus:outline-none transition-colors rounded-none px-0 py-3 text-lg
         ${errors[id] ? "border-red-500 focus:border-red-600" : "border-black/10 focus:border-sky-500"}`;
 
     return (
-        <motion.div id="inquiry-form" className="w-full max-w-3xl bg-white/80 backdrop-blur-xl rounded-[2.5rem] border border-black/5 shadow-[0_40px_100px_rgba(0,0,0,0.08)] overflow-visible relative text-black mx-auto">
+        <motion.div id="inquiry-form" className="w-full max-w-3xl font-sans bg-white/80 backdrop-blur-xl rounded-[2.5rem] border border-black/5 shadow-[0_40px_100px_rgba(0,0,0,0.08)] overflow-visible relative text-black mx-auto">
             {/* Progress Bar */}
             <div className="w-full h-1.5 bg-[#4da8da]/10 absolute top-0 left-0 overflow-hidden rounded-t-[2.5rem]">
                 <motion.div className="h-full bg-[#4da8da]" animate={{ width: `${(step / TOTAL_STEPS) * 100}%` }} transition={{ duration: 0.5 }} />
@@ -843,7 +857,7 @@ export default function RequestForm({ prefill, defaultPhoneCountry = "US" }: { p
 
                     <p className="text-zinc-800 text-base md:text-lg leading-relaxed max-w-xl mb-6">
                         Hi {formData.name.split(' ')[0]}, I'm {assignedAgent?.name} and I'll be handling your inquiry personally from here.<br/>
-                        I'll reach out via <strong>{formData.contactMethods.join(' & ')}</strong>{formData.contactTimeWindow ? <> during the <strong>{formData.contactTimeWindow}</strong></> : null}{formData.contactDays?.length ? <> on <strong>{formData.contactDays.join(', ')}</strong></> : null} to talk through pricing, availability and shipping.
+                        I'll reach out via <strong>{formData.contactMethods.join(' & ')}</strong>{formData.contactTimeWindow.length ? <> during the <strong>{formData.contactTimeWindow.join(', ')}</strong></> : null}{formData.contactDays?.length ? <> on <strong>{formData.contactDays.join(', ')}</strong></> : null} to talk through pricing, availability and shipping.
                     </p>
 
                     {/* Contact plan summary card */}
@@ -854,7 +868,7 @@ export default function RequestForm({ prefill, defaultPhoneCountry = "US" }: { p
                         </div>
                         <div className="flex items-center gap-2 text-sm text-zinc-700">
                             <Clock size={16} className="text-[#0369a1]" />
-                            <span>{formData.contactTimeWindow} · {formData.contactDays?.join(', ')}</span>
+                            <span>{formData.contactTimeWindow.join(', ')} · {formData.contactDays?.join(', ')}</span>
                         </div>
                         <div className="flex items-center gap-2 text-sm text-zinc-700">
                             <Globe size={16} className="text-[#0369a1]" />
@@ -1134,14 +1148,17 @@ export default function RequestForm({ prefill, defaultPhoneCountry = "US" }: { p
 
                                     <div>
                                         <label className="text-[10px] font-bold text-[#4da8da] uppercase tracking-wider block mb-3">
-                                            When are you planning to import?
+                                            When are you planning to import? <span className="text-red-500">*</span>
                                         </label>
                                         <div className="flex flex-wrap gap-2">
                                             {["Immediately", "1–3 months", "3–6 months", "Not sure", "Just Inquiring"].map((option) => (
                                                 <button
                                                     key={option}
                                                     type="button"
-                                                    onClick={() => setFormData(prev => ({ ...prev, importTimeline: option }))}
+                                                    onClick={() => {
+                                                        setFormData(prev => ({ ...prev, importTimeline: option }));
+                                                        if (errors.importTimeline) setErrors(prev => ({ ...prev, importTimeline: "" }));
+                                                    }}
                                                     className={`px-3 sm:px-4 py-2 sm:py-2.5 rounded-full text-xs sm:text-sm font-medium border transition-all ${
                                                         formData.importTimeline === option
                                                             ? "bg-[#4da8da] text-white border-[#4da8da] shadow-md"
@@ -1152,6 +1169,11 @@ export default function RequestForm({ prefill, defaultPhoneCountry = "US" }: { p
                                                 </button>
                                             ))}
                                         </div>
+                                        {errors.importTimeline && (
+                                            <p className="text-[10px] font-bold text-red-500 flex items-center gap-1 pt-2">
+                                                <AlertCircle size={10}/> {errors.importTimeline}
+                                            </p>
+                                        )}
                                     </div>
 
                                     {errors.submit && (
@@ -1232,17 +1254,18 @@ export default function RequestForm({ prefill, defaultPhoneCountry = "US" }: { p
 
                                     {/* Time window */}
                                     <div>
-                                        <label className="text-[10px] font-bold text-[#4da8da] uppercase tracking-wider block mb-3 flex items-center gap-1.5">
+                                        <label className="text-[10px] font-bold text-[#4da8da] uppercase tracking-wider block mb-1 flex items-center gap-1.5">
                                             <Clock size={12} /> Best time of day
                                         </label>
+                                        <p className="text-[11px] text-zinc-400 mb-3">Pick every time that works — select all that apply.</p>
                                         <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
                                             {TIME_WINDOWS.map((w) => {
-                                                const active = formData.contactTimeWindow === w.label;
+                                                const active = formData.contactTimeWindow.includes(w.label);
                                                 return (
                                                     <button
                                                         key={w.label}
                                                         type="button"
-                                                        onClick={() => { setFormData(prev => ({ ...prev, contactTimeWindow: w.label })); if (errors.contactTimeWindow) setErrors(prev => ({ ...prev, contactTimeWindow: "" })); }}
+                                                        onClick={() => toggleContactTimeWindow(w.label)}
                                                         className={`py-3 rounded-2xl border text-sm font-semibold transition-all ${active ? "bg-[#4da8da] text-white border-[#4da8da] shadow-md" : "bg-transparent text-zinc-500 border-black/10 hover:border-[#4da8da]/40"}`}
                                                     >
                                                         {w.label}
@@ -1275,14 +1298,14 @@ export default function RequestForm({ prefill, defaultPhoneCountry = "US" }: { p
                                     </div>
 
                                     {/* Preview */}
-                                    {formData.contactMethods.length > 0 && formData.contactDays.length > 0 && formData.contactTimezone && (
+                                    {formData.contactMethods.length > 0 && formData.contactDays.length > 0 && formData.contactTimeWindow.length > 0 && formData.contactTimezone && (
                                         <div className="bg-zinc-50 border border-black/5 rounded-xl px-4 py-3 text-xs text-zinc-600 flex items-start gap-2">
                                             <CheckCircle2 size={14} className="text-[#4da8da] mt-0.5 shrink-0" />
                                             <span>
-                                                We'll reach you via <strong>{formData.contactMethods.join(' & ')}</strong> during the <strong>{formData.contactTimeWindow}</strong> on <strong>{formData.contactDays.join(', ')}</strong>.
+                                                We'll reach you via <strong>{formData.contactMethods.join(' & ')}</strong> during the <strong>{formData.contactTimeWindow.join(', ')}</strong> on <strong>{formData.contactDays.join(', ')}</strong>.
                                                 {(() => {
                                                     try {
-                                                        const when = computePreferredContactAt(formData.contactDays, formData.contactTimeWindow, formData.contactTimezone);
+                                                        const when = computePreferredContactAt(formData.contactDays, earliestTimeWindow(), formData.contactTimezone);
                                                         return <> Approx. <strong>{formatInTz(when, formData.contactTimezone)}</strong> your time.</>;
                                                     } catch { return null; }
                                                 })()}
