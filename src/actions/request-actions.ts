@@ -5,7 +5,7 @@ import connectToDatabase from "@/lib/mongoose";
 import Request from "@/models/Request";
 import mongoose from "mongoose";
 import { emailService } from "@/lib/email";
-import { computePreferredContactAt, formatInIST } from "@/lib/contactScheduling";
+import { computePreferredContactAt, formatInIST, TIME_WINDOWS } from "@/lib/contactScheduling";
 
 export async function submitCarRequest(data: {
     // When present, update the existing lead instead of creating a new one
@@ -180,9 +180,16 @@ export async function submitContactPreferences(input: {
         }
 
         // 1. Compute the concrete instant the customer wants to be reached.
+        //    contactTimeWindow may now hold several comma-separated windows
+        //    (the customer can pick more than one). Anchor the reminder to the
+        //    EARLIEST selected window so we reach out at the start of their
+        //    availability rather than letting getWindow() fall back to Morning.
+        const earliestWindow =
+            TIME_WINDOWS.filter((w) => input.contactTimeWindow.includes(w.label))
+                .sort((a, b) => a.startHour - b.startHour)[0]?.label || input.contactTimeWindow;
         const preferredContactAt = computePreferredContactAt(
             input.contactDays,
-            input.contactTimeWindow,
+            earliestWindow,
             input.contactTimezone,
         );
 
