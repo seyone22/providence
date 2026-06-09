@@ -44,9 +44,9 @@ const styles = StyleSheet.create({
   },
 
   // Header band
-  header: { backgroundColor: INK, color: "#FFFFFF", padding: "32 40 28 40" },
-  headerTop: { flexDirection: "row", alignItems: "center", marginBottom: 22 },
-  logo: { width: 30, height: 30, marginRight: 10 },
+  header: { backgroundColor: INK, color: "#FFFFFF", padding: "24 40 18 40" },
+  headerTop: { flexDirection: "row", alignItems: "center", marginBottom: 14 },
+  logo: { width: 28, height: 28, marginRight: 10 },
   brand: { fontSize: 13, fontFamily: "Helvetica-Bold", color: "#FFFFFF" },
   brandAccent: { color: SKY },
   eyebrow: {
@@ -54,13 +54,13 @@ const styles = StyleSheet.create({
     letterSpacing: 2,
     color: "#a1a1aa",
     textTransform: "uppercase",
-    marginBottom: 6,
+    marginBottom: 5,
   },
   title: {
-    fontSize: 26,
+    fontSize: 23,
     fontFamily: "Helvetica-Bold",
     color: "#FFFFFF",
-    marginBottom: 14,
+    marginBottom: 10,
   },
   totalRow: {
     flexDirection: "row",
@@ -74,26 +74,27 @@ const styles = StyleSheet.create({
     textTransform: "uppercase",
     marginBottom: 4,
   },
-  totalValue: { fontSize: 28, fontFamily: "Helvetica-Bold", color: "#FFFFFF" },
+  totalValue: { fontSize: 26, fontFamily: "Helvetica-Bold", color: "#FFFFFF" },
   burdenValue: { fontSize: 18, fontFamily: "Helvetica-Bold", color: SKY },
 
-  // Body
-  body: { padding: "28 40" },
+  // Body — bottom padding reserves room for the fixed footer so flow content
+  // (the total bar + disclaimer) never collides with it.
+  body: { padding: "16 40 50 40" },
   sectionTitle: {
     fontSize: 9,
     letterSpacing: 2,
     color: MUTED,
     textTransform: "uppercase",
     fontFamily: "Helvetica-Bold",
-    marginBottom: 8,
-    marginTop: 18,
+    marginBottom: 4,
+    marginTop: 12,
   },
 
   row: {
     flexDirection: "row",
     justifyContent: "space-between",
     borderBottom: `1pt solid ${HAIR}`,
-    paddingVertical: 7,
+    paddingVertical: 4,
   },
   rowLabel: { fontSize: 10, color: MUTED },
   rowValue: { fontSize: 10, color: INK, fontFamily: "Helvetica-Bold" },
@@ -102,11 +103,12 @@ const styles = StyleSheet.create({
   totalBar: {
     flexDirection: "row",
     justifyContent: "space-between",
+    alignItems: "center",
     backgroundColor: INK,
     color: "#FFFFFF",
-    padding: "12 16",
+    padding: "10 16",
     borderRadius: 8,
-    marginTop: 14,
+    marginTop: 12,
   },
   totalBarLabel: {
     fontSize: 11,
@@ -122,8 +124,8 @@ const styles = StyleSheet.create({
   disclaimer: {
     fontSize: 7.5,
     color: "#a1a1aa",
-    lineHeight: 1.5,
-    marginTop: 22,
+    lineHeight: 1.4,
+    marginTop: 14,
   },
 
   footer: {
