@@ -77,24 +77,24 @@ const styles = StyleSheet.create({
   totalValue: { fontSize: 26, fontFamily: "Helvetica-Bold", color: "#FFFFFF" },
   burdenValue: { fontSize: 18, fontFamily: "Helvetica-Bold", color: SKY },
 
-  // Body — bottom padding reserves room for the fixed footer so flow content
-  // (the total bar + disclaimer) never collides with it.
-  body: { padding: "16 40 50 40" },
+  // Body — footer flows as the last child (not pinned), so a small bottom
+  // padding is all that's needed and content never collides with the footer.
+  body: { padding: "16 40 22 40" },
   sectionTitle: {
     fontSize: 9,
     letterSpacing: 2,
     color: MUTED,
     textTransform: "uppercase",
     fontFamily: "Helvetica-Bold",
-    marginBottom: 4,
-    marginTop: 12,
+    marginBottom: 5,
+    marginTop: 14,
   },
 
   row: {
     flexDirection: "row",
     justifyContent: "space-between",
     borderBottom: `1pt solid ${HAIR}`,
-    paddingVertical: 4,
+    paddingVertical: 5,
   },
   rowLabel: { fontSize: 10, color: MUTED },
   rowValue: { fontSize: 10, color: INK, fontFamily: "Helvetica-Bold" },
@@ -106,9 +106,9 @@ const styles = StyleSheet.create({
     alignItems: "center",
     backgroundColor: INK,
     color: "#FFFFFF",
-    padding: "10 16",
+    padding: "11 16",
     borderRadius: 8,
-    marginTop: 12,
+    marginTop: 14,
   },
   totalBarLabel: {
     fontSize: 11,
@@ -124,15 +124,12 @@ const styles = StyleSheet.create({
   disclaimer: {
     fontSize: 7.5,
     color: "#a1a1aa",
-    lineHeight: 1.4,
-    marginTop: 14,
+    lineHeight: 1.45,
+    marginTop: 16,
   },
 
   footer: {
-    position: "absolute",
-    bottom: 24,
-    left: 40,
-    right: 40,
+    marginTop: 18,
     borderTop: `1pt solid #e4e4e7`,
     paddingTop: 8,
   },
@@ -308,13 +305,13 @@ const BreakdownPDF = ({
           verify with revenue.ie, the NCTS and a licensed customs agent before
           committing to a purchase. Generated {data.generatedAt}.
         </Text>
-      </View>
 
-      <View style={styles.footer} fixed>
-        <Text style={styles.footerText}>
-          Providence Auto · Ireland Landed Cost Calculator ·
-          providenceauto.co.uk
-        </Text>
+        <View style={styles.footer}>
+          <Text style={styles.footerText}>
+            Providence Auto · Ireland Landed Cost Calculator ·
+            providenceauto.co.uk
+          </Text>
+        </View>
       </View>
     </Page>
   </Document>
