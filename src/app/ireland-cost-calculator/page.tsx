@@ -12,7 +12,22 @@ import {
   Info,
   ArrowRight,
   ChevronDown,
+  Download,
+  Mail,
+  Loader2,
 } from "lucide-react";
+import {
+  MONTH_NAMES,
+  FUEL_LABELS,
+  SOURCE_LABELS,
+  MFR_LABELS,
+  ageInMonths,
+  type BreakdownData,
+} from "@/lib/ireland-cost";
+import {
+  generateBreakdownPdf,
+  emailBreakdown,
+} from "@/actions/calculator-actions";
 
 // ─── Exchange rates (indicative mid-2026) ───────────────────────────────────
 const EXCHANGE_RATES: Record<string, number> = {
@@ -130,11 +145,11 @@ type CO2Standard = "wltp" | "nedc";
 interface FormState {
   fuelType:           FuelType;
   yearFirstReg:       number;
+  monthFirstReg:      number; // 1–12
   co2:                number;
   co2Standard:        CO2Standard;
   hasNoxData:         boolean;
   nox:                number;
-  ageAtImportMonths:  number;
   mileageKm:          number;
   evBeforeDeadline:   boolean;
   sourceCountry:      string;
@@ -151,11 +166,11 @@ export default function IrelandCostCalculator() {
   const [form, setForm] = useState<FormState>({
     fuelType:             "petrol",
     yearFirstReg:         2021,
+    monthFirstReg:        1,
     co2:                  110,
     co2Standard:          "wltp",
     hasNoxData:           false,
     nox:                  40,
-    ageAtImportMonths:    36,
     mileageKm:            50000,
     evBeforeDeadline:     true,
     sourceCountry:        "japan",
@@ -184,9 +199,19 @@ export default function IrelandCostCalculator() {
     });
   };
 
+  // Reference "today". Seeded with a deterministic constant so server and
+  // client render identically (no hydration mismatch), then corrected to the
+  // real current month after mount.
+  const [now, setNow] = useState<{ year: number; month: number }>({ year: 2026, month: 6 });
+  useEffect(() => {
+    const d = new Date();
+    setNow({ year: d.getFullYear(), month: d.getMonth() + 1 });
+  }, []);
+
   // ─── Core calculation ─────────────────────────────────────────────────────
   const calc = useMemo(() => {
-    const ageYears  = 2026 - form.yearFirstReg;
+    const ageMonths = ageInMonths(form.yearFirstReg, form.monthFirstReg, now);
+    const ageYears  = now.year - form.yearFirstReg;
     const isClassic = ageYears >= 30;
     const isEV      = form.fuelType === "ev";
 
@@ -207,7 +232,7 @@ export default function IrelandCostCalculator() {
 
     // VAT
     const vatBase       = cifValue + customsDuty;
-    const vatNeeded     = vatApplies(form.sourceCountry, form.ageAtImportMonths, form.mileageKm);
+    const vatNeeded     = vatApplies(form.sourceCountry, ageMonths, form.mileageKm);
     const vatAmount     = vatNeeded ? vatBase * 0.23 : 0;
 
     // VRT
@@ -231,18 +256,113 @@ export default function IrelandCostCalculator() {
     return {
       priceEUR, cifValue, dutyRate, customsDuty,
       vatBase, vatNeeded, vatAmount,
-      effectiveCO2, vrtRate, vrtAmount,
+      effectiveCO2, vrtRate, vrtAmount, noxValue,
       noxLevy, evRelief,
-      isClassic, isEV, isNMOT, ageYears,
+      isClassic, isEV, isNMOT, ageYears, ageMonths,
       totalTaxes, totalLanded,
     };
-  }, [form]);
+  }, [form, now]);
 
   const fmt  = (n: number) => "€" + Math.round(n).toLocaleString("en-IE");
   const pct  = (n: number) => (n * 100).toFixed(2) + "%";
   const taxPct = calc.cifValue > 0
     ? Math.round((calc.totalTaxes / calc.cifValue) * 100)
     : 0;
+
+  // Assemble the fully-resolved breakdown handed to the PDF / email actions.
+  const buildBreakdown = (): BreakdownData => ({
+    generatedAt: new Date().toLocaleString("en-IE", {
+      dateStyle: "long",
+      timeStyle: "short",
+    }),
+    fuelType:             FUEL_LABELS[form.fuelType] ?? form.fuelType,
+    yearFirstReg:         form.yearFirstReg,
+    monthFirstReg:        form.monthFirstReg,
+    ageMonths:            calc.ageMonths,
+    mileageKm:            form.mileageKm,
+    effectiveCO2:         calc.effectiveCO2,
+    co2Standard:          form.co2Standard.toUpperCase(),
+    noxValue:             calc.noxValue,
+    sourceCountry:        SOURCE_LABELS[form.sourceCountry] ?? form.sourceCountry,
+    countryOfManufacture: MFR_LABELS[form.countryOfManufacture] ?? form.countryOfManufacture,
+    currency:             form.currency,
+    purchasePriceOriginal: form.purchasePrice,
+    priceEUR:             calc.priceEUR,
+    shippingCost:         form.shippingCost,
+    cifValue:             calc.cifValue,
+    dutyRate:             calc.dutyRate,
+    customsDuty:          calc.customsDuty,
+    vatNeeded:            calc.vatNeeded,
+    vatBase:              calc.vatBase,
+    vatAmount:            calc.vatAmount,
+    isClassic:            calc.isClassic,
+    isEV:                 calc.isEV,
+    vrtRate:              calc.vrtRate,
+    vrtAmount:            calc.vrtAmount,
+    noxLevy:              calc.noxLevy,
+    evRelief:             calc.evRelief,
+    omsp:                 form.omsp,
+    totalTaxes:           calc.totalTaxes,
+    totalLanded:          calc.totalLanded,
+    taxPct,
+  });
+
+  // ─── PDF download ───────────────────────────────────────────────────────────
+  const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
+  const handleDownloadPdf = async () => {
+    setIsGeneratingPdf(true);
+    try {
+      const res = await generateBreakdownPdf(buildBreakdown());
+      if (res.success && res.pdfBase64) {
+        const bytes = Uint8Array.from(atob(res.pdfBase64), c => c.charCodeAt(0));
+        const blob = new Blob([bytes], { type: "application/pdf" });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = res.fileName || "Providence-Ireland-Landed-Cost.pdf";
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        setTimeout(() => URL.revokeObjectURL(url), 1000);
+      } else {
+        alert(res.message || "Failed to generate PDF.");
+      }
+    } catch (e) {
+      console.error(e);
+      alert("An error occurred while generating the PDF.");
+    } finally {
+      setIsGeneratingPdf(false);
+    }
+  };
+
+  // ─── Email breakdown ────────────────────────────────────────────────────────
+  const [emailTo, setEmailTo] = useState("");
+  const [isSendingEmail, setIsSendingEmail] = useState(false);
+  const [emailStatus, setEmailStatus] = useState<null | { ok: boolean; msg: string }>(null);
+  const emailValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailTo.trim());
+
+  const handleSendEmail = async () => {
+    if (!emailValid) {
+      setEmailStatus({ ok: false, msg: "Please enter a valid email address." });
+      return;
+    }
+    setIsSendingEmail(true);
+    setEmailStatus(null);
+    try {
+      const res = await emailBreakdown(buildBreakdown(), emailTo.trim());
+      if (res.success) {
+        setEmailStatus({ ok: true, msg: `Breakdown sent to ${emailTo.trim()}.` });
+        setEmailTo("");
+      } else {
+        setEmailStatus({ ok: false, msg: res.message || "Failed to send email." });
+      }
+    } catch (e) {
+      console.error(e);
+      setEmailStatus({ ok: false, msg: "An error occurred while sending the email." });
+    } finally {
+      setIsSendingEmail(false);
+    }
+  };
 
   const scrollToForm = () => {
     document.getElementById("purchase-shipping-card")?.scrollIntoView({ behavior: "smooth", block: "start" });
@@ -508,35 +628,49 @@ export default function IrelandCostCalculator() {
                   </div>
                 )}
 
-                {/* Year + Mileage */}
+                {/* Month + Year first registered */}
                 <div className="grid grid-cols-2 gap-4">
+                  <Field label="Month First Registered">
+                    <SelectInput
+                      value={String(form.monthFirstReg)}
+                      onChange={v => set("monthFirstReg", Number(v))}
+                      options={MONTH_NAMES.map((m, i) => ({
+                        value: String(i + 1),
+                        label: m,
+                      }))}
+                    />
+                  </Field>
                   <Field label="Year First Registered">
                     <TextInput
                       type="number"
                       value={form.yearFirstReg}
                       onChange={v => set("yearFirstReg", Number(v))}
                       min={1950}
-                      max={2026}
-                    />
-                  </Field>
-                  <Field label="Mileage at Import (km)">
-                    <TextInput
-                      type="number"
-                      value={form.mileageKm}
-                      onChange={v => set("mileageKm", Number(v))}
-                      min={0}
+                      max={now.year}
                     />
                   </Field>
                 </div>
 
-                {/* Age at import */}
-                <Field label="Age at Import (months since first registration)">
+                {/* Mileage */}
+                <Field label="Mileage at Import (km)">
                   <TextInput
                     type="number"
-                    value={form.ageAtImportMonths}
-                    onChange={v => set("ageAtImportMonths", Number(v))}
+                    value={form.mileageKm}
+                    onChange={v => set("mileageKm", Number(v))}
                     min={0}
                   />
+                </Field>
+
+                {/* Age at import — auto-calculated, read-only but visible */}
+                <Field label="Age at Import (months since first registration)">
+                  <div className="flex items-center justify-between gap-3 w-full px-4 py-3 bg-zinc-100 border border-black/10 rounded-xl">
+                    <span className="text-black font-semibold">
+                      {calc.ageMonths} {calc.ageMonths === 1 ? "month" : "months"}
+                    </span>
+                    <span className="text-xs text-zinc-400">
+                      {MONTH_NAMES[form.monthFirstReg - 1]} {form.yearFirstReg} → today · auto-calculated
+                    </span>
+                  </div>
                 </Field>
 
                 {/* Classic notice */}
@@ -853,6 +987,60 @@ export default function IrelandCostCalculator() {
                       </div>
                     </div>
                   </div>
+                </div>
+              </div>
+
+              {/* Export & share */}
+              <div className="bg-white border border-black/5 rounded-[1.5rem] p-5 shadow-[0_4px_20px_rgba(0,0,0,0.03)] space-y-4">
+                <p className="text-[10px] font-bold tracking-[0.3em] text-zinc-400 uppercase">
+                  Save & Share
+                </p>
+
+                {/* Download PDF */}
+                <button
+                  onClick={handleDownloadPdf}
+                  disabled={isGeneratingPdf}
+                  className="flex items-center justify-center gap-2 w-full px-5 py-3.5 bg-black text-white rounded-xl font-semibold text-sm transition-all duration-200 hover:bg-zinc-800 disabled:opacity-60 disabled:cursor-not-allowed"
+                >
+                  {isGeneratingPdf
+                    ? <><Loader2 className="h-4 w-4 animate-spin" /> Preparing PDF…</>
+                    : <><Download className="h-4 w-4" /> Download breakdown (PDF)</>}
+                </button>
+
+                {/* Email it */}
+                <div className="space-y-2">
+                  <label className="text-xs font-bold tracking-widest text-zinc-400 uppercase block">
+                    Email this breakdown
+                  </label>
+                  <div className="flex gap-2">
+                    <input
+                      type="email"
+                      inputMode="email"
+                      placeholder="you@example.com"
+                      value={emailTo}
+                      onChange={e => { setEmailTo(e.target.value); setEmailStatus(null); }}
+                      onKeyDown={e => { if (e.key === "Enter" && !isSendingEmail) handleSendEmail(); }}
+                      className="flex-1 min-w-0 px-4 py-3 bg-zinc-50 border border-black/10 rounded-xl text-black font-medium
+                        focus:outline-none focus:border-sky-400 focus:ring-1 focus:ring-sky-400/30 transition-all hover:border-black/20"
+                    />
+                    <button
+                      onClick={handleSendEmail}
+                      disabled={isSendingEmail || !emailValid}
+                      className="flex items-center justify-center gap-2 px-4 py-3 bg-sky-500 text-white rounded-xl font-semibold text-sm transition-all duration-200 hover:bg-sky-600 disabled:opacity-50 disabled:cursor-not-allowed shrink-0"
+                    >
+                      {isSendingEmail
+                        ? <Loader2 className="h-4 w-4 animate-spin" />
+                        : <><Mail className="h-4 w-4" /> Send</>}
+                    </button>
+                  </div>
+                  {emailStatus && (
+                    <p className={`text-xs font-medium ${emailStatus.ok ? "text-emerald-600" : "text-red-500"}`}>
+                      {emailStatus.msg}
+                    </p>
+                  )}
+                  <p className="text-xs text-zinc-400">
+                    We'll email the full cost breakdown with a branded PDF attached.
+                  </p>
                 </div>
               </div>
 

@@ -6,8 +6,23 @@ import AuthActionEmail from "@/emails/auth-action";
 import AdminInvitationEmail from "@/emails/admin-invitation";
 import LeadQualifiedAlertEmail from "@/emails/lead-qualified-alert";
 import ContactScheduledEmail from "@/emails/contact-scheduled";
+import CalculatorBreakdownEmail from "@/emails/calculator-breakdown";
+import type { BreakdownData } from "@/lib/ireland-cost";
 
-const resend = new Resend(process.env.RESEND_API_KEY);
+interface EmailAttachment {
+    filename: string;
+    content: string; // base64-encoded
+}
+
+// Constructed lazily — the Resend SDK throws if instantiated without an API
+// key, which would crash module load (and any action importing this file) in
+// environments where the key isn't set. We only build it once we know a key
+// exists, so the [EMAIL MOCK] fallback below can do its job.
+let _resend: Resend | null = null;
+function getResend(): Resend {
+    if (!_resend) _resend = new Resend(process.env.RESEND_API_KEY);
+    return _resend;
+}
 
 // IMPORTANT: Ensure this domain is verified in your Resend dashboard
 const FROM_EMAIL = "Providence Auto <hello@inquiry.providenceauto.co.uk>";
@@ -21,19 +36,20 @@ function agentFrom(agentName?: string): string {
     return `${safeName} via Providence Auto <${FROM_DOMAIN}>`;
 }
 
-async function sendEmail({to, subject, component, from, replyTo}: { to: string, subject: string, component: ReactElement, from?: string, replyTo?: string }) {
+async function sendEmail({to, subject, component, from, replyTo, attachments}: { to: string, subject: string, component: ReactElement, from?: string, replyTo?: string, attachments?: EmailAttachment[] }) {
     if (!process.env.RESEND_API_KEY) {
         console.warn(`[EMAIL MOCK] To: ${to} | Subject: ${subject}`);
         return;
     }
 
     try {
-        const {data, error} = await resend.emails.send({
+        const {data, error} = await getResend().emails.send({
             from: from || FROM_EMAIL,
             to,
             subject,
             react: component,
             ...(replyTo ? {replyTo} : {}),
+            ...(attachments && attachments.length ? {attachments} : {}),
         });
 
         if (error) {
@@ -120,6 +136,24 @@ export const emailService = {
             from: agentFrom(data.agent?.name),
             replyTo: data.agent?.email,
             component: ContactScheduledEmail(data),
+        });
+    },
+
+    /**
+     * Emails an Ireland landed-cost breakdown to the address the customer
+     * entered on the calculator. The breakdown is rendered into the email body
+     * and the same figures are attached as a branded PDF.
+     */
+    sendCalculatorBreakdown: async (
+        to: string,
+        data: BreakdownData,
+        pdf: { filename: string; contentBase64: string },
+    ) => {
+        await sendEmail({
+            to,
+            subject: `Your Ireland landed cost estimate — ${data.totalLanded.toLocaleString("en-IE", { style: "currency", currency: "EUR", maximumFractionDigits: 0 })}`,
+            component: CalculatorBreakdownEmail({ data }),
+            attachments: [{ filename: pdf.filename, content: pdf.contentBase64 }],
         });
     },
 
