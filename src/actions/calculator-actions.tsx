@@ -44,9 +44,9 @@ const styles = StyleSheet.create({
   },
 
   // Header band
-  header: { backgroundColor: INK, color: "#FFFFFF", padding: "32 40 28 40" },
-  headerTop: { flexDirection: "row", alignItems: "center", marginBottom: 22 },
-  logo: { width: 30, height: 30, marginRight: 10 },
+  header: { backgroundColor: INK, color: "#FFFFFF", padding: "24 40 18 40" },
+  headerTop: { flexDirection: "row", alignItems: "center", marginBottom: 14 },
+  logo: { width: 28, height: 28, marginRight: 10 },
   brand: { fontSize: 13, fontFamily: "Helvetica-Bold", color: "#FFFFFF" },
   brandAccent: { color: SKY },
   eyebrow: {
@@ -54,13 +54,13 @@ const styles = StyleSheet.create({
     letterSpacing: 2,
     color: "#a1a1aa",
     textTransform: "uppercase",
-    marginBottom: 6,
+    marginBottom: 5,
   },
   title: {
-    fontSize: 26,
+    fontSize: 23,
     fontFamily: "Helvetica-Bold",
     color: "#FFFFFF",
-    marginBottom: 14,
+    marginBottom: 10,
   },
   totalRow: {
     flexDirection: "row",
@@ -74,26 +74,27 @@ const styles = StyleSheet.create({
     textTransform: "uppercase",
     marginBottom: 4,
   },
-  totalValue: { fontSize: 28, fontFamily: "Helvetica-Bold", color: "#FFFFFF" },
+  totalValue: { fontSize: 26, fontFamily: "Helvetica-Bold", color: "#FFFFFF" },
   burdenValue: { fontSize: 18, fontFamily: "Helvetica-Bold", color: SKY },
 
-  // Body
-  body: { padding: "28 40" },
+  // Body — footer flows as the last child (not pinned), so a small bottom
+  // padding is all that's needed and content never collides with the footer.
+  body: { padding: "16 40 22 40" },
   sectionTitle: {
     fontSize: 9,
     letterSpacing: 2,
     color: MUTED,
     textTransform: "uppercase",
     fontFamily: "Helvetica-Bold",
-    marginBottom: 8,
-    marginTop: 18,
+    marginBottom: 5,
+    marginTop: 14,
   },
 
   row: {
     flexDirection: "row",
     justifyContent: "space-between",
     borderBottom: `1pt solid ${HAIR}`,
-    paddingVertical: 7,
+    paddingVertical: 5,
   },
   rowLabel: { fontSize: 10, color: MUTED },
   rowValue: { fontSize: 10, color: INK, fontFamily: "Helvetica-Bold" },
@@ -102,9 +103,10 @@ const styles = StyleSheet.create({
   totalBar: {
     flexDirection: "row",
     justifyContent: "space-between",
+    alignItems: "center",
     backgroundColor: INK,
     color: "#FFFFFF",
-    padding: "12 16",
+    padding: "11 16",
     borderRadius: 8,
     marginTop: 14,
   },
@@ -122,15 +124,12 @@ const styles = StyleSheet.create({
   disclaimer: {
     fontSize: 7.5,
     color: "#a1a1aa",
-    lineHeight: 1.5,
-    marginTop: 22,
+    lineHeight: 1.45,
+    marginTop: 16,
   },
 
   footer: {
-    position: "absolute",
-    bottom: 24,
-    left: 40,
-    right: 40,
+    marginTop: 18,
     borderTop: `1pt solid #e4e4e7`,
     paddingTop: 8,
   },
@@ -306,13 +305,13 @@ const BreakdownPDF = ({
           verify with revenue.ie, the NCTS and a licensed customs agent before
           committing to a purchase. Generated {data.generatedAt}.
         </Text>
-      </View>
 
-      <View style={styles.footer} fixed>
-        <Text style={styles.footerText}>
-          Providence Auto · Ireland Landed Cost Calculator ·
-          providenceauto.co.uk
-        </Text>
+        <View style={styles.footer}>
+          <Text style={styles.footerText}>
+            Providence Auto · Ireland Landed Cost Calculator ·
+            providenceauto.co.uk
+          </Text>
+        </View>
       </View>
     </Page>
   </Document>
