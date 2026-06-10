@@ -42,7 +42,7 @@ export default function OperationsOverviewDashboard() {
     ];
 
     return (
-        <div className="p-6 lg:p-10 space-y-10 max-w-[1600px] mx-auto bg-[#FDFCFB] min-h-screen text-black">
+        <div className="p-6 lg:p-10 space-y-10 max-w-[1600px] mx-auto min-h-screen">
             <header className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 pb-6 border-b border-black/5">
                 <div>
                     <h1 className="text-3xl font-bold tracking-tight text-zinc-900 flex items-center gap-2">

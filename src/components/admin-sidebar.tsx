@@ -1,8 +1,15 @@
 "use client";
 
 import {
-    Car, ChevronRight, LayoutDashboard, Settings,
-    Users, LogOut, User as UserIcon
+    Car,
+    ChevronRight,
+    LayoutDashboard,
+    Settings,
+    Users,
+    LogOut,
+    User,          // Replaced UserIcon alias for simplicity
+    Archive,       // For Archived items
+    FilePlus2, UserIcon,     // For creating specs (or PlusCircle / ClipboardPlus)
 } from "lucide-react";
 import {
     Sidebar,
@@ -18,13 +25,14 @@ import {
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { authClient } from "@/lib/auth-client"; // Adjust this path to your auth client
+import { authClient } from "@/lib/auth-client";
 
 const navItems = [
+    { title: "Me", url: "/admin/me", icon: User },
     { title: "Dashboard", url: "/admin", icon: LayoutDashboard },
-    { title: "Archived", url: "/admin/archived", icon: LayoutDashboard },
+    { title: "Archived", url: "/admin/archived", icon: Archive },
     { title: "Cars", url: "/admin/dossiers", icon: Car },
-    { title: "Create Spec", url: "/admin/specs", icon: Car },
+    { title: "Create Spec", url: "/admin/specs", icon: FilePlus2 },
     { title: "Users", url: "/admin/users", icon: Users },
     { title: "Settings", url: "/admin/settings", icon: Settings },
 ];
