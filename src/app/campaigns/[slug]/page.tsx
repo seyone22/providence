@@ -15,8 +15,8 @@ const highlightedCarLogos = [
     { src: "/car_logo/Aston Martin Logo.png", alt: "Aston Martin" },
     { src: "/car_logo/ferrari logo.png", alt: "Ferrari" },
     { src: "/car_logo/lamborghini logo.png", alt: "Lamborghini" },
-    { src: "/car_logo/land rover logo.png", alt: "Land Rover" },
-    { src: "/car_logo/lexus logo.png", alt: "Lexus" },
+    { src: "/car_logo/Bentley Logo.png", alt: "Land Rover" },
+    { src: "/car_logo/mercedes benz logo.png", alt: "Lexus" },
     { src: "/car_logo/porsche logo.png", alt: "Porsche" },
     { src: "/car_logo/rolls royce logo.png", alt: "Rolls Royce" },
 ];
