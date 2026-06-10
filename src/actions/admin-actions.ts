@@ -122,16 +122,25 @@ export async function updateRequestStatus(id: string, targetStage: string, paylo
             });
         }
 
-        // Check if Sales Status Changed
-        if (cleanedPayload.leadStatus && cleanedPayload.leadStatus !== existingRequest.leadStatus) {
-            updateData.statusUpdatedAt = new Date();
+        // Check if Sales Status is Provided
+        if (cleanedPayload.leadStatus) {
+            const isStatusChanged = cleanedPayload.leadStatus !== existingRequest.leadStatus;
+            const hasComment = salesComment.trim() !== "";
 
-            historyLogs.push({
-                action: `Updated Sales Status: ${cleanedPayload.leadStatus}`,
-                performedBy: currentUser,
-                date: new Date(),
-                comment: salesComment.trim() // Safely saves comment right alongside this event entry log!
-            });
+            // Trigger update if the status actually changed OR if they are just logging a new comment/follow-up
+            if (isStatusChanged || hasComment) {
+                updateData.statusUpdatedAt = new Date();
+
+                historyLogs.push({
+                    // Dynamic action text so your history timeline reads naturally
+                    action: isStatusChanged
+                        ? `Updated Sales Status: ${cleanedPayload.leadStatus}`
+                        : `Status Comment / Update: ${cleanedPayload.leadStatus}`,
+                    performedBy: currentUser,
+                    date: new Date(),
+                    comment: salesComment.trim()
+                });
+            }
         }
 
         // 3. Smart Appending for Admin Notes
