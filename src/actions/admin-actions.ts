@@ -33,18 +33,17 @@ export async function getRequests() {
         await requireAuth();
         await connectToDatabase();
 
-        // Purge abandoned drafts so they never linger in the pipeline. The TTL
-        // window leaves a customer who's mid-way through the contact step alone.
         await Request.deleteMany({
             isDraft: true,
             createdAt: { $lt: new Date(Date.now() - DRAFT_TTL_MS) },
         });
 
-        // Only return live leads — drafts are hidden until contact preferences
-        // are submitted (which flips isDraft to false).
+        // Added .populate('dossierIds') so details views get full template objects
         const requests = await Request.find({ isDraft: { $ne: true } })
+            .populate('dossierIds')
             .sort({ createdAt: -1 })
             .lean();
+
         return JSON.parse(JSON.stringify(requests));
     } catch (error) {
         console.error("Failed to fetch requests:", error);
@@ -114,11 +113,15 @@ export async function updateRequestStatus(id: string, targetStage: string, paylo
 
         // Check if Pipeline Stage Changed
         if (targetStage !== existingRequest.status) {
+            // Note total dossiers added if any are present in payload
+            const count = cleanedPayload.dossierIds?.length || 0;
+            const context = count > 0 ? ` (${count} Spec Dossiers Linked)` : "";
+
             historyLogs.push({
-                action: `Moved to Pipeline Stage: ${targetStage}`,
+                action: `Moved to Pipeline Stage: ${targetStage}${context}`,
                 performedBy: currentUser,
                 date: new Date(),
-                comment: "" // Explicitly empty on pure pipeline adjustments
+                comment: ""
             });
         }
 
@@ -156,6 +159,17 @@ export async function updateRequestStatus(id: string, targetStage: string, paylo
         if (cleanedPayload.documents && cleanedPayload.documents.length > 0) {
             const existingDocs = existingRequest.documents || [];
             updateData.documents = [...existingDocs, ...cleanedPayload.documents];
+        }
+
+        // SMART UNIQUE MERGE FOR DOSSIER IDS
+        if (cleanedPayload.dossierIds) {
+            const existingDossiers = existingRequest.dossierIds || [];
+            const combined = [
+                ...existingDossiers.map((d: any) => d._id?.toString() || d.toString()),
+                ...cleanedPayload.dossierIds.map((dId: string) => dId.toString())
+            ];
+            // Remove duplicates automatically using a native Set
+            updateData.dossierIds = Array.from(new Set(combined));
         }
 
         // 5. Execute Update (Safely merges updates using standard array aggregation rules)

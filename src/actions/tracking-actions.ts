@@ -5,14 +5,17 @@ import connectToDatabase from "@/lib/mongoose";
 import Request from "@/models/Request";
 import mongoose from "mongoose";
 import {emailService} from "@/lib/email";
+import "@/models/SpecDossier"; // CRITICAL: Forces Mongoose to register the SpecDossier model before populating it
 
 export async function getTrackingData(id: string) {
     try {
         console.log(`[TRACKING_FETCH] Initiating fetch for Request ID: ${id}`);
         await connectToDatabase();
 
-        // 1. Fetch the request
-        const requestData = await Request.findById(id).lean();
+        // 1. Fetch the request and populate the multi-select dossier array blocks
+        const requestData = await Request.findById(id)
+            .populate("dossierIds")
+            .lean();
 
         if (!requestData) {
             console.warn(`[TRACKING_FETCH] Request ID not found: ${id}`);
@@ -30,12 +33,22 @@ export async function getTrackingData(id: string) {
                     ? new mongoose.Types.ObjectId(requestData.assignedToId)
                     : requestData.assignedToId;
 
-                agentData = await UserCollection.findOne({ _id: userId });
+                agentData = await UserCollection.findOne({_id: userId});
                 console.log(`[TRACKING_FETCH] Agent found for Request ID: ${id} -> ${agentData?.name || 'Unknown'}`);
             }
         } else {
             console.log(`[TRACKING_FETCH] No agent assigned yet for Request ID: ${id}`);
         }
+
+        // 3. Safe deep serialization for populated sub-documents
+        const serializedDossiers = requestData.dossierIds
+            ? requestData.dossierIds.map((d: any) => ({
+                ...d,
+                _id: d._id?.toString(),
+                createdAt: d.createdAt?.toISOString() || null,
+                updatedAt: d.updatedAt?.toISOString() || null,
+            }))
+            : [];
 
         // Return a clean, serialized object to the page
         return {
@@ -43,6 +56,19 @@ export async function getTrackingData(id: string) {
                 ...requestData,
                 _id: requestData._id.toString(),
                 assignedToId: requestData.assignedToId?.toString() || null,
+                dossierIds: serializedDossiers, // Passes full objects instead of plain IDs
+                createdAt: requestData.createdAt?.toISOString() || null,
+                updatedAt: requestData.updatedAt?.toISOString() || null,
+                eta: requestData.eta?.toISOString() || null,
+                statusUpdatedAt: requestData.statusUpdatedAt?.toISOString() || null,
+                preferredContactAt: requestData.preferredContactAt?.toISOString() || null,
+                followUpAt: requestData.followUpAt?.toISOString() || null,
+                followUpSetAt: requestData.followUpSetAt?.toISOString() || null,
+                statusHistory: requestData.statusHistory ? requestData.statusHistory.map((h: any) => ({
+                    ...h,
+                    _id: h._id?.toString(),
+                    date: h.date?.toISOString() || null
+                })) : []
             },
             agent: agentData ? {
                 name: agentData.name,
@@ -66,8 +92,8 @@ export async function markLeadAsQualified(requestId: string) {
         // { new: true } returns the updated document instead of the old one.
         const updatedRequest = await Request.findByIdAndUpdate(
             requestId,
-            { leadStatus: 'Qualified' },
-            { new: true }
+            {leadStatus: 'Qualified'},
+            {new: true}
         ).lean();
 
         if (updatedRequest) {
@@ -90,8 +116,8 @@ export async function markLeadAsOpened(requestId: string) {
         // We use findOneAndUpdate to only update IF the status is still 'Unqualified'.
         // If they already clicked Email/WhatsApp and became 'Qualified', this safely ignores it.
         await Request.findOneAndUpdate(
-            { _id: requestId, leadStatus: 'Unqualified' },
-            { leadStatus: 'Opened' }
+            {_id: requestId, leadStatus: 'Unqualified'},
+            {leadStatus: 'Opened'}
         );
 
         console.log(`[TRACKING] Request ${requestId} marked as Opened (First View).`);
