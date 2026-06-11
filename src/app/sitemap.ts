@@ -11,6 +11,9 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
         "/b2c/gallery",
         "/about",
         "/contact",
+        "/dealer-dashboard",
+        "/import-japanese-cars-to-ireland",
+        "/ireland-cost-calculator"
     ].map((route) => ({
         url: `${baseUrl}${route}`,
         lastModified: new Date(),
