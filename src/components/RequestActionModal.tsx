@@ -1,7 +1,7 @@
 "use client";
 
-import React, {useEffect, useState} from "react";
-import {Activity, ExternalLink, File, Image as ImageIcon, Loader2, Paperclip, UserPlus} from "lucide-react";
+import React, { useEffect, useState } from "react";
+import { Activity, ExternalLink, File, Image as ImageIcon, Loader2, Paperclip, UserPlus } from "lucide-react";
 import {
     Dialog,
     DialogContent,
@@ -10,15 +10,16 @@ import {
     DialogHeader,
     DialogTitle
 } from "@/components/ui/dialog";
-import {Button} from "@/components/ui/button";
-import {Input} from "@/components/ui/input";
-import {Label} from "@/components/ui/label";
-import {Textarea} from "@/components/ui/textarea";
-import {Badge} from "@/components/ui/badge";
-import DynamicFileUploader, {PendingFile} from "@/components/dynamicFileUploader";
-import {deleteRequest, updateRequestStatus} from "@/actions/admin-actions";
-import {getPresignedUrls} from "@/lib/file-actions";
-import {SALES_STATUSES} from "@/components/RequestTableClient";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { Badge } from "@/components/ui/badge";
+import DynamicFileUploader, { PendingFile } from "@/components/dynamicFileUploader";
+import { deleteRequest, updateRequestStatus } from "@/actions/admin-actions";
+import { getPresignedUrls } from "@/lib/file-actions";
+import { SALES_STATUSES } from "@/components/RequestTableClient";
+import {getAllSpecDossiers} from "@/actions/spec-actions";
 
 const PIPELINE_STAGES = [
     "New", "Vehicle Selection", "Price Agreement", "Deposit Collected",
@@ -49,14 +50,6 @@ interface RequestActionModalProps {
     currentUserId: string;
 }
 
-/**
- * Safari on macOS intermittently aborts the first Server Action POST at the
- * network layer with a `TypeError: Load failed` (its version of "Failed to
- * fetch"), which then succeeds on a retry — this is the "load fail on first
- * try, works on second" report. Transparently retry network-level failures so
- * the user never sees them. Real server/validation errors are plain Errors
- * with descriptive messages and are NOT retried — they surface immediately.
- */
 async function withNetworkRetry<T>(fn: () => Promise<T>, retries = 2): Promise<T> {
     for (let attempt = 0; ; attempt++) {
         try {
@@ -67,7 +60,6 @@ async function withNetworkRetry<T>(fn: () => Promise<T>, retries = 2): Promise<T
                 err instanceof TypeError ||
                 /load failed|failed to fetch|networkerror|the network connection was lost/i.test(msg);
             if (!isNetworkError || attempt >= retries) throw err;
-            // Brief backoff before retrying (300ms, then 600ms).
             await new Promise((resolve) => setTimeout(resolve, 300 * (attempt + 1)));
         }
     }
@@ -75,14 +67,14 @@ async function withNetworkRetry<T>(fn: () => Promise<T>, retries = 2): Promise<T
 
 const getStyles = (action: string | undefined): HistoryStyle => {
     const act = action || "";
-    if (act.includes("Cleared Customs")) return {dot: "bg-emerald-500", box: "bg-emerald-50 border-emerald-100 text-emerald-900"};
-    if (act.includes("Shipped") || act.includes("Arrived at Port")) return {dot: "bg-blue-500", box: "bg-blue-50 border-blue-100 text-blue-900"};
-    if (act.includes("Deposit") || act.includes("Purchased") || act.includes("Preparation")) return {dot: "bg-purple-500", box: "bg-purple-50 border-purple-100 text-purple-900"};
-    if (act.includes("Active Conversation") || act.includes("Replied") || act.includes("SQL") || act.includes("Lead Closed")) return {dot: "bg-emerald-500", box: "bg-emerald-50 border-emerald-100 text-emerald-900"};
-    if (act.includes("Action required") || act.includes("Lead Lost")) return {dot: "bg-red-500", box: "bg-red-50 border-red-100 text-red-900"};
-    if (act.includes("No Response") || act.includes("Stopped Responding")) return {dot: "bg-amber-500", box: "bg-amber-50 border-amber-100 text-amber-900"};
-    if (act.includes("Delete") || act.includes("Revert")) return {dot: "bg-amber-500", box: "bg-amber-50 border-amber-100 text-amber-900"};
-    return {dot: "bg-zinc-400", box: "bg-zinc-50 border-black/5 text-zinc-600"};
+    if (act.includes("Cleared Customs")) return { dot: "bg-emerald-500", box: "bg-emerald-50 border-emerald-100 text-emerald-900" };
+    if (act.includes("Shipped") || act.includes("Arrived at Port")) return { dot: "bg-blue-500", box: "bg-blue-50 border-blue-100 text-blue-900" };
+    if (act.includes("Deposit") || act.includes("Purchased") || act.includes("Preparation")) return { dot: "bg-purple-500", box: "bg-purple-50 border-purple-100 text-purple-900" };
+    if (act.includes("Active Conversation") || act.includes("Replied") || act.includes("SQL") || act.includes("Lead Closed")) return { dot: "bg-emerald-500", box: "bg-emerald-50 border-emerald-100 text-emerald-900" };
+    if (act.includes("Action required") || act.includes("Lead Lost")) return { dot: "bg-red-500", box: "bg-red-50 border-red-100 text-red-900" };
+    if (act.includes("No Response") || act.includes("Stopped Responding")) return { dot: "bg-amber-500", box: "bg-amber-50 border-amber-100 text-amber-900" };
+    if (act.includes("Delete") || act.includes("Revert")) return { dot: "bg-amber-500", box: "bg-amber-50 border-amber-100 text-amber-900" };
+    return { dot: "bg-zinc-400", box: "bg-zinc-50 border-black/5 text-zinc-600" };
 };
 
 export default function RequestActionModal({
@@ -94,6 +86,7 @@ export default function RequestActionModal({
     const [isProcessing, setIsProcessing] = useState(false);
     const [payload, setPayload] = useState<any>({});
     const [pendingFiles, setPendingFiles] = useState<PendingFile[]>([]);
+    const [dossiers, setDossiers] = useState<any[]>([]);
 
     const inputClasses = "bg-zinc-50 border-black/10 text-black placeholder:text-zinc-400 focus-visible:ring-black/5 focus-visible:border-black/30 transition-all rounded-xl";
     const selectClasses = "w-full bg-zinc-50 border border-black/10 text-black focus:outline-none focus:ring-2 focus:ring-black/5 focus:border-black/30 transition-all rounded-xl px-4 py-3 appearance-none cursor-pointer";
@@ -101,7 +94,7 @@ export default function RequestActionModal({
     useEffect(() => {
         if (modal.isOpen && modal.request) {
             if (modal.type === "details") {
-                setPayload({adminNotes: modal.request.adminNotes || ""});
+                setPayload({ adminNotes: modal.request.adminNotes || "" });
             } else if (modal.type === "assign") {
                 setPayload({
                     assignedToId: modal.request.assignedToId || "",
@@ -113,18 +106,26 @@ export default function RequestActionModal({
                     salesComment: ""
                 });
             } else {
+                // Initialize payload layout setup for pipeline movements
                 if (modal.type === "advance" && modal.targetStage === "Price Agreement") {
-                    setPayload({paymentType: "Full payment", stageComment: ""});
+                    setPayload({ paymentType: "Full payment", stageComment: "", dossierIds: [] });
                 } else {
-                    setPayload({stageComment: ""});
+                    setPayload({ stageComment: "", dossierIds: [] });
                 }
+
+                // Hydrate full vehicle master blueprint items
+                getAllSpecDossiers().then((res: any) => {
+                    if (res.success && res.data) {
+                        setDossiers(res.data);
+                    }
+                });
             }
             setPendingFiles([]);
         }
     }, [modal]);
 
     const handlePayloadChange = (key: string, value: any) => {
-        setPayload((prev: any) => ({...prev, [key]: value}));
+        setPayload((prev: any) => ({ ...prev, [key]: value }));
     };
 
     const handleActionSubmit = async () => {
@@ -132,7 +133,7 @@ export default function RequestActionModal({
         setIsProcessing(true);
 
         try {
-            let formattedPayload = {...payload};
+            let formattedPayload = { ...payload };
 
             if (modal.targetStage === "Price Agreement") {
                 if (formattedPayload.totalAmount) formattedPayload.totalAmount = Number(formattedPayload.totalAmount);
@@ -160,18 +161,18 @@ export default function RequestActionModal({
                         type: (pf.file as File).type,
                         size: (pf.file as File).size
                     }));
-                    const {success, uploadData, message} = await getPresignedUrls(fileMeta, "pipeline-docs");
+                    const { success, uploadData, message} = await getPresignedUrls(fileMeta, "pipeline-docs");
 
                     if (!success || !uploadData) throw new Error(message || "Failed to get upload URLs.");
 
                     const uploadPromises = validFiles.map(async (pf, index) => {
                         const file = pf.file as File;
-                        const {uploadUrl, fileUrl} = uploadData[index];
+                        const { uploadUrl, fileUrl } = uploadData[index];
 
                         const uploadRes = await fetch(uploadUrl, {
                             method: "PUT",
                             body: file,
-                            headers: {"Content-Type": file.type},
+                            headers: { "Content-Type": file.type },
                         });
 
                         if (!uploadRes.ok) throw new Error(`Failed to upload ${file.name}`);
@@ -190,13 +191,13 @@ export default function RequestActionModal({
 
                 await withNetworkRetry(() => updateRequestStatus(modal.request._id, modal.targetStage as string, {
                     ...formattedPayload,
-                    salesComment: payload.stageComment?.trim() || "", // Map to pipeline comment backend slot
+                    salesComment: payload.stageComment?.trim() || "",
                     documents: finalDocuments
                 }));
             } else if (modal.type === "revert" && modal.targetStage) {
                 await withNetworkRetry(() => updateRequestStatus(modal.request._id, modal.targetStage as string, {
                     ...formattedPayload,
-                    salesComment: payload.stageComment?.trim() || "", // Map to pipeline comment backend slot
+                    salesComment: payload.stageComment?.trim() || "",
                 }));
             } else if (modal.type === "details" || modal.type === "assign" || modal.type === "sales_status") {
                 const submitPayload = {
@@ -328,6 +329,29 @@ export default function RequestActionModal({
                                 {(modal.request.totalAmount || modal.request.agreedPrice) && <div><span className="block text-zinc-400 text-[10px] uppercase tracking-widest font-bold mb-1">Total Agreed Price</span><span className="font-medium text-black">${(modal.request.totalAmount || modal.request.agreedPrice).toLocaleString()}</span></div>}
                                 {modal.request.vesselName && <div><span className="block text-zinc-400 text-[10px] uppercase tracking-widest font-bold mb-1">Vessel</span><span className="font-medium text-black">{modal.request.vesselName}</span></div>}
                                 {modal.request.eta && <div><span className="block text-zinc-400 text-[10px] uppercase tracking-widest font-bold mb-1">ETA</span><span className="font-medium text-black">{new Date(modal.request.eta).toLocaleDateString()}</span></div>}
+
+                                {/* --- LINKED DOSSIERS ARRAY DISPLAY LOOP --- */}
+                                {modal.request.dossierIds && modal.request.dossierIds.length > 0 && (
+                                    <div className="col-span-2 pt-2 border-t border-black/5 space-y-2">
+                                        <span className="block text-zinc-400 text-[10px] uppercase tracking-widest font-bold">Linked Spec Blueprints</span>
+                                        <div className="flex flex-wrap gap-2">
+                                            {modal.request.dossierIds.map((dossier: any, idx: number) => {
+                                                const title = dossier.title || `${dossier.make || dossier.vehicleMake || ''} ${dossier.model || dossier.vehicleModel || ''}`.trim() || `Spec Dossier #${idx + 1}`;
+                                                return (
+                                                    <a
+                                                        key={dossier._id || idx}
+                                                        href={`/admin/specs?editId=${dossier._id || dossier}`}
+                                                        target="_blank"
+                                                        rel="noopener noreferrer"
+                                                        className="text-blue-700 font-semibold hover:underline inline-flex items-center gap-1.5 text-xs bg-blue-50 hover:bg-blue-100 transition-colors px-3 py-1.5 rounded-lg border border-blue-100"
+                                                    >
+                                                        {title} <ExternalLink size={12}/>
+                                                    </a>
+                                                );
+                                            })}
+                                        </div>
+                                    </div>
+                                )}
                             </div>
                         </div>
 
@@ -406,16 +430,63 @@ export default function RequestActionModal({
                     </div>
                 )}
 
-                {/* --- PIPELINE STAGE CHANGE COMMENTS --- */}
+                {/* --- PIPELINE STAGE CHANGE COMMENTS & DOSSIERS --- */}
                 {(modal.type === "advance" || modal.type === "revert") && (
-                    <div className="mt-4 space-y-2">
-                        <Label className="text-zinc-600 font-bold">Stage Update Note / Comment</Label>
-                        <Textarea
-                            value={payload.stageComment || ""}
-                            onChange={(e) => handlePayloadChange("stageComment", e.target.value)}
-                            className={`${inputClasses} min-h-[90px] resize-none`}
-                            placeholder={modal.type === "revert" ? "Why is this lead moving backwards?..." : "Add custom updates about what happened during this stage jump..."}
-                        />
+                    <div className="mt-4 space-y-4">
+                        <div className="space-y-2">
+                            <Label className="text-zinc-600 font-bold">Stage Update Note / Comment</Label>
+                            <Textarea
+                                value={payload.stageComment || ""}
+                                onChange={(e) => handlePayloadChange("stageComment", e.target.value)}
+                                className={`${inputClasses} min-h-[90px] resize-none`}
+                                placeholder={modal.type === "revert" ? "Why is this lead moving backwards?..." : "Add custom updates about what happened during this stage jump..."}
+                            />
+                        </div>
+
+                        {/* --- MULTI-SELECT DOSSIER CHECKBOX PANEL PANEL --- */}
+                        {modal.type === "advance" && dossiers.length > 0 && (
+                            <div className="space-y-2 pt-3 border-t border-dashed border-black/10">
+                                <Label className="text-zinc-600 font-bold flex items-center gap-1.5">
+                                    <File size={15} /> Attach Car Spec Dossier(s)
+                                </Label>
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-[160px] overflow-y-auto pr-1 hide-scrollbar">
+                                    {dossiers.map((d: any) => {
+                                        const isChecked = payload.dossierIds?.includes(d._id);
+                                        const displayTitle = d.title || `${d.make || d.vehicleMake || ''} ${d.model || d.vehicleModel || ''}`.trim() || "Unnamed Specification";
+
+                                        return (
+                                            <label
+                                                key={d._id}
+                                                className={`flex items-start gap-3 p-3 border rounded-xl cursor-pointer transition-all ${
+                                                    isChecked
+                                                        ? "bg-zinc-900 border-zinc-900 text-white shadow-sm"
+                                                        : "bg-zinc-50 border-black/5 text-black hover:bg-zinc-100"
+                                                }`}
+                                            >
+                                                <input
+                                                    type="checkbox"
+                                                    checked={isChecked || false}
+                                                    onChange={(e) => {
+                                                        const currentIds = payload.dossierIds || [];
+                                                        const updatedIds = e.target.checked
+                                                            ? [...currentIds, d._id]
+                                                            : currentIds.filter((id: string) => id !== d._id);
+                                                        handlePayloadChange("dossierIds", updatedIds);
+                                                    }}
+                                                    className="mt-0.5 rounded border-zinc-300 text-black focus:ring-black h-4 w-4 shrink-0 accent-black"
+                                                />
+                                                <div className="text-xs space-y-0.5 min-w-0">
+                                                    <p className="font-semibold truncate">{displayTitle}</p>
+                                                    <p className={`text-[10px] uppercase font-medium tracking-tight ${isChecked ? "text-zinc-400" : "text-zinc-500"}`}>
+                                                        {d.status || "Active Template"}
+                                                    </p>
+                                                </div>
+                                            </label>
+                                        );
+                                    })}
+                                </div>
+                            </div>
+                        )}
                     </div>
                 )}
 

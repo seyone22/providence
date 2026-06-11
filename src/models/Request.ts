@@ -24,6 +24,8 @@ export interface IRequest extends Document {
     countryOfImport: string;
     importTimeline?: string;
 
+    dossierIds: (mongoose.Types.ObjectId | string)[]; // <-- CHANGED TO ARRAY
+
     // Contact preferences (captured after delivery details)
     contactMethods?: string[];         // one or more of: WhatsApp | Call | WhatsApp Call | Email
     contactDays?: string[];            // e.g. ["Today"], ["Weekdays"], ["Monday","Wednesday"]
@@ -110,6 +112,8 @@ const RequestSchema: Schema = new Schema(
         phone: {type: String, required: true},
         countryOfImport: {type: String, required: true},
         importTimeline: {type: String},
+
+        dossierIds: [{ type: mongoose.Schema.Types.ObjectId, ref: 'SpecDossier' }], // <-- CHANGED TO ARRAY REFERENCE
 
         // Contact preferences
         contactMethods: {type: [String], default: undefined},

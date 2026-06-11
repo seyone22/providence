@@ -18,7 +18,7 @@ const TIMELINE_STEPS = [
     { id: "Preparation", label: "Preparation", icon: Wrench, desc: "Garage tests & export documentation." },
     { id: "Shipped", label: "Shipping & Docs", icon: Ship, desc: "In transit on the ocean." },
     { id: "Arrived at Port", label: "Port Arrival", icon: Anchor, desc: "Vessel has docked at destination." },
-    { id: "Cleared Customs", label: "Customs Cleared", icon: Flag, desc: "Ready for final delivery!" },
+    { id: "Cleared Customs", label: "Cleared Customs", icon: Flag, desc: "Ready for final delivery!" },
 ];
 
 export default async function TrackingPage({ params }: { params: Promise<{ id: string }> }) {
@@ -146,11 +146,50 @@ export default async function TrackingPage({ params }: { params: Promise<{ id: s
                                         {(isActive || isCompleted) && (
                                             <div className="space-y-4 mt-4">
 
-                                                {/* Text Data specific to each stage */}
-                                                {step.id === "Vehicle Selection" && requestData.options && (
-                                                    <div className="p-5 rounded-2xl bg-zinc-50 border border-black/5 text-sm leading-relaxed">
-                                                        <span className="block text-zinc-800 font-bold mb-2">Proposed Options & Links:</span>
-                                                        <span className="text-zinc-600 font-light whitespace-pre-wrap">{renderTextWithLinks(requestData.options)}</span>
+                                                {/* --- VEHICLE SELECTION STAGE DATA & DOSSIERS --- */}
+                                                {step.id === "Vehicle Selection" && (
+                                                    <div className="space-y-3">
+                                                        {requestData.options && (
+                                                            <div className="p-5 rounded-2xl bg-zinc-50 border border-black/5 text-sm leading-relaxed">
+                                                                <span className="block text-zinc-800 font-bold mb-2">Proposed Options & Links:</span>
+                                                                <span className="text-zinc-600 font-light whitespace-pre-wrap">{renderTextWithLinks(requestData.options)}</span>
+                                                            </div>
+                                                        )}
+
+                                                        {/* --- RENDER LINKED SPEC DOSSIER BLUEPRINTS --- */}
+                                                        {requestData.dossierIds && requestData.dossierIds.length > 0 && (
+                                                            <div className="space-y-2 pt-2">
+                                                                <span className="block text-zinc-400 text-[10px] uppercase tracking-widest font-bold px-1">
+                                                                    Linked Vehicle Specifications
+                                                                </span>
+                                                                <div className="grid gap-2 grid-cols-1 sm:grid-cols-2">
+                                                                    {requestData.dossierIds.map((dossier: any, idx: number) => {
+                                                                        const title = dossier.title || `${dossier.make || dossier.vehicleMake || ''} ${dossier.model || dossier.vehicleModel || ''}`.trim() || `Spec Sheet #${idx + 1}`;
+                                                                        
+                                                                        return (
+                                                                            <a
+                                                                                key={dossier._id || idx}
+                                                                                href={`/b2c/gallery/${dossier._id || dossier}`}
+                                                                                target="_blank"
+                                                                                rel="noopener noreferrer"
+                                                                                className="flex items-center justify-between p-4 bg-zinc-50 hover:bg-zinc-100 border border-black/5 rounded-2xl transition-all group shadow-sm"
+                                                                            >
+                                                                                <div className="flex items-center gap-3 min-w-0">
+                                                                                    <div className="p-2.5 bg-black text-white rounded-xl shrink-0">
+                                                                                        <FileText size={16} />
+                                                                                    </div>
+                                                                                    <div className="min-w-0">
+                                                                                        <p className="text-xs font-bold text-black truncate">{title}</p>
+                                                                                        <p className="text-[9px] text-zinc-400 font-bold uppercase tracking-wider mt-0.5">Official Blueprint</p>
+                                                                                    </div>
+                                                                                </div>
+                                                                                <ExternalLink size={14} className="text-zinc-300 group-hover:text-black transition-colors shrink-0 ml-2" />
+                                                                            </a>
+                                                                        );
+                                                                    })}
+                                                                </div>
+                                                            </div>
+                                                        )}
                                                     </div>
                                                 )}
 
@@ -255,14 +294,10 @@ export default async function TrackingPage({ params }: { params: Promise<{ id: s
     );
 }
 
-
 function renderTextWithLinks(text: string) {
     if (!text) return null;
 
-    // Regex to match URLs starting with http or https
     const urlRegex = /(https?:\/\/[^\s]+)/g;
-
-    // Split the text into an array of strings and URLs
     const parts = text.split(urlRegex);
 
     return parts.map((part, i) => {
@@ -279,6 +314,6 @@ function renderTextWithLinks(text: string) {
                 </a>
             );
         }
-        return part; // Return normal text as-is
+        return part;
     });
 }
