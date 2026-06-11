@@ -17,6 +17,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL("https://www.providenceauto.co.uk"),
   title: {
     default:
       "World’s Largest Borderless Showroom | Global Car Sourcing & Direct Import",
@@ -47,7 +48,7 @@ export const metadata: Metadata = {
   openGraph: {
     type: "website",
     locale: "en_US",
-    url: "https://providenceauto.co.uk/",
+    url: "https://www.providenceauto.co.uk/",
     siteName: "Providence Auto",
     title: "World’s Largest Borderless Showroom | Global Car Sourcing",
     description:
@@ -84,8 +85,8 @@ export default function RootLayout({
     "@context": "https://schema.org",
     "@type": "AutoDealer",
     name: "Providence Auto",
-    url: "https://providenceauto.co.uk/",
-    logo: "https://providenceauto.co.uk/logo.png",
+    url: "https://www.providenceauto.co.uk/",
+    logo: "https://www.providenceauto.co.uk/logo.png",
     description:
       "Global borderless showroom sourcing premium vehicles from 40+ markets.",
     address: {
