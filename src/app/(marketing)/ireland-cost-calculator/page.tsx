@@ -692,9 +692,6 @@ export default function IrelandCostCalculator() {
       <section className="relative pt-36 pb-16 px-6 bg-white overflow-hidden">
         <div className="max-w-7xl mx-auto">
           <Reveal immediate y={30} duration={0.8} className="text-center mb-16">
-            <p className="text-sm font-bold tracking-[0.4em] text-zinc-400 uppercase mb-6">
-              Ireland Import Tool · 2026 Revenue Rates
-            </p>
             <h1 className="text-5xl md:text-7xl font-bold tracking-tighter text-black mb-6 leading-[0.95]">
               Ireland Landed
               <br />
@@ -895,6 +892,18 @@ export default function IrelandCostCalculator() {
               {/* Card: Origin & Source */}
               <Card title="Origin & Source">
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <Field label="Country of Manufacture (where the car was built)">
+                    <SelectInput
+                      value={form.countryOfManufacture}
+                      onChange={(v) => set("countryOfManufacture", v)}
+                      options={[
+                        { value: "japan", label: "Japan" },
+                        { value: "uk", label: "United Kingdom" },
+                        { value: "eu", label: "EU-built" },
+                        { value: "other", label: "Other / Unknown" },
+                      ]}
+                    />
+                  </Field>
                   <Field label="Source Country (where you're buying from)">
                     <SelectInput
                       value={form.sourceCountry}
@@ -910,18 +919,6 @@ export default function IrelandCostCalculator() {
                         { value: "india", label: "India" },
                         { value: "australia", label: "Australia" },
                         { value: "new_zealand", label: "New Zealand" },
-                      ]}
-                    />
-                  </Field>
-                  <Field label="Country of Manufacture (where the car was built)">
-                    <SelectInput
-                      value={form.countryOfManufacture}
-                      onChange={(v) => set("countryOfManufacture", v)}
-                      options={[
-                        { value: "japan", label: "Japan" },
-                        { value: "uk", label: "United Kingdom" },
-                        { value: "eu", label: "EU-built" },
-                        { value: "other", label: "Other / Unknown" },
                       ]}
                     />
                   </Field>
@@ -1872,6 +1869,18 @@ function DutyFlowchart() {
     <div className="bg-zinc-50 border border-black/5 rounded-[2rem] p-6 sm:p-8 shadow-[0_4px_20px_rgba(0,0,0,0.04)]">
       {/* Controls */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
+        <Field label="Country of manufacture (where built)">
+          <SelectInput
+            value={mfr}
+            onChange={setMfr}
+            options={[
+              { value: "japan", label: "Japan" },
+              { value: "uk", label: "United Kingdom" },
+              { value: "eu", label: "EU-built" },
+              { value: "other", label: "Other / Unknown" },
+            ]}
+          />
+        </Field>
         <Field label="Source country (buying from)">
           <SelectInput
             value={src}
@@ -1884,18 +1893,6 @@ function DutyFlowchart() {
               { value: "india", label: "India" },
               { value: "australia", label: "Australia" },
               { value: "new_zealand", label: "New Zealand" },
-            ]}
-          />
-        </Field>
-        <Field label="Country of manufacture (where built)">
-          <SelectInput
-            value={mfr}
-            onChange={setMfr}
-            options={[
-              { value: "japan", label: "Japan" },
-              { value: "uk", label: "United Kingdom" },
-              { value: "eu", label: "EU-built" },
-              { value: "other", label: "Other / Unknown" },
             ]}
           />
         </Field>

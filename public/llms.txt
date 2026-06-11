@@ -1,0 +1,21 @@
+# Providence Auto
+
+> Providence Auto is a borderless car sourcing and direct-import service. We source new and pre-owned vehicles from 40+ global markets and handle export, shipping, customs, taxes and delivery for buyers in Ireland, the UK and beyond.
+
+Site: https://www.providenceauto.co.uk
+
+## Key tools
+
+- [Ireland Car Import Cost Calculator](https://www.providenceauto.co.uk/ireland-cost-calculator): Free tool to estimate the total landed cost of importing a car to Ireland — customs duty, VAT, Vehicle Registration Tax (VRT) and the NOx levy — on 2026 Revenue rates, with live ECB exchange rates and an OMSP estimator based on Revenue's depreciation tables.
+
+## Ireland car import — key facts (2026)
+
+- **Customs duty**: 0% on cars in free circulation from the EU or Northern Ireland; 0% on Japanese-built cars (EU–Japan EPA) and UK-built cars (EU–UK TCA) with proof of origin; otherwise 10% of the CIF value (price + insurance + freight).
+- **VAT**: 23%, charged on CIF + duty. A used car from the EU/NI is VAT-free if it is over 6 months old AND has over 6,000 km; otherwise it is a "new means of transport" and VAT applies.
+- **VRT (Vehicle Registration Tax)**: 7%–41% of the car's OMSP (Open Market Selling Price), set by WLTP CO₂ emissions. Electric cars get the 7% band plus relief up to €5,000 until 31 December 2026. Classic cars (30+ years) pay a flat €200. A NOx levy also applies to petrol and diesel cars.
+- **OMSP**: Revenue's estimate of the car's Irish retail value, which VRT is charged on — not the purchase price abroad.
+
+## Contact
+
+- Website: https://www.providenceauto.co.uk
+- Source a vehicle: https://www.providenceauto.co.uk/request
