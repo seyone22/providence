@@ -14,6 +14,9 @@ import {
 import React from "react";
 import {
   type BreakdownData,
+  CALCULATOR_CURRENCIES,
+  type ExchangeRates,
+  FALLBACK_EXCHANGE_RATES,
   fmtEUR,
   fmtPct,
   MONTH_NAMES,
@@ -335,6 +338,49 @@ async function renderBreakdownBuffer(data: BreakdownData): Promise<Buffer> {
 
 function pdfFileName(data: BreakdownData): string {
   return `Providence_Ireland_Landed_Cost_${data.yearFirstReg}.pdf`;
+}
+
+// ─── Action: live exchange rates (ECB daily reference rates) ─────────────────
+// Sourced from the European Central Bank via Frankfurter (no key, free). The
+// underlying fetch is cached for 24h, so all visitors share ~1 upstream call
+// per day — ECB publishes once per working day around 16:00 CET. Any failure
+// (network, malformed payload, missing symbol) degrades to the indicative
+// fallback so the calculator always has usable numbers.
+export async function getExchangeRates(): Promise<ExchangeRates> {
+  const symbols = CALCULATOR_CURRENCIES.join(",");
+  try {
+    const res = await fetch(
+      `https://api.frankfurter.dev/v1/latest?base=EUR&symbols=${symbols}`,
+      { next: { revalidate: 86400 } },
+    );
+    if (!res.ok) throw new Error(`Frankfurter responded ${res.status}`);
+
+    const json = (await res.json()) as {
+      date?: string;
+      rates?: Record<string, number>;
+    };
+    if (!json.rates) throw new Error("Malformed FX response: no rates");
+
+    // ECB/Frankfurter quotes units-per-EUR; the calculator wants EUR-per-unit,
+    // so invert each rate. EUR is the base and always maps to 1.
+    const rates: Record<string, number> = { EUR: 1 };
+    for (const code of CALCULATOR_CURRENCIES) {
+      const unitsPerEur = json.rates[code];
+      rates[code] =
+        typeof unitsPerEur === "number" && unitsPerEur > 0
+          ? 1 / unitsPerEur
+          : FALLBACK_EXCHANGE_RATES[code];
+    }
+
+    return { rates, date: json.date ?? null, source: "ecb" };
+  } catch (error: unknown) {
+    console.error("Exchange rate fetch failed, using fallback:", error);
+    return {
+      rates: { ...FALLBACK_EXCHANGE_RATES },
+      date: null,
+      source: "fallback",
+    };
+  }
 }
 
 // ─── Action: generate the PDF for download ───────────────────────────────────
