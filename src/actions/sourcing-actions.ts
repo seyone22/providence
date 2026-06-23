@@ -35,11 +35,12 @@ export interface GbpFxRates {
 }
 
 // Currencies we accept on the auction-cost side. JPY is the primary one.
-export const SOURCING_CURRENCIES = ["JPY", "USD", "EUR"] as const;
+// Not exported: a "use server" file may only export async functions.
+const SOURCING_CURRENCIES = ["JPY", "USD", "EUR"] as const;
 
 // Indicative GBP-per-unit fallbacks, used before live rates load or if the feed
 // is unavailable so the calculator always has usable numbers.
-export const FALLBACK_GBP_RATES: Record<string, number> = {
+const FALLBACK_GBP_RATES: Record<string, number> = {
   GBP: 1,
   JPY: 0.0053,
   USD: 0.79,
