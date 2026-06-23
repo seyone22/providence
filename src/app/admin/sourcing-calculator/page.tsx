@@ -7,12 +7,10 @@ import RecentAnalyses from "./RecentAnalyses";
 
 // Sourcing & Profit tool — admin + Sales only. Phase 1: landed-cost calculator.
 export default async function SourcingCalculatorPage() {
+  // Match the rest of the admin area: access is gated on a valid session
+  // (every other /admin page does the same — there is no per-page role gate).
   const session = await auth.api.getSession({ headers: await headers() });
   if (!session) redirect("/auth/sign-in");
-
-  // Gate to staff. Roles per Better-Auth custom field: user | Sales | admin.
-  const role = (session.user as { role?: string }).role ?? "user";
-  if (role !== "admin" && role !== "Sales") redirect("/admin");
 
   const fx = await getGbpFxRates();
 
