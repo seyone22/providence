@@ -38,12 +38,13 @@ import { Separator } from "@/components/ui/separator";
 import {
   computeLandedCost,
   DUTY_LABELS,
-  type DutyBasis,
+  FTA_COUNTRIES,
   fmtGBP,
   fmtPct,
+  ORIGIN_COUNTRY_LABELS,
+  type OriginCountry,
   POST_BORDER_DEFAULTS,
-  VAT_LABELS,
-  type VatBasis,
+  resolveTaxTreatment,
 } from "@/lib/uk-landed-cost";
 
 // Verdict → colour + label styling.
@@ -206,9 +207,26 @@ export default function LandedCostClient({ fx }: { fx: GbpFxRates }) {
   const liveRate = fx.rates[currency] ?? 0;
   const [fxRate, setFxRate] = useState(String(liveRate));
 
-  // ── Tax treatment ───────────────────────────────────────────────────────────
-  const [dutyBasis, setDutyBasis] = useState<DutyBasis>("mfn"); // conservative default
-  const [vatBasis, setVatBasis] = useState<VatBasis>("standard");
+  // ── Tax treatment (salesperson-friendly inputs → duty/VAT derived) ──────────
+  const [country, setCountry] = useState<OriginCountry>("japan");
+  const [hasOriginStatement, setHasOriginStatement] = useState(false); // conservative
+  const [isCommercialPickup, setIsCommercialPickup] = useState(false);
+
+  const vehicleAgeYears = year
+    ? new Date().getFullYear() - Number.parseInt(year, 10)
+    : null;
+  const treatment = useMemo(
+    () =>
+      resolveTaxTreatment({
+        country,
+        hasOriginStatement,
+        isCommercialPickup,
+        vehicleAgeYears,
+      }),
+    [country, hasOriginStatement, isCommercialPickup, vehicleAgeYears],
+  );
+  const dutyBasis = treatment.dutyBasis;
+  const vatBasis = treatment.vatBasis;
 
   // ── Post-border GBP costs (editable defaults) ───────────────────────────────
   const [dvlaRegistration, setDvla] = useState(
@@ -603,47 +621,106 @@ export default function LandedCostClient({ fx }: { fx: GbpFxRates }) {
           <Card>
             <CardHeader>
               <CardTitle className="text-base">Tax treatment</CardTitle>
+              <p className="text-xs text-zinc-400">
+                Answer what you know about the car — the duty &amp; VAT are
+                worked out for you.
+              </p>
             </CardHeader>
-            <CardContent className="grid sm:grid-cols-2 gap-4">
-              <div className="space-y-1.5">
-                <Label className="text-xs font-medium text-zinc-600">
-                  Customs duty basis
-                </Label>
-                <Select
-                  value={dutyBasis}
-                  onValueChange={(v) => setDutyBasis(v as DutyBasis)}
-                >
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {Object.entries(DUTY_LABELS).map(([k, label]) => (
-                      <SelectItem key={k} value={k}>
-                        {label}
+            <CardContent className="space-y-4">
+              <div className="grid sm:grid-cols-2 gap-4">
+                <div className="space-y-1.5">
+                  <Label className="text-xs font-medium text-zinc-600">
+                    Country of manufacture
+                  </Label>
+                  <Select
+                    value={country}
+                    onValueChange={(v) => setCountry(v as OriginCountry)}
+                  >
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {Object.entries(ORIGIN_COUNTRY_LABELS).map(
+                        ([k, label]) => (
+                          <SelectItem key={k} value={k}>
+                            {label}
+                          </SelectItem>
+                        ),
+                      )}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-1.5">
+                  <Label className="text-xs font-medium text-zinc-600">
+                    Body type
+                  </Label>
+                  <Select
+                    value={isCommercialPickup ? "pickup" : "car"}
+                    onValueChange={(v) => setIsCommercialPickup(v === "pickup")}
+                  >
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="car">Passenger car</SelectItem>
+                      <SelectItem value="pickup">
+                        Commercial pickup (single cab)
                       </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                    </SelectContent>
+                  </Select>
+                </div>
               </div>
-              <div className="space-y-1.5">
-                <Label className="text-xs font-medium text-zinc-600">
-                  Import VAT basis
-                </Label>
-                <Select
-                  value={vatBasis}
-                  onValueChange={(v) => setVatBasis(v as VatBasis)}
-                >
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {Object.entries(VAT_LABELS).map(([k, label]) => (
-                      <SelectItem key={k} value={k}>
-                        {label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+
+              {FTA_COUNTRIES.includes(country) ? (
+                <div className="space-y-1.5">
+                  <Label className="text-xs font-medium text-zinc-600">
+                    Statement of origin from exporter?
+                  </Label>
+                  <Select
+                    value={hasOriginStatement ? "yes" : "no"}
+                    onValueChange={(v) => setHasOriginStatement(v === "yes")}
+                  >
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="no">No / not sure</SelectItem>
+                      <SelectItem value="yes">Yes — held</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <p className="text-[11px] text-zinc-400">
+                    Required for the 0% preferential rate; often hard to obtain
+                    for a used re-export.
+                  </p>
+                </div>
+              ) : null}
+
+              {/* Resolved treatment (derived from the answers above) */}
+              <div className="rounded-lg border border-zinc-200 bg-zinc-50 p-3 space-y-2">
+                <div className="flex items-center justify-between">
+                  <span className="text-sm text-zinc-600">Customs duty</span>
+                  <span className="text-sm font-bold text-zinc-900">
+                    {fmtPct(result.dutyRate)}
+                  </span>
+                </div>
+                <p className="text-[11px] text-zinc-500 -mt-1">
+                  {treatment.dutyReason}
+                </p>
+                <div className="flex items-center justify-between border-t border-zinc-200 pt-2">
+                  <span className="text-sm text-zinc-600">Import VAT</span>
+                  <span className="text-sm font-bold text-zinc-900">
+                    {fmtPct(result.vatEffectiveRate)}
+                  </span>
+                </div>
+                <p className="text-[11px] text-zinc-500 -mt-1">
+                  {treatment.vatReason}
+                </p>
+                {treatment.isHistoric ? (
+                  <p className="text-[11px] text-amber-700">
+                    Auto-detected historic (30+ yrs from the Year). Confirm
+                    original condition with HMRC.
+                  </p>
+                ) : null}
               </div>
             </CardContent>
           </Card>
