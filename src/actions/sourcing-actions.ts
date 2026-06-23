@@ -1,0 +1,612 @@
+"use server";
+
+import { headers } from "next/headers";
+import {
+  computeMarketStats,
+  type MarketStats,
+  type NormalizedListing,
+} from "@/lib/market-stats";
+import connectToDatabase from "@/lib/mongoose";
+import { cleanListings, dedupeListings } from "@/lib/scrapers/clean";
+import { scrapeAutoTrader, scrapePistonHeads } from "@/lib/scrapers/client";
+import {
+  type MatchStrictness,
+  type MatchTarget,
+  selectMatches,
+} from "@/lib/scrapers/matching";
+import SourcingAnalysis from "@/models/SourcingAnalysis";
+import { auth } from "@/utils/auth";
+
+// Server actions for the admin Sourcing & Profit tool: live FX (JPY→GBP) for
+// the landed-cost engine, Gemini auction-sheet extraction, multi-source market
+// ingestion (AutoTrader + PistonHeads), the Gemini buy/avoid verdict, and
+// persistence of saved runs.
+
+// gemini-2.0-flash returns a zero free-tier quota on the current key, but
+// gemini-2.5-flash is available and is multimodal — used for auction-sheet OCR,
+// JP→EN translation and structured extraction in a single call.
+const GEMINI_MODEL = "gemini-2.5-flash";
+
+export interface GbpFxRates {
+  // GBP per 1 unit of the currency (e.g. rates.JPY = GBP per 1 JPY).
+  rates: Record<string, number>;
+  date: string | null; // ECB reference date (YYYY-MM-DD), or null on fallback
+  source: "ecb" | "fallback";
+}
+
+// Currencies we accept on the auction-cost side. JPY is the primary one.
+export const SOURCING_CURRENCIES = ["JPY", "USD", "EUR"] as const;
+
+// Indicative GBP-per-unit fallbacks, used before live rates load or if the feed
+// is unavailable so the calculator always has usable numbers.
+export const FALLBACK_GBP_RATES: Record<string, number> = {
+  GBP: 1,
+  JPY: 0.0053,
+  USD: 0.79,
+  EUR: 0.85,
+};
+
+// Live rates via Frankfurter (ECB daily reference rates, no key, free). Cached
+// 24h so all callers share ~one upstream call per day. HMRC's official customs
+// figure uses its published *monthly* rate — this live spot is indicative and
+// the operator can override it per run.
+export async function getGbpFxRates(): Promise<GbpFxRates> {
+  const symbols = SOURCING_CURRENCIES.join(",");
+  try {
+    const res = await fetch(
+      `https://api.frankfurter.dev/v1/latest?base=GBP&symbols=${symbols}`,
+      { next: { revalidate: 86400 } },
+    );
+    if (!res.ok) throw new Error(`Frankfurter responded ${res.status}`);
+
+    const json = (await res.json()) as {
+      date?: string;
+      rates?: Record<string, number>;
+    };
+    if (!json.rates) throw new Error("Malformed FX response: no rates");
+
+    // Frankfurter quotes units-per-GBP; the calculator wants GBP-per-unit, so
+    // invert each rate. GBP is the base and always maps to 1.
+    const rates: Record<string, number> = { GBP: 1 };
+    for (const code of SOURCING_CURRENCIES) {
+      const unitsPerGbp = json.rates[code];
+      rates[code] =
+        typeof unitsPerGbp === "number" && unitsPerGbp > 0
+          ? 1 / unitsPerGbp
+          : FALLBACK_GBP_RATES[code];
+    }
+
+    return { rates, date: json.date ?? null, source: "ecb" };
+  } catch (error: unknown) {
+    console.error("GBP FX fetch failed, using fallback:", error);
+    return {
+      rates: { ...FALLBACK_GBP_RATES },
+      date: null,
+      source: "fallback",
+    };
+  }
+}
+
+// ─── Auction-sheet extraction (Gemini multimodal) ────────────────────────────
+
+// Structured fields lifted from a Japanese auction sheet. Any field Gemini
+// cannot read comes back null so the operator can fill it manually.
+export interface AuctionSheetExtract {
+  make: string | null;
+  model: string | null;
+  trimGrade: string | null; // model variant/grade (e.g. "LX570")
+  chassisCode: string | null; // e.g. "DBA-URJ201W"
+  year: number | null; // western year (Japanese era converted)
+  registrationDate: string | null; // human label, e.g. "Dec 2016 (Heisei 28)"
+  mileageKm: number | null;
+  mileageMiles: number | null;
+  displacementCc: number | null;
+  fuel: string | null;
+  drivetrain: string | null; // e.g. "4WD"
+  transmission: string | null;
+  seats: number | null;
+  exteriorColour: string | null;
+  auctionGrade: string | null; // overall condition score (e.g. "5")
+  interiorGrade: string | null; // interior letter grade (e.g. "A")
+  features: string[]; // notable equipment, translated
+  conditionNotes: string | null; // inspector remarks, translated
+}
+
+const EXTRACTION_PROMPT = `You are reading a Japanese used-car auction inspection sheet (USS / JAA / TAA style).
+Extract the vehicle's details and return them as JSON matching the provided schema.
+
+Rules:
+- Translate all Japanese text to English.
+- Convert the Japanese-era first-registration date to a Western year (e.g. H28/12 = Heisei 28 = December 2016; R6 = Reiwa 6 = 2024). Put the Western year in "year" and a human label in "registrationDate".
+- "mileageKm" is the odometer reading (走行) in kilometres. Also compute "mileageMiles" = round(mileageKm * 0.621371).
+- "auctionGrade" is the overall condition score (評価点, e.g. 4, 4.5, 5, R, RA). "interiorGrade" is the interior letter (内装, A/B/C/D).
+- "features" = notable equipment / sales points (装備, セールスポイント), each a short English phrase. Do not invent items not on the sheet.
+- "conditionNotes" = inspector remarks / damage notes (検査員報告), translated.
+- Use null for any field you cannot read with confidence. Never guess prices.`;
+
+// Gemini responseSchema (OpenAPI subset) for reliable structured output.
+const EXTRACTION_SCHEMA = {
+  type: "object",
+  properties: {
+    make: { type: "string", nullable: true },
+    model: { type: "string", nullable: true },
+    trimGrade: { type: "string", nullable: true },
+    chassisCode: { type: "string", nullable: true },
+    year: { type: "integer", nullable: true },
+    registrationDate: { type: "string", nullable: true },
+    mileageKm: { type: "integer", nullable: true },
+    mileageMiles: { type: "integer", nullable: true },
+    displacementCc: { type: "integer", nullable: true },
+    fuel: { type: "string", nullable: true },
+    drivetrain: { type: "string", nullable: true },
+    transmission: { type: "string", nullable: true },
+    seats: { type: "integer", nullable: true },
+    exteriorColour: { type: "string", nullable: true },
+    auctionGrade: { type: "string", nullable: true },
+    interiorGrade: { type: "string", nullable: true },
+    features: { type: "array", items: { type: "string" } },
+    conditionNotes: { type: "string", nullable: true },
+  },
+} as const;
+
+export type ExtractResult =
+  | { success: true; data: AuctionSheetExtract }
+  | { success: false; message: string };
+
+// Send an uploaded auction sheet (image or PDF, base64) to Gemini and return the
+// parsed vehicle details. The data never includes a price — operators enter the
+// auction cost themselves.
+export async function extractAuctionSheet(input: {
+  dataBase64: string;
+  mimeType: string;
+}): Promise<ExtractResult> {
+  const key = process.env.GEMINI_API_KEY;
+  if (!key) {
+    return { success: false, message: "GEMINI_API_KEY is not configured." };
+  }
+
+  try {
+    const res = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${key}`,
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          contents: [
+            {
+              parts: [
+                { text: EXTRACTION_PROMPT },
+                {
+                  inlineData: {
+                    mimeType: input.mimeType,
+                    data: input.dataBase64,
+                  },
+                },
+              ],
+            },
+          ],
+          generationConfig: {
+            temperature: 0,
+            responseMimeType: "application/json",
+            responseSchema: EXTRACTION_SCHEMA,
+          },
+        }),
+        // Don't cache — every sheet is different.
+        cache: "no-store",
+      },
+    );
+
+    if (!res.ok) {
+      const body = await res.text();
+      console.error("Gemini extraction failed:", res.status, body);
+      return {
+        success: false,
+        message: `Gemini error ${res.status}. Check the API key/quota, or enter details manually.`,
+      };
+    }
+
+    const json = (await res.json()) as {
+      candidates?: { content?: { parts?: { text?: string }[] } }[];
+    };
+    const text = json.candidates?.[0]?.content?.parts?.[0]?.text;
+    if (!text) {
+      return {
+        success: false,
+        message: "Gemini returned no content. Try again or enter manually.",
+      };
+    }
+
+    const parsed = JSON.parse(text) as AuctionSheetExtract;
+
+    // Backstop the km→miles conversion if the model omitted it.
+    if (
+      parsed.mileageMiles == null &&
+      typeof parsed.mileageKm === "number" &&
+      parsed.mileageKm > 0
+    ) {
+      parsed.mileageMiles = Math.round(parsed.mileageKm * 0.621371);
+    }
+    if (!Array.isArray(parsed.features)) parsed.features = [];
+
+    return { success: true, data: parsed };
+  } catch (error: unknown) {
+    console.error("Auction-sheet extraction error:", error);
+    return {
+      success: false,
+      message:
+        error instanceof Error
+          ? error.message
+          : "Failed to read the auction sheet.",
+    };
+  }
+}
+
+// ─── Market analysis (Phase 2 orchestration) ─────────────────────────────────
+
+export interface MarketAnalysisInput {
+  make: string;
+  model: string;
+  trimKeywords: string[]; // e.g. ["turbo"] — narrows to the exact derivative
+  year: number | null;
+  mileage: number | null; // miles
+  strictness?: MatchStrictness; // default "tight"
+  postcode?: string;
+}
+
+export interface MarketAnalysis {
+  stats: MarketStats;
+  listings: NormalizedListing[];
+  matchUsed: MatchStrictness;
+  widened: boolean; // true if auto-widened past the requested strictness
+  totalScraped: number;
+  totalAfterClean: number;
+  sources: string[];
+}
+
+export type MarketAnalysisResult =
+  | { success: true; data: MarketAnalysis }
+  | { success: false; message: string };
+
+// Orchestrates the market side: scrape the live sources, clean + dedupe, match
+// to the target variant (auto-widening when supply is thin), then compute the
+// deterministic price statistics. Numbers never come from an LLM. AutoTrader is
+// wired now; CarGurus and PistonHeads slot in as their adapters are validated.
+export async function analyzeMarket(
+  input: MarketAnalysisInput,
+): Promise<MarketAnalysisResult> {
+  try {
+    // Constrain the scrape to ±3 years of the target to lift comparable density.
+    const yearFrom = input.year ? input.year - 3 : undefined;
+    const yearTo = input.year ? input.year + 3 : undefined;
+
+    // Scrape every source in parallel and tolerate a single source failing —
+    // one blocked scraper shouldn't sink the whole analysis.
+    const [atRes, phRes] = await Promise.allSettled([
+      scrapeAutoTrader({
+        make: input.make,
+        model: input.model,
+        postcode: input.postcode,
+        yearFrom,
+        yearTo,
+      }),
+      scrapePistonHeads({
+        make: input.make,
+        model: input.model,
+        yearFrom,
+        yearTo,
+      }),
+    ]);
+
+    const sources: string[] = [];
+    let scraped: NormalizedListing[] = [];
+    if (atRes.status === "fulfilled") {
+      scraped = scraped.concat(atRes.value);
+      sources.push("autotrader");
+    } else {
+      console.error("AutoTrader scrape failed:", atRes.reason);
+    }
+    if (phRes.status === "fulfilled") {
+      scraped = scraped.concat(phRes.value);
+      sources.push("pistonheads");
+    } else {
+      console.error("PistonHeads scrape failed:", phRes.reason);
+    }
+    if (sources.length === 0) {
+      return { success: false, message: "All market sources failed." };
+    }
+    const totalScraped = scraped.length;
+
+    const cleaned = dedupeListings(cleanListings(scraped));
+
+    const target: MatchTarget = {
+      trimKeywords: input.trimKeywords.map((k) => k.toLowerCase()),
+      year: input.year,
+      mileage: input.mileage,
+    };
+    const match = selectMatches(
+      cleaned,
+      target,
+      input.strictness ?? "tight",
+      5,
+    );
+
+    const stats = computeMarketStats(match.listings.map((l) => l.price ?? 0));
+
+    return {
+      success: true,
+      data: {
+        stats,
+        listings: match.listings,
+        matchUsed: match.strictnessUsed,
+        widened: match.widened,
+        totalScraped,
+        totalAfterClean: cleaned.length,
+        sources,
+      },
+    };
+  } catch (error: unknown) {
+    console.error("Market analysis error:", error);
+    return {
+      success: false,
+      message:
+        error instanceof Error ? error.message : "Market analysis failed.",
+    };
+  }
+}
+
+// ─── Buy/avoid verdict (Gemini narrates deterministic numbers) ───────────────
+
+export interface VerdictInput {
+  vehicle: {
+    make: string;
+    model: string;
+    edition: string;
+    year: string;
+    mileage: string;
+  };
+  landedCostGbp: number;
+  stats: MarketStats;
+  matchUsed: MatchStrictness;
+  widened: boolean;
+}
+
+export interface Verdict {
+  recommendation: "source" | "marginal" | "avoid";
+  headline: string;
+  reasoning: string;
+  confidence: "high" | "medium" | "low";
+  // Deterministic figures computed in code (not by the model).
+  grossMargin: number; // median market price − landed cost (GBP)
+  marginPct: number; // grossMargin / landed cost
+}
+
+export type VerdictResult =
+  | { success: true; data: Verdict }
+  | { success: false; message: string };
+
+const VERDICT_SCHEMA = {
+  type: "object",
+  properties: {
+    recommendation: { type: "string", enum: ["source", "marginal", "avoid"] },
+    headline: { type: "string" },
+    reasoning: { type: "string" },
+    confidence: { type: "string", enum: ["high", "medium", "low"] },
+  },
+  required: ["recommendation", "headline", "reasoning", "confidence"],
+} as const;
+
+// Compare the landed cost against the live market and produce a sourcing verdict.
+// The margin maths is computed here; Gemini only weighs the factors and writes
+// the recommendation + prose. Numbers are never invented by the model.
+export async function getVerdict(input: VerdictInput): Promise<VerdictResult> {
+  const key = process.env.GEMINI_API_KEY;
+  if (!key) {
+    return { success: false, message: "GEMINI_API_KEY is not configured." };
+  }
+
+  const { stats, landedCostGbp } = input;
+  const grossMargin = stats.median - landedCostGbp;
+  const marginPct = landedCostGbp > 0 ? grossMargin / landedCostGbp : 0;
+
+  const facts = [
+    `Vehicle: ${input.vehicle.year} ${input.vehicle.make} ${input.vehicle.model} ${input.vehicle.edition}, ${input.vehicle.mileage} miles.`,
+    `Total UK landed cost (already includes duty, VAT, shipping and fees): £${Math.round(landedCostGbp).toLocaleString()}.`,
+    `Live UK market for comparable cars (${stats.count} listings${input.widened ? `, match auto-widened to "${input.matchUsed}" — fewer exact comparables, so lower confidence` : ""}):`,
+    `  median £${Math.round(stats.median).toLocaleString()}, mean £${Math.round(stats.mean).toLocaleString()}, range £${Math.round(stats.min).toLocaleString()}–£${Math.round(stats.max).toLocaleString()}, interquartile £${Math.round(stats.p25).toLocaleString()}–£${Math.round(stats.p75).toLocaleString()}.`,
+    `Gross margin at median resale = £${Math.round(grossMargin).toLocaleString()} (${(marginPct * 100).toFixed(1)}% of landed cost).`,
+    `Listing supply (${stats.count}) is a rough liquidity signal: very few listings = thin/illiquid; many = easy to sell but more competition.`,
+  ].join("\n");
+
+  const prompt = `You are a used-car import sourcing analyst for a UK dealer. Based ONLY on the figures below, decide whether this car is worth sourcing from a Japanese auction.
+
+${facts}
+
+Guidance:
+- "source" = clearly worth buying (healthy margin with reasonable confidence).
+- "marginal" = thin margin, low supply, low confidence, or widened match — proceed with caution.
+- "avoid" = margin too thin or negative once you account for reconditioning, selling time and price negotiation.
+- Be realistic: dealers rarely achieve the full median; allow headroom for haggling and prep.
+- Keep "headline" under 12 words. Keep "reasoning" to 2-4 sentences, concrete and numbers-led. Do not restate every figure.`;
+
+  try {
+    const res = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${key}`,
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          contents: [{ parts: [{ text: prompt }] }],
+          generationConfig: {
+            temperature: 0.2,
+            responseMimeType: "application/json",
+            responseSchema: VERDICT_SCHEMA,
+          },
+        }),
+        cache: "no-store",
+      },
+    );
+
+    if (!res.ok) {
+      const body = await res.text();
+      console.error("Verdict generation failed:", res.status, body);
+      return {
+        success: false,
+        message: `Gemini error ${res.status}. The figures are still shown above.`,
+      };
+    }
+
+    const json = (await res.json()) as {
+      candidates?: { content?: { parts?: { text?: string }[] } }[];
+    };
+    const text = json.candidates?.[0]?.content?.parts?.[0]?.text;
+    if (!text) {
+      return { success: false, message: "Gemini returned no verdict content." };
+    }
+
+    const parsed = JSON.parse(text) as Omit<
+      Verdict,
+      "grossMargin" | "marginPct"
+    >;
+    // Guardrail: a widened match means fewer exact comparables, so never let the
+    // narrative claim "high" confidence — cap it at medium.
+    const confidence =
+      input.widened && parsed.confidence === "high"
+        ? "medium"
+        : parsed.confidence;
+    return {
+      success: true,
+      data: { ...parsed, confidence, grossMargin, marginPct },
+    };
+  } catch (error: unknown) {
+    console.error("Verdict error:", error);
+    return {
+      success: false,
+      message:
+        error instanceof Error ? error.message : "Failed to generate verdict.",
+    };
+  }
+}
+
+// ─── Persistence (save runs + history) ───────────────────────────────────────
+
+export interface SavedAnalysis {
+  id: string;
+  make: string;
+  vehicleModel: string;
+  edition?: string;
+  year?: number;
+  mileage?: number;
+  landedCostGbp: number;
+  marketMedian?: number;
+  listingCount: number;
+  sources: string[];
+  widened: boolean;
+  recommendation: "source" | "marginal" | "avoid";
+  headline?: string;
+  grossMargin?: number;
+  marginPct?: number;
+  createdByName?: string;
+  createdAt: string;
+}
+
+export interface SaveAnalysisInput {
+  make: string;
+  model: string;
+  edition?: string;
+  year?: number;
+  mileage?: number;
+  landedCostGbp: number;
+  currency: string;
+  dutyBasis: string;
+  vatBasis: string;
+  market: MarketAnalysis;
+  verdict: Verdict;
+}
+
+// Persist a completed analysis, stamping the current user from the session.
+export async function saveSourcingAnalysis(
+  input: SaveAnalysisInput,
+): Promise<
+  { success: true; id: string } | { success: false; message: string }
+> {
+  try {
+    const session = await auth.api.getSession({ headers: await headers() });
+    if (!session) return { success: false, message: "Not authenticated." };
+
+    await connectToDatabase();
+    const doc = await SourcingAnalysis.create({
+      make: input.make,
+      vehicleModel: input.model,
+      edition: input.edition,
+      year: input.year,
+      mileage: input.mileage,
+      landedCostGbp: input.landedCostGbp,
+      currency: input.currency,
+      dutyBasis: input.dutyBasis,
+      vatBasis: input.vatBasis,
+      sources: input.market.sources,
+      listingCount: input.market.stats.count,
+      matchUsed: input.market.matchUsed,
+      widened: input.market.widened,
+      marketMin: input.market.stats.min,
+      marketMedian: input.market.stats.median,
+      marketMean: input.market.stats.mean,
+      marketMax: input.market.stats.max,
+      recommendation: input.verdict.recommendation,
+      headline: input.verdict.headline,
+      reasoning: input.verdict.reasoning,
+      confidence: input.verdict.confidence,
+      grossMargin: input.verdict.grossMargin,
+      marginPct: input.verdict.marginPct,
+      createdById: session.user.id,
+      createdByName: session.user.name,
+    });
+    return { success: true, id: String(doc._id) };
+  } catch (error: unknown) {
+    console.error("Save analysis error:", error);
+    return {
+      success: false,
+      message: error instanceof Error ? error.message : "Failed to save.",
+    };
+  }
+}
+
+// biome-ignore lint/suspicious/noExplicitAny: lean() returns loosely-typed docs
+function toSaved(d: any): SavedAnalysis {
+  return {
+    id: String(d._id),
+    make: d.make,
+    vehicleModel: d.vehicleModel,
+    edition: d.edition,
+    year: d.year,
+    mileage: d.mileage,
+    landedCostGbp: d.landedCostGbp,
+    marketMedian: d.marketMedian,
+    listingCount: d.listingCount,
+    sources: d.sources ?? [],
+    widened: d.widened,
+    recommendation: d.recommendation,
+    headline: d.headline,
+    grossMargin: d.grossMargin,
+    marginPct: d.marginPct,
+    createdByName: d.createdByName,
+    createdAt: (d.createdAt as Date).toISOString(),
+  };
+}
+
+// Most recent saved analyses, newest first.
+export async function getRecentSourcingAnalyses(
+  limit = 10,
+): Promise<SavedAnalysis[]> {
+  try {
+    await connectToDatabase();
+    const docs = await SourcingAnalysis.find()
+      .sort({ createdAt: -1 })
+      .limit(limit)
+      .lean();
+    return docs.map(toSaved);
+  } catch (error: unknown) {
+    console.error("Fetch analyses error:", error);
+    return [];
+  }
+}
