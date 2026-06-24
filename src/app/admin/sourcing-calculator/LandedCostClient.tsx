@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import {
   Bar,
   BarChart,
@@ -11,6 +11,7 @@ import {
   XAxis,
   YAxis,
 } from "recharts";
+import { toast } from "sonner";
 import {
   type AuctionSheetExtract,
   analyzeMarket,
@@ -176,6 +177,7 @@ export default function LandedCostClient({ fx }: { fx: GbpFxRates }) {
       });
       if (!res.success) {
         setExtractError(res.message);
+        toast.error("Extraction failed", { description: res.message });
         return;
       }
       const d = res.data;
@@ -186,10 +188,17 @@ export default function LandedCostClient({ fx }: { fx: GbpFxRates }) {
       if (d.trimGrade) setEdition(d.trimGrade);
       if (d.year) setYear(String(d.year));
       if (d.mileageMiles) setMileage(String(d.mileageMiles));
+      const filled = [d.make, d.model, d.year, d.mileageMiles].filter(
+        Boolean,
+      ).length;
+      toast.success("Auction sheet translated", {
+        description: `${filled} key field${filled === 1 ? "" : "s"} filled — review the details below.`,
+      });
     } catch (err) {
-      setExtractError(
-        err instanceof Error ? err.message : "Could not read the file.",
-      );
+      const msg =
+        err instanceof Error ? err.message : "Could not read the file.";
+      setExtractError(msg);
+      toast.error("Couldn't read the auction sheet", { description: msg });
     } finally {
       setExtracting(false);
     }
@@ -292,6 +301,36 @@ export default function LandedCostClient({ fx }: { fx: GbpFxRates }) {
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
   const [pdfBusy, setPdfBusy] = useState(false);
+
+  // Auto-scroll to the results once an analysis lands.
+  const marketRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (market) {
+      marketRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+  }, [market]);
+
+  // Group the analysed listings into the same price buckets as the histogram,
+  // so the operator can see exactly which cars sit in each band (with links).
+  const listingsByBucket = useMemo(() => {
+    if (!market) return [];
+    const buckets = market.stats.histogram;
+    return buckets
+      .map((b, i) => {
+        const isLast = i === buckets.length - 1;
+        const listings = market.listings
+          .filter(
+            (l) =>
+              l.price != null &&
+              (isLast
+                ? l.price >= b.from && l.price <= b.to
+                : l.price >= b.from && l.price < b.to),
+          )
+          .sort((a, c) => (a.price ?? 0) - (c.price ?? 0));
+        return { ...b, listings };
+      })
+      .filter((b) => b.listings.length > 0);
+  }, [market]);
 
   async function downloadPdf() {
     if (!market || !verdict) return;
@@ -400,9 +439,13 @@ export default function LandedCostClient({ fx }: { fx: GbpFxRates }) {
       });
       if (!res.success) {
         setMarketError(res.message);
+        toast.error("Market analysis failed", { description: res.message });
         return;
       }
       setMarket(res.data);
+      toast.success("Market analysed", {
+        description: `${res.data.stats.count} comparable listings from ${res.data.sources.join(", ")}.`,
+      });
 
       // Hand the finished numbers to Gemini for the buy/avoid verdict.
       const v = await getVerdict({
@@ -412,12 +455,20 @@ export default function LandedCostClient({ fx }: { fx: GbpFxRates }) {
         matchUsed: res.data.matchUsed,
         widened: res.data.widened,
       });
-      if (v.success) setVerdict(v.data);
-      else setMarketError(v.message);
+      if (v.success) {
+        setVerdict(v.data);
+        toast.success("Verdict ready", {
+          description: VERDICT_STYLE[v.data.recommendation].label,
+        });
+      } else {
+        setMarketError(v.message);
+        toast.error("Verdict unavailable", { description: v.message });
+      }
     } catch (err) {
-      setMarketError(
-        err instanceof Error ? err.message : "Market analysis failed.",
-      );
+      const msg =
+        err instanceof Error ? err.message : "Market analysis failed.";
+      setMarketError(msg);
+      toast.error("Market analysis failed", { description: msg });
     } finally {
       setAnalyzing(false);
     }
@@ -842,7 +893,7 @@ export default function LandedCostClient({ fx }: { fx: GbpFxRates }) {
 
       {/* ── Market analysis & verdict ───────────────────────────────────────── */}
       {market ? (
-        <Card>
+        <Card ref={marketRef} className="scroll-mt-6">
           <CardHeader>
             <div className="flex flex-wrap items-center justify-between gap-2">
               <CardTitle className="text-base">UK market & verdict</CardTitle>
@@ -860,6 +911,16 @@ export default function LandedCostClient({ fx }: { fx: GbpFxRates }) {
                 ) : null}
               </div>
             </div>
+            {/* Data provenance — full transparency on how the figures were built */}
+            <p className="text-[11px] text-zinc-400 mt-1">
+              {market.totalScraped} listings scraped → {market.totalAfterClean}{" "}
+              after cleaning → {market.stats.count} comparable
+              {market.stats.trimmedOutliers > 0
+                ? ` · ${market.stats.trimmedOutliers} price outlier${market.stats.trimmedOutliers === 1 ? "" : "s"} excluded`
+                : ""}
+              {" · "}interquartile {fmtGBP(market.stats.p25)}–
+              {fmtGBP(market.stats.p75)}
+            </p>
           </CardHeader>
           <CardContent className="space-y-6">
             {/* Stat tiles */}
@@ -924,6 +985,79 @@ export default function LandedCostClient({ fx }: { fx: GbpFxRates }) {
                   Price distribution of comparable UK listings · blue = where
                   your landed cost sits
                 </p>
+              </div>
+            ) : null}
+
+            {/* Listings analysed — grouped by price band, with links */}
+            {listingsByBucket.length > 0 ? (
+              <div>
+                <p className="text-[11px] uppercase tracking-wide text-zinc-400 mb-2">
+                  Listings analysed ({market.stats.count})
+                </p>
+                <div className="space-y-3">
+                  {listingsByBucket.map((bucket) => (
+                    <div
+                      key={bucket.label}
+                      className="rounded-lg border border-zinc-200 overflow-hidden"
+                    >
+                      <div className="flex items-center justify-between bg-zinc-50 px-3 py-1.5 border-b border-zinc-100">
+                        <span className="text-xs font-semibold text-zinc-700">
+                          {bucket.label}
+                        </span>
+                        <span className="text-[11px] text-zinc-400">
+                          {bucket.listings.length} car
+                          {bucket.listings.length === 1 ? "" : "s"}
+                        </span>
+                      </div>
+                      <ul className="divide-y divide-zinc-50">
+                        {bucket.listings.map((l, idx) => {
+                          const meta = [
+                            l.year,
+                            l.mileage
+                              ? `${l.mileage.toLocaleString()} mi`
+                              : null,
+                            l.trim,
+                          ]
+                            .filter(Boolean)
+                            .join(" · ");
+                          return (
+                            <li
+                              key={l.url ?? `${bucket.label}-${idx}`}
+                              className="flex items-center justify-between gap-3 px-3 py-2 text-sm"
+                            >
+                              <div className="min-w-0">
+                                <span className="font-semibold text-zinc-900 tabular-nums">
+                                  {l.price != null ? fmtGBP(l.price) : "—"}
+                                </span>
+                                <span className="text-zinc-500 ml-2 truncate">
+                                  {meta}
+                                </span>
+                              </div>
+                              <div className="flex items-center gap-2 shrink-0">
+                                <Badge
+                                  variant="secondary"
+                                  className="text-[10px]"
+                                >
+                                  {l.source}
+                                </Badge>
+                                {l.url ? (
+                                  <a
+                                    href={l.url}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="text-[11px] font-medium text-sky-600 hover:underline"
+                                  >
+                                    View ↗
+                                  </a>
+                                ) : null}
+                              </div>
+                            </li>
+                          );
+                        })}
+                      </ul>
+                    </div>
+                  ))}
+                </div>
               </div>
             ) : null}
 
