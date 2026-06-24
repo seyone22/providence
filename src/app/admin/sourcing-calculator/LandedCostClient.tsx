@@ -36,6 +36,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
+import { computeMarketStats, type NormalizedListing } from "@/lib/market-stats";
 import {
   computeLandedCost,
   DUTY_LABELS,
@@ -45,8 +46,12 @@ import {
   ORIGIN_COUNTRY_LABELS,
   type OriginCountry,
   POST_BORDER_DEFAULTS,
+  postBorderForAge,
   resolveTaxTreatment,
 } from "@/lib/uk-landed-cost";
+
+// Fuel types offered for the vehicle.
+const FUEL_TYPES = ["Petrol", "Diesel", "Hybrid", "Electric"] as const;
 
 // Verdict → colour + label styling.
 const VERDICT_STYLE: Record<
@@ -158,6 +163,7 @@ export default function LandedCostClient({ fx }: { fx: GbpFxRates }) {
   const [edition, setEdition] = useState("");
   const [year, setYear] = useState("");
   const [mileage, setMileage] = useState("");
+  const [fuel, setFuel] = useState<(typeof FUEL_TYPES)[number]>("Petrol");
 
   // ── Auction-sheet upload / extraction state ─────────────────────────────────
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -193,6 +199,12 @@ export default function LandedCostClient({ fx }: { fx: GbpFxRates }) {
       if (d.trimGrade) setEdition(d.trimGrade);
       if (d.year) setYear(String(d.year));
       if (d.mileageMiles) setMileage(String(d.mileageMiles));
+      if (d.fuel) {
+        const f = d.fuel.toLowerCase();
+        const matched = FUEL_TYPES.find((t) => f.includes(t.toLowerCase()));
+        // Gemini returns "Gasoline" for petrol — map it.
+        setFuel(matched ?? (f.includes("gasolin") ? "Petrol" : "Petrol"));
+      }
       setExtractTokens(res.tokens);
       setAiModel(res.model);
       const filled = [d.make, d.model, d.year, d.mileageMiles].filter(
@@ -216,16 +228,19 @@ export default function LandedCostClient({ fx }: { fx: GbpFxRates }) {
   const [hammerPrice, setHammerPrice] = useState("");
   const [auctionExportFees, setAuctionExportFees] = useState("");
   const [inlandTransportOrigin, setInlandTransportOrigin] = useState("");
-  const [oceanFreight, setOceanFreight] = useState("");
+  // Default freight: 260,000 JPY for a 3-car container (editable per shipment).
+  const [oceanFreight, setOceanFreight] = useState("260000");
   const [marineInsurance, setMarineInsurance] = useState("");
 
-  // FX — prefilled from live rate, editable (HMRC monthly is the official basis).
-  const liveRate = fx.rates[currency] ?? 0;
-  const [fxRate, setFxRate] = useState(String(liveRate));
+  // FX — displayed and entered as units-per-GBP (e.g. JPY per GBP), the intuitive
+  // direction; converted to GBP-per-unit for the engine. Prefilled from the live
+  // rate (which is GBP-per-unit, so inverted here).
+  const liveUnitsPerGbp = fx.rates[currency] ? 1 / fx.rates[currency] : 0;
+  const [fxRate, setFxRate] = useState(liveUnitsPerGbp.toFixed(2));
 
   // ── Tax treatment (salesperson-friendly inputs → duty/VAT derived) ──────────
   const [country, setCountry] = useState<OriginCountry>("japan");
-  const [hasOriginStatement, setHasOriginStatement] = useState(false); // conservative
+  const [hasOriginStatement, setHasOriginStatement] = useState(true); // default Yes
   const [isCommercialPickup, setIsCommercialPickup] = useState(false);
 
   const vehicleAgeYears = year
@@ -260,6 +275,22 @@ export default function LandedCostClient({ fx }: { fx: GbpFxRates }) {
   const [ukInlandTransport, setUkTransport] = useState(
     String(POST_BORDER_DEFAULTS.ukInlandTransport),
   );
+  // Default post-border is the age-based figure; the operator can switch to the
+  // itemised breakdown to override.
+  const [postBorderDetailed, setPostBorderDetailed] = useState(false);
+
+  const detailedPostBorder =
+    num(dvlaRegistration) +
+    num(numberPlates) +
+    num(approvalTest) +
+    num(ivaModifications) +
+    num(ukInlandTransport);
+  const postBorderTotal = postBorderDetailed
+    ? detailedPostBorder
+    : postBorderForAge(vehicleAgeYears);
+
+  // GBP per 1 unit of currency, from the JPY-per-GBP the operator enters.
+  const fxGbpPerUnit = num(fxRate) > 0 ? 1 / num(fxRate) : 0;
 
   const result = useMemo(
     () =>
@@ -270,14 +301,10 @@ export default function LandedCostClient({ fx }: { fx: GbpFxRates }) {
         inlandTransportOrigin: num(inlandTransportOrigin),
         oceanFreight: num(oceanFreight),
         marineInsurance: num(marineInsurance),
-        fxRate: num(fxRate),
+        fxRate: fxGbpPerUnit,
         dutyBasis,
         vatBasis,
-        dvlaRegistration: num(dvlaRegistration),
-        numberPlates: num(numberPlates),
-        approvalTest: num(approvalTest),
-        ivaModifications: num(ivaModifications),
-        ukInlandTransport: num(ukInlandTransport),
+        postBorderTotal,
       }),
     [
       currency,
@@ -286,14 +313,10 @@ export default function LandedCostClient({ fx }: { fx: GbpFxRates }) {
       inlandTransportOrigin,
       oceanFreight,
       marineInsurance,
-      fxRate,
+      fxGbpPerUnit,
       dutyBasis,
       vatBasis,
-      dvlaRegistration,
-      numberPlates,
-      approvalTest,
-      ivaModifications,
-      ukInlandTransport,
+      postBorderTotal,
     ],
   );
 
@@ -309,6 +332,23 @@ export default function LandedCostClient({ fx }: { fx: GbpFxRates }) {
   const [saved, setSaved] = useState(false);
   const [pdfBusy, setPdfBusy] = useState(false);
 
+  // Operator-configurable match tolerances (defaults ±1 year, ±20% mileage).
+  const [yearBand, setYearBand] = useState("1");
+  const [mileagePctInput, setMileagePctInput] = useState("20");
+
+  // The comparable listings, held in editable state so the operator can drop a
+  // car that doesn't fit — all stats below recompute from this live set.
+  const [editableListings, setEditableListings] = useState<NormalizedListing[]>(
+    [],
+  );
+
+  // Stats recomputed client-side from the (possibly edited) listing set, so the
+  // figures always match what's shown. computeMarketStats is a pure function.
+  const liveStats = useMemo(
+    () => computeMarketStats(editableListings.map((l) => l.price ?? 0)),
+    [editableListings],
+  );
+
   // Auto-scroll to the results once an analysis lands.
   const marketRef = useRef<HTMLDivElement>(null);
   useEffect(() => {
@@ -317,15 +357,15 @@ export default function LandedCostClient({ fx }: { fx: GbpFxRates }) {
     }
   }, [market]);
 
-  // Group the analysed listings into the same price buckets as the histogram,
+  // Group the (live) listings into the same price buckets as the histogram,
   // so the operator can see exactly which cars sit in each band (with links).
   const listingsByBucket = useMemo(() => {
     if (!market) return [];
-    const buckets = market.stats.histogram;
+    const buckets = liveStats.histogram;
     return buckets
       .map((b, i) => {
         const isLast = i === buckets.length - 1;
-        const listings = market.listings
+        const listings = editableListings
           .filter(
             (l) =>
               l.price != null &&
@@ -337,7 +377,19 @@ export default function LandedCostClient({ fx }: { fx: GbpFxRates }) {
         return { ...b, listings };
       })
       .filter((b) => b.listings.length > 0);
-  }, [market]);
+  }, [market, liveStats, editableListings]);
+
+  // Remove a listing that doesn't fit — stats and margin recompute from the rest.
+  function removeListing(target: NormalizedListing) {
+    setEditableListings((prev) => prev.filter((l) => l !== target));
+  }
+
+  // Live margin, recomputed from the current listing set.
+  const liveMargin = liveStats.median - result.totalLanded;
+  // True once the operator has removed one or more listings from the set.
+  const listingsEdited = market
+    ? editableListings.length !== market.listings.length
+    : false;
 
   async function downloadPdf() {
     if (!market || !verdict) return;
@@ -356,18 +408,18 @@ export default function LandedCostClient({ fx }: { fx: GbpFxRates }) {
           totalLanded: result.totalLanded,
         },
         market: {
-          count: market.stats.count,
-          min: market.stats.min,
-          median: market.stats.median,
-          mean: market.stats.mean,
-          max: market.stats.max,
-          p25: market.stats.p25,
-          p75: market.stats.p75,
-          trimmedOutliers: market.stats.trimmedOutliers,
+          count: liveStats.count,
+          min: liveStats.min,
+          median: liveStats.median,
+          mean: liveStats.mean,
+          max: liveStats.max,
+          p25: liveStats.p25,
+          p75: liveStats.p75,
+          trimmedOutliers: liveStats.trimmedOutliers,
           totalScraped: market.totalScraped,
           totalAfterClean: market.totalAfterClean,
           sources: market.sources,
-          widened: market.widened,
+          widened: liveStats.count < 5,
           matchUsed: market.matchUsed,
           bands: listingsByBucket.map((b) => ({
             label: b.label,
@@ -381,7 +433,12 @@ export default function LandedCostClient({ fx }: { fx: GbpFxRates }) {
             })),
           })),
         },
-        verdict,
+        verdict: {
+          ...verdict,
+          grossMargin: liveMargin,
+          marginPct:
+            result.totalLanded > 0 ? liveMargin / result.totalLanded : 0,
+        },
         usage: {
           aiTokens: extractTokens + verdictTokens,
           aiModel,
@@ -423,8 +480,19 @@ export default function LandedCostClient({ fx }: { fx: GbpFxRates }) {
         currency,
         dutyBasis,
         vatBasis,
-        market,
-        verdict,
+        // Save the live (possibly edited) set so the stored figures match.
+        market: {
+          ...market,
+          stats: liveStats,
+          listings: editableListings,
+          widened: liveStats.count < 5,
+        },
+        verdict: {
+          ...verdict,
+          grossMargin: liveMargin,
+          marginPct:
+            result.totalLanded > 0 ? liveMargin / result.totalLanded : 0,
+        },
       });
       if (res.success) {
         setSaved(true);
@@ -463,7 +531,8 @@ export default function LandedCostClient({ fx }: { fx: GbpFxRates }) {
         trimKeywords,
         year: year ? Number.parseInt(year, 10) : null,
         mileage: mileage ? num(mileage) : null,
-        strictness: "tight",
+        yearBand: Math.max(0, Math.round(num(yearBand))),
+        mileagePct: Math.max(0, num(mileagePctInput)) / 100,
       });
       if (!res.success) {
         setMarketError(res.message);
@@ -471,6 +540,7 @@ export default function LandedCostClient({ fx }: { fx: GbpFxRates }) {
         return;
       }
       setMarket(res.data);
+      setEditableListings(res.data.listings);
       toast.success("Market analysed", {
         description: `${res.data.stats.count} comparable listings from ${res.data.sources.join(", ")}.`,
       });
@@ -621,6 +691,28 @@ export default function LandedCostClient({ fx }: { fx: GbpFxRates }) {
                     onChange={setMileage}
                   />
                 </div>
+                <div className="space-y-1.5">
+                  <Label className="text-xs font-medium text-zinc-600">
+                    Fuel type
+                  </Label>
+                  <Select
+                    value={fuel}
+                    onValueChange={(v) =>
+                      setFuel(v as (typeof FUEL_TYPES)[number])
+                    }
+                  >
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {FUEL_TYPES.map((f) => (
+                        <SelectItem key={f} value={f}>
+                          {f}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
               </div>
             </CardContent>
           </Card>
@@ -642,7 +734,7 @@ export default function LandedCostClient({ fx }: { fx: GbpFxRates }) {
                     onValueChange={(v) => {
                       const c = v as (typeof CURRENCIES)[number];
                       setCurrency(c);
-                      setFxRate(String(fx.rates[c] ?? 0));
+                      setFxRate((fx.rates[c] ? 1 / fx.rates[c] : 0).toFixed(2));
                     }}
                   >
                     <SelectTrigger>
@@ -658,7 +750,7 @@ export default function LandedCostClient({ fx }: { fx: GbpFxRates }) {
                   </Select>
                 </div>
                 <Field
-                  label={`FX rate (GBP per ${currency})`}
+                  label={`FX rate (${currency} per GBP)`}
                   value={fxRate}
                   onChange={setFxRate}
                   hint={
@@ -689,6 +781,7 @@ export default function LandedCostClient({ fx }: { fx: GbpFxRates }) {
                   label="Ocean freight to UK port"
                   value={oceanFreight}
                   onChange={setOceanFreight}
+                  hint="Default 260,000 JPY for a 3-car container — adjust per shipment"
                 />
                 <Field
                   label="Marine insurance"
@@ -813,47 +906,78 @@ export default function LandedCostClient({ fx }: { fx: GbpFxRates }) {
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="flex gap-2 rounded-lg border border-amber-200 bg-amber-50 p-3 text-[12px] text-amber-800">
-                <span aria-hidden>⚠️</span>
-                <p>
-                  These are indicative placeholder figures, not a live quote.
-                  Confirm each against your actual costs before relying on the
-                  landed-cost total — DVLA and IVA fees, plates, mods and
-                  transport vary per vehicle.
-                </p>
+              <div className="rounded-lg border border-zinc-200 bg-zinc-50 p-3">
+                <div className="flex items-center justify-between">
+                  <span className="text-sm text-zinc-600">
+                    {postBorderDetailed
+                      ? "Itemised total"
+                      : "Estimated clearance + registration"}
+                  </span>
+                  <span className="text-lg font-bold text-zinc-900">
+                    {fmtGBP(postBorderTotal)}
+                  </span>
+                </div>
+                {!postBorderDetailed ? (
+                  <p className="text-[11px] text-zinc-400 mt-1">
+                    {vehicleAgeYears != null && vehicleAgeYears >= 10
+                      ? "10+ yrs: £800 standard clearance (no IVA)."
+                      : "Under 10 yrs: £1,000 clearance + £800 IVA buffer = £1,800."}
+                  </p>
+                ) : null}
+                <button
+                  type="button"
+                  onClick={() => setPostBorderDetailed((v) => !v)}
+                  className="mt-2 text-[11px] font-medium text-sky-600 hover:underline"
+                >
+                  {postBorderDetailed
+                    ? "Use the standard estimate"
+                    : "Itemise costs instead"}
+                </button>
               </div>
-              <div className="grid sm:grid-cols-2 gap-4">
-                <Field
-                  label="DVLA registration"
-                  value={dvlaRegistration}
-                  onChange={setDvla}
-                  prefix="£"
-                />
-                <Field
-                  label="Number plates"
-                  value={numberPlates}
-                  onChange={setPlates}
-                  prefix="£"
-                />
-                <Field
-                  label="IVA / MOT test"
-                  value={approvalTest}
-                  onChange={setApproval}
-                  prefix="£"
-                />
-                <Field
-                  label="IVA modifications"
-                  value={ivaModifications}
-                  onChange={setMods}
-                  prefix="£"
-                />
-                <Field
-                  label="UK inland transport"
-                  value={ukInlandTransport}
-                  onChange={setUkTransport}
-                  prefix="£"
-                />
-              </div>
+
+              {postBorderDetailed ? (
+                <>
+                  <div className="flex gap-2 rounded-lg border border-amber-200 bg-amber-50 p-3 text-[12px] text-amber-800">
+                    <span aria-hidden>⚠️</span>
+                    <p>
+                      Indicative placeholder figures — confirm each against your
+                      actual costs before relying on the landed-cost total.
+                    </p>
+                  </div>
+                  <div className="grid sm:grid-cols-2 gap-4">
+                    <Field
+                      label="DVLA registration"
+                      value={dvlaRegistration}
+                      onChange={setDvla}
+                      prefix="£"
+                    />
+                    <Field
+                      label="Number plates"
+                      value={numberPlates}
+                      onChange={setPlates}
+                      prefix="£"
+                    />
+                    <Field
+                      label="IVA / MOT test"
+                      value={approvalTest}
+                      onChange={setApproval}
+                      prefix="£"
+                    />
+                    <Field
+                      label="IVA modifications"
+                      value={ivaModifications}
+                      onChange={setMods}
+                      prefix="£"
+                    />
+                    <Field
+                      label="UK inland transport"
+                      value={ukInlandTransport}
+                      onChange={setUkTransport}
+                      prefix="£"
+                    />
+                  </div>
+                </>
+              ) : null}
             </CardContent>
           </Card>
         </div>
@@ -881,6 +1005,11 @@ export default function LandedCostClient({ fx }: { fx: GbpFxRates }) {
                 sub={cifLabel}
               />
               <BreakdownRow
+                label="Customs value (60% of CIF)"
+                value={fmtGBP(result.customsValue)}
+                sub="Valuation basis for duty & VAT"
+              />
+              <BreakdownRow
                 label={`Customs duty (${fmtPct(result.dutyRate)})`}
                 value={fmtGBP(result.duty)}
                 sub={DUTY_LABELS[result.dutyBasis]}
@@ -893,7 +1022,11 @@ export default function LandedCostClient({ fx }: { fx: GbpFxRates }) {
               <BreakdownRow
                 label="Post-border fees"
                 value={fmtGBP(result.postBorderTotal)}
-                sub="DVLA, plates, IVA/MOT, mods, transport"
+                sub={
+                  postBorderDetailed
+                    ? "Itemised (DVLA, plates, IVA/MOT, mods, transport)"
+                    : "Standard clearance + registration (by age)"
+                }
               />
             </div>
             <Separator className="my-3 bg-zinc-700" />
@@ -907,8 +1040,35 @@ export default function LandedCostClient({ fx }: { fx: GbpFxRates }) {
               Trade Tariff (10-digit code) and use HMRC's monthly FX rate before
               committing.
             </p>
+
+            {/* Market match parameters — operator-configurable */}
+            <div className="mt-4 grid grid-cols-2 gap-3">
+              <div className="space-y-1">
+                <Label className="text-[10px] uppercase tracking-wide text-zinc-400">
+                  Year range (±)
+                </Label>
+                <Input
+                  inputMode="numeric"
+                  value={yearBand}
+                  onChange={(e) => setYearBand(e.target.value)}
+                  className="h-8 bg-zinc-800 border-zinc-700 text-white"
+                />
+              </div>
+              <div className="space-y-1">
+                <Label className="text-[10px] uppercase tracking-wide text-zinc-400">
+                  Mileage range (± %)
+                </Label>
+                <Input
+                  inputMode="numeric"
+                  value={mileagePctInput}
+                  onChange={(e) => setMileagePctInput(e.target.value)}
+                  className="h-8 bg-zinc-800 border-zinc-700 text-white"
+                />
+              </div>
+            </div>
+
             <Button
-              className="w-full mt-4 bg-white text-zinc-900 hover:bg-zinc-200"
+              className="w-full mt-3 bg-white text-zinc-900 hover:bg-zinc-200"
               disabled={analyzing}
               onClick={runMarketAnalysis}
             >
@@ -929,14 +1089,17 @@ export default function LandedCostClient({ fx }: { fx: GbpFxRates }) {
               <CardTitle className="text-base">UK market & verdict</CardTitle>
               <div className="flex items-center gap-2">
                 <Badge variant="secondary" className="text-[10px]">
-                  {market.stats.count} comparable listings
+                  {liveStats.count} comparable listings
+                </Badge>
+                <Badge variant="secondary" className="text-[10px]">
+                  match: {market.matchUsed}
                 </Badge>
                 <Badge variant="secondary" className="text-[10px]">
                   source: {market.sources.join(", ")}
                 </Badge>
-                {market.widened ? (
+                {liveStats.count < 5 ? (
                   <Badge className="text-[10px] bg-amber-100 text-amber-800">
-                    widened match ({market.matchUsed}) · lower confidence
+                    thin supply · lower confidence
                   </Badge>
                 ) : null}
               </div>
@@ -944,22 +1107,22 @@ export default function LandedCostClient({ fx }: { fx: GbpFxRates }) {
             {/* Data provenance — full transparency on how the figures were built */}
             <p className="text-[11px] text-zinc-400 mt-1">
               {market.totalScraped} listings scraped → {market.totalAfterClean}{" "}
-              after cleaning → {market.stats.count} comparable
-              {market.stats.trimmedOutliers > 0
-                ? ` · ${market.stats.trimmedOutliers} price outlier${market.stats.trimmedOutliers === 1 ? "" : "s"} excluded`
+              after cleaning → {liveStats.count} comparable
+              {liveStats.trimmedOutliers > 0
+                ? ` · ${liveStats.trimmedOutliers} price outlier${liveStats.trimmedOutliers === 1 ? "" : "s"} excluded`
                 : ""}
-              {" · "}interquartile {fmtGBP(market.stats.p25)}–
-              {fmtGBP(market.stats.p75)}
+              {" · "}interquartile {fmtGBP(liveStats.p25)}–
+              {fmtGBP(liveStats.p75)}
             </p>
           </CardHeader>
           <CardContent className="space-y-6">
             {/* Stat tiles */}
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
               {[
-                { label: "Lowest", value: market.stats.min },
-                { label: "Median", value: market.stats.median },
-                { label: "Mean", value: market.stats.mean },
-                { label: "Highest", value: market.stats.max },
+                { label: "Lowest", value: liveStats.min },
+                { label: "Median", value: liveStats.median },
+                { label: "Mean", value: liveStats.mean },
+                { label: "Highest", value: liveStats.max },
               ].map((s) => (
                 <div
                   key={s.label}
@@ -976,11 +1139,11 @@ export default function LandedCostClient({ fx }: { fx: GbpFxRates }) {
             </div>
 
             {/* Histogram */}
-            {market.stats.histogram.length > 0 ? (
+            {liveStats.histogram.length > 0 ? (
               <div className="h-56 w-full">
                 <ResponsiveContainer width="100%" height="100%">
                   <BarChart
-                    data={market.stats.histogram}
+                    data={liveStats.histogram}
                     margin={{ top: 8, right: 8, left: 8, bottom: 8 }}
                   >
                     <XAxis
@@ -996,7 +1159,7 @@ export default function LandedCostClient({ fx }: { fx: GbpFxRates }) {
                       formatter={(value) => [`${value} listings`, "Count"]}
                     />
                     <Bar dataKey="count" radius={[4, 4, 0, 0]}>
-                      {market.stats.histogram.map((b) => {
+                      {liveStats.histogram.map((b) => {
                         // Highlight the bucket the landed cost falls into.
                         const inHere =
                           result.totalLanded >= b.from &&
@@ -1022,7 +1185,8 @@ export default function LandedCostClient({ fx }: { fx: GbpFxRates }) {
             {listingsByBucket.length > 0 ? (
               <div>
                 <p className="text-[11px] uppercase tracking-wide text-zinc-400 mb-2">
-                  Listings analysed ({market.stats.count})
+                  Listings analysed ({liveStats.count}) — remove any that don't
+                  fit; the figures update instantly
                 </p>
                 <div className="space-y-3">
                   {listingsByBucket.map((bucket) => (
@@ -1080,6 +1244,15 @@ export default function LandedCostClient({ fx }: { fx: GbpFxRates }) {
                                     View ↗
                                   </a>
                                 ) : null}
+                                <button
+                                  type="button"
+                                  onClick={() => removeListing(l)}
+                                  aria-label="Remove this listing from the comparison"
+                                  title="Remove from comparison"
+                                  className="text-zinc-400 hover:text-red-600 text-sm leading-none px-1"
+                                >
+                                  ✕
+                                </button>
                               </div>
                             </li>
                           );
@@ -1100,15 +1273,13 @@ export default function LandedCostClient({ fx }: { fx: GbpFxRates }) {
                   </p>
                   <p
                     className={`text-2xl font-bold ${
-                      market.stats.median - result.totalLanded >= 0
-                        ? "text-emerald-600"
-                        : "text-red-600"
+                      liveMargin >= 0 ? "text-emerald-600" : "text-red-600"
                     }`}
                   >
-                    {fmtGBP(market.stats.median - result.totalLanded)}
+                    {fmtGBP(liveMargin)}
                   </p>
                   <p className="text-[11px] text-zinc-400">
-                    median {fmtGBP(market.stats.median)} − landed{" "}
+                    median {fmtGBP(liveStats.median)} − landed{" "}
                     {fmtGBP(result.totalLanded)}
                   </p>
                 </div>
@@ -1136,6 +1307,13 @@ export default function LandedCostClient({ fx }: { fx: GbpFxRates }) {
                     Confidence: {verdict.confidence} · AI narrative over
                     deterministic figures — verify before committing.
                   </p>
+                  {listingsEdited ? (
+                    <p className="text-[11px] text-amber-700 mt-1">
+                      Figures above reflect your edited listing set; the written
+                      narrative is from the initial analysis. Re-run to refresh
+                      the narrative.
+                    </p>
+                  ) : null}
                   <div className="mt-3 flex items-center gap-3">
                     <Button
                       size="sm"
