@@ -66,6 +66,21 @@ export const POST_BORDER_DEFAULTS = {
   ukInlandTransport: 300, // port → premises
 } as const;
 
+// Simplified post-border default (business directive): £1,000 standard clearance
+// + £800 IVA buffer for vehicles under 10 years (which need an IVA test), giving
+// £1,800; vehicles 10 years and older take £800. The detailed breakdown above is
+// still available as an advanced override.
+export const POST_BORDER_STANDARD = 1000;
+export const POST_BORDER_IVA_BUFFER = 800;
+export function postBorderForAge(ageYears: number | null): number {
+  return ageYears != null && ageYears >= 10 ? 800 : 1800;
+}
+
+// Customs valuation basis (business directive): import duty and VAT are computed
+// on 60% of the CIF value rather than the full CIF. NOTE: this departs from the
+// guide's default (full CIF customs value) — it's an intentional override.
+export const CUSTOMS_VALUE_FRACTION = 0.6;
+
 // ─── Formatters ──────────────────────────────────────────────────────────────
 export const fmtGBP = (n: number) =>
   `£${Math.round(n).toLocaleString("en-GB")}`;
@@ -79,6 +94,8 @@ export const fmtPct = (n: number) => `${(n * 100).toFixed(2)}%`;
 
 export type OriginCountry =
   | "japan"
+  | "europe"
+  | "uk"
   | "australia"
   | "new_zealand"
   | "india"
@@ -87,6 +104,8 @@ export type OriginCountry =
 
 export const ORIGIN_COUNTRY_LABELS: Record<OriginCountry, string> = {
   japan: "Japan",
+  europe: "Europe (EU)",
+  uk: "UK",
   australia: "Australia",
   new_zealand: "New Zealand",
   india: "India",
@@ -97,6 +116,8 @@ export const ORIGIN_COUNTRY_LABELS: Record<OriginCountry, string> = {
 // Countries where a statement of origin can unlock a 0% preferential rate.
 export const FTA_COUNTRIES: OriginCountry[] = [
   "japan",
+  "europe",
+  "uk",
   "australia",
   "new_zealand",
 ];
@@ -160,6 +181,23 @@ export function resolveTaxTreatment(
         dutyReason = "Japan-built but no statement of origin: 10% MFN duty.";
       }
       break;
+    case "europe":
+      if (hasOriginStatement) {
+        dutyBasis = "fta_zero";
+        dutyReason =
+          "EU-built with a valid statement of origin (UK–EU TCA): 0% duty.";
+      } else {
+        dutyReason = "EU-built but no statement of origin: 10% MFN duty.";
+      }
+      break;
+    case "uk":
+      if (hasOriginStatement) {
+        dutyBasis = "fta_zero";
+        dutyReason = "UK-built with proof of origin / returned goods: 0% duty.";
+      } else {
+        dutyReason = "UK origin not evidenced: 10% MFN duty.";
+      }
+      break;
     case "australia":
     case "new_zealand":
       if (hasOriginStatement) {
@@ -205,18 +243,16 @@ export interface LandedCostInput {
   dutyBasis: DutyBasis;
   vatBasis: VatBasis;
 
-  // Post-border costs already in GBP.
-  dvlaRegistration: number;
-  numberPlates: number;
-  approvalTest: number;
-  ivaModifications: number;
-  ukInlandTransport: number;
+  // Total post-border (UK-side) costs in GBP — computed by the caller, either
+  // the age-based default or the detailed breakdown.
+  postBorderTotal: number;
 }
 
 export interface LandedCostResult {
   // CIF
   cifOriginal: number; // CIF in the input currency
   cifGbp: number;
+  customsValue: number; // valuation basis duty & VAT are charged on (60% of CIF)
 
   // Duty
   dutyBasis: DutyBasis;
@@ -248,11 +284,14 @@ export function computeLandedCost(input: LandedCostInput): LandedCostResult {
 
   const cifGbp = cifOriginal * input.fxRate;
 
-  const dutyRate = DUTY_RATES[input.dutyBasis];
-  const duty = cifGbp * dutyRate;
+  // Duty and VAT are charged on the customs valuation basis (60% of CIF).
+  const customsValue = cifGbp * CUSTOMS_VALUE_FRACTION;
 
-  // VAT base is CIF + duty; the relieved bases scale or zero it.
-  const fullVatBase = cifGbp + duty;
+  const dutyRate = DUTY_RATES[input.dutyBasis];
+  const duty = customsValue * dutyRate;
+
+  // VAT base is customs value + duty; the relieved bases scale or zero it.
+  const fullVatBase = customsValue + duty;
   let vatBase: number;
   let vatEffectiveRate: number;
   switch (input.vatBasis) {
@@ -270,12 +309,7 @@ export function computeLandedCost(input: LandedCostInput): LandedCostResult {
   }
   const vat = vatBase * STANDARD_VAT_RATE;
 
-  const postBorderTotal =
-    input.dvlaRegistration +
-    input.numberPlates +
-    input.approvalTest +
-    input.ivaModifications +
-    input.ukInlandTransport;
+  const postBorderTotal = input.postBorderTotal;
 
   const totalTaxes = duty + vat;
   const totalLanded = cifGbp + totalTaxes + postBorderTotal;
@@ -283,6 +317,7 @@ export function computeLandedCost(input: LandedCostInput): LandedCostResult {
   return {
     cifOriginal,
     cifGbp,
+    customsValue,
     dutyBasis: input.dutyBasis,
     dutyRate,
     duty,

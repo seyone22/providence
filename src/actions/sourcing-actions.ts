@@ -9,11 +9,7 @@ import {
 import connectToDatabase from "@/lib/mongoose";
 import { cleanListings, dedupeListings } from "@/lib/scrapers/clean";
 import { scrapeAutoTrader, scrapePistonHeads } from "@/lib/scrapers/client";
-import {
-  type MatchStrictness,
-  type MatchTarget,
-  selectMatches,
-} from "@/lib/scrapers/matching";
+import { filterListings, type MatchTarget } from "@/lib/scrapers/matching";
 import SourcingAnalysis from "@/models/SourcingAnalysis";
 import { auth } from "@/utils/auth";
 
@@ -295,15 +291,17 @@ export interface MarketAnalysisInput {
   trimKeywords: string[]; // e.g. ["turbo"] — narrows to the exact derivative
   year: number | null;
   mileage: number | null; // miles
-  strictness?: MatchStrictness; // default "tight"
+  // Operator-configured match tolerances (default ±1 year, ±20% mileage).
+  yearBand?: number;
+  mileagePct?: number;
   postcode?: string;
 }
 
 export interface MarketAnalysis {
   stats: MarketStats;
   listings: NormalizedListing[];
-  matchUsed: MatchStrictness;
-  widened: boolean; // true if auto-widened past the requested strictness
+  matchUsed: string; // human label of the match tolerances applied
+  widened: boolean; // true when comparables are thin (low confidence)
   totalScraped: number;
   totalAfterClean: number;
   sources: string[];
@@ -321,9 +319,14 @@ export async function analyzeMarket(
   input: MarketAnalysisInput,
 ): Promise<MarketAnalysisResult> {
   try {
-    // Constrain the scrape to ±3 years of the target to lift comparable density.
-    const yearFrom = input.year ? input.year - 3 : undefined;
-    const yearTo = input.year ? input.year + 3 : undefined;
+    const yearBand = input.yearBand ?? 1;
+    const mileagePct = input.mileagePct ?? 0.2;
+
+    // Scrape a slightly wider year window than the match band so the filter has
+    // headroom (at least ±3 years, or the configured band if larger).
+    const scrapeBand = Math.max(3, yearBand);
+    const yearFrom = input.year ? input.year - scrapeBand : undefined;
+    const yearTo = input.year ? input.year + scrapeBand : undefined;
 
     // Scrape every source in parallel and tolerate a single source failing —
     // one blocked scraper shouldn't sink the whole analysis.
@@ -369,22 +372,19 @@ export async function analyzeMarket(
       year: input.year,
       mileage: input.mileage,
     };
-    const match = selectMatches(
-      cleaned,
-      target,
-      input.strictness ?? "tight",
-      5,
-    );
+    // Apply the operator-configured tolerances directly (no auto-widen — the
+    // operator controls the range now).
+    const matched = filterListings(cleaned, target, { yearBand, mileagePct });
 
-    const stats = computeMarketStats(match.listings.map((l) => l.price ?? 0));
+    const stats = computeMarketStats(matched.map((l) => l.price ?? 0));
 
     return {
       success: true,
       data: {
         stats,
-        listings: match.listings,
-        matchUsed: match.strictnessUsed,
-        widened: match.widened,
+        listings: matched,
+        matchUsed: `±${yearBand}yr · ±${Math.round(mileagePct * 100)}% mileage`,
+        widened: matched.length < 5, // thin supply → flag lower confidence
         totalScraped,
         totalAfterClean: cleaned.length,
         sources,
@@ -412,7 +412,7 @@ export interface VerdictInput {
   };
   landedCostGbp: number;
   stats: MarketStats;
-  matchUsed: MatchStrictness;
+  matchUsed: string;
   widened: boolean;
 }
 

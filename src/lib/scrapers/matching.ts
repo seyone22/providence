@@ -63,6 +63,19 @@ function matchesBand(
   return true;
 }
 
+// Filter to listings within explicit, operator-configured year/mileage
+// tolerances (keeps the trim constraint). Used when the operator sets the
+// market-match parameters by hand instead of relying on the auto-widen ladder.
+export function filterListings(
+  listings: NormalizedListing[],
+  target: MatchTarget,
+  band: { yearBand: number; mileagePct: number },
+): NormalizedListing[] {
+  return listings.filter((l) =>
+    matchesBand(l, target, { ...band, matchTrim: true }),
+  );
+}
+
 export interface MatchResult {
   listings: NormalizedListing[];
   strictnessUsed: MatchStrictness;
