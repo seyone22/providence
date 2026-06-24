@@ -165,6 +165,11 @@ export default function LandedCostClient({ fx }: { fx: GbpFxRates }) {
   const [extractError, setExtractError] = useState<string | null>(null);
   const [extract, setExtract] = useState<AuctionSheetExtract | null>(null);
 
+  // ── Usage this session (read from API responses — no extra credits) ─────────
+  const [extractTokens, setExtractTokens] = useState(0);
+  const [verdictTokens, setVerdictTokens] = useState(0);
+  const [aiModel, setAiModel] = useState("");
+
   async function handleSheetUpload(file: File | undefined) {
     if (!file) return;
     setExtracting(true);
@@ -188,6 +193,8 @@ export default function LandedCostClient({ fx }: { fx: GbpFxRates }) {
       if (d.trimGrade) setEdition(d.trimGrade);
       if (d.year) setYear(String(d.year));
       if (d.mileageMiles) setMileage(String(d.mileageMiles));
+      setExtractTokens(res.tokens);
+      setAiModel(res.model);
       const filled = [d.make, d.model, d.year, d.mileageMiles].filter(
         Boolean,
       ).length;
@@ -354,11 +361,32 @@ export default function LandedCostClient({ fx }: { fx: GbpFxRates }) {
           median: market.stats.median,
           mean: market.stats.mean,
           max: market.stats.max,
+          p25: market.stats.p25,
+          p75: market.stats.p75,
+          trimmedOutliers: market.stats.trimmedOutliers,
+          totalScraped: market.totalScraped,
+          totalAfterClean: market.totalAfterClean,
           sources: market.sources,
           widened: market.widened,
           matchUsed: market.matchUsed,
+          bands: listingsByBucket.map((b) => ({
+            label: b.label,
+            listings: b.listings.map((l) => ({
+              price: l.price,
+              year: l.year,
+              mileage: l.mileage,
+              trim: l.trim,
+              source: l.source,
+              url: l.url,
+            })),
+          })),
         },
         verdict,
+        usage: {
+          aiTokens: extractTokens + verdictTokens,
+          aiModel,
+          listingsScraped: market.totalScraped,
+        },
       });
       if (!res.success) {
         setMarketError(res.message);
@@ -457,6 +485,8 @@ export default function LandedCostClient({ fx }: { fx: GbpFxRates }) {
       });
       if (v.success) {
         setVerdict(v.data);
+        setVerdictTokens(v.tokens);
+        setAiModel(v.model);
         toast.success("Verdict ready", {
           description: VERDICT_STYLE[v.data.recommendation].label,
         });
@@ -1130,6 +1160,31 @@ export default function LandedCostClient({ fx }: { fx: GbpFxRates }) {
                   </div>
                 </div>
               ) : null}
+            </div>
+
+            {/* Usage this run — read from the API responses, no extra credits */}
+            <div className="rounded-lg bg-zinc-50 border border-zinc-100 p-3 text-[11px] text-zinc-500 flex flex-wrap gap-x-4 gap-y-1">
+              <span>
+                🤖 AI:{" "}
+                <span className="font-medium text-zinc-700">
+                  {(extractTokens + verdictTokens).toLocaleString()} tokens
+                </span>
+                {aiModel ? ` · ${aiModel}` : ""}
+                {extractTokens > 0
+                  ? ` (extract ${extractTokens.toLocaleString()} + verdict ${verdictTokens.toLocaleString()})`
+                  : ""}
+              </span>
+              <span>
+                🔎 Market:{" "}
+                <span className="font-medium text-zinc-700">
+                  {market.totalScraped.toLocaleString()} listings scraped
+                </span>{" "}
+                via {market.sources.join(", ")}
+              </span>
+              <span className="text-zinc-400">
+                Usage is read from the API responses — displaying it costs
+                nothing.
+              </span>
             </div>
           </CardContent>
         </Card>

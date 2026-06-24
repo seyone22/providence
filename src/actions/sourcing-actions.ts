@@ -42,7 +42,8 @@ async function generateGeminiText(
   key: string,
   body: unknown,
 ): Promise<
-  { ok: true; text: string } | { ok: false; status: number; message: string }
+  | { ok: true; text: string; tokens: number; model: string }
+  | { ok: false; status: number; message: string }
 > {
   let lastStatus = 0;
   for (const model of GEMINI_MODELS) {
@@ -67,9 +68,12 @@ async function generateGeminiText(
       if (res.ok) {
         const json = (await res.json()) as {
           candidates?: { content?: { parts?: { text?: string }[] } }[];
+          usageMetadata?: { totalTokenCount?: number };
         };
         const text = json.candidates?.[0]?.content?.parts?.[0]?.text;
-        if (text) return { ok: true, text };
+        // Token count is returned by the API for free — no extra cost to read.
+        const tokens = json.usageMetadata?.totalTokenCount ?? 0;
+        if (text) return { ok: true, text, tokens, model };
         break; // empty content — try next model
       }
 
@@ -215,7 +219,7 @@ const EXTRACTION_SCHEMA = {
 } as const;
 
 export type ExtractResult =
-  | { success: true; data: AuctionSheetExtract }
+  | { success: true; data: AuctionSheetExtract; tokens: number; model: string }
   | { success: false; message: string };
 
 // Send an uploaded auction sheet (image or PDF, base64) to Gemini and return the
@@ -265,7 +269,12 @@ export async function extractAuctionSheet(input: {
     }
     if (!Array.isArray(parsed.features)) parsed.features = [];
 
-    return { success: true, data: parsed };
+    return {
+      success: true,
+      data: parsed,
+      tokens: result.tokens,
+      model: result.model,
+    };
   } catch (error: unknown) {
     console.error("Auction-sheet extraction error:", error);
     return {
@@ -418,7 +427,7 @@ export interface Verdict {
 }
 
 export type VerdictResult =
-  | { success: true; data: Verdict }
+  | { success: true; data: Verdict; tokens: number; model: string }
   | { success: false; message: string };
 
 const VERDICT_SCHEMA = {
@@ -492,6 +501,8 @@ Guidance:
     return {
       success: true,
       data: { ...parsed, confidence, grossMargin, marginPct },
+      tokens: result.tokens,
+      model: result.model,
     };
   } catch (error: unknown) {
     console.error("Verdict error:", error);

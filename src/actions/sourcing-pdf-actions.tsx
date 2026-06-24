@@ -5,6 +5,7 @@ import path from "node:path";
 import {
   Document,
   Image,
+  Link,
   Page,
   renderToStream,
   StyleSheet,
@@ -40,9 +41,26 @@ export interface SourcingPdfData {
     median: number;
     mean: number;
     max: number;
+    p25: number;
+    p75: number;
+    trimmedOutliers: number;
+    totalScraped: number;
+    totalAfterClean: number;
     sources: string[];
     widened: boolean;
     matchUsed: string;
+    // Comparable listings grouped into the same price bands as the on-screen chart.
+    bands: {
+      label: string;
+      listings: {
+        price: number | null;
+        year: number | null;
+        mileage: number | null;
+        trim: string | null;
+        source: string;
+        url: string | null;
+      }[];
+    }[];
   };
   verdict: {
     recommendation: "source" | "marginal" | "avoid";
@@ -51,6 +69,11 @@ export interface SourcingPdfData {
     confidence: string;
     grossMargin: number;
     marginPct: number;
+  };
+  usage: {
+    aiTokens: number;
+    aiModel: string;
+    listingsScraped: number;
   };
 }
 
@@ -134,6 +157,35 @@ const styles = StyleSheet.create({
   },
   rowLabel: { fontSize: 10, color: MUTED },
   rowValue: { fontSize: 10, color: INK, fontFamily: "Helvetica-Bold" },
+  provenance: { fontSize: 8, color: "#a1a1aa", marginTop: 3, marginBottom: 2 },
+  bandHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    backgroundColor: "#fafafa",
+    paddingVertical: 3,
+    paddingHorizontal: 6,
+    marginTop: 8,
+    borderRadius: 3,
+  },
+  bandLabel: { fontSize: 9, fontFamily: "Helvetica-Bold", color: "#3f3f46" },
+  bandCount: { fontSize: 8, color: MUTED },
+  listingRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    paddingVertical: 2.5,
+    paddingHorizontal: 6,
+    borderBottom: `0.5pt solid ${HAIR}`,
+  },
+  listingPrice: { fontSize: 9, fontFamily: "Helvetica-Bold", color: INK },
+  listingMeta: { fontSize: 8.5, color: MUTED },
+  listingLink: { fontSize: 8.5, color: SKY, textDecoration: "none" },
+  usageBox: {
+    marginTop: 14,
+    backgroundColor: "#fafafa",
+    borderRadius: 6,
+    padding: 10,
+  },
+  usageText: { fontSize: 8.5, color: "#52525b", lineHeight: 1.4 },
   verdictBox: {
     marginTop: 14,
     border: `1pt solid ${HAIR}`,
@@ -263,6 +315,62 @@ const ReportPDF = ({
           <Row label="Median" value={fmtGBP(data.market.median)} />
           <Row label="Mean" value={fmtGBP(data.market.mean)} />
           <Row label="Highest" value={fmtGBP(data.market.max)} />
+          <Row
+            label="Interquartile range (mid 50%)"
+            value={`${fmtGBP(data.market.p25)} – ${fmtGBP(data.market.p75)}`}
+          />
+          <Text style={styles.provenance}>
+            {data.market.totalScraped} listings scraped →{" "}
+            {data.market.totalAfterClean} after cleaning → {data.market.count}{" "}
+            comparable
+            {data.market.trimmedOutliers > 0
+              ? ` · ${data.market.trimmedOutliers} price outlier${data.market.trimmedOutliers === 1 ? "" : "s"} excluded`
+              : ""}
+          </Text>
+
+          {/* Listings analysed, grouped by price band */}
+          {data.market.bands.length > 0 ? (
+            <>
+              <Text style={styles.sectionTitle}>Listings Analysed</Text>
+              {data.market.bands.map((band) => (
+                <View key={band.label} wrap={false}>
+                  <View style={styles.bandHeader}>
+                    <Text style={styles.bandLabel}>{band.label}</Text>
+                    <Text style={styles.bandCount}>
+                      {band.listings.length} car
+                      {band.listings.length === 1 ? "" : "s"}
+                    </Text>
+                  </View>
+                  {band.listings.map((l, i) => {
+                    const meta = [
+                      l.year,
+                      l.mileage ? `${l.mileage.toLocaleString()} mi` : null,
+                      l.trim,
+                      l.source,
+                    ]
+                      .filter(Boolean)
+                      .join(" · ");
+                    return (
+                      <View
+                        key={l.url ?? `${band.label}-${i}`}
+                        style={styles.listingRow}
+                      >
+                        <Text style={styles.listingPrice}>
+                          {l.price != null ? fmtGBP(l.price) : "—"}
+                          <Text style={styles.listingMeta}> {meta}</Text>
+                        </Text>
+                        {l.url ? (
+                          <Link src={l.url} style={styles.listingLink}>
+                            View
+                          </Link>
+                        ) : null}
+                      </View>
+                    );
+                  })}
+                </View>
+              ))}
+            </>
+          ) : null}
 
           <View style={styles.verdictBox}>
             <Text
@@ -277,6 +385,16 @@ const ReportPDF = ({
             </Text>
             <Text style={styles.verdictHeadline}>{data.verdict.headline}</Text>
             <Text style={styles.verdictBody}>{data.verdict.reasoning}</Text>
+          </View>
+
+          <View style={styles.usageBox}>
+            <Text style={styles.usageText}>
+              Usage for this analysis — AI:{" "}
+              {data.usage.aiTokens.toLocaleString()} tokens
+              {data.usage.aiModel ? ` (${data.usage.aiModel})` : ""} · Market
+              data: {data.usage.listingsScraped.toLocaleString()} listings
+              scraped via {data.market.sources.join(", ")}.
+            </Text>
           </View>
 
           <Text style={styles.disclaimer}>
