@@ -29,7 +29,9 @@ export default function GalleryPreview() {
             .then((res) => {
                 if (!active) return;
                 const data = (res.success ? res.data : []) as PreviewCar[];
-                setCars(data.filter((c) => c.status === "Active").slice(0, 10));
+                // Pool cap only — how many are *visible* is driven by viewport
+                // width via the responsive card widths + horizontal scroll.
+                setCars(data.filter((c) => c.status === "Active").slice(0, 12));
                 setLoading(false);
             })
             .catch(() => {
