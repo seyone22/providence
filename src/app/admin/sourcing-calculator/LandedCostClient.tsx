@@ -550,6 +550,16 @@ export default function LandedCostClient({ fx }: { fx: GbpFxRates }) {
       }
       setMarket(res.data);
       setEditableListings(res.data.listings);
+
+      // No comparables matched the filters → don't generate a (misleading)
+      // verdict against a £0 market. Tell the operator to widen the range.
+      if (res.data.stats.count === 0) {
+        toast.warning("No comparable listings matched", {
+          description: `${res.data.totalScraped} scraped, but none fit ${res.data.matchUsed}. Widen the year/mileage range.`,
+        });
+        return;
+      }
+
       toast.success("Market analysed", {
         description: `${res.data.stats.count} comparable listings from ${res.data.sources.join(", ")}.`,
       });
@@ -1142,229 +1152,258 @@ export default function LandedCostClient({ fx }: { fx: GbpFxRates }) {
             </p>
           </CardHeader>
           <CardContent className="space-y-6">
-            {/* Stat tiles */}
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-              {[
-                { label: "Lowest", value: liveStats.min },
-                { label: "Median", value: liveStats.median },
-                { label: "Mean", value: liveStats.mean },
-                { label: "Highest", value: liveStats.max },
-              ].map((s) => (
-                <div
-                  key={s.label}
-                  className="rounded-lg border border-zinc-200 p-3"
-                >
-                  <p className="text-[11px] uppercase tracking-wide text-zinc-400">
-                    {s.label}
-                  </p>
-                  <p className="text-lg font-bold text-zinc-900">
-                    {fmtGBP(s.value)}
-                  </p>
-                </div>
-              ))}
-            </div>
-
-            {/* Histogram */}
-            {liveStats.histogram.length > 0 ? (
-              <div className="h-56 w-full">
-                <ResponsiveContainer width="100%" height="100%">
-                  <BarChart
-                    data={liveStats.histogram}
-                    margin={{ top: 8, right: 8, left: 8, bottom: 8 }}
-                  >
-                    <XAxis
-                      dataKey="label"
-                      tick={{ fontSize: 10 }}
-                      interval={0}
-                      angle={-25}
-                      textAnchor="end"
-                      height={50}
-                    />
-                    <YAxis allowDecimals={false} tick={{ fontSize: 10 }} />
-                    <RTooltip
-                      formatter={(value) => [`${value} listings`, "Count"]}
-                    />
-                    <Bar dataKey="count" radius={[4, 4, 0, 0]}>
-                      {liveStats.histogram.map((b) => {
-                        // Highlight the bucket the landed cost falls into.
-                        const inHere =
-                          result.totalLanded >= b.from &&
-                          result.totalLanded <= b.to;
-                        return (
-                          <Cell
-                            key={b.label}
-                            fill={inHere ? "#0ea5e9" : "#cbd5e1"}
-                          />
-                        );
-                      })}
-                    </Bar>
-                  </BarChart>
-                </ResponsiveContainer>
-                <p className="text-[11px] text-zinc-400 text-center">
-                  Price distribution of comparable UK listings · blue = where
-                  your landed cost sits
+            {/* Empty state: scraped listings but none matched the filters */}
+            {liveStats.count === 0 ? (
+              <div className="rounded-xl border border-amber-200 bg-amber-50 p-5 text-center">
+                <p className="text-sm font-semibold text-amber-900">
+                  No comparable listings matched your filters
                 </p>
+                <p className="text-[13px] text-amber-800 mt-1">
+                  {market.totalScraped} listing
+                  {market.totalScraped === 1 ? " was" : "s were"} scraped, but
+                  none fit <strong>{market.matchUsed}</strong>. Widen the year
+                  or mileage range (a Year range of ±0 only matches the exact
+                  year) and re-run.
+                </p>
+                {market.allListings.length > 0 ? (
+                  <button
+                    type="button"
+                    onClick={() => setEditableListings(market.allListings)}
+                    className="mt-3 text-[12px] font-medium text-sky-700 hover:underline"
+                  >
+                    Show all {market.allListings.length} scraped listings anyway
+                  </button>
+                ) : null}
               </div>
             ) : null}
 
-            {/* Listings analysed — grouped by price band, with links */}
-            {listingsByBucket.length > 0 ? (
-              <div>
-                <p className="text-[11px] uppercase tracking-wide text-zinc-400 mb-2">
-                  Listings analysed ({liveStats.count}) — remove any that don't
-                  fit; the figures update instantly
-                </p>
-                <div className="space-y-3">
-                  {listingsByBucket.map((bucket) => (
+            {liveStats.count === 0 ? null : (
+              <>
+                {/* Stat tiles */}
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                  {[
+                    { label: "Lowest", value: liveStats.min },
+                    { label: "Median", value: liveStats.median },
+                    { label: "Mean", value: liveStats.mean },
+                    { label: "Highest", value: liveStats.max },
+                  ].map((s) => (
                     <div
-                      key={bucket.label}
-                      className="rounded-lg border border-zinc-200 overflow-hidden"
+                      key={s.label}
+                      className="rounded-lg border border-zinc-200 p-3"
                     >
-                      <div className="flex items-center justify-between bg-zinc-50 px-3 py-1.5 border-b border-zinc-100">
-                        <span className="text-xs font-semibold text-zinc-700">
-                          {bucket.label}
-                        </span>
-                        <span className="text-[11px] text-zinc-400">
-                          {bucket.listings.length} car
-                          {bucket.listings.length === 1 ? "" : "s"}
-                        </span>
-                      </div>
-                      <ul className="divide-y divide-zinc-50">
-                        {bucket.listings.map((l, idx) => {
-                          const meta = [
-                            l.year,
-                            l.mileage
-                              ? `${l.mileage.toLocaleString()} mi`
-                              : null,
-                            l.trim,
-                          ]
-                            .filter(Boolean)
-                            .join(" · ");
-                          return (
-                            <li
-                              key={l.url ?? `${bucket.label}-${idx}`}
-                              className="flex items-center justify-between gap-3 px-3 py-2 text-sm"
-                            >
-                              <div className="min-w-0">
-                                <span className="font-semibold text-zinc-900 tabular-nums">
-                                  {l.price != null ? fmtGBP(l.price) : "—"}
-                                </span>
-                                <span className="text-zinc-500 ml-2 truncate">
-                                  {meta}
-                                </span>
-                              </div>
-                              <div className="flex items-center gap-2 shrink-0">
-                                <Badge
-                                  variant="secondary"
-                                  className="text-[10px]"
-                                >
-                                  {l.source}
-                                </Badge>
-                                {l.url ? (
-                                  <a
-                                    href={l.url}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    className="text-[11px] font-medium text-sky-600 hover:underline"
-                                  >
-                                    View ↗
-                                  </a>
-                                ) : null}
-                                <button
-                                  type="button"
-                                  onClick={() => removeListing(l)}
-                                  aria-label="Remove this listing from the comparison"
-                                  title="Remove from comparison"
-                                  className="text-zinc-400 hover:text-red-600 text-sm leading-none px-1"
-                                >
-                                  ✕
-                                </button>
-                              </div>
-                            </li>
-                          );
-                        })}
-                      </ul>
+                      <p className="text-[11px] uppercase tracking-wide text-zinc-400">
+                        {s.label}
+                      </p>
+                      <p className="text-lg font-bold text-zinc-900">
+                        {fmtGBP(s.value)}
+                      </p>
                     </div>
                   ))}
                 </div>
-              </div>
-            ) : null}
 
-            {/* Profit + verdict */}
-            <div className="rounded-xl border border-zinc-200 p-4">
-              <div className="flex flex-wrap items-center justify-between gap-3">
-                <div>
-                  <p className="text-[11px] uppercase tracking-wide text-zinc-400">
-                    Gross margin at median resale
-                  </p>
-                  <p
-                    className={`text-2xl font-bold ${
-                      liveMargin >= 0 ? "text-emerald-600" : "text-red-600"
-                    }`}
-                  >
-                    {fmtGBP(liveMargin)}
-                  </p>
-                  <p className="text-[11px] text-zinc-400">
-                    median {fmtGBP(liveStats.median)} − landed{" "}
-                    {fmtGBP(result.totalLanded)}
-                  </p>
-                </div>
-                {verdict ? (
-                  <Badge
-                    className={`text-xs px-3 py-1 ${VERDICT_STYLE[verdict.recommendation].cls}`}
-                  >
-                    {VERDICT_STYLE[verdict.recommendation].label}
-                  </Badge>
-                ) : (
-                  <Badge variant="secondary" className="text-[10px]">
-                    {analyzing ? "Writing verdict…" : "No verdict"}
-                  </Badge>
-                )}
-              </div>
-              {verdict ? (
-                <div className="mt-3 border-t border-zinc-100 pt-3">
-                  <p className="font-semibold text-zinc-900">
-                    {verdict.headline}
-                  </p>
-                  <p className="text-sm text-zinc-600 mt-1">
-                    {verdict.reasoning}
-                  </p>
-                  <p className="text-[11px] text-zinc-400 mt-2">
-                    Confidence: {verdict.confidence} · AI narrative over
-                    deterministic figures — verify before committing.
-                  </p>
-                  {listingsEdited ? (
-                    <p className="text-[11px] text-amber-700 mt-1">
-                      Figures above reflect your edited listing set; the written
-                      narrative is from the initial analysis. Re-run to refresh
-                      the narrative.
+                {/* Histogram */}
+                {liveStats.histogram.length > 0 ? (
+                  <div className="h-56 w-full">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <BarChart
+                        data={liveStats.histogram}
+                        margin={{ top: 8, right: 8, left: 8, bottom: 8 }}
+                      >
+                        <XAxis
+                          dataKey="label"
+                          tick={{ fontSize: 10 }}
+                          interval={0}
+                          angle={-25}
+                          textAnchor="end"
+                          height={50}
+                        />
+                        <YAxis allowDecimals={false} tick={{ fontSize: 10 }} />
+                        <RTooltip
+                          formatter={(value) => [`${value} listings`, "Count"]}
+                        />
+                        <Bar dataKey="count" radius={[4, 4, 0, 0]}>
+                          {liveStats.histogram.map((b) => {
+                            // Highlight the bucket the landed cost falls into.
+                            const inHere =
+                              result.totalLanded >= b.from &&
+                              result.totalLanded <= b.to;
+                            return (
+                              <Cell
+                                key={b.label}
+                                fill={inHere ? "#0ea5e9" : "#cbd5e1"}
+                              />
+                            );
+                          })}
+                        </Bar>
+                      </BarChart>
+                    </ResponsiveContainer>
+                    <p className="text-[11px] text-zinc-400 text-center">
+                      Price distribution of comparable UK listings · blue =
+                      where your landed cost sits
                     </p>
-                  ) : null}
-                  <div className="mt-3 flex items-center gap-3">
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      disabled={saving || saved}
-                      onClick={saveAnalysis}
-                    >
-                      {saved
-                        ? "Saved ✓"
-                        : saving
-                          ? "Saving…"
-                          : "Save to history"}
-                    </Button>
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      disabled={pdfBusy}
-                      onClick={downloadPdf}
-                    >
-                      {pdfBusy ? "Building PDF…" : "Download PDF"}
-                    </Button>
                   </div>
+                ) : null}
+
+                {/* Listings analysed — grouped by price band, with links */}
+                {listingsByBucket.length > 0 ? (
+                  <div>
+                    <p className="text-[11px] uppercase tracking-wide text-zinc-400 mb-2">
+                      Listings analysed ({liveStats.count}) — remove any that
+                      don't fit; the figures update instantly
+                    </p>
+                    <div className="space-y-3">
+                      {listingsByBucket.map((bucket) => (
+                        <div
+                          key={bucket.label}
+                          className="rounded-lg border border-zinc-200 overflow-hidden"
+                        >
+                          <div className="flex items-center justify-between bg-zinc-50 px-3 py-1.5 border-b border-zinc-100">
+                            <span className="text-xs font-semibold text-zinc-700">
+                              {bucket.label}
+                            </span>
+                            <span className="text-[11px] text-zinc-400">
+                              {bucket.listings.length} car
+                              {bucket.listings.length === 1 ? "" : "s"}
+                            </span>
+                          </div>
+                          <ul className="divide-y divide-zinc-50">
+                            {bucket.listings.map((l, idx) => {
+                              const meta = [
+                                l.year,
+                                l.mileage
+                                  ? `${l.mileage.toLocaleString()} mi`
+                                  : null,
+                                l.trim,
+                              ]
+                                .filter(Boolean)
+                                .join(" · ");
+                              return (
+                                <li
+                                  key={l.url ?? `${bucket.label}-${idx}`}
+                                  className="flex items-center justify-between gap-3 px-3 py-2 text-sm"
+                                >
+                                  <div className="min-w-0">
+                                    <span className="font-semibold text-zinc-900 tabular-nums">
+                                      {l.price != null ? fmtGBP(l.price) : "—"}
+                                    </span>
+                                    <span className="text-zinc-500 ml-2 truncate">
+                                      {meta}
+                                    </span>
+                                  </div>
+                                  <div className="flex items-center gap-2 shrink-0">
+                                    <Badge
+                                      variant="secondary"
+                                      className="text-[10px]"
+                                    >
+                                      {l.source}
+                                    </Badge>
+                                    {l.url ? (
+                                      <a
+                                        href={l.url}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="text-[11px] font-medium text-sky-600 hover:underline"
+                                      >
+                                        View ↗
+                                      </a>
+                                    ) : null}
+                                    <button
+                                      type="button"
+                                      onClick={() => removeListing(l)}
+                                      aria-label="Remove this listing from the comparison"
+                                      title="Remove from comparison"
+                                      className="text-zinc-400 hover:text-red-600 text-sm leading-none px-1"
+                                    >
+                                      ✕
+                                    </button>
+                                  </div>
+                                </li>
+                              );
+                            })}
+                          </ul>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                ) : null}
+
+                {/* Profit + verdict */}
+                <div className="rounded-xl border border-zinc-200 p-4">
+                  <div className="flex flex-wrap items-center justify-between gap-3">
+                    <div>
+                      <p className="text-[11px] uppercase tracking-wide text-zinc-400">
+                        Gross margin at median resale
+                      </p>
+                      <p
+                        className={`text-2xl font-bold ${
+                          liveMargin >= 0 ? "text-emerald-600" : "text-red-600"
+                        }`}
+                      >
+                        {fmtGBP(liveMargin)}
+                      </p>
+                      <p className="text-[11px] text-zinc-400">
+                        median {fmtGBP(liveStats.median)} − landed{" "}
+                        {fmtGBP(result.totalLanded)}
+                      </p>
+                    </div>
+                    {verdict ? (
+                      <Badge
+                        className={`text-xs px-3 py-1 ${VERDICT_STYLE[verdict.recommendation].cls}`}
+                      >
+                        {VERDICT_STYLE[verdict.recommendation].label}
+                      </Badge>
+                    ) : (
+                      <Badge variant="secondary" className="text-[10px]">
+                        {analyzing ? "Writing verdict…" : "No verdict"}
+                      </Badge>
+                    )}
+                  </div>
+                  {verdict ? (
+                    <div className="mt-3 border-t border-zinc-100 pt-3">
+                      <p className="font-semibold text-zinc-900">
+                        {verdict.headline}
+                      </p>
+                      <p className="text-sm text-zinc-600 mt-1">
+                        {verdict.reasoning}
+                      </p>
+                      <p className="text-[11px] text-zinc-400 mt-2">
+                        Confidence: {verdict.confidence} · AI narrative over
+                        deterministic figures — verify before committing.
+                      </p>
+                      {listingsEdited ? (
+                        <p className="text-[11px] text-amber-700 mt-1">
+                          Figures above reflect your edited listing set; the
+                          written narrative is from the initial analysis. Re-run
+                          to refresh the narrative.
+                        </p>
+                      ) : null}
+                      <div className="mt-3 flex items-center gap-3">
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          disabled={saving || saved}
+                          onClick={saveAnalysis}
+                        >
+                          {saved
+                            ? "Saved ✓"
+                            : saving
+                              ? "Saving…"
+                              : "Save to history"}
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          disabled={pdfBusy}
+                          onClick={downloadPdf}
+                        >
+                          {pdfBusy ? "Building PDF…" : "Download PDF"}
+                        </Button>
+                      </div>
+                    </div>
+                  ) : null}
                 </div>
-              ) : null}
-            </div>
+              </>
+            )}
 
             {/* Usage this run — read from the API responses, no extra credits */}
             <div className="rounded-lg bg-zinc-50 border border-zinc-100 p-3 text-[11px] text-zinc-500 flex flex-wrap gap-x-4 gap-y-1">

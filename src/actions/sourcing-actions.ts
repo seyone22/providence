@@ -299,7 +299,8 @@ export interface MarketAnalysisInput {
 
 export interface MarketAnalysis {
   stats: MarketStats;
-  listings: NormalizedListing[];
+  listings: NormalizedListing[]; // matched the configured tolerances
+  allListings: NormalizedListing[]; // everything scraped + cleaned (pre-match)
   matchUsed: string; // human label of the match tolerances applied
   widened: boolean; // true when comparables are thin (low confidence)
   totalScraped: number;
@@ -383,6 +384,7 @@ export async function analyzeMarket(
       data: {
         stats,
         listings: matched,
+        allListings: cleaned,
         matchUsed: `±${yearBand}yr · ±${Math.round(mileagePct * 100)}% mileage`,
         widened: matched.length < 5, // thin supply → flag lower confidence
         totalScraped,
