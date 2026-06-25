@@ -6,16 +6,24 @@ import {
     MapPin,
     Calendar,
     ImageOff,
-    ChevronDown,
     Star,
     Play,
     Fuel,
     Cog,
-    Filter
+    Filter,
+    ArrowUpDown,
+    Sparkles
 } from "lucide-react";
 import Link from "next/link";
 import { useState, useMemo } from "react";
 import FAQSection from "@/components/faqSection";
+
+type PriceEntry = {
+    country: string;
+    currency: string;
+    amount: number;
+    type: string;
+};
 
 // Updated to perfectly match your Blueprint Schema
 type Dossier = {
@@ -28,13 +36,74 @@ type Dossier = {
     fuelSystem: string;
     transmission: string;
     images: string[];
+    heroImageUrl?: string;
+    slug?: string;
+    pricing?: PriceEntry[];
     features: string[];
     searchTags: string[];
     status: string;
+    createdAt?: string;
 };
+
+type SortKey = "newest" | "price-asc" | "price-desc";
+
+const CURRENCY_SYMBOLS: Record<string, string> = {
+    GBP: "£", USD: "$", EUR: "€", JPY: "¥", AUD: "A$", CAD: "C$"
+};
+
+// Lowest available price for a card — prefers GBP, then the cheapest entry.
+function getLeadPrice(car: Dossier): { amount: number; currency: string } | null {
+    if (!car.pricing || car.pricing.length === 0) return null;
+    const gbp = car.pricing.filter(p => p.currency?.toUpperCase() === "GBP");
+    const pool = gbp.length > 0 ? gbp : car.pricing;
+    const cheapest = pool.reduce((min, p) => (p.amount < min.amount ? p : min), pool[0]);
+    if (!cheapest || !Number.isFinite(cheapest.amount) || cheapest.amount <= 0) return null;
+    return { amount: cheapest.amount, currency: cheapest.currency?.toUpperCase() || "USD" };
+}
+
+function formatLeadPrice(car: Dossier): string | null {
+    const lead = getLeadPrice(car);
+    if (!lead) return null;
+    const symbol = CURRENCY_SYMBOLS[lead.currency] || `${lead.currency} `;
+    return `From ${symbol}${Math.round(lead.amount).toLocaleString()}`;
+}
+
+// Avoids titles like "Lexus Lexus LX500d" when the model already includes the make.
+function formatTitle(car: Dossier): string {
+    const make = (car.make || "").trim();
+    const model = (car.model || "").trim();
+    if (!make) return model;
+    if (model.toLowerCase().startsWith(make.toLowerCase())) return model;
+    return `${make} ${model}`.trim();
+}
+
+function isNewArrival(car: Dossier): boolean {
+    if (!car.createdAt) return false;
+    const created = new Date(car.createdAt).getTime();
+    if (Number.isNaN(created)) return false;
+    const FOURTEEN_DAYS = 14 * 24 * 60 * 60 * 1000;
+    return Date.now() - created < FOURTEEN_DAYS;
+}
+
+// Card image with a soft blur-up fade-in once the asset loads.
+function CardImage({ src, alt }: { src: string; alt: string }) {
+    const [loaded, setLoaded] = useState(false);
+    return (
+        <img
+            src={src}
+            alt={alt}
+            loading="lazy"
+            onLoad={() => setLoaded(true)}
+            className={`w-full h-full object-cover group-hover:scale-105 transition-all duration-[1.5s] ease-out ${
+                loaded ? "opacity-100 blur-0 scale-100" : "opacity-0 blur-md scale-105"
+            }`}
+        />
+    );
+}
 
 export default function GalleryClient({ dossiers }: { dossiers: Dossier[] }) {
     const [selectedTags, setSelectedTags] = useState<string[]>([]);
+    const [sortKey, setSortKey] = useState<SortKey>("newest");
 
     // 1. Filter out Drafts, only keep Published items
     const publishedDossiers = useMemo(() => {
@@ -54,11 +123,26 @@ export default function GalleryClient({ dossiers }: { dossiers: Dossier[] }) {
 
     // 3. Filter logic: If tags are selected, the car must have ALL selected tags
     const filteredDossiers = useMemo(() => {
-        if (selectedTags.length === 0) return publishedDossiers;
-        return publishedDossiers.filter(car =>
-            selectedTags.every(tag => car.searchTags?.includes(tag))
-        );
-    }, [publishedDossiers, selectedTags]);
+        const base = selectedTags.length === 0
+            ? publishedDossiers
+            : publishedDossiers.filter(car =>
+                selectedTags.every(tag => car.searchTags?.includes(tag))
+            );
+
+        const sorted = [...base];
+        if (sortKey === "newest") {
+            sorted.sort((a, b) =>
+                new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime()
+            );
+        } else {
+            // Cars without a price sink to the bottom of either price sort.
+            const priceOf = (c: Dossier) => getLeadPrice(c)?.amount ?? Number.POSITIVE_INFINITY;
+            sorted.sort((a, b) =>
+                sortKey === "price-asc" ? priceOf(a) - priceOf(b) : priceOf(b) - priceOf(a)
+            );
+        }
+        return sorted;
+    }, [publishedDossiers, selectedTags, sortKey]);
 
     const toggleTag = (tag: string) => {
         setSelectedTags(prev =>
@@ -94,9 +178,35 @@ export default function GalleryClient({ dossiers }: { dossiers: Dossier[] }) {
                 <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[400px] bg-zinc-100 blur-[120px] rounded-full pointer-events-none -z-10" />
             </section>
 
+            {/* Sticky Browse Toolbar: result count + sort */}
+            <div className="sticky top-0 z-30 bg-white/85 backdrop-blur-md border-y border-black/5">
+                <div className="px-6 max-w-[1400px] mx-auto py-4 flex items-center justify-between gap-4">
+                    <p className="text-sm font-medium text-zinc-500">
+                        Showing <span className="font-bold text-black">{filteredDossiers.length}</span>{" "}
+                        {filteredDossiers.length === 1 ? "vehicle" : "vehicles"}
+                        {selectedTags.length > 0 && (
+                            <span className="text-zinc-400"> · filtered</span>
+                        )}
+                    </p>
+                    <label className="flex items-center gap-2 text-sm">
+                        <ArrowUpDown size={14} className="text-zinc-400" />
+                        <span className="sr-only">Sort vehicles</span>
+                        <select
+                            value={sortKey}
+                            onChange={(e) => setSortKey(e.target.value as SortKey)}
+                            className="bg-zinc-50 border border-black/5 rounded-full px-4 py-2 text-xs font-bold uppercase tracking-wider text-zinc-600 cursor-pointer hover:border-black/20 focus:outline-none focus:ring-2 focus:ring-black/10 transition-colors"
+                        >
+                            <option value="newest">Newest</option>
+                            <option value="price-asc">Price: Low to High</option>
+                            <option value="price-desc">Price: High to Low</option>
+                        </select>
+                    </label>
+                </div>
+            </div>
+
             {/* Filter Section */}
             {availableTags.length > 0 && (
-                <section className="px-6 max-w-[1400px] mx-auto relative z-20 mb-8">
+                <section className="px-6 max-w-[1400px] mx-auto relative z-20 mb-8 mt-8">
                     <div className="flex flex-col md:flex-row gap-4 items-start md:items-center border-b border-black/5 pb-8">
                         <div className="flex items-center gap-2 text-zinc-400 font-bold uppercase tracking-widest text-xs shrink-0">
                             <Filter size={14} /> Filter By:
@@ -132,7 +242,7 @@ export default function GalleryClient({ dossiers }: { dossiers: Dossier[] }) {
             )}
 
             {/* Grid Section */}
-            <section className="pb-20 px-6 max-w-[1400px] mx-auto bg-white relative z-10">
+            <section className="pt-8 pb-20 px-6 max-w-[1400px] mx-auto bg-white relative z-10">
                 {filteredDossiers.length === 0 ? (
                     <div className="text-center py-32 bg-zinc-50 rounded-[2.5rem] border border-black/5">
                         <p className="text-zinc-400 font-medium text-lg">
@@ -156,19 +266,30 @@ export default function GalleryClient({ dossiers }: { dossiers: Dossier[] }) {
                                 duration={0.8}
                                 className="group relative flex flex-col rounded-[2rem] bg-white border border-black/5 overflow-hidden hover:shadow-[0_30px_60px_rgba(0,0,0,0.06)] hover:border-black/10 transition-all duration-700 cursor-pointer"
                             >
-                                <Link href={`/b2c/gallery/${car._id}`} className="flex flex-col h-full outline-none">
+                                <Link href={`/b2c/gallery/${car.slug || car._id}`} className="flex flex-col h-full outline-none">
                                     {/* Image Container */}
                                     <div className="relative aspect-[4/3] bg-zinc-100 overflow-hidden">
-                                        {car.images && car.images.length > 0 ? (
-                                            <img
-                                                src={car.images[0]}
-                                                alt={`${car.make} ${car.model}`}
-                                                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-[1.5s] ease-out"
-                                            />
-                                        ) : (
-                                            <div className="w-full h-full flex flex-col items-center justify-center text-zinc-300">
-                                                <ImageOff size={32} className="mb-2 opacity-50" />
-                                                <span className="text-sm font-medium uppercase tracking-widest">No Image</span>
+                                        {(() => {
+                                            const cardImage = car.heroImageUrl || car.images?.[0];
+                                            return cardImage ? (
+                                                <CardImage src={cardImage} alt={formatTitle(car)} />
+                                            ) : (
+                                                <div className="w-full h-full flex flex-col items-center justify-center text-zinc-300">
+                                                    <ImageOff size={32} className="mb-2 opacity-50" />
+                                                    <span className="text-sm font-medium uppercase tracking-widest">No Image</span>
+                                                </div>
+                                            );
+                                        })()}
+
+                                        {isNewArrival(car) && (
+                                            <div className="absolute top-4 left-4 flex items-center gap-1.5 bg-black/85 text-white text-[10px] font-bold uppercase tracking-wider px-3 py-1.5 rounded-full backdrop-blur-sm">
+                                                <Sparkles size={12} /> New Arrival
+                                            </div>
+                                        )}
+
+                                        {formatLeadPrice(car) && (
+                                            <div className="absolute bottom-4 right-4 bg-white/95 text-black text-sm font-bold px-4 py-2 rounded-full shadow-lg backdrop-blur-sm">
+                                                {formatLeadPrice(car)}
                                             </div>
                                         )}
                                     </div>
@@ -177,7 +298,7 @@ export default function GalleryClient({ dossiers }: { dossiers: Dossier[] }) {
                                     <div className="p-8 flex flex-col flex-grow">
                                         <div className="mb-6 flex-grow">
                                             <h2 className="text-2xl font-bold tracking-tight text-black mb-1 group-hover:text-sky-600 transition-colors duration-500 line-clamp-1">
-                                                {car.make} {car.model}
+                                                {formatTitle(car)}
                                             </h2>
                                             <p className="text-zinc-500 font-light line-clamp-1">
                                                 {car.trim || "Standard Specification"}
@@ -334,7 +455,7 @@ export default function GalleryClient({ dossiers }: { dossiers: Dossier[] }) {
                     >
                         <div className="relative aspect-video rounded-[1.5rem] overflow-hidden group cursor-pointer">
                             <img
-                                src="https://images.unsplash.com/photo-1549314454-78d1fdc3b5ec?q=80&w=2940&auto=format&fit=crop"
+                                src="/review-placeholder.svg"
                                 alt="Featured Review"
                                 className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
                             />
@@ -356,9 +477,12 @@ export default function GalleryClient({ dossiers }: { dossiers: Dossier[] }) {
                             <p className="text-zinc-500 font-light leading-relaxed mb-8">
                                 "The Range Rover needs no introduction. For 50 years it has been a staple of luxury, becoming the definition of a premium SUV. However, navigating the import market for one requires expertise. Here is why importing direct remains the superior choice..."
                             </p>
-                            <button className="px-8 py-3 rounded-full border border-black/20 font-medium hover:bg-black hover:text-white transition-colors duration-300">
+                            <Link
+                                href="/request"
+                                className="inline-block px-8 py-3 rounded-full border border-black/20 font-medium hover:bg-black hover:text-white transition-colors duration-300"
+                            >
                                 Read the full review
-                            </button>
+                            </Link>
                         </div>
                     </Reveal>
                 </div>

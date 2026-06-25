@@ -1,8 +1,43 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import mongoose from "mongoose";
 import connectToDatabase from "@/lib/mongoose";
 import { SpecDossier } from "@/models/SpecDossier";
+
+/**
+ * Normalises a string into a url-safe slug (lowercase, hyphenated).
+ */
+function slugify(input: string) {
+    return (input || "")
+        .toLowerCase()
+        .trim()
+        .replace(/\s+/g, "-")
+        .replace(/[^a-z0-9-_]/g, "")
+        .replace(/-+/g, "-")
+        .replace(/^-|-$/g, "");
+}
+
+/**
+ * Returns the first slug that is not already taken (excluding `currentId`).
+ * Tries `base`, then `base-2`, `base-3`, ... until a free one is found.
+ */
+async function findAvailableSlug(base: string, currentId?: string) {
+    let candidate = base;
+    let counter = 2;
+
+    // Loop until no other dossier owns this slug.
+    while (true) {
+        const query: any = { slug: candidate };
+        if (currentId) query._id = { $ne: currentId };
+
+        const existing = await SpecDossier.findOne(query).select("_id").lean();
+        if (!existing) return candidate;
+
+        candidate = `${base}-${counter}`;
+        counter += 1;
+    }
+}
 
 /**
  * SAVE / UPSERT DOSSIER TEMPLATE
@@ -11,6 +46,41 @@ import { SpecDossier } from "@/models/SpecDossier";
 export async function saveSpecDossier(payload: any) {
     try {
         await connectToDatabase();
+
+        // --- Slug handling ---------------------------------------------------
+        // If no slug was provided, auto-derive a clean default from make/model/year
+        // so the public link is never a raw Mongo _id.
+        let slug = slugify(payload.slug || "");
+        if (!slug) {
+            slug = slugify(`${payload.make || ""} ${payload.model || ""} ${payload.year || ""}`);
+        }
+
+        if (slug) {
+            const conflict = await SpecDossier.findOne({
+                slug,
+                ...(payload._id ? { _id: { $ne: payload._id } } : {})
+            }).select("_id").lean();
+
+            if (conflict) {
+                // Caller did not opt into auto-numbering — surface the collision.
+                if (!payload.forceSlug) {
+                    const suggestedSlug = await findAvailableSlug(slug, payload._id);
+                    return {
+                        success: false,
+                        conflict: true,
+                        slug,
+                        suggestedSlug,
+                        message: `The URL "${slug}" is already in use.`
+                    };
+                }
+                // forceSlug === true: take the next free numbered slug.
+                slug = await findAvailableSlug(slug, payload._id);
+            }
+        }
+
+        // Strip the transient flag and persist the resolved slug.
+        const { forceSlug, ...rest } = payload;
+        payload = { ...rest, slug };
 
         let savedDossier;
 
@@ -31,6 +101,7 @@ export async function saveSpecDossier(payload: any) {
 
         revalidatePath("/admin/dossiers");
         revalidatePath("/admin/specs");
+        revalidatePath("/b2c/gallery");
 
         return {
             success: true,
@@ -53,7 +124,16 @@ export async function getSpecDossierById(id: any) {
     const actionName = "[getSpecDossierById]";
     try {
         await connectToDatabase();
-        const dossier = await SpecDossier.findById(id);
+
+        // Resolve by Mongo _id when the value looks like an ObjectId,
+        // otherwise (or as a fallback) treat it as a public URL slug.
+        let dossier = null;
+        if (mongoose.Types.ObjectId.isValid(id)) {
+            dossier = await SpecDossier.findById(id);
+        }
+        if (!dossier) {
+            dossier = await SpecDossier.findOne({ slug: id });
+        }
 
         if (!dossier) {
             return { success: false, message: "Template not found." };

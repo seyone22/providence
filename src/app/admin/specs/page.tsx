@@ -350,7 +350,7 @@ function SpecBuilderContent() {
                 finalImageUrls = [...finalImageUrls, ...uploadedUrls];
             }
 
-            const payload = {
+            const payload: any = {
                 ...specData,
                 heroImageUrl: specData.heroImageUrl || (finalImageUrls.length > 0 ? finalImageUrls[0] : ""),
                 features,
@@ -358,7 +358,24 @@ function SpecBuilderContent() {
                 images: finalImageUrls,
                 pricing
             };
-            const result = await saveSpecDossier(payload);
+            let result = await saveSpecDossier(payload);
+
+            // Slug collision: offer to publish under the next free numbered slug.
+            if (!result.success && (result as any).conflict) {
+                const suggestedSlug = (result as any).suggestedSlug;
+                const useSuggested = window.confirm(
+                    `The URL "${(result as any).slug}" is already in use.\n\n` +
+                    `Publish as "${suggestedSlug}" instead? (Cancel to edit the slug yourself.)`
+                );
+
+                if (!useSuggested) {
+                    // Let the admin pick a different slug.
+                    return;
+                }
+
+                setSpecData(prev => ({ ...prev, slug: suggestedSlug }));
+                result = await saveSpecDossier({ ...payload, slug: suggestedSlug, forceSlug: true });
+            }
 
             if (result.success) {
                 alert(editId ? "Dossier Template Updated!" : "New Dossier Template Created!");
