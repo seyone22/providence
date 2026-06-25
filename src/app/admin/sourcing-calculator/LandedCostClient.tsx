@@ -227,6 +227,15 @@ export default function LandedCostClient({ fx }: { fx: GbpFxRates }) {
   const [currency, setCurrency] = useState<(typeof CURRENCIES)[number]>("JPY");
   const [hammerPrice, setHammerPrice] = useState("");
   const [auctionExportFees, setAuctionExportFees] = useState("");
+  // Auction/export agent fee auto-fills to 7% of the hammer price until the
+  // operator edits it manually.
+  const [feeManual, setFeeManual] = useState(false);
+  useEffect(() => {
+    if (!feeManual) {
+      const h = num(hammerPrice);
+      setAuctionExportFees(h > 0 ? String(Math.round(h * 0.07)) : "");
+    }
+  }, [hammerPrice, feeManual]);
   const [inlandTransportOrigin, setInlandTransportOrigin] = useState("");
   // Default freight: 260,000 JPY for a 3-car container (editable per shipment).
   const [oceanFreight, setOceanFreight] = useState("260000");
@@ -770,8 +779,25 @@ export default function LandedCostClient({ fx }: { fx: GbpFxRates }) {
                 <Field
                   label="Auction & export agent fees"
                   value={auctionExportFees}
-                  onChange={setAuctionExportFees}
+                  onChange={(v) => {
+                    setAuctionExportFees(v);
+                    setFeeManual(true);
+                  }}
+                  hint={
+                    feeManual
+                      ? "Manually set — 7% of hammer is the default"
+                      : "Auto: 7% of hammer value (editable)"
+                  }
                 />
+                {feeManual ? (
+                  <button
+                    type="button"
+                    onClick={() => setFeeManual(false)}
+                    className="text-[11px] font-medium text-sky-600 hover:underline -mt-2 justify-self-start"
+                  >
+                    Reset to 7%
+                  </button>
+                ) : null}
                 <Field
                   label="Inland transport (origin)"
                   value={inlandTransportOrigin}
