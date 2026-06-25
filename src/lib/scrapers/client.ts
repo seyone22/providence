@@ -9,9 +9,10 @@ import { mapAutoTraderItem } from "@/lib/scrapers/autotrader";
 import { mapPistonHeadsItem } from "@/lib/scrapers/pistonheads";
 
 const APIFY_BASE = "https://api.apify.com/v2";
+const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
 // Run an actor and return its dataset items. `run-sync-get-dataset-items` blocks
-// until the run finishes (cheerio actors are fast), so no polling is needed.
+// until the run finishes — fine for fast actors (PistonHeads ~14s).
 export async function runApifyActor<T = unknown>(
   actorId: string,
   input: unknown,
@@ -37,6 +38,86 @@ export async function runApifyActor<T = unknown>(
   return (await res.json()) as T[];
 }
 
+// Start an actor run and poll its dataset, returning whatever has been scraped
+// once the run finishes OR a time budget elapses. AutoTrader's actor pushes
+// items incrementally (~50 by 15s, ~80 by 45s) but takes ~100s to fully finish —
+// far longer than a serverless function allows. Bounding the wait keeps the
+// request fast and still returns a solid sample. The run finishes server-side.
+export async function runApifyActorBounded<T = unknown>(
+  actorId: string,
+  input: unknown,
+  maxWaitMs = 38000,
+  pollMs = 4000,
+): Promise<T[]> {
+  const token = process.env.APIFY_TOKEN;
+  if (!token) throw new Error("APIFY_TOKEN is not configured.");
+
+  const startRes = await fetch(
+    `${APIFY_BASE}/acts/${actorId}/runs?token=${token}`,
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(input),
+      cache: "no-store",
+    },
+  );
+  if (!startRes.ok) {
+    const body = await startRes.text();
+    throw new Error(
+      `Apify ${actorId} start failed ${startRes.status}: ${body.slice(0, 200)}`,
+    );
+  }
+  const run = (await startRes.json()) as {
+    data: { id: string; defaultDatasetId: string; status: string };
+  };
+  const { id: runId, defaultDatasetId: datasetId } = run.data;
+
+  const deadline = Date.now() + maxWaitMs;
+  let status = run.data.status;
+  while (
+    Date.now() < deadline &&
+    (status === "RUNNING" || status === "READY")
+  ) {
+    await sleep(pollMs);
+    const sRes = await fetch(
+      `${APIFY_BASE}/actor-runs/${runId}?token=${token}`,
+      { cache: "no-store" },
+    );
+    if (sRes.ok) {
+      status = ((await sRes.json()) as { data: { status: string } }).data
+        .status;
+    }
+  }
+
+  // Return whatever's in the dataset so far (partial is fine for stats).
+  const itemsRes = await fetch(
+    `${APIFY_BASE}/datasets/${datasetId}/items?token=${token}`,
+    { cache: "no-store" },
+  );
+  if (!itemsRes.ok) {
+    throw new Error(`Apify ${actorId} dataset fetch failed ${itemsRes.status}`);
+  }
+  return (await itemsRes.json()) as T[];
+}
+
+// AutoTrader / PistonHeads expect canonical make names; sales staff type short
+// forms. Normalise the common ones so the search actually returns results.
+const MAKE_ALIASES: Record<string, string> = {
+  benz: "Mercedes-Benz",
+  mercedes: "Mercedes-Benz",
+  "mercedes benz": "Mercedes-Benz",
+  merc: "Mercedes-Benz",
+  vw: "Volkswagen",
+  "land-rover": "Land Rover",
+  landrover: "Land Rover",
+  "range rover": "Land Rover",
+  chevy: "Chevrolet",
+  "rolls royce": "Rolls-Royce",
+};
+function canonicalMake(make: string): string {
+  return MAKE_ALIASES[make.toLowerCase().trim()] ?? make.trim();
+}
+
 // ─── AutoTrader ──────────────────────────────────────────────────────────────
 
 const AUTOTRADER_ACTOR = "memo23~autotrader-cheerio";
@@ -52,7 +133,7 @@ export function buildAutoTraderSearchUrl(params: {
   yearTo?: number;
 }): string {
   const qs = new URLSearchParams({
-    make: params.make,
+    make: canonicalMake(params.make),
     model: params.model,
     postcode: params.postcode ?? "M1 1AE",
   });
@@ -69,16 +150,18 @@ export async function scrapeAutoTrader(params: {
   yearTo?: number;
 }): Promise<NormalizedListing[]> {
   const url = buildAutoTraderSearchUrl(params);
-  // includeListingDetails:true is the validated config that returns price, year,
-  // mileage and the derivative (subtitle) the matcher needs. ~$0.085 per page.
-  const items = await runApifyActor<Parameters<typeof mapAutoTraderItem>[0]>(
-    AUTOTRADER_ACTOR,
-    {
-      startUrls: [{ url }],
-      includeListingDetails: true,
-      proxy: { useApifyProxy: true, apifyProxyGroups: ["RESIDENTIAL"] },
-    },
-  );
+  // includeListingDetails:true returns price, year, mileage and the derivative
+  // (subtitle) the matcher needs. The actor takes ~100s to fully finish but
+  // pushes items as it goes, so we poll for a bounded window and take the
+  // partial set — otherwise it overruns the serverless timeout and yields
+  // nothing. ~$0.085 per page.
+  const items = await runApifyActorBounded<
+    Parameters<typeof mapAutoTraderItem>[0]
+  >(AUTOTRADER_ACTOR, {
+    startUrls: [{ url }],
+    includeListingDetails: true,
+    proxy: { useApifyProxy: true, apifyProxyGroups: ["RESIDENTIAL"] },
+  });
   return items.map(mapAutoTraderItem);
 }
 
@@ -97,7 +180,9 @@ export async function scrapePistonHeads(params: {
   const items = await runApifyActor<Parameters<typeof mapPistonHeadsItem>[0]>(
     PISTONHEADS_ACTOR,
     {
-      makeUrlName: params.make.toLowerCase().trim(),
+      makeUrlName: canonicalMake(params.make)
+        .toLowerCase()
+        .replace(/\s+/g, "-"),
       modelKeyword: params.model.trim(),
       yearMin: params.yearFrom,
       yearMax: params.yearTo,

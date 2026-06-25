@@ -5,6 +5,11 @@ import { auth } from "@/utils/auth";
 import LandedCostClient from "./LandedCostClient";
 import RecentAnalyses from "./RecentAnalyses";
 
+// The market scrape (AutoTrader) polls for up to ~45s, so the server actions on
+// this route need a longer-than-default function budget (Vercel Pro allows ≤60s,
+// higher tiers more). Adjust upward if your plan permits.
+export const maxDuration = 60;
+
 // Sourcing & Profit tool — admin + Sales only. Phase 1: landed-cost calculator.
 export default async function SourcingCalculatorPage() {
   // Match the rest of the admin area: access is gated on a valid session
