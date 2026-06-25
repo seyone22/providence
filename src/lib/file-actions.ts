@@ -3,6 +3,7 @@
 
 import { PutObjectCommand } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
+import sharp from "sharp";
 import { r2, BUCKET_NAME, PUBLIC_BUCKET_URL } from "@/lib/r2";
 
 type FileMetadata = {
@@ -10,6 +11,24 @@ type FileMetadata = {
     type: string;
     size: number;
 };
+
+// Phone photos carry an EXIF orientation flag. Browsers auto-rotate <img> from
+// it, but link-preview crawlers (iMessage, Slack, WhatsApp) ignore EXIF and
+// render the raw bytes — so portrait shots show up sideways in shared links.
+// sharp.rotate() (no args) bakes the EXIF orientation into the pixels and drops
+// the metadata, leaving an upright image everywhere. GIFs are skipped to keep
+// animation intact; any failure falls back to the original bytes.
+async function normalizeImageOrientation(buffer: Buffer, contentType: string): Promise<Buffer> {
+    if (!contentType?.startsWith("image/") || contentType === "image/gif") {
+        return buffer;
+    }
+    try {
+        return await sharp(buffer).rotate().toBuffer();
+    } catch (error) {
+        console.error("Image orientation normalization failed, using original:", error);
+        return buffer;
+    }
+}
 
 export async function getPresignedUrls(files: FileMetadata[], folder: string) {
     try {
@@ -99,6 +118,10 @@ export async function uploadDossierImages(formData: FormData) {
             const arrayBuffer = await file.arrayBuffer();
             const buffer = Buffer.from(arrayBuffer);
 
+            // Bake EXIF orientation into the pixels so shared-link previews
+            // (which ignore EXIF) don't show portrait photos sideways.
+            const body = await normalizeImageOrientation(buffer, file.type);
+
             // Create a unique filename
             const uniqueSuffix = `${Date.now()}-${Math.round(Math.random() * 1e9)}`;
             const extension = file.name.split('.').pop();
@@ -109,7 +132,7 @@ export async function uploadDossierImages(formData: FormData) {
                 new PutObjectCommand({
                     Bucket: BUCKET_NAME,
                     Key: fileName,
-                    Body: buffer,
+                    Body: body,
                     ContentType: file.type,
                 })
             );

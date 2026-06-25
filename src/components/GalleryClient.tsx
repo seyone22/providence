@@ -2,6 +2,7 @@
 
 import MinimalHeader from "@/components/MinimalHeader";
 import { Reveal } from "@/components/Reveal";
+import { formatVehicleTitle } from "@/lib/vehicle";
 import {
     MapPin,
     Calendar,
@@ -70,11 +71,7 @@ function formatLeadPrice(car: Dossier): string | null {
 
 // Avoids titles like "Lexus Lexus LX500d" when the model already includes the make.
 function formatTitle(car: Dossier): string {
-    const make = (car.make || "").trim();
-    const model = (car.model || "").trim();
-    if (!make) return model;
-    if (model.toLowerCase().startsWith(make.toLowerCase())) return model;
-    return `${make} ${model}`.trim();
+    return formatVehicleTitle(car.make, car.model);
 }
 
 function isNewArrival(car: Dossier): boolean {
