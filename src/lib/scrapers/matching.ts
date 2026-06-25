@@ -76,6 +76,34 @@ export function filterListings(
   );
 }
 
+// Rank comparables and keep the best `limit`. Priority: closest year to the
+// target first (so same-year listings win); ties broken by closest mileage.
+// Keeps the comparison tight when a search returns many candidates.
+export function selectTopComparables(
+  listings: NormalizedListing[],
+  target: MatchTarget,
+  limit = 10,
+): NormalizedListing[] {
+  const { year: ty, mileage: tm } = target;
+  return [...listings]
+    .sort((a, b) => {
+      if (ty != null) {
+        const ay = a.year != null ? Math.abs(a.year - ty) : Number.MAX_VALUE;
+        const by = b.year != null ? Math.abs(b.year - ty) : Number.MAX_VALUE;
+        if (ay !== by) return ay - by; // same/closest year first
+      }
+      if (tm != null) {
+        const am =
+          a.mileage != null ? Math.abs(a.mileage - tm) : Number.MAX_VALUE;
+        const bm =
+          b.mileage != null ? Math.abs(b.mileage - tm) : Number.MAX_VALUE;
+        if (am !== bm) return am - bm; // then closest mileage
+      }
+      return 0;
+    })
+    .slice(0, limit);
+}
+
 export interface MatchResult {
   listings: NormalizedListing[];
   strictnessUsed: MatchStrictness;

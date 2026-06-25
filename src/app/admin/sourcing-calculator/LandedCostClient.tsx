@@ -344,6 +344,7 @@ export default function LandedCostClient({ fx }: { fx: GbpFxRates }) {
   // Operator-configurable match tolerances (defaults ±1 year, ±20% mileage).
   const [yearBand, setYearBand] = useState("1");
   const [mileagePctInput, setMileagePctInput] = useState("20");
+  const [showAllScraped, setShowAllScraped] = useState(false);
 
   // The comparable listings, held in editable state so the operator can drop a
   // car that doesn't fit — all stats below recompute from this live set.
@@ -1143,12 +1144,16 @@ export default function LandedCostClient({ fx }: { fx: GbpFxRates }) {
             {/* Data provenance — full transparency on how the figures were built */}
             <p className="text-[11px] text-zinc-400 mt-1">
               {market.totalScraped} listings scraped → {market.totalAfterClean}{" "}
-              after cleaning → {liveStats.count} comparable
+              after cleaning → {market.totalMatched} matched
+              {market.totalMatched > liveStats.count
+                ? ` → top ${liveStats.count} shown (closest year, then mileage)`
+                : ""}
               {liveStats.trimmedOutliers > 0
                 ? ` · ${liveStats.trimmedOutliers} price outlier${liveStats.trimmedOutliers === 1 ? "" : "s"} excluded`
                 : ""}
-              {" · "}interquartile {fmtGBP(liveStats.p25)}–
-              {fmtGBP(liveStats.p75)}
+              {liveStats.count > 0
+                ? ` · interquartile ${fmtGBP(liveStats.p25)}–${fmtGBP(liveStats.p75)}`
+                : ""}
             </p>
           </CardHeader>
           <CardContent className="space-y-6">
@@ -1404,6 +1409,72 @@ export default function LandedCostClient({ fx }: { fx: GbpFxRates }) {
                 </div>
               </>
             )}
+
+            {/* All scraped listings — read-only inspector, no extra credits */}
+            {market.allListings.length > 0 ? (
+              <div className="border-t border-zinc-100 pt-3">
+                <button
+                  type="button"
+                  onClick={() => setShowAllScraped((v) => !v)}
+                  className="text-[12px] font-medium text-sky-600 hover:underline"
+                >
+                  {showAllScraped ? "Hide" : "Show"} all{" "}
+                  {market.allListings.length} scraped listings
+                </button>
+                {showAllScraped ? (
+                  <ul className="mt-2 max-h-80 overflow-y-auto divide-y divide-zinc-50 rounded-lg border border-zinc-200">
+                    {[...market.allListings]
+                      .sort((a, b) => (a.price ?? 0) - (b.price ?? 0))
+                      .map((l, idx) => {
+                        const meta = [
+                          l.year,
+                          l.mileage ? `${l.mileage.toLocaleString()} mi` : null,
+                          l.trim,
+                        ]
+                          .filter(Boolean)
+                          .join(" · ");
+                        return (
+                          <li
+                            key={l.url ?? `all-${idx}`}
+                            className="flex items-center justify-between gap-3 px-3 py-1.5 text-[13px]"
+                          >
+                            <div className="min-w-0">
+                              <span className="font-semibold text-zinc-900 tabular-nums">
+                                {l.price != null ? fmtGBP(l.price) : "—"}
+                              </span>
+                              <span className="text-zinc-500 ml-2 truncate">
+                                {meta}
+                              </span>
+                            </div>
+                            <div className="flex items-center gap-2 shrink-0">
+                              <Badge
+                                variant="secondary"
+                                className="text-[10px]"
+                              >
+                                {l.source}
+                              </Badge>
+                              {l.url ? (
+                                <a
+                                  href={l.url}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="text-[11px] font-medium text-sky-600 hover:underline"
+                                >
+                                  View ↗
+                                </a>
+                              ) : null}
+                            </div>
+                          </li>
+                        );
+                      })}
+                  </ul>
+                ) : null}
+                <p className="text-[11px] text-zinc-400 mt-1">
+                  Everything scraped before the year/mileage filter — for
+                  reference only; doesn't affect the figures above.
+                </p>
+              </div>
+            ) : null}
 
             {/* Usage this run — read from the API responses, no extra credits */}
             <div className="rounded-lg bg-zinc-50 border border-zinc-100 p-3 text-[11px] text-zinc-500 flex flex-wrap gap-x-4 gap-y-1">

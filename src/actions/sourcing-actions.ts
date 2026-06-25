@@ -9,7 +9,11 @@ import {
 import connectToDatabase from "@/lib/mongoose";
 import { cleanListings, dedupeListings } from "@/lib/scrapers/clean";
 import { scrapeAutoTrader, scrapePistonHeads } from "@/lib/scrapers/client";
-import { filterListings, type MatchTarget } from "@/lib/scrapers/matching";
+import {
+  filterListings,
+  type MatchTarget,
+  selectTopComparables,
+} from "@/lib/scrapers/matching";
 import SourcingAnalysis from "@/models/SourcingAnalysis";
 import { auth } from "@/utils/auth";
 
@@ -303,6 +307,7 @@ export interface MarketAnalysis {
   allListings: NormalizedListing[]; // everything scraped + cleaned (pre-match)
   matchUsed: string; // human label of the match tolerances applied
   widened: boolean; // true when comparables are thin (low confidence)
+  totalMatched: number; // matched the tolerances before the top-10 cap
   totalScraped: number;
   totalAfterClean: number;
   sources: string[];
@@ -376,17 +381,20 @@ export async function analyzeMarket(
     // Apply the operator-configured tolerances directly (no auto-widen — the
     // operator controls the range now).
     const matched = filterListings(cleaned, target, { yearBand, mileagePct });
+    // Keep the best 10: closest year to the target, then closest mileage.
+    const top = selectTopComparables(matched, target, 10);
 
-    const stats = computeMarketStats(matched.map((l) => l.price ?? 0));
+    const stats = computeMarketStats(top.map((l) => l.price ?? 0));
 
     return {
       success: true,
       data: {
         stats,
-        listings: matched,
+        listings: top,
         allListings: cleaned,
         matchUsed: `±${yearBand}yr · ±${Math.round(mileagePct * 100)}% mileage`,
-        widened: matched.length < 5, // thin supply → flag lower confidence
+        widened: top.length < 5, // thin supply → flag lower confidence
+        totalMatched: matched.length,
         totalScraped,
         totalAfterClean: cleaned.length,
         sources,
