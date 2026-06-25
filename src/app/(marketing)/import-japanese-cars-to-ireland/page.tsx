@@ -486,7 +486,10 @@ export default function ImportJapaneseCarsIreland() {
                             </div>
 
                             <p className="text-xs text-zinc-400 font-light px-2 leading-relaxed">
-                                Figures are indicative. Actual VRT is charged on Revenue's OMSP and varies by model, year, and mileage. We provide a full landed-cost breakdown before authorising any purchase.
+                                Figures are indicative. Actual VRT is charged on Revenue's OMSP and varies by model, year, and mileage. We provide a full landed-cost breakdown before authorising any purchase. Learn more about{" "}
+                                <a href="/blog/cost-of-importing-a-car-to-ireland" className="underline decoration-zinc-300 hover:decoration-zinc-500 hover:text-zinc-600 transition-colors">how much it costs to import a car to Ireland</a>{" "}
+                                or the{" "}
+                                <a href="/blog/cheapest-cars-to-import-to-ireland" className="underline decoration-zinc-300 hover:decoration-zinc-500 hover:text-zinc-600 transition-colors">cheapest cars to import</a>.
                             </p>
                         </Reveal>
                     </div>

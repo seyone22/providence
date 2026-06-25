@@ -1,9 +1,10 @@
 import { notFound, redirect } from "next/navigation";
 import { headers } from "next/headers";
-import { Metadata } from "next"; // <-- Import Metadata
+import type { Metadata } from "next";
 import { getSpecDossierById } from "@/actions/spec-actions";
 import GalleryDetailClient from "@/components/GalleryDetailClient";
 import { auth } from "@/utils/auth";
+import { formatVehicleTitle } from "@/lib/vehicle";
 
 export const revalidate = 60;
 
@@ -22,9 +23,9 @@ export async function generateMetadata({ params }: { params: { id: string } }): 
 
     const car = response.data;
 
-    // Build your dynamic strings based on your actual database fields
-    // Adjust 'make', 'model', 'year', and 'imageUrl' to match your schema
-    const pageTitle = `${car.year || ''} ${car.make || ''} ${car.model || ''}`.trim();
+    // Build the title with the same de-duped make/model used on the card so
+    // the preview reads "2022 Lexus LX500d", not "2022 Lexus Lexus LX500d".
+    const pageTitle = `${car.year || ''} ${formatVehicleTitle(car.make, car.model)}`.trim();
     const pageDescription = `View full specifications, gallery, and details for the ${pageTitle}.`;
     // Honor the admin-selected hero image, then fall back to the first gallery
     // image, then a static default. metadataBase (src/app/layout.tsx) resolves

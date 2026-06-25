@@ -6,7 +6,7 @@ export default function Footer() {
 
     return (
         <footer className="w-full border-t border-white/5 bg-black pt-16 pb-8 relative z-50">
-            <div className="max-w-7xl mx-auto px-6 grid grid-cols-1 md:grid-cols-3 gap-12 md:gap-8 mb-16">
+            <div className="max-w-7xl mx-auto px-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12 md:gap-8 mb-16">
 
                 {/* Left Column: Logo & Brand */}
                 <div className="flex flex-col justify-start">
@@ -92,6 +92,33 @@ export default function Footer() {
                             Instagram
                         </a>
                     </div>
+                </div>
+
+                {/* Guides Column: internal links to the import content cluster */}
+                <div className="flex flex-col gap-4">
+                    <h4 className="text-[10px] font-bold tracking-[0.2em] uppercase text-zinc-500">
+                        Import Guides
+                    </h4>
+                    <nav className="flex flex-col gap-2.5 text-sm font-light text-zinc-400">
+                        <Link href="/b2c/gallery" className="hover:text-white transition-colors">
+                            Gallery
+                        </Link>
+                        <Link href="/blog" className="hover:text-white transition-colors">
+                            All import guides
+                        </Link>
+                        <Link href="/blog/cheapest-cars-to-import-to-ireland" className="hover:text-white transition-colors">
+                            Cheapest cars to import to Ireland
+                        </Link>
+                        <Link href="/blog/cost-of-importing-a-car-to-ireland" className="hover:text-white transition-colors">
+                            Cost of importing a car to Ireland
+                        </Link>
+                        <Link href="/blog/vrt-explained-ireland" className="hover:text-white transition-colors">
+                            VRT explained
+                        </Link>
+                        <Link href="/ireland-cost-calculator" className="hover:text-white transition-colors">
+                            Import cost calculator
+                        </Link>
+                    </nav>
                 </div>
 
             </div>

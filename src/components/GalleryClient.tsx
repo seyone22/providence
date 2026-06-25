@@ -2,6 +2,7 @@
 
 import MinimalHeader from "@/components/MinimalHeader";
 import { Reveal } from "@/components/Reveal";
+import { formatVehicleTitle, formatLeadPrice as formatLeadPriceFor, getLeadPrice, type PriceEntry } from "@/lib/vehicle";
 import {
     MapPin,
     Calendar,
@@ -17,13 +18,6 @@ import {
 import Link from "next/link";
 import { useState, useMemo } from "react";
 import FAQSection from "@/components/faqSection";
-
-type PriceEntry = {
-    country: string;
-    currency: string;
-    amount: number;
-    type: string;
-};
 
 // Updated to perfectly match your Blueprint Schema
 type Dossier = {
@@ -47,34 +41,14 @@ type Dossier = {
 
 type SortKey = "newest" | "price-asc" | "price-desc";
 
-const CURRENCY_SYMBOLS: Record<string, string> = {
-    GBP: "£", USD: "$", EUR: "€", JPY: "¥", AUD: "A$", CAD: "C$"
-};
-
-// Lowest available price for a card — prefers GBP, then the cheapest entry.
-function getLeadPrice(car: Dossier): { amount: number; currency: string } | null {
-    if (!car.pricing || car.pricing.length === 0) return null;
-    const gbp = car.pricing.filter(p => p.currency?.toUpperCase() === "GBP");
-    const pool = gbp.length > 0 ? gbp : car.pricing;
-    const cheapest = pool.reduce((min, p) => (p.amount < min.amount ? p : min), pool[0]);
-    if (!cheapest || !Number.isFinite(cheapest.amount) || cheapest.amount <= 0) return null;
-    return { amount: cheapest.amount, currency: cheapest.currency?.toUpperCase() || "USD" };
-}
-
+// Lowest available price for a card, formatted (e.g. "From £42,000").
 function formatLeadPrice(car: Dossier): string | null {
-    const lead = getLeadPrice(car);
-    if (!lead) return null;
-    const symbol = CURRENCY_SYMBOLS[lead.currency] || `${lead.currency} `;
-    return `From ${symbol}${Math.round(lead.amount).toLocaleString()}`;
+    return formatLeadPriceFor(car.pricing);
 }
 
 // Avoids titles like "Lexus Lexus LX500d" when the model already includes the make.
 function formatTitle(car: Dossier): string {
-    const make = (car.make || "").trim();
-    const model = (car.model || "").trim();
-    if (!make) return model;
-    if (model.toLowerCase().startsWith(make.toLowerCase())) return model;
-    return `${make} ${model}`.trim();
+    return formatVehicleTitle(car.make, car.model);
 }
 
 function isNewArrival(car: Dossier): boolean {
@@ -136,7 +110,7 @@ export default function GalleryClient({ dossiers }: { dossiers: Dossier[] }) {
             );
         } else {
             // Cars without a price sink to the bottom of either price sort.
-            const priceOf = (c: Dossier) => getLeadPrice(c)?.amount ?? Number.POSITIVE_INFINITY;
+            const priceOf = (c: Dossier) => getLeadPrice(c.pricing)?.amount ?? Number.POSITIVE_INFINITY;
             sorted.sort((a, b) =>
                 sortKey === "price-asc" ? priceOf(a) - priceOf(b) : priceOf(b) - priceOf(a)
             );
@@ -164,9 +138,6 @@ export default function GalleryClient({ dossiers }: { dossiers: Dossier[] }) {
                     duration={1}
                     className="relative z-10 text-center max-w-4xl mx-auto"
                 >
-                    <p className="text-sm font-bold tracking-[0.4em] text-zinc-400 uppercase mb-6">
-                        Master Blueprints
-                    </p>
                     <h1 className="text-4xl md:text-6xl lg:text-8xl font-bold tracking-tighter mb-6 text-black leading-[1.1]">
                         The Gallery.
                     </h1>

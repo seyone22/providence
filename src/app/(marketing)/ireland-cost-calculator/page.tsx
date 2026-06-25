@@ -1720,6 +1720,51 @@ export default function IrelandCostCalculator() {
         </div>
       </section>
 
+      {/* ── Related guides ───────────────────────────────────────────────── */}
+      <section className="py-14 px-6 bg-white border-t border-black/5">
+        <div className="max-w-4xl mx-auto">
+          <p className="text-[10px] font-bold tracking-[0.3em] text-zinc-400 uppercase mb-6">
+            Read next
+          </p>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            {[
+              {
+                href: "/blog/cost-of-importing-a-car-to-ireland",
+                title: "How much does it cost to import a car?",
+                desc: "The full 2026 cost breakdown, line by line.",
+              },
+              {
+                href: "/blog/cheapest-cars-to-import-to-ireland",
+                title: "The cheapest cars to import to Ireland",
+                desc: "Specific models with low VRT and real landed costs.",
+              },
+              {
+                href: "/blog/vrt-explained-ireland",
+                title: "VRT explained",
+                desc: "How Vehicle Registration Tax is actually calculated.",
+              },
+            ].map((g) => (
+              <Link
+                key={g.href}
+                href={g.href}
+                className="group flex flex-col rounded-2xl border border-black/5 bg-white p-5 shadow-[0_4px_20px_rgba(0,0,0,0.03)] transition-all hover:border-sky-500/20 hover:shadow-[0_12px_30px_rgba(0,0,0,0.06)]"
+              >
+                <span className="text-base font-bold text-black group-hover:text-sky-600 transition-colors">
+                  {g.title}
+                </span>
+                <span className="mt-1 text-sm text-zinc-500 font-light">
+                  {g.desc}
+                </span>
+                <span className="mt-3 inline-flex items-center gap-1.5 text-xs font-bold text-sky-600">
+                  Read guide
+                  <ArrowRight size={12} className="group-hover:translate-x-1 transition-transform" />
+                </span>
+              </Link>
+            ))}
+          </div>
+        </div>
+      </section>
+
       {/* ── Disclaimer ───────────────────────────────────────────────────── */}
       <section className="py-10 px-6 bg-zinc-50 border-t border-black/5">
         <div className="max-w-4xl mx-auto">
