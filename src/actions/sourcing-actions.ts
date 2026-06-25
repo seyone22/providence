@@ -9,7 +9,11 @@ import {
 import connectToDatabase from "@/lib/mongoose";
 import { cleanListings, dedupeListings } from "@/lib/scrapers/clean";
 import { scrapeAutoTrader, scrapePistonHeads } from "@/lib/scrapers/client";
-import { filterListings, type MatchTarget } from "@/lib/scrapers/matching";
+import {
+  filterListings,
+  type MatchTarget,
+  selectTopComparables,
+} from "@/lib/scrapers/matching";
 import SourcingAnalysis from "@/models/SourcingAnalysis";
 import { auth } from "@/utils/auth";
 
@@ -288,7 +292,11 @@ export async function extractAuctionSheet(input: {
 export interface MarketAnalysisInput {
   make: string;
   model: string;
-  trimKeywords: string[]; // e.g. ["turbo"] — narrows to the exact derivative
+  // Required identity tokens (model + trim) — all must appear in a listing's
+  // make+model+trim text to count as comparable.
+  keywords: string[];
+  // Soft tokens (engine/transmission) used to rank toward the exact vehicle.
+  refineTokens?: string[];
   year: number | null;
   mileage: number | null; // miles
   // Operator-configured match tolerances (default ±1 year, ±20% mileage).
@@ -303,6 +311,7 @@ export interface MarketAnalysis {
   allListings: NormalizedListing[]; // everything scraped + cleaned (pre-match)
   matchUsed: string; // human label of the match tolerances applied
   widened: boolean; // true when comparables are thin (low confidence)
+  totalMatched: number; // matched the tolerances before the top-10 cap
   totalScraped: number;
   totalAfterClean: number;
   sources: string[];
@@ -312,10 +321,9 @@ export type MarketAnalysisResult =
   | { success: true; data: MarketAnalysis }
   | { success: false; message: string };
 
-// Orchestrates the market side: scrape the live sources, clean + dedupe, match
-// to the target variant (auto-widening when supply is thin), then compute the
-// deterministic price statistics. Numbers never come from an LLM. AutoTrader is
-// wired now; CarGurus and PistonHeads slot in as their adapters are validated.
+// Orchestrates the market side: scrape (AutoTrader first, then PistonHeads only
+// if AutoTrader is thin), clean + dedupe, strictly match on make+model+trim,
+// then compute the deterministic price statistics. Numbers never come from an LLM.
 export async function analyzeMarket(
   input: MarketAnalysisInput,
 ): Promise<MarketAnalysisResult> {
@@ -329,65 +337,83 @@ export async function analyzeMarket(
     const yearFrom = input.year ? input.year - scrapeBand : undefined;
     const yearTo = input.year ? input.year + scrapeBand : undefined;
 
-    // Scrape every source in parallel and tolerate a single source failing —
-    // one blocked scraper shouldn't sink the whole analysis.
-    const [atRes, phRes] = await Promise.allSettled([
-      scrapeAutoTrader({
+    const target: MatchTarget = {
+      keywords: input.keywords.map((k) => k.toLowerCase()),
+      refineTokens: (input.refineTokens ?? []).map((k) => k.toLowerCase()),
+      year: input.year,
+      mileage: input.mileage,
+    };
+
+    const matchedOf = (rows: NormalizedListing[]) => {
+      const cleaned = dedupeListings(cleanListings(rows));
+      return {
+        cleaned,
+        matched: filterListings(cleaned, target, { yearBand, mileagePct }),
+      };
+    };
+
+    const sources: string[] = [];
+    let scraped: NormalizedListing[] = [];
+
+    // 1. AutoTrader — the priority source. Wait for it.
+    try {
+      const at = await scrapeAutoTrader({
         make: input.make,
         model: input.model,
         postcode: input.postcode,
         yearFrom,
         yearTo,
-      }),
-      scrapePistonHeads({
-        make: input.make,
-        model: input.model,
-        yearFrom,
-        yearTo,
-      }),
-    ]);
+      });
+      if (at.length > 0) {
+        scraped = at;
+        sources.push("autotrader");
+      }
+    } catch (e) {
+      console.error("AutoTrader scrape failed:", e);
+    }
 
-    const sources: string[] = [];
-    let scraped: NormalizedListing[] = [];
-    if (atRes.status === "fulfilled") {
-      scraped = scraped.concat(atRes.value);
-      sources.push("autotrader");
-    } else {
-      console.error("AutoTrader scrape failed:", atRes.reason);
+    // 2. Only fall back to other sources if AutoTrader didn't yield enough
+    //    comparable matches on its own.
+    const AUTOTRADER_ENOUGH = 6;
+    if (matchedOf(scraped).matched.length < AUTOTRADER_ENOUGH) {
+      try {
+        const ph = await scrapePistonHeads({
+          make: input.make,
+          model: input.model,
+          yearFrom,
+          yearTo,
+        });
+        if (ph.length > 0) {
+          scraped = scraped.concat(ph);
+          sources.push("pistonheads");
+        }
+      } catch (e) {
+        console.error("PistonHeads scrape failed:", e);
+      }
     }
-    if (phRes.status === "fulfilled") {
-      scraped = scraped.concat(phRes.value);
-      sources.push("pistonheads");
-    } else {
-      console.error("PistonHeads scrape failed:", phRes.reason);
-    }
+
     if (sources.length === 0) {
-      return { success: false, message: "All market sources failed." };
+      return {
+        success: false,
+        message: "No market sources returned any listings.",
+      };
     }
-    const totalScraped = scraped.length;
 
-    const cleaned = dedupeListings(cleanListings(scraped));
-
-    const target: MatchTarget = {
-      trimKeywords: input.trimKeywords.map((k) => k.toLowerCase()),
-      year: input.year,
-      mileage: input.mileage,
-    };
-    // Apply the operator-configured tolerances directly (no auto-widen — the
-    // operator controls the range now).
-    const matched = filterListings(cleaned, target, { yearBand, mileagePct });
-
-    const stats = computeMarketStats(matched.map((l) => l.price ?? 0));
+    const { cleaned, matched } = matchedOf(scraped);
+    // Keep the best 10: closest year, then engine/transmission, then mileage.
+    const top = selectTopComparables(matched, target, 10);
+    const stats = computeMarketStats(top.map((l) => l.price ?? 0));
 
     return {
       success: true,
       data: {
         stats,
-        listings: matched,
+        listings: top,
         allListings: cleaned,
         matchUsed: `±${yearBand}yr · ±${Math.round(mileagePct * 100)}% mileage`,
-        widened: matched.length < 5, // thin supply → flag lower confidence
-        totalScraped,
+        widened: top.length < 5, // thin supply → flag lower confidence
+        totalMatched: matched.length,
+        totalScraped: scraped.length,
         totalAfterClean: cleaned.length,
         sources,
       },
