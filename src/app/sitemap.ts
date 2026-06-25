@@ -1,6 +1,7 @@
 import { MetadataRoute } from "next";
 // Import your DB logic or Action
 import { getAllSpecDossiers } from "@/actions/spec-actions";
+import { BLOG_POSTS, BLOG_BASE_PATH } from "@/config/blog";
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const baseUrl = "https://www.providenceauto.co.uk";
@@ -14,11 +15,20 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     "/dealer-dashboard",
     "/import-japanese-cars-to-ireland",
     "/ireland-cost-calculator",
+    BLOG_BASE_PATH,
   ].map((route) => ({
     url: `${baseUrl}${route}`,
     lastModified: new Date(),
     changeFrequency: "daily" as const,
     priority: 1,
+  }));
+
+  // 1b. Blog posts (import-to-Ireland content cluster)
+  const blogRoutes = BLOG_POSTS.map((post) => ({
+    url: `${baseUrl}${BLOG_BASE_PATH}/${post.slug}`,
+    lastModified: new Date(post.updatedDate),
+    changeFrequency: "weekly" as const,
+    priority: 0.8,
   }));
 
   // 2. Dynamic Routes (fetching your Car Dossiers)
@@ -30,5 +40,5 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     priority: 0.8,
   }));
 
-  return [...staticRoutes, ...carRoutes];
+  return [...staticRoutes, ...blogRoutes, ...carRoutes];
 }
