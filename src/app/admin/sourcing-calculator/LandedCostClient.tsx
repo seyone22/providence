@@ -52,6 +52,21 @@ import {
 
 // Fuel types offered for the vehicle.
 const FUEL_TYPES = ["Petrol", "Diesel", "Hybrid", "Electric"] as const;
+const TRANSMISSIONS = ["Automatic", "Manual"] as const;
+
+// Normalise + tokenise for building the search/match keywords (mirrors the
+// server matcher): lowercase, punctuation → spaces, drop 1-char noise.
+function tokens(s: string): string[] {
+  return Array.from(
+    new Set(
+      s
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, " ")
+        .split(" ")
+        .filter((w) => w.length > 1),
+    ),
+  );
+}
 
 // Verdict → colour + label styling.
 const VERDICT_STYLE: Record<
@@ -164,6 +179,9 @@ export default function LandedCostClient({ fx }: { fx: GbpFxRates }) {
   const [year, setYear] = useState("");
   const [mileage, setMileage] = useState("");
   const [fuel, setFuel] = useState<(typeof FUEL_TYPES)[number]>("Petrol");
+  const [engine, setEngine] = useState(""); // e.g. "3.0 V6"
+  const [transmission, setTransmission] =
+    useState<(typeof TRANSMISSIONS)[number]>("Automatic");
 
   // ── Auction-sheet upload / extraction state ─────────────────────────────────
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -204,6 +222,14 @@ export default function LandedCostClient({ fx }: { fx: GbpFxRates }) {
         const matched = FUEL_TYPES.find((t) => f.includes(t.toLowerCase()));
         // Gemini returns "Gasoline" for petrol — map it.
         setFuel(matched ?? (f.includes("gasolin") ? "Petrol" : "Petrol"));
+      }
+      if (d.displacementCc && d.displacementCc > 0) {
+        setEngine(`${(d.displacementCc / 1000).toFixed(1)}L`);
+      }
+      if (d.transmission) {
+        setTransmission(
+          /manual/i.test(d.transmission) ? "Manual" : "Automatic",
+        );
       }
       setExtractTokens(res.tokens);
       setAiModel(res.model);
@@ -331,9 +357,10 @@ export default function LandedCostClient({ fx }: { fx: GbpFxRates }) {
 
   const cifLabel = `${currency} ${Math.round(result.cifOriginal).toLocaleString()}`;
 
-  // ── Market analysis + verdict ───────────────────────────────────────────────
+  // ── Market crawl + verdict (decoupled: crawl runs while costs are filled) ───
   const router = useRouter();
-  const [analyzing, setAnalyzing] = useState(false);
+  const [crawling, setCrawling] = useState(false);
+  const [verdicting, setVerdicting] = useState(false);
   const [marketError, setMarketError] = useState<string | null>(null);
   const [market, setMarket] = useState<MarketAnalysis | null>(null);
   const [verdict, setVerdict] = useState<Verdict | null>(null);
@@ -515,30 +542,29 @@ export default function LandedCostClient({ fx }: { fx: GbpFxRates }) {
     }
   }
 
-  async function runMarketAnalysis() {
+  // Step 1 — crawl the market for comparable listings. Runs while the operator
+  // keeps filling in the cost sections. Does NOT call the AI verdict.
+  async function runCrawl() {
     if (!make.trim() || !model.trim()) {
       setMarketError("Enter at least a make and model first.");
       return;
     }
-    setAnalyzing(true);
+    setCrawling(true);
     setMarketError(null);
+    setMarket(null);
     setVerdict(null);
     setSaved(false);
     try {
-      // Trim keywords = edition tokens minus the make/model words, so a Macan
-      // "Turbo" matches AutoTrader's derivative string (which omits the model).
-      const modelTokens = new Set(
-        `${make} ${model}`.toLowerCase().split(/\s+/).filter(Boolean),
-      );
-      const trimKeywords = edition
-        .toLowerCase()
-        .split(/\s+/)
-        .filter((w) => w.length > 1 && !modelTokens.has(w));
+      // Required identity = model + trim tokens (make is filtered at source).
+      // Engine + transmission are soft tokens that rank toward the exact car.
+      const keywords = tokens(`${model} ${edition}`);
+      const refineTokens = tokens(`${engine} ${transmission}`);
 
       const res = await analyzeMarket({
         make: make.trim(),
         model: model.trim(),
-        trimKeywords,
+        keywords,
+        refineTokens,
         year: year ? Number.parseInt(year, 10) : null,
         mileage: mileage ? num(mileage) : null,
         yearBand: Math.max(0, Math.round(num(yearBand))),
@@ -546,32 +572,45 @@ export default function LandedCostClient({ fx }: { fx: GbpFxRates }) {
       });
       if (!res.success) {
         setMarketError(res.message);
-        toast.error("Market analysis failed", { description: res.message });
+        toast.error("Crawl failed", { description: res.message });
         return;
       }
       setMarket(res.data);
       setEditableListings(res.data.listings);
-
-      // No comparables matched the filters → don't generate a (misleading)
-      // verdict against a £0 market. Tell the operator to widen the range.
       if (res.data.stats.count === 0) {
         toast.warning("No comparable listings matched", {
           description: `${res.data.totalScraped} scraped, but none fit ${res.data.matchUsed}. Widen the year/mileage range.`,
         });
-        return;
+      } else {
+        toast.success("Listings crawled", {
+          description: `${res.data.stats.count} comparable from ${res.data.sources.join(", ")} — add costs, then run the verdict.`,
+        });
       }
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : "Crawl failed.";
+      setMarketError(msg);
+      toast.error("Crawl failed", { description: msg });
+    } finally {
+      setCrawling(false);
+    }
+  }
 
-      toast.success("Market analysed", {
-        description: `${res.data.stats.count} comparable listings from ${res.data.sources.join(", ")}.`,
-      });
-
-      // Hand the finished numbers to Gemini for the buy/avoid verdict.
+  // Step 2 — once costs are in, ask Gemini for the buy/avoid verdict against the
+  // crawled (and possibly edited) comparables.
+  async function runVerdict() {
+    if (!market || liveStats.count === 0) {
+      setMarketError("Crawl comparable listings first.");
+      return;
+    }
+    setVerdicting(true);
+    setMarketError(null);
+    try {
       const v = await getVerdict({
         vehicle: { make, model, edition, year, mileage },
         landedCostGbp: result.totalLanded,
-        stats: res.data.stats,
-        matchUsed: res.data.matchUsed,
-        widened: res.data.widened,
+        stats: liveStats,
+        matchUsed: market.matchUsed,
+        widened: liveStats.count < 5,
       });
       if (v.success) {
         setVerdict(v.data);
@@ -585,12 +624,11 @@ export default function LandedCostClient({ fx }: { fx: GbpFxRates }) {
         toast.error("Verdict unavailable", { description: v.message });
       }
     } catch (err) {
-      const msg =
-        err instanceof Error ? err.message : "Market analysis failed.";
+      const msg = err instanceof Error ? err.message : "Verdict failed.";
       setMarketError(msg);
-      toast.error("Market analysis failed", { description: msg });
+      toast.error("Verdict failed", { description: msg });
     } finally {
-      setAnalyzing(false);
+      setVerdicting(false);
     }
   }
 
@@ -733,6 +771,77 @@ export default function LandedCostClient({ fx }: { fx: GbpFxRates }) {
                     </SelectContent>
                   </Select>
                 </div>
+                <Field
+                  label="Engine"
+                  value={engine}
+                  onChange={setEngine}
+                  hint="e.g. 3.0 V6 — helps pick the exact vehicle"
+                />
+                <div className="space-y-1.5">
+                  <Label className="text-xs font-medium text-zinc-600">
+                    Transmission
+                  </Label>
+                  <Select
+                    value={transmission}
+                    onValueChange={(v) =>
+                      setTransmission(v as (typeof TRANSMISSIONS)[number])
+                    }
+                  >
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {TRANSMISSIONS.map((t) => (
+                        <SelectItem key={t} value={t}>
+                          {t}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+
+              {/* Step 1: crawl the market. Runs while costs are filled in. */}
+              <div className="rounded-lg border border-zinc-200 bg-zinc-50 p-3 space-y-3">
+                <div className="grid grid-cols-2 gap-3">
+                  <Field
+                    label="Year range (± yrs)"
+                    value={yearBand}
+                    onChange={setYearBand}
+                  />
+                  <Field
+                    label="Mileage range (± %)"
+                    value={mileagePctInput}
+                    onChange={setMileagePctInput}
+                  />
+                </div>
+                <Button
+                  type="button"
+                  className="w-full"
+                  disabled={crawling || !make.trim() || !model.trim()}
+                  onClick={runCrawl}
+                >
+                  {crawling
+                    ? "Crawling listings…"
+                    : market
+                      ? "Re-crawl market listings"
+                      : "Crawl market listings"}
+                </Button>
+                <p className="text-[11px] text-zinc-400">
+                  Searches AutoTrader first (then PistonHeads), strictly
+                  matching make · model · trim. Fill in the cost sections while
+                  it runs.
+                </p>
+                {market ? (
+                  <p className="text-[11px] font-medium text-emerald-700">
+                    ✓ {market.totalMatched} comparable found ·{" "}
+                    {market.sources.join(", ")} — scroll down for the verdict
+                    step.
+                  </p>
+                ) : null}
+                {marketError ? (
+                  <p className="text-[11px] text-red-600">{marketError}</p>
+                ) : null}
               </div>
             </CardContent>
           </Card>
@@ -1078,39 +1187,25 @@ export default function LandedCostClient({ fx }: { fx: GbpFxRates }) {
               committing.
             </p>
 
-            {/* Market match parameters — operator-configurable */}
-            <div className="mt-4 grid grid-cols-2 gap-3">
-              <div className="space-y-1">
-                <Label className="text-[10px] uppercase tracking-wide text-zinc-400">
-                  Year range (±)
-                </Label>
-                <Input
-                  inputMode="numeric"
-                  value={yearBand}
-                  onChange={(e) => setYearBand(e.target.value)}
-                  className="h-8 bg-zinc-800 border-zinc-700 text-white"
-                />
-              </div>
-              <div className="space-y-1">
-                <Label className="text-[10px] uppercase tracking-wide text-zinc-400">
-                  Mileage range (± %)
-                </Label>
-                <Input
-                  inputMode="numeric"
-                  value={mileagePctInput}
-                  onChange={(e) => setMileagePctInput(e.target.value)}
-                  className="h-8 bg-zinc-800 border-zinc-700 text-white"
-                />
-              </div>
-            </div>
-
+            {/* Step 2: once costs are in and listings crawled, get the verdict */}
             <Button
-              className="w-full mt-3 bg-white text-zinc-900 hover:bg-zinc-200"
-              disabled={analyzing}
-              onClick={runMarketAnalysis}
+              className="w-full mt-4 bg-white text-zinc-900 hover:bg-zinc-200"
+              disabled={verdicting || !market || liveStats.count === 0}
+              onClick={runVerdict}
             >
-              {analyzing ? "Analysing market…" : "Analyse UK market & verdict"}
+              {verdicting
+                ? "Analysing…"
+                : verdict
+                  ? "Re-run verdict"
+                  : "Analyse & verdict"}
             </Button>
+            <p className="mt-2 text-[11px] text-zinc-500">
+              {!market
+                ? "Crawl market listings first (top-left), then add costs."
+                : liveStats.count === 0
+                  ? "No comparable listings yet — widen the match range and re-crawl."
+                  : "Uses the crawled comparables + the landed cost above."}
+            </p>
             {marketError ? (
               <p className="mt-2 text-[11px] text-red-400">{marketError}</p>
             ) : null}
@@ -1359,7 +1454,7 @@ export default function LandedCostClient({ fx }: { fx: GbpFxRates }) {
                       </Badge>
                     ) : (
                       <Badge variant="secondary" className="text-[10px]">
-                        {analyzing ? "Writing verdict…" : "No verdict"}
+                        {verdicting ? "Writing verdict…" : "Run the verdict"}
                       </Badge>
                     )}
                   </div>

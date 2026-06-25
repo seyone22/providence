@@ -1,149 +1,115 @@
-// Matching layer — filters normalised listings down to ones genuinely
-// comparable to the target vehicle, with an auto-widen ladder for thin supply.
-// Per the product decision: default "tight", auto-widen + flag when too few.
+// Matching layer — filters scraped listings to ones that are genuinely the same
+// make + model + trim as the target, within operator-set year/mileage bands,
+// then ranks the best comparables. Strictness is deliberate: every required
+// keyword (model + trim tokens) must appear in the listing's make+model+trim
+// text. Engine/transmission tokens refine the ranking ("exact vehicle").
 // See memory: sourcing-scraper-spike.
 
 import type { NormalizedListing } from "@/lib/market-stats";
 
-export type MatchStrictness = "tight" | "medium" | "wide" | "loose";
-
-interface Band {
-  yearBand: number; // ± years
-  mileagePct: number; // ± fraction of target mileage (Infinity = ignore)
-  matchTrim: boolean; // require trim keywords to be present
+// Normalise for token matching: lowercase, punctuation → spaces, collapse.
+// e.g. "G-Class" → "g class", "3.0 TD V6" → "3 0 td v6".
+function norm(s: string | null | undefined): string {
+  return (s ?? "")
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
 }
 
-// The ladder widens year/mileage first and keeps the trim constraint as long as
-// possible — only "loose" drops it. This avoids the failure seen in the spike
-// where widening a rare high-trim (Macan Turbo) jumped straight to base models.
-export const MATCH_BANDS: Record<MatchStrictness, Band> = {
-  tight: { yearBand: 1, mileagePct: 0.2, matchTrim: true },
-  medium: { yearBand: 2, mileagePct: 0.35, matchTrim: true },
-  wide: { yearBand: 3, mileagePct: 0.5, matchTrim: true },
-  loose: {
-    yearBand: 3,
-    mileagePct: Number.POSITIVE_INFINITY,
-    matchTrim: false, // last resort: model-level, trim dropped
-  },
-};
-
-const LADDER: MatchStrictness[] = ["tight", "medium", "wide", "loose"];
+// Split a string into distinct, meaningful tokens (drops 1-char noise).
+export function tokenize(s: string): string[] {
+  return Array.from(
+    new Set(
+      norm(s)
+        .split(" ")
+        .filter((w) => w.length > 1),
+    ),
+  );
+}
 
 export interface MatchTarget {
-  // Lower-cased keywords that must all appear in a listing's trim string
-  // (e.g. ["turbo"] for a Macan Turbo). Empty = no trim constraint.
-  trimKeywords: string[];
+  // Required identity tokens (model + trim). ALL must appear in the listing's
+  // combined make+model+trim text for it to count as comparable.
+  keywords: string[];
+  // Soft tokens (engine size, transmission) used only to rank toward the exact
+  // vehicle — never to exclude, so they can't zero out the results.
+  refineTokens: string[];
   year: number | null;
   mileage: number | null; // miles
 }
 
-function matchesBand(
-  listing: NormalizedListing,
-  target: MatchTarget,
-  band: Band,
-): boolean {
-  // Trim keywords (all must be present in the listing trim).
-  if (band.matchTrim && target.trimKeywords.length > 0) {
-    const hay = (listing.trim ?? "").toLowerCase();
-    if (!target.trimKeywords.every((kw) => hay.includes(kw))) return false;
-  }
-  // Year window.
-  if (target.year != null && listing.year != null) {
-    if (Math.abs(listing.year - target.year) > band.yearBand) return false;
-  }
-  // Mileage window (skipped when band is Infinity or data missing).
-  if (
-    Number.isFinite(band.mileagePct) &&
-    target.mileage != null &&
-    listing.mileage != null
-  ) {
-    const tol = target.mileage * band.mileagePct;
-    if (Math.abs(listing.mileage - target.mileage) > tol) return false;
-  }
-  return true;
+// The full identity text of a listing across all three name fields.
+function haystack(l: NormalizedListing): string {
+  return norm(`${l.make ?? ""} ${l.model ?? ""} ${l.trim ?? ""}`);
 }
 
-// Filter to listings within explicit, operator-configured year/mileage
-// tolerances (keeps the trim constraint). Used when the operator sets the
-// market-match parameters by hand instead of relying on the auto-widen ladder.
+function matchesIdentity(l: NormalizedListing, target: MatchTarget): boolean {
+  if (target.keywords.length === 0) return true;
+  const hay = haystack(l);
+  return target.keywords.every((kw) => hay.includes(kw));
+}
+
+// Filter to listings that match the identity (make+model+trim) and fall within
+// the configured year/mileage tolerances.
 export function filterListings(
   listings: NormalizedListing[],
   target: MatchTarget,
   band: { yearBand: number; mileagePct: number },
 ): NormalizedListing[] {
-  return listings.filter((l) =>
-    matchesBand(l, target, { ...band, matchTrim: true }),
-  );
+  return listings.filter((l) => {
+    if (!matchesIdentity(l, target)) return false;
+    if (
+      target.year != null &&
+      l.year != null &&
+      Math.abs(l.year - target.year) > band.yearBand
+    ) {
+      return false;
+    }
+    if (
+      Number.isFinite(band.mileagePct) &&
+      target.mileage != null &&
+      l.mileage != null &&
+      Math.abs(l.mileage - target.mileage) > target.mileage * band.mileagePct
+    ) {
+      return false;
+    }
+    return true;
+  });
 }
 
-// Rank comparables and keep the best `limit`. Priority: closest year to the
-// target first (so same-year listings win); ties broken by closest mileage.
-// Keeps the comparison tight when a search returns many candidates.
+// How many engine/transmission tokens the listing matches (0 if none provided).
+function refineScore(l: NormalizedListing, refineTokens: string[]): number {
+  if (refineTokens.length === 0) return 0;
+  const hay = haystack(l);
+  return refineTokens.reduce((n, t) => n + (hay.includes(t) ? 1 : 0), 0);
+}
+
+// Rank comparables and keep the best `limit`. Priority: closest year first, then
+// engine/transmission match (exact vehicle), then closest mileage.
 export function selectTopComparables(
   listings: NormalizedListing[],
   target: MatchTarget,
   limit = 10,
 ): NormalizedListing[] {
-  const { year: ty, mileage: tm } = target;
+  const { year: ty, mileage: tm, refineTokens } = target;
+  const MAX = Number.MAX_VALUE;
   return [...listings]
     .sort((a, b) => {
       if (ty != null) {
-        const ay = a.year != null ? Math.abs(a.year - ty) : Number.MAX_VALUE;
-        const by = b.year != null ? Math.abs(b.year - ty) : Number.MAX_VALUE;
-        if (ay !== by) return ay - by; // same/closest year first
+        const ay = a.year != null ? Math.abs(a.year - ty) : MAX;
+        const by = b.year != null ? Math.abs(b.year - ty) : MAX;
+        if (ay !== by) return ay - by; // closest year first
       }
+      const ar = refineScore(a, refineTokens);
+      const br = refineScore(b, refineTokens);
+      if (ar !== br) return br - ar; // more engine/transmission matches first
       if (tm != null) {
-        const am =
-          a.mileage != null ? Math.abs(a.mileage - tm) : Number.MAX_VALUE;
-        const bm =
-          b.mileage != null ? Math.abs(b.mileage - tm) : Number.MAX_VALUE;
+        const am = a.mileage != null ? Math.abs(a.mileage - tm) : MAX;
+        const bm = b.mileage != null ? Math.abs(b.mileage - tm) : MAX;
         if (am !== bm) return am - bm; // then closest mileage
       }
       return 0;
     })
     .slice(0, limit);
-}
-
-export interface MatchResult {
-  listings: NormalizedListing[];
-  strictnessUsed: MatchStrictness;
-  widened: boolean; // true if we relaxed past the requested strictness
-  requested: MatchStrictness;
-}
-
-// Filter at the requested strictness; if fewer than `minCount` match, step down
-// the ladder (tight → medium → loose) until we clear the threshold or run out.
-export function selectMatches(
-  listings: NormalizedListing[],
-  target: MatchTarget,
-  requested: MatchStrictness = "tight",
-  minCount = 5,
-): MatchResult {
-  const startIdx = LADDER.indexOf(requested);
-  let last: { level: MatchStrictness; matched: NormalizedListing[] } | null =
-    null;
-
-  for (let i = startIdx; i < LADDER.length; i++) {
-    const level = LADDER[i];
-    const matched = listings.filter((l) =>
-      matchesBand(l, target, MATCH_BANDS[level]),
-    );
-    last = { level, matched };
-    if (matched.length >= minCount) {
-      return {
-        listings: matched,
-        strictnessUsed: level,
-        widened: i > startIdx,
-        requested,
-      };
-    }
-  }
-
-  // Never cleared the threshold — return the loosest attempt (best effort).
-  return {
-    listings: last?.matched ?? [],
-    strictnessUsed: last?.level ?? requested,
-    widened: (last ? LADDER.indexOf(last.level) : startIdx) > startIdx,
-    requested,
-  };
 }
