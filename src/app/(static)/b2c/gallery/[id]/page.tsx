@@ -26,7 +26,10 @@ export async function generateMetadata({ params }: { params: { id: string } }): 
     // Adjust 'make', 'model', 'year', and 'imageUrl' to match your schema
     const pageTitle = `${car.year || ''} ${car.make || ''} ${car.model || ''}`.trim();
     const pageDescription = `View full specifications, gallery, and details for the ${pageTitle}.`;
-    const ogImage = car.imageUrl || "/images/default-fallback-image.jpg";
+    // Honor the admin-selected hero image, then fall back to the first gallery
+    // image, then a static default. metadataBase (src/app/layout.tsx) resolves
+    // any relative path to an absolute URL for the preview crawler.
+    const ogImage = car.heroImageUrl || car.images?.[0] || "/gallery_image.jpg";
 
     return {
         title: pageTitle,
@@ -34,8 +37,8 @@ export async function generateMetadata({ params }: { params: { id: string } }): 
         openGraph: {
             title: pageTitle,
             description: pageDescription,
-            url: `https://yourdomain.com/gallery/${id}`,
-            siteName: "Your Site Name",
+            url: `/b2c/gallery/${car.slug || id}`,
+            siteName: "Providence Auto",
             images: [
                 {
                     url: ogImage,

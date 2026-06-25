@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 450" width="800" height="450" role="img" aria-label="Providence Auto featured review">
+  <defs>
+    <linearGradient id="pa-bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#1c1c1e"/>
+      <stop offset="55%" stop-color="#0e0e10"/>
+      <stop offset="100%" stop-color="#000000"/>
+    </linearGradient>
+    <radialGradient id="pa-glow" cx="50%" cy="42%" r="55%">
+      <stop offset="0%" stop-color="#3f3f46" stop-opacity="0.55"/>
+      <stop offset="100%" stop-color="#000000" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+  <rect width="800" height="450" fill="url(#pa-bg)"/>
+  <rect width="800" height="450" fill="url(#pa-glow)"/>
+  <g fill="#ffffff" opacity="0.9" font-family="system-ui, -apple-system, Segoe UI, Roboto, sans-serif" text-anchor="middle">
+    <text x="400" y="232" font-size="34" font-weight="700" letter-spacing="6">PROVIDENCE AUTO</text>
+    <text x="400" y="266" font-size="14" font-weight="600" letter-spacing="9" opacity="0.55">FEATURED REVIEW</text>
+  </g>
+</svg>
