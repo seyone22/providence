@@ -105,6 +105,21 @@ export async function runApifyActorBounded<T = unknown>(
 
 const AUTOTRADER_ACTOR = "memo23~autotrader-cheerio";
 
+// AutoTrader's model URL token is inconsistent — "G Class" uses a space but
+// "CX-5" keeps its hyphen — so a blanket rule breaks things. Normalise only the
+// two inconsistent families that cause 0-result searches: Mercedes "X Class"
+// and BMW/others "N Series" (hyphen/space → the space form AutoTrader expects).
+// Everything else passes through unchanged. Validated: "G-Class" (0 results) →
+// "G Class" (26 results).
+export function autoTraderModelToken(model: string): string {
+  const m = model.trim();
+  const cls = m.match(/^([A-Za-z]{1,4})[\s-]?class$/i);
+  if (cls) return `${cls[1].toUpperCase()} Class`;
+  const ser = m.match(/^([A-Za-z0-9]{1,3})[\s-]?series$/i);
+  if (ser) return `${ser[1].toUpperCase()} Series`;
+  return m;
+}
+
 // Build a model-level search URL. We deliberately search at make+model level and
 // narrow to the exact trim in the matching layer (AutoTrader's derivative filter
 // is unreliable), so the result pool is large enough to filter from.
@@ -114,14 +129,20 @@ export function buildAutoTraderSearchUrl(params: {
   postcode?: string;
   yearFrom?: number;
   yearTo?: number;
+  maxMileage?: number;
 }): string {
   const qs = new URLSearchParams({
     make: canonicalMake(params.make),
-    model: params.model,
+    model: autoTraderModelToken(params.model),
     postcode: params.postcode ?? "M1 1AE",
   });
   if (params.yearFrom) qs.set("year-from", String(params.yearFrom));
   if (params.yearTo) qs.set("year-to", String(params.yearTo));
+  // Pre-filter by mileage so the (capped) results page is denser with genuine
+  // comparables. A generous upper bound — the matcher applies the precise band.
+  if (params.maxMileage) {
+    qs.set("maximum-mileage", String(Math.round(params.maxMileage)));
+  }
   return `https://www.autotrader.co.uk/car-search?${qs.toString()}`;
 }
 
@@ -131,6 +152,7 @@ export async function scrapeAutoTrader(params: {
   postcode?: string;
   yearFrom?: number;
   yearTo?: number;
+  maxMileage?: number;
 }): Promise<NormalizedListing[]> {
   const url = buildAutoTraderSearchUrl(params);
   // includeListingDetails:true returns price, year, mileage and the derivative
@@ -158,6 +180,9 @@ export async function scrapePistonHeads(params: {
   model: string;
   yearFrom?: number;
   yearTo?: number;
+  mileageMin?: number;
+  mileageMax?: number;
+  keywords?: string; // trim hint (PistonHeads keyword search is fuzzy)
   maxItems?: number;
 }): Promise<NormalizedListing[]> {
   const items = await runApifyActor<Parameters<typeof mapPistonHeadsItem>[0]>(
@@ -169,6 +194,9 @@ export async function scrapePistonHeads(params: {
       modelKeyword: params.model.trim(),
       yearMin: params.yearFrom,
       yearMax: params.yearTo,
+      mileageMin: params.mileageMin,
+      mileageMax: params.mileageMax,
+      keywords: params.keywords?.trim() || undefined,
       maxItems: params.maxItems ?? 60,
     },
   );
