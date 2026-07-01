@@ -78,6 +78,8 @@ interface SpecDataType {
     model: string;
     year: string;
     trim: string;
+    condition: string;
+    mileage: string;
     countryOfOrigin: string;
     engineConfig: string;
     displacement: string;
@@ -103,6 +105,8 @@ const initialSpecData: SpecDataType = {
     model: "",
     year: "",
     trim: "",
+    condition: "New",
+    mileage: "",
     countryOfOrigin: "Japan",
     engineConfig: "",
     heroImageUrl: "",
@@ -177,6 +181,8 @@ function SpecBuilderContent() {
                         ...res.data,
                         heroImageUrl: res.data.heroImageUrl || "",
                         slug: res.data.slug || "",
+                        condition: res.data.condition || "New",
+                        mileage: res.data.mileage || "",
                         customData: res.data.customData || [],
                         valuePoints: res.data.valuePoints || []
                     }));
@@ -654,21 +660,22 @@ function SpecBuilderContent() {
                                     )}
                                 </Label>
 
-                                <Select
+                                {/* Pick a known manufacturer from the list, or type a custom brand. */}
+                                <Input
+                                    list="make-list"
                                     value={specData.make}
-                                    onValueChange={(val) => handleInputChange("make", val)}
-                                >
-                                    <SelectTrigger className="rounded-xl h-12 bg-zinc-50 border-transparent focus:bg-white transition-all">
-                                        <SelectValue placeholder="Select a manufacturer" />
-                                    </SelectTrigger>
-                                    <SelectContent className="max-h-60">
-                                        {CAR_MAKES.map((make) => (
-                                            <SelectItem key={make} value={make}>
-                                                {make}
-                                            </SelectItem>
-                                        ))}
-                                    </SelectContent>
-                                </Select>
+                                    onChange={(e) => handleInputChange("make", e.target.value)}
+                                    className="rounded-xl h-12 bg-zinc-50 border-transparent focus:bg-white transition-all"
+                                    placeholder="Select or type a brand"
+                                />
+                                <datalist id="make-list">
+                                    {CAR_MAKES.map((make) => (
+                                        <option key={make} value={make} />
+                                    ))}
+                                </datalist>
+                                <p className="text-[10px] text-zinc-400 pl-1 font-medium">
+                                    Not in the list? Just type the brand name to add a custom make.
+                                </p>
                             </div>
                             <div className="space-y-2">
                                 <Label className="font-bold text-zinc-700">Model</Label>
@@ -685,6 +692,53 @@ function SpecBuilderContent() {
                                 <Label className="font-bold text-zinc-700">Trim / Edition</Label>
                                 <Input value={specData.trim} onChange={(e) => handleInputChange("trim", e.target.value)}
                                        className="rounded-xl h-12 bg-zinc-50" placeholder="e.g. GR Sport"/>
+                            </div>
+
+                            {/* Condition — Brand New vs. Pre-Owned. Prefills the public inquiry form. */}
+                            <div className="space-y-2">
+                                <Label className="font-bold text-zinc-700">Condition</Label>
+                                <div className="flex gap-3">
+                                    {[
+                                        { value: "New", label: "Brand New" },
+                                        { value: "Used", label: "Used" },
+                                    ].map((opt) => {
+                                        const active = specData.condition === opt.value;
+                                        return (
+                                            <button
+                                                key={opt.value}
+                                                type="button"
+                                                onClick={() => {
+                                                    setIsDirty(true);
+                                                    setSpecData(prev => ({
+                                                        ...prev,
+                                                        condition: opt.value,
+                                                        // Clear the odometer when switching back to Brand New.
+                                                        mileage: opt.value === "New" ? "" : prev.mileage,
+                                                    }));
+                                                }}
+                                                className={`flex-1 h-12 rounded-xl font-bold border transition-all ${active ? "bg-black text-white border-black shadow-md" : "bg-zinc-50 text-zinc-500 border-transparent hover:border-black/20"}`}
+                                            >
+                                                {opt.label}
+                                            </button>
+                                        );
+                                    })}
+                                </div>
+                            </div>
+
+                            {/* Mileage — only relevant (and only saved) for used vehicles. */}
+                            <div className="space-y-2">
+                                <Label className={`font-bold ${specData.condition === "Used" ? "text-zinc-700" : "text-zinc-300"}`}>
+                                    Mileage {specData.condition === "Used" ? "" : "(used vehicles only)"}
+                                </Label>
+                                <Input
+                                    type="number"
+                                    min={0}
+                                    value={specData.mileage}
+                                    onChange={(e) => handleInputChange("mileage", e.target.value)}
+                                    disabled={specData.condition !== "Used"}
+                                    className="rounded-xl h-12 bg-zinc-50 disabled:opacity-40 disabled:cursor-not-allowed"
+                                    placeholder="e.g. 45000"
+                                />
                             </div>
                         </div>
                     </div>

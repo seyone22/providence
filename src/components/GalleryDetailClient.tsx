@@ -6,7 +6,7 @@ import {Reveal} from "@/components/Reveal";
 import {ArrowLeft, FileText, Loader2, Mail, Globe, Zap} from "lucide-react";
 import Link from "next/link";
 import {generateDossierPdfAction} from "@/actions/pdf-actions";
-import RequestForm from "@/components/requestForm";
+import RequestForm, {mileageToPrefillRange} from "@/components/requestForm";
 import FAQSection from "@/components/faqSection";
 import {getLogoFilename} from "@/lib/logo-utils";
 
@@ -37,6 +37,8 @@ type Dossier = {
     model: string;
     year: string;
     trim: string;
+    condition?: string;
+    mileage?: string;
     countryOfOrigin: string;
     engineConfig: string;
     displacement: string;
@@ -68,9 +70,18 @@ export default function GalleryDetailClient({car}: { car: Dossier }) {
         inquiryRef.current?.scrollIntoView({behavior: "smooth", block: "start"});
     };
 
+    // Normalise the dossier's condition, defaulting older records (no condition
+    // set) to "New" so the inquiry form never lands on an empty toggle.
+    const isUsed = car.condition === "Used";
+    const mileageNum = isUsed ? parseInt(String(car.mileage).replace(/[^\d]/g, ""), 10) : NaN;
+
     const prefillData = {
         make: car.make,
         vehicle_model: car.model,
+        condition: isUsed ? "Used" : "New",
+        // For a used car with a known odometer reading, prefill the form's
+        // mileage range to bracket that figure.
+        ...(isUsed && Number.isFinite(mileageNum) ? mileageToPrefillRange(mileageNum) : {}),
         specs: `Inquiry for ${car.year} ${car.make} ${car.model} (${car.trim}). Features: ${car.features?.join(", ")}`,
     };
 
