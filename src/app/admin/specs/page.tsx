@@ -417,7 +417,7 @@ function SpecBuilderContent() {
     // (editId present). Live templates resolve to their clean slug; drafts fall
     // back to the _id so they stay previewable before a slug is set.
     const isLive = isLiveStatus(specData.status);
-    const publicPath = editId
+    const publicPath = editId && specData.slug
         ? galleryPathForDossier({ _id: editId, slug: specData.slug, status: specData.status })
         : null;
 
