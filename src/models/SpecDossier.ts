@@ -16,6 +16,11 @@ const SpecDossierSchema = new Schema(
         year: {type: String, default: ""},
         trim: {type: String, default: ""},
 
+        // Condition — "New" (brand new) or "Used" (pre-owned).
+        // `mileage` only carries a value when condition is "Used".
+        condition: {type: String, enum: ["New", "Used"], default: "New"},
+        mileage: {type: String, default: ""},
+
         // Provenance (Spec market origin)
         countryOfOrigin: {type: String, default: "Japan"},
 

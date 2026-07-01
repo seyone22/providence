@@ -35,6 +35,20 @@ const mileageRangeLabel = (lo: number, hi: number) => {
     return lo <= MILEAGE_MIN ? `Up to ${hiTxt} mi` : `${lo.toLocaleString()}–${hiTxt} mi`;
 };
 
+/**
+ * Convert a specific odometer reading (e.g. a used dossier's mileage) into a
+ * slider-friendly {mileageMin, mileageMax} pair. Snaps to the slider step and
+ * brackets the value by one step so the known figure is clearly represented.
+ * Exported so vehicle detail pages can prefill the form from a spec dossier.
+ */
+export const mileageToPrefillRange = (mileage: number): { mileageMin: number; mileageMax: number } => {
+    const clamped = Math.max(MILEAGE_MIN, Math.min(MILEAGE_MAX, mileage));
+    const snapped = Math.round(clamped / MILEAGE_STEP) * MILEAGE_STEP;
+    const mileageMin = Math.max(MILEAGE_MIN, snapped - MILEAGE_STEP);
+    const mileageMax = Math.min(MILEAGE_MAX, Math.max(snapped, mileageMin + MILEAGE_STEP));
+    return { mileageMin, mileageMax };
+};
+
 // Year presets grouped the way buyers actually think ("2020 or newer"), each
 // mapping to a concrete numeric from/to so the request stores clean years.
 const CURRENT_YEAR = new Date().getFullYear();
@@ -575,7 +589,10 @@ export default function RequestForm({ prefill, defaultPhoneCountry = "US" }: { p
             ...prev,
             ...prefill,
             countryCode: syncedCountryCode,
-            condition: prefill.make ? "Used" : prev.condition,
+            // Honour an explicit condition from the prefill (e.g. a spec dossier
+            // marked Brand New / Used); otherwise fall back to the legacy default
+            // of assuming a make-prefilled inquiry is for a used vehicle.
+            condition: prefill.condition ?? (prefill.make ? "Used" : prev.condition),
         }));
     }, [prefill, defaultPhoneCountry]);
 
