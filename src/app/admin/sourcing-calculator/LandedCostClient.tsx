@@ -1367,6 +1367,9 @@ export default function LandedCostClient({ fx }: { fx: GbpFxRates }) {
                           </div>
                           <ul className="divide-y divide-zinc-50">
                             {bucket.listings.map((l, idx) => {
+                              const title = [l.make, l.model]
+                                .filter(Boolean)
+                                .join(" ");
                               const meta = [
                                 l.year,
                                 l.mileage
@@ -1382,12 +1385,21 @@ export default function LandedCostClient({ fx }: { fx: GbpFxRates }) {
                                   className="flex items-center justify-between gap-3 px-3 py-2 text-sm"
                                 >
                                   <div className="min-w-0">
-                                    <span className="font-semibold text-zinc-900 tabular-nums">
-                                      {l.price != null ? fmtGBP(l.price) : "—"}
-                                    </span>
-                                    <span className="text-zinc-500 ml-2 truncate">
+                                    <div className="flex items-baseline gap-2">
+                                      <span className="font-semibold text-zinc-900 tabular-nums">
+                                        {l.price != null
+                                          ? fmtGBP(l.price)
+                                          : "—"}
+                                      </span>
+                                      {title ? (
+                                        <span className="font-medium text-zinc-700 truncate">
+                                          {title}
+                                        </span>
+                                      ) : null}
+                                    </div>
+                                    <p className="text-[11px] text-zinc-500 truncate">
                                       {meta}
-                                    </span>
+                                    </p>
                                   </div>
                                   <div className="flex items-center gap-2 shrink-0">
                                     <Badge
@@ -1520,6 +1532,9 @@ export default function LandedCostClient({ fx }: { fx: GbpFxRates }) {
                     {[...market.allListings]
                       .sort((a, b) => (a.price ?? 0) - (b.price ?? 0))
                       .map((l, idx) => {
+                        const title = [l.make, l.model]
+                          .filter(Boolean)
+                          .join(" ");
                         const meta = [
                           l.year,
                           l.mileage ? `${l.mileage.toLocaleString()} mi` : null,
@@ -1533,12 +1548,19 @@ export default function LandedCostClient({ fx }: { fx: GbpFxRates }) {
                             className="flex items-center justify-between gap-3 px-3 py-1.5 text-[13px]"
                           >
                             <div className="min-w-0">
-                              <span className="font-semibold text-zinc-900 tabular-nums">
-                                {l.price != null ? fmtGBP(l.price) : "—"}
-                              </span>
-                              <span className="text-zinc-500 ml-2 truncate">
+                              <div className="flex items-baseline gap-2">
+                                <span className="font-semibold text-zinc-900 tabular-nums">
+                                  {l.price != null ? fmtGBP(l.price) : "—"}
+                                </span>
+                                {title ? (
+                                  <span className="font-medium text-zinc-700 truncate">
+                                    {title}
+                                  </span>
+                                ) : null}
+                              </div>
+                              <p className="text-[11px] text-zinc-500 truncate">
                                 {meta}
-                              </span>
+                              </p>
                             </div>
                             <div className="flex items-center gap-2 shrink-0">
                               <Badge
