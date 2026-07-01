@@ -336,6 +336,16 @@ export async function analyzeMarket(
     const yearFrom = input.year ? input.year - scrapeBand : undefined;
     const yearTo = input.year ? input.year + scrapeBand : undefined;
 
+    // Pre-filter the source searches by mileage (with a cushion beyond the match
+    // band) so the capped results page is denser with genuine comparables.
+    const mBuf = mileagePct + 0.15;
+    const maxMileage = input.mileage
+      ? Math.round(input.mileage * (1 + mBuf))
+      : undefined;
+    const minMileage = input.mileage
+      ? Math.max(0, Math.round(input.mileage * (1 - mBuf)))
+      : undefined;
+
     // Distinctive trim tokens = trim words minus model words (so "Macan Turbo"
     // with model "Macan" → ["turbo"]). Trim is a preference, not a hard gate.
     const modelTokenSet = new Set(tokenize(input.model));
@@ -371,6 +381,7 @@ export async function analyzeMarket(
         postcode: input.postcode,
         yearFrom,
         yearTo,
+        maxMileage,
       });
       if (at.length > 0) {
         scraped = at;
@@ -390,6 +401,9 @@ export async function analyzeMarket(
           model: input.model,
           yearFrom,
           yearTo,
+          mileageMin: minMileage,
+          mileageMax: maxMileage,
+          keywords: input.trim,
         });
         if (ph.length > 0) {
           scraped = scraped.concat(ph);
