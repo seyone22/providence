@@ -48,11 +48,17 @@ export async function saveSpecDossier(payload: any) {
         await connectToDatabase();
 
         // --- Slug handling ---------------------------------------------------
-        // If no slug was provided, auto-derive a clean default from make/model/year
-        // so the public link is never a raw Mongo _id.
+        // Live (Active/Published) templates MUST have an explicit slug so their
+        // public page is always a clean URL — never a raw Mongo _id. Drafts may
+        // be saved without a slug; they preview via the _id until one is set.
+        const isLive = payload.status === "Active" || payload.status === "Published";
         let slug = slugify(payload.slug || "");
-        if (!slug) {
-            slug = slugify(`${payload.make || ""} ${payload.model || ""} ${payload.year || ""}`);
+
+        if (isLive && !slug) {
+            return {
+                success: false,
+                message: "A URL slug is required before setting a template to Active. Please add a slug in the URL Slug Configuration field."
+            };
         }
 
         if (slug) {

@@ -4,9 +4,12 @@ import {Suspense, useEffect, useRef, useState} from "react";
 import {useRouter, useSearchParams} from "next/navigation";
 import {
     Armchair,
+    ExternalLink,
+    Eye,
     Globe,
     Hash,
     Info,
+    Link2,
     Loader2,
     Printer,
     Save,
@@ -31,6 +34,7 @@ import {SpecSection} from "@/components/SpecSection";
 import {getPresignedUrls, uploadDossierImages} from "@/lib/file-actions";
 import {generateDossierPdfAction} from "@/actions/pdf-actions";
 import {CAR_MAKES, getLogoFilename} from "@/lib/logo-utils";
+import {galleryPathForDossier, isLiveStatus} from "@/lib/vehicle";
 
 // Full Country List for the Datalist
 const COUNTRIES = [
@@ -325,6 +329,10 @@ function SpecBuilderContent() {
 
     const handleSave = async () => {
         if (!specData.make || !specData.model) return alert("Make and Model are required.");
+        // Live templates must have a clean slug so their public URL is never a raw _id.
+        if (isLiveStatus(specData.status) && !specData.slug.trim()) {
+            return alert("A URL slug is required before setting this template to Active. Please fill the URL Slug Configuration field.");
+        }
         setIsSaving(true);
         isSavingRef.current = true;
 
@@ -405,6 +413,14 @@ function SpecBuilderContent() {
         }
     };
 
+    // Public page path for the current template. Only meaningful once saved
+    // (editId present). Live templates resolve to their clean slug; drafts fall
+    // back to the _id so they stay previewable before a slug is set.
+    const isLive = isLiveStatus(specData.status);
+    const publicPath = editId && specData.slug
+        ? galleryPathForDossier({ _id: editId, slug: specData.slug, status: specData.status })
+        : null;
+
     if (isLoading) return (
         <div className="h-screen flex items-center justify-center">
             <Loader2 className="animate-spin text-zinc-400" size={40}/>
@@ -420,6 +436,13 @@ function SpecBuilderContent() {
                     <p className="text-zinc-500 mt-1">{editId ? `Editing Template ID: ${editId}` : "Create a new blueprint for vehicles"}</p>
                 </div>
                 <div className="flex gap-3">
+                    {editId && publicPath && (
+                        <a href={publicPath} target="_blank" rel="noopener noreferrer">
+                            <Button variant="outline" className="rounded-2xl h-12 px-6 gap-2">
+                                <Eye size={20}/> {isLive ? "View Live Page" : "Preview Draft"}
+                            </Button>
+                        </a>
+                    )}
                     <Button variant="outline" onClick={handlePrint} disabled={isPrinting}
                             className="rounded-2xl h-12 px-6">
                         {isPrinting ? <Loader2 className="animate-spin mr-2" size={20}/> :
@@ -549,6 +572,33 @@ function SpecBuilderContent() {
                                     Used for building clean routing addresses. Spaces automatically convert to hyphens.
                                 </p>
                             </div>
+
+                            {/* Live requirement notice + the exact URL that will be created. */}
+                            {isLive && !specData.slug.trim() ? (
+                                <div className="p-3 bg-red-50 rounded-xl border border-red-100">
+                                    <p className="text-[10px] text-red-600 font-bold leading-tight flex gap-2 items-center">
+                                        <ShieldCheck size={13} className="shrink-0"/>
+                                        A slug is required to save this template as Active.
+                                    </p>
+                                </div>
+                            ) : specData.slug.trim() ? (
+                                <div className="p-3 bg-zinc-50 rounded-xl border border-black/5 space-y-1">
+                                    <p className="text-[9px] font-black uppercase text-zinc-400 tracking-widest flex items-center gap-1">
+                                        <Link2 size={11}/> {isLive ? "Live URL" : "Public URL (once Active)"}
+                                    </p>
+                                    {editId && publicPath ? (
+                                        <a href={publicPath} target="_blank" rel="noopener noreferrer"
+                                           className="text-[11px] text-sky-600 hover:text-sky-700 font-mono break-all leading-snug flex items-start gap-1">
+                                            {`/b2c/gallery/${specData.slug}`}
+                                            <ExternalLink size={11} className="shrink-0 mt-0.5"/>
+                                        </a>
+                                    ) : (
+                                        <p className="text-[11px] text-zinc-600 font-mono break-all leading-snug">
+                                            {`/b2c/gallery/${specData.slug}`}
+                                        </p>
+                                    )}
+                                </div>
+                            ) : null}
                         </div>
                     </div>
                 </div>
