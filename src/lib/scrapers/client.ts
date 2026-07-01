@@ -6,6 +6,7 @@
 // imported from server actions / components (never a "use client" module).
 import type { NormalizedListing } from "@/lib/market-stats";
 import { mapAutoTraderItem } from "@/lib/scrapers/autotrader";
+import { canonicalMake } from "@/lib/scrapers/matching";
 import { mapPistonHeadsItem } from "@/lib/scrapers/pistonheads";
 
 const APIFY_BASE = "https://api.apify.com/v2";
@@ -98,24 +99,6 @@ export async function runApifyActorBounded<T = unknown>(
     throw new Error(`Apify ${actorId} dataset fetch failed ${itemsRes.status}`);
   }
   return (await itemsRes.json()) as T[];
-}
-
-// AutoTrader / PistonHeads expect canonical make names; sales staff type short
-// forms. Normalise the common ones so the search actually returns results.
-const MAKE_ALIASES: Record<string, string> = {
-  benz: "Mercedes-Benz",
-  mercedes: "Mercedes-Benz",
-  "mercedes benz": "Mercedes-Benz",
-  merc: "Mercedes-Benz",
-  vw: "Volkswagen",
-  "land-rover": "Land Rover",
-  landrover: "Land Rover",
-  "range rover": "Land Rover",
-  chevy: "Chevrolet",
-  "rolls royce": "Rolls-Royce",
-};
-function canonicalMake(make: string): string {
-  return MAKE_ALIASES[make.toLowerCase().trim()] ?? make.trim();
 }
 
 // ─── AutoTrader ──────────────────────────────────────────────────────────────

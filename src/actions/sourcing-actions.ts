@@ -13,6 +13,7 @@ import {
   filterListings,
   type MatchTarget,
   selectTopComparables,
+  tokenize,
 } from "@/lib/scrapers/matching";
 import SourcingAnalysis from "@/models/SourcingAnalysis";
 import { auth } from "@/utils/auth";
@@ -292,9 +293,7 @@ export async function extractAuctionSheet(input: {
 export interface MarketAnalysisInput {
   make: string;
   model: string;
-  // Required identity tokens (model + trim) — all must appear in a listing's
-  // make+model+trim text to count as comparable.
-  keywords: string[];
+  trim: string; // edition/grade text (e.g. "Turbo", "GTS") — preference, not a gate
   // Soft tokens (engine/transmission) used to rank toward the exact vehicle.
   refineTokens?: string[];
   year: number | null;
@@ -337,8 +336,17 @@ export async function analyzeMarket(
     const yearFrom = input.year ? input.year - scrapeBand : undefined;
     const yearTo = input.year ? input.year + scrapeBand : undefined;
 
+    // Distinctive trim tokens = trim words minus model words (so "Macan Turbo"
+    // with model "Macan" → ["turbo"]). Trim is a preference, not a hard gate.
+    const modelTokenSet = new Set(tokenize(input.model));
+    const trimTokens = tokenize(input.trim).filter(
+      (t) => !modelTokenSet.has(t),
+    );
+
     const target: MatchTarget = {
-      keywords: input.keywords.map((k) => k.toLowerCase()),
+      make: input.make,
+      model: input.model,
+      trimTokens,
       refineTokens: (input.refineTokens ?? []).map((k) => k.toLowerCase()),
       year: input.year,
       mileage: input.mileage,
@@ -348,7 +356,7 @@ export async function analyzeMarket(
       const cleaned = dedupeListings(cleanListings(rows));
       return {
         cleaned,
-        matched: filterListings(cleaned, target, { yearBand, mileagePct }),
+        result: filterListings(cleaned, target, { yearBand, mileagePct }),
       };
     };
 
@@ -375,7 +383,7 @@ export async function analyzeMarket(
     // 2. Only fall back to other sources if AutoTrader didn't yield enough
     //    comparable matches on its own.
     const AUTOTRADER_ENOUGH = 6;
-    if (matchedOf(scraped).matched.length < AUTOTRADER_ENOUGH) {
+    if (matchedOf(scraped).result.comparables.length < AUTOTRADER_ENOUGH) {
       try {
         const ph = await scrapePistonHeads({
           make: input.make,
@@ -399,7 +407,8 @@ export async function analyzeMarket(
       };
     }
 
-    const { cleaned, matched } = matchedOf(scraped);
+    const { cleaned, result } = matchedOf(scraped);
+    const matched = result.comparables;
     // Keep the best 10: closest year, then engine/transmission, then mileage.
     const top = selectTopComparables(matched, target, 10);
     const stats = computeMarketStats(top.map((l) => l.price ?? 0));

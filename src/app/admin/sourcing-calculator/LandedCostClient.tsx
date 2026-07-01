@@ -555,15 +555,14 @@ export default function LandedCostClient({ fx }: { fx: GbpFxRates }) {
     setVerdict(null);
     setSaved(false);
     try {
-      // Required identity = model + trim tokens (make is filtered at source).
-      // Engine + transmission are soft tokens that rank toward the exact car.
-      const keywords = tokens(`${model} ${edition}`);
+      // Make + model gate the match (case-insensitive); trim is a preference;
+      // engine + transmission rank toward the exact car.
       const refineTokens = tokens(`${engine} ${transmission}`);
 
       const res = await analyzeMarket({
         make: make.trim(),
         model: model.trim(),
-        keywords,
+        trim: edition.trim(),
         refineTokens,
         year: year ? Number.parseInt(year, 10) : null,
         mileage: mileage ? num(mileage) : null,
