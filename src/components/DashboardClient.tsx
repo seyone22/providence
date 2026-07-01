@@ -142,10 +142,13 @@ export default function DashboardClient({ requests, staffUsers, currentUserId }:
                 const assignedValue = req.assignedToName || "Unassigned";
                 const matchesStaff = staffFilter === "All" || assignedValue === staffFilter;
 
-                // "My Leads" quick toggle — match leads assigned to the logged-in user.
+                // "My Leads" quick toggle — match leads assigned to the logged-in user,
+                // excluding leads that are Lead Lost / Not Qualified.
                 const matchesMine =
                     !myLeadsOnly ||
-                    (!!currentUserId && String(req.assignedToId || "") === String(currentUserId));
+                    (!!currentUserId &&
+                        String(req.assignedToId || "") === String(currentUserId) &&
+                        !["Lead Lost", "Not Qualified"].includes(req.leadStatus));
 
                 const carName = `${req.make} ${req.vehicle_model}`.trim();
                 const matchesCar = carFilter === "All" || carName === carFilter;
