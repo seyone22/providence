@@ -13,6 +13,26 @@ const CURRENCY_SYMBOLS: Record<string, string> = {
     GBP: "£", USD: "$", EUR: "€", JPY: "¥", AUD: "A$", CAD: "C$",
 };
 
+/** True when a dossier is publicly live (published to the gallery). */
+export function isLiveStatus(status?: string): boolean {
+    return status === "Active" || status === "Published";
+}
+
+/**
+ * Public gallery path for a dossier.
+ *
+ * Live templates ALWAYS resolve to their clean slug (`/b2c/gallery/my-car`) so
+ * we never expose raw Mongo _id URLs on published pages. Drafts (or anything
+ * without a slug yet) fall back to the _id so they stay previewable before a
+ * slug is assigned. Returns null when neither a slug nor an _id is available.
+ */
+export function galleryPathForDossier(d: { _id?: string; slug?: string; status?: string }): string | null {
+    if (isLiveStatus(d.status) && d.slug) return `/b2c/gallery/${d.slug}`;
+    if (d.slug) return `/b2c/gallery/${d.slug}`;
+    if (d._id) return `/b2c/gallery/${d._id}`;
+    return null;
+}
+
 /**
  * Builds a display title, avoiding duplication like "Lexus Lexus LX500d"
  * when the model field already starts with the make.

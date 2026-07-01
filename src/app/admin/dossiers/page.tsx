@@ -4,8 +4,9 @@ import { useEffect, useState, useTransition } from "react";
 import Link from "next/link";
 import {
     Plus, Search, MoreHorizontal, Car,
-    Edit3, Trash2, Globe, Zap, ExternalLink, Loader2, Tag
+    Edit3, Trash2, Globe, Zap, ExternalLink, Loader2, Tag, Copy, Link2
 } from "lucide-react";
+import { galleryPathForDossier, isLiveStatus } from "@/lib/vehicle";
 
 // UI Components
 import { Button } from "@/components/ui/button";
@@ -155,6 +156,13 @@ export default function InventoryPage() {
                             {filteredDossiers.map((d) => {
                                 const thumb = getThumbnail(d);
 
+                                // Public path: clean slug for live templates, _id fallback for drafts.
+                                const publicPath = galleryPathForDossier(d);
+                                const publicUrl = publicPath
+                                    ? (typeof window !== "undefined" ? `${window.location.origin}${publicPath}` : publicPath)
+                                    : "";
+                                const live = isLiveStatus(d.status);
+
                                 return (
                                     <TableRow key={d._id} className="border-black/5 group hover:bg-zinc-50/50 transition-colors">
 
@@ -229,11 +237,33 @@ export default function InventoryPage() {
                                                         </DropdownMenuItem>
                                                     </Link>
 
-                                                    {/* Updated Live Example Route */}
+                                                    {/* View the public page — clean slug URL for live templates,
+                                                        _id preview for drafts. */}
                                                     <DropdownMenuItem asChild className="gap-3 rounded-xl cursor-pointer py-3 font-medium hover:bg-zinc-50">
-                                                        <Link href={`/b2c/gallery/${d._id}`} target="_blank" rel="noopener noreferrer">
-                                                            <ExternalLink size={16} className="text-zinc-500" /> View Live Example
+                                                        <Link href={publicPath || "#"} target="_blank" rel="noopener noreferrer">
+                                                            <ExternalLink size={16} className="text-zinc-500" />
+                                                            {live ? "View Live Page" : "Preview Draft Page"}
                                                         </Link>
+                                                    </DropdownMenuItem>
+
+                                                    {/* Show + copy the exact URL that was created. */}
+                                                    <div className="px-3 py-2">
+                                                        <p className="text-[9px] font-black uppercase text-zinc-400 tracking-widest mb-1 flex items-center gap-1">
+                                                            <Link2 size={11} /> {live ? "Live URL" : "Draft URL"}
+                                                        </p>
+                                                        <p className="text-[11px] text-zinc-600 font-mono break-all leading-snug">
+                                                            {publicPath || "—"}
+                                                        </p>
+                                                    </div>
+                                                    <DropdownMenuItem
+                                                        onClick={() => {
+                                                            if (!publicUrl) return;
+                                                            navigator.clipboard?.writeText(publicUrl);
+                                                        }}
+                                                        disabled={!publicPath}
+                                                        className="gap-3 rounded-xl cursor-pointer py-3 font-medium hover:bg-zinc-50"
+                                                    >
+                                                        <Copy size={16} className="text-zinc-500" /> Copy URL
                                                     </DropdownMenuItem>
 
                                                     <DropdownMenuSeparator className="bg-black/5" />
