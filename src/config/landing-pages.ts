@@ -60,18 +60,18 @@ export type LandingPageConfig = {
 export const lhdCampaignConfig: LandingPageConfig = {
     slug: "luxury-lhd-japan",
     meta: {
-        title: "Premium LHD Japanese Imports | Providence Auto",
-        description: "Explore a premium selection of luxury cars with Japanese specifications in left-hand drive (LHD) configuration."
+        title: "Left-Hand Drive Luxury Cars from Japan | Providence Auto",
+        description: "Source left-hand drive (LHD) luxury cars — Rolls-Royce, Ferrari, Lamborghini, Porsche, Bentley and more — direct from Japan's grade-verified auctions. Fully landed to Europe, the Middle East, and the Americas."
     },
     hero: {
-        tagline: "Providence Auto",
-        title: "Luxury Japanese\nCars (LHD).",
-        subtitle: "Premium left-hand drive imports sourced directly from Japan.",
+        tagline: "Providence Auto · Left-Hand Drive Specialists",
+        title: "Luxury Cars,\nLeft-Hand Drive.",
+        subtitle: "Grade-verified LHD supercars and luxury saloons, sourced direct from Japan and landed at your door — no conversions, no compromise.",
         backgroundImage: "https://images.unsplash.com/photo-1614162692292-7ac56d7f7f1e?q=80&w=3000&auto=format&fit=cover"
     },
     intro: {
-        highlight: "Eliminate costly conversions.",
-        text: "Explore a premium selection of luxury cars with Japanese specifications in left-hand drive (LHD) configuration, sourced directly from Japan's most reputable auctions, certified dealers, and private collectors. Choosing LHD simplifies registration and protects long-term resale value."
+        highlight: "No conversions. No compromise.",
+        text: "Every car we source is genuine factory left-hand drive, hand-picked from Japan's most reputable auctions, certified dealers, and private collections. Native LHD means simpler registration, no engineering sign-off, and stronger long-term resale value than a converted car ever holds."
     },
     valueProps: {
         title: "Why Import From Providence Auto",
@@ -108,65 +108,78 @@ export const lhdCampaignConfig: LandingPageConfig = {
         totalReviews: "250+",
         items: [
             {
-                name: "Alena Rosser",
-                date: "3 hours ago",
-                title: "Good quality and stylish.",
-                desc: "The only issue I had was with the sizing, as some items ran a bit small, but the return process was smooth.",
+                name: "Karim A.",
+                date: "2 weeks ago",
+                title: "My LHD 911 landed in Dubai flawlessly",
+                desc: "Sourced a low-mileage left-hand drive Porsche 911 from a Japanese auction. Auction sheet, inspection photos and landed-cost quote came before I paid a cent. Registered in the UAE with zero drama.",
                 rating: 5
             },
             {
-                name: "Mary Adams",
-                date: "1 day ago",
-                title: "Absolutely fantastic!",
-                desc: "The styles are unique and the fit is just right. Shipping was fast and everything arrived in perfect condition.",
+                name: "Sofia M.",
+                date: "1 month ago",
+                title: "Genuine factory LHD — not a conversion",
+                desc: "I was nervous about buying from Japan, but every car they offered was verified native left-hand drive. My Bentley Continental arrived in Germany exactly as graded. Communication was excellent throughout.",
                 rating: 5
             },
             {
-                name: "Daniel Kim",
-                date: "5 days ago",
-                title: "Shop all the hottest trends",
-                desc: "Shop all the hottest trends here, including dark denim, baggy low-rise jeans, and vintage jackets.",
+                name: "Daniel K.",
+                date: "1 month ago",
+                title: "Handled the taxes and shipping end to end",
+                desc: "They quoted the full landed cost — car, freight, duty and VAT — up front, then handled customs clearance for me. My LHD Lexus LX arrived on schedule and well under the local dealer price.",
                 rating: 5
             }
         ]
     },
     featuredReview: {
-        title: "Our review of the",
-        carName: "Golf",
-        text: "The Volkswagen Golf needs no introduction. For 50 years it has been a staple on British roads, becoming the definition of a mid-size family hatchback. However, times are a-changing and with the rise electrification and SUV...",
-        rating: 4.0,
-        image: "https://images.unsplash.com/photo-1609521263047-f8f205293f24?q=80&w=2940&auto=format&fit=crop"
+        title: "Customer story:",
+        carName: "Left-Hand Drive Import",
+        text: "I'd spent months trying to find a genuine left-hand drive example in Europe with no luck. Providence found one at a graded Japanese auction within a fortnight, sent me the full auction sheet and inspection report, and shipped it door-to-door with every tax handled. It arrived exactly as described.",
+        rating: 5.0,
+        image: "https://images.unsplash.com/photo-1503376780353-7e6692767b70?q=80&w=2940&auto=format&fit=crop"
     },
     faqs: {
-        title: "Frequently Asked Questions",
-        subtitle: "Everything you need to know about our global direct import network.",
+        title: "Left-Hand Drive Imports — Your Questions Answered",
+        subtitle: "Everything you need to know about sourcing an LHD luxury car from Japan with Providence.",
         categories: [
             {
-                category: "Tax & Compliance",
+                category: "Left-Hand Drive & Sourcing",
                 items: [
                     {
-                        q: "Is this IRD compliant?",
-                        a: "Yes, our reporting and documentation are fully compliant with Inland Revenue Department standards."
+                        q: "Are these cars genuine factory left-hand drive?",
+                        a: "Yes. Every vehicle we offer on this page is native, factory-built left-hand drive — not a right-hand drive car converted after the fact. We confirm the configuration on the original auction sheet and export documents before you commit, so there is no engineering sign-off, no aftermarket steering conversion, and no hit to resale value."
                     },
                     {
-                        q: "What if I need help?",
-                        a: "Our dedicated support team is available to assist you through every step of the import and compliance process."
+                        q: "Why buy a left-hand drive luxury car from Japan?",
+                        a: "Japan runs one of the world's largest, most transparent used-car auction networks, with strict independent grading and exceptional maintenance culture. Many premium marques were sold there in factory left-hand drive for export markets. That means grade-verified condition, wholesale auction pricing, and genuine LHD spec — ideal for buyers in Europe, the Middle East, and the Americas."
                     },
                     {
-                        q: "Will it help with deductions?",
-                        a: "Yes, we provide fully itemized invoices suitable for commercial tax deductions."
+                        q: "Which luxury brands can you source?",
+                        a: "Rolls-Royce, Bentley, Ferrari, Lamborghini, Aston Martin, McLaren, Bugatti, Porsche, Mercedes-Benz, BMW, Audi, Maserati, Lexus, Genesis, Lucid and Lotus, among others. If you have a specific model, spec, or colour in mind, tell us in your inquiry and we'll hunt it down at auction."
                     },
                     {
-                        q: "Do I need tax knowledge to use it?",
-                        a: "Not at all. We handle the complex compliance requirements and provide ready-to-file documentation."
+                        q: "How do I know the car's true condition before I buy?",
+                        a: "You receive the original Japanese auction grade sheet, a full multi-point pre-export inspection, and detailed photographs before any payment is released. Japanese auction grades are independently assessed and widely trusted across the trade. If a car doesn't match its grade, we don't ship it."
+                    }
+                ]
+            },
+            {
+                category: "Taxes, Shipping & Delivery",
+                items: [
+                    {
+                        q: "Will you tell me the full landed cost before I commit?",
+                        a: "Yes. Before you pay anything, we give you a single all-in landed-cost quote covering the car, freight, insurance, import duty and VAT for your destination country. No surprise charges on arrival."
                     },
                     {
-                        q: "Can I upload my T-10 forms?",
-                        a: "Yes, our secure portal allows you to upload any necessary regional tax forms required for clearance."
+                        q: "Which countries can you deliver to?",
+                        a: "We specialise in export to left-hand-drive markets across Europe, the Middle East, and the Americas. We arrange RoRo or container shipping door-to-port or door-to-door, and manage customs clearance and registration paperwork on your behalf."
                     },
                     {
-                        q: "Can I use this if I'm self-employed or have foreign income?",
-                        a: "Absolutely. Our importing structure accommodates a wide variety of personal and corporate income structures."
+                        q: "How long does the whole process take?",
+                        a: "Typically 8–12 weeks from confirmed inquiry to delivery: 1–2 weeks to source and win the car at auction, 4–8 weeks shipping depending on destination, then customs clearance and local registration. You get live milestone updates the whole way."
+                    },
+                    {
+                        q: "Is my payment protected?",
+                        a: "Yes. Funds are held securely until your vehicle is confirmed, inspected, and cleared for shipment, and every car is covered by comprehensive marine insurance door-to-door. Providence is an established UK-based sourcing and export company with a global office network."
                     }
                 ]
             }
