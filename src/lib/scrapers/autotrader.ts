@@ -11,6 +11,7 @@ interface AutoTraderItem {
   model?: string;
   subtitle?: string; // derivative/trim, e.g. "3.6T V6 Turbo 5dr PDK"
   year?: number;
+  advertId?: string;
   autotraderWebsiteLink?: string;
   pricing?: { mainPrice?: number };
   mileage?: { value?: number; unit?: string };
@@ -25,9 +26,18 @@ export function mapAutoTraderItem(raw: AutoTraderItem): NormalizedListing {
         ? Math.round(raw.mileage.value * 0.621371)
         : null;
 
+  // autotraderWebsiteLink often comes back empty; build the canonical
+  // car-details URL from the advertId instead.
+  const link = raw.autotraderWebsiteLink?.trim();
+  const url = link
+    ? link
+    : raw.advertId
+      ? `https://www.autotrader.co.uk/car-details/${raw.advertId}`
+      : null;
+
   return {
     source: "autotrader",
-    url: raw.autotraderWebsiteLink ?? null,
+    url,
     make: raw.make ?? null,
     model: raw.model ?? null,
     trim: raw.subtitle ?? null,
