@@ -174,7 +174,7 @@ export default function GalleryDetailClient({car}: { car: Dossier }) {
                         <div className="relative aspect-[16/10] w-full rounded-[2rem] overflow-hidden bg-black flex items-center justify-center shadow-[0_20px_50px_rgba(0,0,0,0.1)]">
                             <img
                                 key={activeImage}
-                                src={activeImage === 0 && car.heroImageUrl ? car.heroImageUrl : displayImages[activeImage]}
+                                src={activeImage === 0 && car.heroImageUrl && car.images?.includes(car.heroImageUrl) ? car.heroImageUrl : displayImages[activeImage]}
                                 alt={`${car.make} - View ${activeImage + 1}`}
                                 className="w-full h-full object-cover animate-in fade-in zoom-in-95 duration-500"
                             />

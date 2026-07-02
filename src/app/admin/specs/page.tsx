@@ -307,6 +307,11 @@ function SpecBuilderContent() {
     const removeExistingImage = (urlToRemove: string) => {
         setIsDirty(true);
         setExistingImages(prev => prev.filter(url => url !== urlToRemove));
+        // If the removed image was the hero, drop the hero marker so it doesn't
+        // point at a deleted image. Save will re-pick a valid hero on its own.
+        setSpecData(prev => (
+            prev.heroImageUrl === urlToRemove ? { ...prev, heroImageUrl: "" } : prev
+        ));
     };
 
     const removePendingFile = (index: number) => {
@@ -364,9 +369,15 @@ function SpecBuilderContent() {
                 finalImageUrls = [...finalImageUrls, ...uploadedUrls];
             }
 
+            // Hero must be one of the final images. If the selected hero was
+            // removed (or none was chosen), fall back to the first image — this
+            // prevents a stale hero from being "hard saved" after images change.
+            const heroIsValid = specData.heroImageUrl && finalImageUrls.includes(specData.heroImageUrl);
+            const resolvedHero = heroIsValid ? specData.heroImageUrl : (finalImageUrls[0] || "");
+
             const payload: any = {
                 ...specData,
-                heroImageUrl: specData.heroImageUrl || (finalImageUrls.length > 0 ? finalImageUrls[0] : ""),
+                heroImageUrl: resolvedHero,
                 features,
                 searchTags,
                 images: finalImageUrls,
