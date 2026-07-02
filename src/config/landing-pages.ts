@@ -65,7 +65,7 @@ export const lhdCampaignConfig: LandingPageConfig = {
     },
     hero: {
         tagline: "Providence Auto · Left-Hand Drive Specialists",
-        title: "Luxury Cars,\nLeft-Hand Drive.",
+        title: "Japanese Luxury,\nLeft-Hand Drive.",
         subtitle: "Grade-verified LHD supercars and luxury saloons, sourced direct from Japan and landed at your door — no conversions, no compromise.",
         backgroundImage: "https://images.unsplash.com/photo-1614162692292-7ac56d7f7f1e?q=80&w=3000&auto=format&fit=cover"
     },

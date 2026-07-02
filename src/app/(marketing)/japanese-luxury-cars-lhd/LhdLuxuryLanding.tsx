@@ -9,7 +9,11 @@ import GradientMesh from "@/components/GradientMesh";
 import RequestForm from "@/components/requestForm";
 import FAQSection from "@/components/faqSection";
 import { lhdCampaignConfig } from "@/config/landing-pages";
-import VehicleShowcaseCarousel from "@/components/vehicleShowcaseCarousel";
+import GalleryPreview from "@/components/GalleryPreview";
+
+// Vehicles are surfaced by their search tag, which mirrors this page's URL
+// slug so the gallery stays scoped to this campaign's stock.
+const CAMPAIGN_TAG = "japanese-luxury-cars-lhd";
 
 // Luxury marques offered on this page. `make` must match a value in the request
 // form's CAR_MAKES list so the prefill lands on a valid option. `image` is a
@@ -176,8 +180,18 @@ export default function LhdLuxuryLanding() {
                 </div>
             </section>
 
-            {/* Live inventory matched to this campaign's tags */}
-            <VehicleShowcaseCarousel tags={["LHD", "Luxury"]} />
+            {/* Live inventory scoped to this campaign's tag (mirrors the URL slug).
+                Home-page gallery styling, filtered to Japanese luxury LHD stock. */}
+            <div className="px-6 md:px-8 bg-white relative z-10 border-t border-black/5">
+                <div className="max-w-[1400px] mx-auto">
+                    <GalleryPreview
+                        tags={[CAMPAIGN_TAG]}
+                        eyebrow="In Stock"
+                        title="Japanese Luxury LHD Cars"
+                        subtitle="Genuine factory left-hand drive luxury cars sourced from Japan and ready to commission — each landed to your exact specification."
+                    />
+                </div>
+            </div>
 
             {/* ── MANIFESTO / INTRO ────────────────────────── */}
             <section className="py-32 md:py-48 px-6 bg-white border-y border-black/5 relative z-10 overflow-hidden">

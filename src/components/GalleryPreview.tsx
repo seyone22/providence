@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { ArrowRight, Images, ImageOff } from "lucide-react";
 import { Reveal } from "@/components/Reveal";
-import { getAllSpecDossiers } from "@/actions/spec-actions";
+import { getAllSpecDossiers, getSpecDossiersByTags } from "@/actions/spec-actions";
 import { formatVehicleTitle, formatLeadPrice, type PriceEntry } from "@/lib/vehicle";
 
 type PreviewCar = {
@@ -19,13 +19,44 @@ type PreviewCar = {
     pricing?: PriceEntry[];
 };
 
-export default function GalleryPreview() {
+type GalleryPreviewProps = {
+    /**
+     * When provided, only dossiers carrying one of these search tags are shown
+     * (matched case-insensitively server-side). Omit to preview the whole live
+     * catalogue, as the home page does.
+     */
+    tags?: string[];
+    /** Small uppercase kicker above the heading. */
+    eyebrow?: string;
+    /** Section heading. */
+    title?: string;
+    /** Supporting copy under the heading. */
+    subtitle?: string;
+};
+
+export default function GalleryPreview({
+    tags,
+    eyebrow = "Portfolio",
+    title = "The Gallery",
+    subtitle = "A curated selection of globally-sourced vehicles, ready to be commissioned to your exact specification.",
+}: GalleryPreviewProps = {}) {
     const [cars, setCars] = useState<PreviewCar[]>([]);
     const [loading, setLoading] = useState(true);
 
+    // Serialise the tags so the effect only re-runs when the values change,
+    // not on every render (a fresh array literal has a new identity each time).
+    const tagKey = tags ? tags.join(",") : "";
+
     useEffect(() => {
         let active = true;
-        getAllSpecDossiers()
+        // Tag-filtered pages use the dedicated action (which already scopes to
+        // Active dossiers); the untagged home preview pulls the whole catalogue
+        // and filters client-side.
+        const request = tags && tags.length > 0
+            ? getSpecDossiersByTags(tags)
+            : getAllSpecDossiers();
+
+        request
             .then((res) => {
                 if (!active) return;
                 const data = (res.success ? res.data : []) as PreviewCar[];
@@ -40,7 +71,7 @@ export default function GalleryPreview() {
         return () => {
             active = false;
         };
-    }, []);
+    }, [tagKey]);
 
     // Don't render an empty band when there's nothing published to show.
     if (!loading && cars.length === 0) return null;
@@ -53,15 +84,14 @@ export default function GalleryPreview() {
                         <div className="flex items-center gap-3 mb-3">
                             <Images className="text-sky-500 h-5 w-5" />
                             <span className="text-zinc-400 font-bold tracking-[0.2em] uppercase text-xs">
-                                Portfolio
+                                {eyebrow}
                             </span>
                         </div>
                         <h2 className="text-3xl sm:text-4xl md:text-6xl font-bold tracking-tighter text-black">
-                            The Gallery
+                            {title}
                         </h2>
                         <p className="text-zinc-500 text-base md:text-lg font-light mt-3 max-w-xl">
-                            A curated selection of globally-sourced vehicles, ready to be
-                            commissioned to your exact specification.
+                            {subtitle}
                         </p>
                     </div>
                     <Link
