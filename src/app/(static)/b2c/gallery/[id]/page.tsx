@@ -26,7 +26,11 @@ export async function generateMetadata({ params }: { params: { id: string } }): 
     // Build the title with the same de-duped make/model used on the card so
     // the preview reads "2022 Lexus LX500d", not "2022 Lexus Lexus LX500d".
     const pageTitle = `${car.year || ''} ${formatVehicleTitle(car.make, car.model)}`.trim();
-    const pageDescription = `View full specifications, gallery, and details for the ${pageTitle}.`;
+    // Use the admin's template notes (Additional Template Notes) for the link preview description.
+    // If none provided, fall back to a generic description.
+    const pageDescription = car.notes?.trim()
+        ? car.notes
+        : `View full specifications, gallery, and details for the ${pageTitle}.`;
     // Honor the admin-selected hero image, then fall back to the first gallery
     // image, then a static default. metadataBase (src/app/layout.tsx) resolves
     // any relative path to an absolute URL for the preview crawler.
