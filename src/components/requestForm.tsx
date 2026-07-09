@@ -826,7 +826,7 @@ export default function RequestForm({
     ) {
       setApiFailed(true);
     }
-  }, [availableModels, isLoadingModels]);
+  }, [availableModels, isLoadingModels, formData.vehicle_model]);
 
   const handleInputChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
@@ -960,7 +960,7 @@ export default function RequestForm({
       // Only capture the agent + id on first creation; on update the
       // assignment is unchanged and the agent's full details (image/email)
       // already live in state.
-      if (!submittedRequestId) {
+      if (!submittedRequestId && response.requestId) {
         setAssignedAgent(response.agent);
         setSubmittedRequestId(response.requestId);
       }
@@ -1071,7 +1071,7 @@ export default function RequestForm({
       } else {
         setErrors({ submit: response.message });
       }
-    } catch (error) {
+    } catch (_error) {
       setErrors({ submit: "Submission failed. Please try again." });
     } finally {
       setIsSubmitting(false);

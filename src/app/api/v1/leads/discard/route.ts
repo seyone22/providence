@@ -1,6 +1,6 @@
+import { and, eq } from "drizzle-orm";
 import { type NextRequest, NextResponse } from "next/server";
-import connectToDatabase from "@/lib/mongoose";
-import Request from "@/models/Request";
+import { db, requests } from "@/db";
 
 /**
  * POST /api/v1/leads/discard  { id }
@@ -25,10 +25,11 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "id is required" }, { status: 400 });
     }
 
-    await connectToDatabase();
-    const result = await Request.deleteOne({ _id: id, isDraft: true });
+    const result = await db
+      .delete(requests)
+      .where(and(eq(requests.id, id), eq(requests.isDraft, true)));
 
-    return NextResponse.json({ ok: true, deleted: result.deletedCount });
+    return NextResponse.json({ ok: true, deleted: result.rowCount || 0 });
   } catch (error) {
     console.error("POST /api/v1/leads/discard error:", error);
     return NextResponse.json(

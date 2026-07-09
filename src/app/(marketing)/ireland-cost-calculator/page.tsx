@@ -353,8 +353,8 @@ export default function IrelandCostCalculator() {
     };
   }, [form, now, fx]);
 
-  const fmt = (n: number) => "€" + Math.round(n).toLocaleString("en-IE");
-  const pct = (n: number) => (n * 100).toFixed(2) + "%";
+  const fmt = (n: number) => `€${Math.round(n).toLocaleString("en-IE")}`;
+  const pct = (n: number) => `${(n * 100).toFixed(2)}%`;
   const taxPct =
     calc.cifValue > 0 ? Math.round((calc.totalTaxes / calc.cifValue) * 100) : 0;
 

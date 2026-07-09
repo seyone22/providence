@@ -1,19 +1,20 @@
+import { drizzleAdapter } from "@better-auth/drizzle-adapter";
 import { betterAuth } from "better-auth";
-import { mongodbAdapter } from "better-auth/adapters/mongodb";
 import { APIError } from "better-auth/api";
-import { ObjectId } from "bson";
-import { Db, MongoClient } from "mongodb";
+import { db } from "@/db";
+import * as schema from "@/db/schema";
 import { emailService } from "@/lib/email";
 
-if (!process.env.MONGODB_URI) {
-  throw new Error("FATAL: MONGODB_URI is not defined.");
-}
-
-const client = new MongoClient(process.env.MONGODB_URI);
-const db = new Db(client, "test");
-
 export const auth = betterAuth({
-  database: mongodbAdapter(db),
+  database: drizzleAdapter(db, {
+    provider: "pg",
+    schema: {
+      user: schema.users,
+      session: schema.sessions,
+      account: schema.accounts,
+      verification: schema.verifications,
+    },
+  }),
 
   // 1. Password Reset lives here
   emailAndPassword: {
@@ -26,7 +27,7 @@ export const auth = betterAuth({
   // 2. Email Verification must be a TOP-LEVEL object (Fix for TS2353)
   emailVerification: {
     sendOnSignUp: true,
-    async sendVerificationEmail({ user, url, token }, request) {
+    async sendVerificationEmail({ user, url, token }, _request) {
       await emailService.sendAuthEmail(user.email, "verification", url);
     },
   },
@@ -72,10 +73,10 @@ export const auth = betterAuth({
     session: {
       create: {
         before: async (session) => {
-          const user = await db
-            .collection("user")
-            .findOne({ _id: new ObjectId(session.userId) });
-          if (user && user.isBanned) {
+          const user = await db.query.users.findFirst({
+            where: (users, { eq }) => eq(users.id, session.userId),
+          });
+          if (user?.isBanned) {
             throw new APIError("FORBIDDEN", {
               message: "Your account has been suspended.",
             });

@@ -9,7 +9,7 @@ import {
   Paperclip,
   UserPlus,
 } from "lucide-react";
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { deleteRequest, updateRequestStatus } from "@/actions/admin-actions";
 import { getAllSpecDossiers } from "@/actions/spec-actions";
 import DynamicFileUploader, {

@@ -1,21 +1,18 @@
 // @/actions/tracking.ts
 "use server";
 
-import mongoose from "mongoose";
+import { and, eq } from "drizzle-orm";
+import { db, requests } from "@/db";
 import { emailService } from "@/lib/email";
-import connectToDatabase from "@/lib/mongoose";
-import Request from "@/models/Request";
-import "@/models/SpecDossier"; // CRITICAL: Forces Mongoose to register the SpecDossier model before populating it
 
 export async function getTrackingData(id: string) {
   try {
     console.log(`[TRACKING_FETCH] Initiating fetch for Request ID: ${id}`);
-    await connectToDatabase();
 
-    // 1. Fetch the request and populate the multi-select dossier array blocks
-    const requestData = await Request.findById(id)
-      .populate("dossierIds")
-      .lean();
+    // 1. Fetch the request
+    const requestData = await db.query.requests.findFirst({
+      where: (requests, { eq }) => eq(requests.id, id),
+    });
 
     if (!requestData) {
       console.warn(`[TRACKING_FETCH] Request ID not found: ${id}`);
@@ -26,44 +23,42 @@ export async function getTrackingData(id: string) {
 
     // 2. Fetch Agent Details if assignedToId exists
     if (requestData.assignedToId) {
-      const db = mongoose.connection.db;
-      if (db) {
-        const UserCollection = db.collection("user");
-        const userId =
-          typeof requestData.assignedToId === "string"
-            ? new mongoose.Types.ObjectId(requestData.assignedToId)
-            : requestData.assignedToId;
-
-        agentData = await UserCollection.findOne({ _id: userId });
-        console.log(
-          `[TRACKING_FETCH] Agent found for Request ID: ${id} -> ${agentData?.name || "Unknown"}`,
-        );
-      }
+      agentData = await db.query.users.findFirst({
+        where: (users, { eq }) => eq(users.id, requestData.assignedToId!),
+      });
+      console.log(
+        `[TRACKING_FETCH] Agent found for Request ID: ${id} -> ${agentData?.name || "Unknown"}`,
+      );
     } else {
       console.log(
         `[TRACKING_FETCH] No agent assigned yet for Request ID: ${id}`,
       );
     }
 
-    // 3. Safe deep serialization for populated sub-documents
-    const serializedDossiers = requestData.dossierIds
-      ? requestData.dossierIds.map((d: any) => ({
-          ...d,
-          _id: d._id?.toString(),
-          createdAt: d.createdAt?.toISOString() || null,
-          updatedAt: d.updatedAt?.toISOString() || null,
-        }))
+    // 3. Fetch full dossier objects
+    const dossiers = requestData.dossierIds?.length
+      ? await db.query.specDossiers.findMany({
+          where: (specDossiers, { inArray }) =>
+            inArray(specDossiers.id, requestData.dossierIds),
+        })
       : [];
+
+    const serializedDossiers = dossiers.map((d: any) => ({
+      ...d,
+      _id: d.id,
+      createdAt: d.createdAt?.toISOString() || null,
+      updatedAt: d.updatedAt?.toISOString() || null,
+    }));
 
     // Return a clean, serialized object to the page
     return {
       request: {
         ...requestData,
-        _id: requestData._id.toString(),
-        assignedToId: requestData.assignedToId?.toString() || null,
-        dossierIds: serializedDossiers, // Passes full objects instead of plain IDs
-        createdAt: requestData.createdAt?.toISOString() || null,
-        updatedAt: requestData.updatedAt?.toISOString() || null,
+        _id: requestData.id,
+        vehicle_model: requestData.vehicleModel,
+        dossierIds: serializedDossiers,
+        createdAt: requestData.createdAt.toISOString(),
+        updatedAt: requestData.updatedAt.toISOString(),
         eta: requestData.eta?.toISOString() || null,
         statusUpdatedAt: requestData.statusUpdatedAt?.toISOString() || null,
         preferredContactAt:
@@ -71,10 +66,10 @@ export async function getTrackingData(id: string) {
         followUpAt: requestData.followUpAt?.toISOString() || null,
         followUpSetAt: requestData.followUpSetAt?.toISOString() || null,
         statusHistory: requestData.statusHistory
-          ? requestData.statusHistory.map((h: any) => ({
+          ? (requestData.statusHistory as any[]).map((h: any) => ({
               ...h,
-              _id: h._id?.toString(),
-              date: h.date?.toISOString() || null,
+              _id: h.id || h._id || null,
+              date: h.date ? new Date(h.date).toISOString() : null,
             }))
           : [],
       },
@@ -95,15 +90,12 @@ export async function getTrackingData(id: string) {
 
 export async function markLeadAsQualified(requestId: string) {
   try {
-    await connectToDatabase();
-
     // Find the request and update it.
-    // { new: true } returns the updated document instead of the old one.
-    const updatedRequest = await Request.findByIdAndUpdate(
-      requestId,
-      { leadStatus: "Qualified" },
-      { new: true },
-    ).lean();
+    const [updatedRequest] = await db
+      .update(requests)
+      .set({ leadStatus: "Qualified" })
+      .where(eq(requests.id, requestId))
+      .returning();
 
     if (updatedRequest) {
       console.log(
@@ -111,7 +103,14 @@ export async function markLeadAsQualified(requestId: string) {
       );
 
       // Fire off the internal alert email concurrently
-      await emailService.sendLeadQualifiedAlert(updatedRequest, requestId);
+      const mappedRequest = {
+        ...updatedRequest,
+        _id: updatedRequest.id,
+      };
+      await emailService.sendLeadQualifiedAlert(
+        mappedRequest as any,
+        requestId,
+      );
     } else {
       console.warn(
         `[TRACKING] Could not find request ${requestId} to mark as Qualified.`,
@@ -127,14 +126,13 @@ export async function markLeadAsQualified(requestId: string) {
 
 export async function markLeadAsOpened(requestId: string) {
   try {
-    await connectToDatabase();
-
-    // We use findOneAndUpdate to only update IF the status is still 'Unqualified'.
-    // If they already clicked Email/WhatsApp and became 'Qualified', this safely ignores it.
-    await Request.findOneAndUpdate(
-      { _id: requestId, leadStatus: "Unqualified" },
-      { leadStatus: "Opened" },
-    );
+    // We only update IF the status is still 'Unqualified'.
+    await db
+      .update(requests)
+      .set({ leadStatus: "Opened" })
+      .where(
+        and(eq(requests.id, requestId), eq(requests.leadStatus, "Unqualified")),
+      );
 
     console.log(
       `[TRACKING] Request ${requestId} marked as Opened (First View).`,

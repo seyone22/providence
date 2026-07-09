@@ -7,7 +7,6 @@ import {
   ArrowUpDown,
   Car,
   CheckCircle2,
-  ListFilter,
   MessageSquareText,
   Search,
   Ship,
@@ -120,7 +119,7 @@ export default function DashboardClient({
         .filter(Boolean),
     );
     return Array.from(sources).sort() as string[];
-  }, [requests]);
+  }, [requests, normalizeSource]);
 
   // THE MASTER FILTER LOGIC (Affects Stats, Chart, and Table)
   const filteredRequests = useMemo(() => {
@@ -211,6 +210,9 @@ export default function DashboardClient({
     myLeadsOnly,
     currentUserId,
     sortBy,
+    dateRange.from,
+    dateRange.to,
+    normalizeSource,
   ]);
 
   // Top Level Stats calculated from FILTERED data

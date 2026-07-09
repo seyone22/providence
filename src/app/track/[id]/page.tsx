@@ -144,7 +144,8 @@ export default async function TrackingPage({
             {requestData.make} {requestData.vehicle_model}
           </h1>
           <p className="text-lg text-zinc-500 font-medium">
-            Initiated on {new Date(requestData.createdAt).toLocaleDateString()}
+            Initiated on{" "}
+            {new Date(requestData.createdAt || "").toLocaleDateString()}
           </p>
 
           <div className="inline-flex items-center gap-3 mt-10 px-6 py-3 rounded-full bg-zinc-50 border border-black/5 shadow-sm">
@@ -179,7 +180,7 @@ export default async function TrackingPage({
 
               // Filter documents that belong to this specific timeline stage
               const stepDocuments =
-                requestData.documents?.filter(
+                (requestData.documents as any[])?.filter(
                   (doc: any) => doc.stageAdded === step.id,
                 ) || [];
 

@@ -271,7 +271,7 @@ function formatGmtOffset(tz: string): string {
   const abs = Math.abs(totalMinutes);
   const h = Math.floor(abs / 60);
   const m = abs % 60;
-  return `GMT${sign}${h}${m ? ":" + String(m).padStart(2, "0") : ""}`;
+  return `GMT${sign}${h}${m ? `:${String(m).padStart(2, "0")}` : ""}`;
 }
 
 // Full dropdown list. Label = "(GMT±off) ABBR — Countries" so it's searchable

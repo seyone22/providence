@@ -1,5 +1,4 @@
 import { Column, Link, Row, Section, Text } from "@react-email/components";
-import * as React from "react";
 import EmailLayout from "./layout";
 
 interface TicketConfirmedEmailProps {

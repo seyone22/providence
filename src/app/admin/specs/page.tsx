@@ -36,7 +36,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-import { getPresignedUrls, uploadDossierImages } from "@/lib/file-actions";
+import { getPresignedUrls } from "@/lib/file-actions";
 import { CAR_MAKES, getLogoFilename } from "@/lib/logo-utils";
 import { galleryPathForDossier, isLiveStatus } from "@/lib/vehicle";
 
@@ -376,7 +376,7 @@ function SpecBuilderContent() {
         const res = await getSpecDossierById(editId);
         if (res.success && res.data) {
           // --- ADD THESE INSIDE THE loadDossier useEffect SUCCESS BLOCK ---
-          setSpecData((prev) => ({
+          setSpecData((_prev) => ({
             ...res.data,
             heroImageUrl: res.data.heroImageUrl || "",
             slug: res.data.slug || "",
@@ -474,7 +474,7 @@ function SpecBuilderContent() {
       } else {
         alert(res.message || "Failed to generate PDF.");
       }
-    } catch (error) {
+    } catch (_error) {
       alert("An error occurred while generating the PDF.");
     } finally {
       setIsPrinting(false);

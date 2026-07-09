@@ -63,7 +63,7 @@ async function sendEmail({
       subject,
       react: component,
       ...(replyTo ? { replyTo } : {}),
-      ...(attachments && attachments.length ? { attachments } : {}),
+      ...(attachments?.length ? { attachments } : {}),
     });
 
     if (error) {

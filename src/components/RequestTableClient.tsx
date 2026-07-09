@@ -8,18 +8,16 @@ import {
   DollarSign,
   ExternalLink,
   Eye,
-  ListFilter,
   MapPin,
   MessageCircle,
   MoreHorizontal,
-  Search,
   Ship,
   Trash,
   User,
   UserPlus,
 } from "lucide-react";
 import Link from "next/link";
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import ContactPreferenceBadge from "@/components/ContactPreferenceBadge";
 import FollowUpTimer from "@/components/FollowUpTimer";
 import RequestActionModal from "@/components/RequestActionModal";
@@ -140,12 +138,12 @@ export default function RequestTableClient({
   });
 
   // Filter & Sort States
-  const [searchQuery, setSearchQuery] = useState("");
-  const [stageFilter, setStageFilter] = useState("All");
-  const [statusFilter, setStatusFilter] = useState("All");
-  const [staffFilter, setStaffFilter] = useState("All");
-  const [carFilter, setCarFilter] = useState("All");
-  const [sortBy, setSortBy] = useState("newest");
+  const [_searchQuery, _setSearchQuery] = useState("");
+  const [_stageFilter, _setStageFilter] = useState("All");
+  const [_statusFilter, _setStatusFilter] = useState("All");
+  const [_staffFilter, _setStaffFilter] = useState("All");
+  const [_carFilter, _setCarFilter] = useState("All");
+  const [_sortBy, _setSortBy] = useState("newest");
 
   const closeDialog = () =>
     setModal({ isOpen: false, type: null, request: null, targetStage: null });
@@ -165,7 +163,7 @@ export default function RequestTableClient({
 
   const isRecentLead = (createdAt: string) => {
     const createdDate = new Date(createdAt).getTime();
-    const now = new Date().getTime();
+    const now = Date.now();
 
     const diffInDays = (now - createdDate) / (1000 * 60 * 60 * 24);
 

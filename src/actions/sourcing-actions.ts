@@ -1,12 +1,12 @@
 "use server";
 
 import { headers } from "next/headers";
+import { db, sourcingAnalyses } from "@/db";
 import {
   computeMarketStats,
   type MarketStats,
   type NormalizedListing,
 } from "@/lib/market-stats";
-import connectToDatabase from "@/lib/mongoose";
 import { cleanListings, dedupeListings } from "@/lib/scrapers/clean";
 import { scrapeAutoTrader, scrapePistonHeads } from "@/lib/scrapers/client";
 import {
@@ -15,7 +15,6 @@ import {
   selectTopComparables,
   tokenize,
 } from "@/lib/scrapers/matching";
-import SourcingAnalysis from "@/models/SourcingAnalysis";
 import { auth } from "@/utils/auth";
 
 // Server actions for the admin Sourcing & Profit tool: live FX (JPY→GBP) for
@@ -631,35 +630,43 @@ export async function saveSourcingAnalysis(
     const session = await auth.api.getSession({ headers: await headers() });
     if (!session) return { success: false, message: "Not authenticated." };
 
-    await connectToDatabase();
-    const doc = await SourcingAnalysis.create({
-      make: input.make,
-      vehicleModel: input.model,
-      edition: input.edition,
-      year: input.year,
-      mileage: input.mileage,
-      landedCostGbp: input.landedCostGbp,
-      currency: input.currency,
-      dutyBasis: input.dutyBasis,
-      vatBasis: input.vatBasis,
-      sources: input.market.sources,
-      listingCount: input.market.stats.count,
-      matchUsed: input.market.matchUsed,
-      widened: input.market.widened,
-      marketMin: input.market.stats.min,
-      marketMedian: input.market.stats.median,
-      marketMean: input.market.stats.mean,
-      marketMax: input.market.stats.max,
-      recommendation: input.verdict.recommendation,
-      headline: input.verdict.headline,
-      reasoning: input.verdict.reasoning,
-      confidence: input.verdict.confidence,
-      grossMargin: input.verdict.grossMargin,
-      marginPct: input.verdict.marginPct,
-      createdById: session.user.id,
-      createdByName: session.user.name,
-    });
-    return { success: true, id: String(doc._id) };
+    const randomId =
+      Math.random().toString(36).substring(2, 14) +
+      Math.random().toString(36).substring(2, 14);
+
+    const [doc] = await db
+      .insert(sourcingAnalyses)
+      .values({
+        id: randomId,
+        make: input.make,
+        vehicleModel: input.model,
+        edition: input.edition,
+        year: input.year,
+        mileage: input.mileage,
+        landedCostGbp: input.landedCostGbp,
+        currency: input.currency,
+        dutyBasis: input.dutyBasis,
+        vatBasis: input.vatBasis,
+        sources: input.market.sources,
+        listingCount: input.market.stats.count,
+        matchUsed: input.market.matchUsed,
+        widened: input.market.widened,
+        marketMin: input.market.stats.min,
+        marketMedian: input.market.stats.median,
+        marketMean: input.market.stats.mean,
+        marketMax: input.market.stats.max,
+        recommendation: input.verdict.recommendation,
+        headline: input.verdict.headline,
+        reasoning: input.verdict.reasoning,
+        confidence: input.verdict.confidence,
+        grossMargin: input.verdict.grossMargin,
+        marginPct: input.verdict.marginPct,
+        createdById: session.user.id,
+        createdByName: session.user.name,
+      })
+      .returning();
+
+    return { success: true, id: doc.id };
   } catch (error: unknown) {
     console.error("Save analysis error:", error);
     return {
@@ -669,10 +676,10 @@ export async function saveSourcingAnalysis(
   }
 }
 
-// biome-ignore lint/suspicious/noExplicitAny: lean() returns loosely-typed docs
+// biome-ignore lint/suspicious/noExplicitAny: Drizzle returns loosely-typed docs
 function toSaved(d: any): SavedAnalysis {
   return {
-    id: String(d._id),
+    id: d.id,
     make: d.make,
     vehicleModel: d.vehicleModel,
     edition: d.edition,
@@ -697,11 +704,12 @@ export async function getRecentSourcingAnalyses(
   limit = 10,
 ): Promise<SavedAnalysis[]> {
   try {
-    await connectToDatabase();
-    const docs = await SourcingAnalysis.find()
-      .sort({ createdAt: -1 })
-      .limit(limit)
-      .lean();
+    const docs = await db.query.sourcingAnalyses.findMany({
+      orderBy: (sourcingAnalyses, { desc }) => [
+        desc(sourcingAnalyses.createdAt),
+      ],
+      limit: limit,
+    });
     return docs.map(toSaved);
   } catch (error: unknown) {
     console.error("Fetch analyses error:", error);

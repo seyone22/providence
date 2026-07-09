@@ -1,7 +1,6 @@
 // @/emails/lead-qualified-alert.tsx
 
 import { Link, Section, Text } from "@react-email/components";
-import * as React from "react";
 import EmailLayout from "./layout";
 
 interface LeadQualifiedEmailProps {

@@ -1,14 +1,12 @@
 // @/actions/sales-profile-actions.ts
 "use server";
 
-import mongoose from "mongoose";
+import crypto from "node:crypto";
+import { and, desc, eq, gte, inArray, lte, ne, sql } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { headers } from "next/headers";
+import { db, requests, salesProfiles, specDossiers } from "@/db";
 import { pathnameToSource } from "@/lib/leadSource";
-import connectToDatabase from "@/lib/mongoose";
-import Request from "@/models/Request";
-import SalesProfile from "@/models/SalesProfile";
-import { SpecDossier } from "@/models/SpecDossier";
 import { auth } from "@/utils/auth";
 
 // Slugs that must never become a member profile (would collide with real routes
@@ -62,32 +60,81 @@ function plain<T>(doc: T): T {
   return JSON.parse(JSON.stringify(doc));
 }
 
+/** Map and format raw Drizzle salesProfile record to expected return type. */
+function mapSalesProfile(raw: typeof salesProfiles.$inferSelect) {
+  return {
+    ...raw,
+    _id: raw.id,
+    createdAt: raw.createdAt.toISOString(),
+    updatedAt: raw.updatedAt.toISOString(),
+    expertise: (raw.expertise || []) as {
+      icon: string;
+      title: string;
+      desc: string;
+    }[],
+    sourcingCountries: (raw.sourcingCountries || []) as {
+      country: string;
+      flag: string;
+      note: string;
+    }[],
+    trackRecord: (raw.trackRecord || []) as { value: string; label: string }[],
+    testimonials: (raw.testimonials || []) as {
+      name: string;
+      title: string;
+      text: string;
+      rating: number;
+    }[],
+  };
+}
+
 /**
  * PUBLIC — fetch a published profile by slug for /team/[slug], with its
  * featured vehicles populated (published/active dossiers only).
  */
 export async function getPublishedProfileBySlug(slug: string) {
   try {
-    await connectToDatabase();
-    const profile = await SalesProfile.findOne({
-      slug: slugify(slug),
-      isPublished: true,
-    }).lean();
+    const slugValue = slugify(slug);
+    const profiles = await db
+      .select()
+      .from(salesProfiles)
+      .where(
+        and(
+          eq(salesProfiles.slug, slugValue),
+          eq(salesProfiles.isPublished, true),
+        ),
+      )
+      .limit(1);
 
-    if (!profile) return { success: false, message: "Profile not found" };
+    const rawProfile = profiles[0];
+    if (!rawProfile) return { success: false, message: "Profile not found" };
+
+    const profile = mapSalesProfile(rawProfile);
 
     // Resolve featured vehicles, preserving the member's chosen order and
     // dropping any that are no longer live (draft/archived/deleted).
     let featuredVehicles: any[] = [];
-    const ids = (profile as any).featuredDossierIds || [];
+    const ids = profile.featuredDossierIds || [];
     if (ids.length > 0) {
-      const dossiers = await SpecDossier.find({
-        _id: { $in: ids },
-        status: { $in: ["Active", "Published"] },
-      }).lean();
-      const byId = new Map(dossiers.map((d: any) => [d._id.toString(), d]));
+      const dossiers = await db
+        .select()
+        .from(specDossiers)
+        .where(
+          and(
+            inArray(specDossiers.id, ids),
+            inArray(specDossiers.status, ["Active", "Published"]),
+          ),
+        );
+
+      const mappedDossiers = dossiers.map((d) => ({
+        ...d,
+        _id: d.id,
+        createdAt: d.createdAt.toISOString(),
+        updatedAt: d.updatedAt.toISOString(),
+      }));
+
+      const byId = new Map(mappedDossiers.map((d) => [d.id.toString(), d]));
       featuredVehicles = ids
-        .map((id: any) => byId.get(id.toString()))
+        .map((id) => byId.get(id.toString()))
         .filter(Boolean);
     }
 
@@ -117,35 +164,68 @@ export async function getMyProfile() {
         message: "Only sales members have a profile page.",
       };
     }
-    await connectToDatabase();
 
-    let profile = await SalesProfile.findOne({
-      userId: session.user.id,
-    }).lean();
+    const profiles = await db
+      .select()
+      .from(salesProfiles)
+      .where(eq(salesProfiles.userId, session.user.id))
+      .limit(1);
+
+    let profile = profiles[0];
 
     if (!profile) {
       // Seed a sensible default slug + identity from the user record.
       const base = slugify(session.user.name || "member") || "member";
       let candidate = base;
       let n = 2;
-      while (
-        RESERVED_SLUGS.has(candidate) ||
-        (await SalesProfile.findOne({ slug: candidate }).select("_id").lean())
-      ) {
-        candidate = `${base}-${n++}`;
+      while (true) {
+        if (RESERVED_SLUGS.has(candidate)) {
+          candidate = `${base}-${n++}`;
+          continue;
+        }
+        const existingSlug = await db
+          .select({ id: salesProfiles.id })
+          .from(salesProfiles)
+          .where(eq(salesProfiles.slug, candidate))
+          .limit(1);
+        if (existingSlug.length > 0) {
+          candidate = `${base}-${n++}`;
+          continue;
+        }
+        break;
       }
-      const created = await SalesProfile.create({
-        userId: session.user.id,
-        slug: candidate,
-        isPublished: false,
-        displayName: session.user.name || "",
-        whatsappNumber: (session.user as any).whatsappNumber || "",
-        photoUrl: session.user.image || "",
-      });
-      profile = created.toObject();
+
+      const newId = crypto.randomUUID();
+      const [created] = await db
+        .insert(salesProfiles)
+        .values({
+          id: newId,
+          userId: session.user.id,
+          slug: candidate,
+          isPublished: false,
+          displayName: session.user.name || "",
+          whatsappNumber: (session.user as any).whatsappNumber || "",
+          photoUrl: session.user.image || "",
+          headline: "",
+          tagline: "",
+          bio: "",
+          coverImageUrl: "",
+          yearsExperience: 0,
+          languages: [],
+          expertise: [],
+          sourcingCountries: [],
+          trackRecord: [],
+          testimonials: [],
+          featuredDossierIds: [],
+        })
+        .returning();
+
+      profile = created;
     }
 
-    return { success: true, data: plain(profile) };
+    const mappedProfile = mapSalesProfile(profile);
+
+    return { success: true, data: plain(mappedProfile) };
   } catch (error: any) {
     console.error("[getMyProfile] Error:", error);
     return {
@@ -189,7 +269,6 @@ export async function updateMyProfile(input: {
     if (!canOwnProfile(role)) {
       return { success: false, message: "Not authorised to edit a profile." };
     }
-    await connectToDatabase();
 
     // Owner scope: members edit only their own; admins may target another.
     const ownerId =
@@ -197,7 +276,13 @@ export async function updateMyProfile(input: {
         ? input.targetUserId
         : session.user.id;
 
-    const existing = await SalesProfile.findOne({ userId: ownerId });
+    const profiles = await db
+      .select()
+      .from(salesProfiles)
+      .where(eq(salesProfiles.userId, ownerId))
+      .limit(1);
+
+    const existing = profiles[0];
     if (!existing) {
       return {
         success: false,
@@ -219,13 +304,17 @@ export async function updateMyProfile(input: {
         };
       }
       if (requested !== existing.slug) {
-        const conflict = await SalesProfile.findOne({
-          slug: requested,
-          _id: { $ne: existing._id },
-        })
-          .select("_id")
-          .lean();
-        if (conflict) {
+        const conflict = await db
+          .select({ id: salesProfiles.id })
+          .from(salesProfiles)
+          .where(
+            and(
+              eq(salesProfiles.slug, requested),
+              ne(salesProfiles.id, existing.id),
+            ),
+          )
+          .limit(1);
+        if (conflict.length > 0) {
           return {
             success: false,
             message: `The URL "${requested}" is already taken.`,
@@ -249,39 +338,54 @@ export async function updateMyProfile(input: {
     }
 
     // Assign only provided fields (undefined = leave as-is).
-    const set = (k: keyof typeof input, v: any) => {
-      if (v !== undefined) (existing as any)[k] = v;
+    const updateData: Partial<typeof salesProfiles.$inferInsert> = {
+      slug,
+      updatedAt: new Date(),
     };
-    existing.slug = slug;
-    set("isPublished", input.isPublished);
-    set("displayName", input.displayName);
-    set("headline", input.headline);
-    set("tagline", input.tagline);
-    set("bio", input.bio);
-    set("photoUrl", input.photoUrl);
-    set("coverImageUrl", input.coverImageUrl);
-    set("yearsExperience", input.yearsExperience);
-    set("languages", input.languages);
-    set("expertise", input.expertise);
-    set("sourcingCountries", input.sourcingCountries);
-    set("trackRecord", input.trackRecord?.slice(0, 3));
-    set("testimonials", input.testimonials);
-    set("whatsappNumber", input.whatsappNumber);
+
+    if (input.isPublished !== undefined)
+      updateData.isPublished = input.isPublished;
+    if (input.displayName !== undefined)
+      updateData.displayName = input.displayName;
+    if (input.headline !== undefined) updateData.headline = input.headline;
+    if (input.tagline !== undefined) updateData.tagline = input.tagline;
+    if (input.bio !== undefined) updateData.bio = input.bio;
+    if (input.photoUrl !== undefined) updateData.photoUrl = input.photoUrl;
+    if (input.coverImageUrl !== undefined)
+      updateData.coverImageUrl = input.coverImageUrl;
+    if (input.yearsExperience !== undefined)
+      updateData.yearsExperience = input.yearsExperience;
+    if (input.languages !== undefined) updateData.languages = input.languages;
+    if (input.expertise !== undefined) updateData.expertise = input.expertise;
+    if (input.sourcingCountries !== undefined)
+      updateData.sourcingCountries = input.sourcingCountries;
+    if (input.trackRecord !== undefined)
+      updateData.trackRecord = input.trackRecord.slice(0, 3);
+    if (input.testimonials !== undefined)
+      updateData.testimonials = input.testimonials;
+    if (input.whatsappNumber !== undefined)
+      updateData.whatsappNumber = input.whatsappNumber;
     if (input.featuredDossierIds !== undefined) {
-      existing.featuredDossierIds = input.featuredDossierIds
-        .filter((id) => mongoose.Types.ObjectId.isValid(id))
-        .map((id) => new mongoose.Types.ObjectId(id));
+      updateData.featuredDossierIds = input.featuredDossierIds.filter(
+        (id) => typeof id === "string" && id.trim() !== "",
+      );
     }
 
-    await existing.save();
+    const [updated] = await db
+      .update(salesProfiles)
+      .set(updateData)
+      .where(eq(salesProfiles.id, existing.id))
+      .returning();
 
     revalidatePath(`/team/${slug}`);
     revalidatePath("/admin/my-profile");
 
+    const mappedUpdated = mapSalesProfile(updated);
+
     return {
       success: true,
       message: "Profile saved.",
-      data: plain(existing.toObject()),
+      data: plain(mappedUpdated),
     };
   } catch (error: any) {
     console.error("[updateMyProfile] Error:", error);
@@ -297,11 +401,20 @@ export async function updateMyProfile(input: {
  */
 export async function listPublishedProfileSlugs() {
   try {
-    await connectToDatabase();
-    const profiles = await SalesProfile.find({ isPublished: true })
-      .select("slug updatedAt")
-      .lean();
-    return plain(profiles) as { slug: string; updatedAt: string }[];
+    const profiles = await db
+      .select({
+        slug: salesProfiles.slug,
+        updatedAt: salesProfiles.updatedAt,
+      })
+      .from(salesProfiles)
+      .where(eq(salesProfiles.isPublished, true));
+
+    const mappedProfiles = profiles.map((p) => ({
+      slug: p.slug,
+      updatedAt: p.updatedAt.toISOString(),
+    }));
+
+    return plain(mappedProfiles) as { slug: string; updatedAt: string }[];
   } catch (error) {
     console.error("[listPublishedProfileSlugs] Error:", error);
     return [];
@@ -317,14 +430,30 @@ export async function listGalleryForPicker() {
     if (!canOwnProfile((session.user as any).role)) {
       return { success: false, message: "Not authorised." };
     }
-    await connectToDatabase();
 
-    const dossiers = await SpecDossier.find({})
-      .select("make model year trim heroImageUrl images status slug")
-      .sort({ createdAt: -1 })
-      .lean();
+    const dossiers = await db
+      .select({
+        id: specDossiers.id,
+        make: specDossiers.make,
+        model: specDossiers.model,
+        year: specDossiers.year,
+        trim: specDossiers.trim,
+        heroImageUrl: specDossiers.heroImageUrl,
+        images: specDossiers.images,
+        status: specDossiers.status,
+        slug: specDossiers.slug,
+        createdAt: specDossiers.createdAt,
+      })
+      .from(specDossiers)
+      .orderBy(desc(specDossiers.createdAt));
 
-    return { success: true, data: plain(dossiers) };
+    const mappedDossiers = dossiers.map((d) => ({
+      ...d,
+      _id: d.id,
+      createdAt: d.createdAt.toISOString(),
+    }));
+
+    return { success: true, data: plain(mappedDossiers) };
   } catch (error: any) {
     console.error("[listGalleryForPicker] Error:", error);
     return { success: false, message: "Failed to load gallery" };
@@ -337,9 +466,7 @@ export async function listGalleryForPicker() {
 export async function getMyStats() {
   try {
     const session = await requireSession();
-    await connectToDatabase();
 
-    const meId = new mongoose.Types.ObjectId(session.user.id);
     const now = new Date();
     const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
     const endOfToday = new Date(
@@ -353,53 +480,84 @@ export async function getMyStats() {
     );
 
     // Owner scope + exclude abandoned drafts, everywhere.
-    const base = { assignedToId: meId, isDraft: { $ne: true } };
+    const baseConditions = [
+      eq(requests.assignedToId, session.user.id),
+      ne(requests.isDraft, true),
+    ];
 
     const IN_TRANSIT = ["Shipped", "Arrived at Port", "Cleared Customs"];
 
     const [
-      assignedLeads,
-      assignedThisMonth,
-      actionRequired,
-      followUpsDue,
-      inTransit,
-      closedWon,
-      pipelineAgg,
+      assignedLeadsRes,
+      assignedThisMonthRes,
+      actionRequiredRes,
+      followUpsDueRes,
+      inTransitRes,
+      closedWonRes,
+      pipelineRes,
       bySourceAgg,
     ] = await Promise.all([
-      Request.countDocuments(base),
-      Request.countDocuments({ ...base, createdAt: { $gte: startOfMonth } }),
-      Request.countDocuments({ ...base, leadStatus: "Action required" }),
-      Request.countDocuments({ ...base, followUpAt: { $lte: endOfToday } }),
-      Request.countDocuments({ ...base, status: { $in: IN_TRANSIT } }),
-      // "Closed / won" — matches the codebase's closed/won convention.
-      Request.countDocuments({
-        ...base,
-        leadStatus: { $regex: /closed|won/i },
-      }),
-      Request.aggregate([
-        { $match: base },
-        {
-          $group: {
-            _id: null,
-            total: { $sum: { $ifNull: ["$agreedPrice", 0] } },
-          },
-        },
-      ]),
-      Request.aggregate([
-        { $match: base },
-        { $group: { _id: "$source", count: { $sum: 1 } } },
-      ]),
+      db
+        .select({ count: sql<number>`count(*)` })
+        .from(requests)
+        .where(and(...baseConditions)),
+      db
+        .select({ count: sql<number>`count(*)` })
+        .from(requests)
+        .where(and(...baseConditions, gte(requests.createdAt, startOfMonth))),
+      db
+        .select({ count: sql<number>`count(*)` })
+        .from(requests)
+        .where(
+          and(...baseConditions, eq(requests.leadStatus, "Action required")),
+        ),
+      db
+        .select({ count: sql<number>`count(*)` })
+        .from(requests)
+        .where(and(...baseConditions, lte(requests.followUpAt, endOfToday))),
+      db
+        .select({ count: sql<number>`count(*)` })
+        .from(requests)
+        .where(and(...baseConditions, inArray(requests.status, IN_TRANSIT))),
+      db
+        .select({ count: sql<number>`count(*)` })
+        .from(requests)
+        .where(
+          and(
+            ...baseConditions,
+            sql`lower(${requests.leadStatus}) LIKE '%closed%' OR lower(${requests.leadStatus}) LIKE '%won%'`,
+          ),
+        ),
+      db
+        .select({
+          total: sql<number>`sum(coalesce(${requests.agreedPrice}, 0))`,
+        })
+        .from(requests)
+        .where(and(...baseConditions)),
+      db
+        .select({
+          source: requests.source,
+          count: sql<number>`count(*)`,
+        })
+        .from(requests)
+        .where(and(...baseConditions))
+        .groupBy(requests.source),
     ]);
 
-    const pipelineValue = pipelineAgg?.[0]?.total || 0;
+    const assignedLeads = Number(assignedLeadsRes[0]?.count || 0);
+    const assignedThisMonth = Number(assignedThisMonthRes[0]?.count || 0);
+    const actionRequired = Number(actionRequiredRes[0]?.count || 0);
+    const followUpsDue = Number(followUpsDueRes[0]?.count || 0);
+    const inTransit = Number(inTransitRes[0]?.count || 0);
+    const closedWon = Number(closedWonRes[0]?.count || 0);
+    const pipelineValue = Number(pipelineRes[0]?.total || 0);
 
     // Fold raw source values into their display labels ("My Profile Page",
     // "Home Page", "Campaign: …") and sum counts per label.
     const bySourceMap = new Map<string, number>();
-    for (const row of bySourceAgg as any[]) {
-      const label = pathnameToSource(row._id || "") || "Unknown";
-      bySourceMap.set(label, (bySourceMap.get(label) || 0) + row.count);
+    for (const row of bySourceAgg) {
+      const label = pathnameToSource(row.source || "") || "Unknown";
+      bySourceMap.set(label, (bySourceMap.get(label) || 0) + Number(row.count));
     }
     const inquiriesByLandingPage = Array.from(bySourceMap.entries())
       .map(([label, count]) => ({ label, count }))

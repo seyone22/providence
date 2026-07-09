@@ -1,11 +1,10 @@
+import { eq } from "drizzle-orm";
 import { type NextRequest, NextResponse } from "next/server";
-import connectToDatabase from "@/lib/mongoose";
-import SocialPost from "@/models/SocialPost";
+import { db, socialPosts } from "@/db";
 
 // PUT /api/social-posts/reorder  { orderedIds: string[] }
 export async function PUT(req: NextRequest) {
   try {
-    await connectToDatabase();
     const { orderedIds } = await req.json();
 
     if (!Array.isArray(orderedIds) || orderedIds.length === 0) {
@@ -15,15 +14,15 @@ export async function PUT(req: NextRequest) {
       );
     }
 
-    // Bulk update each post's order based on its position in the array
-    const bulkOps = orderedIds.map((id: string, index: number) => ({
-      updateOne: {
-        filter: { _id: id },
-        update: { $set: { order: index } },
-      },
-    }));
-
-    await SocialPost.bulkWrite(bulkOps);
+    // Update each post's order based on its position in the array inside a transaction
+    await db.transaction(async (tx) => {
+      for (let i = 0; i < orderedIds.length; i++) {
+        await tx
+          .update(socialPosts)
+          .set({ order: i })
+          .where(eq(socialPosts.id, orderedIds[i]));
+      }
+    });
 
     return NextResponse.json({ success: true });
   } catch (error) {

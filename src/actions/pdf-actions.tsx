@@ -10,8 +10,7 @@ import {
   View,
 } from "@react-pdf/renderer";
 import React from "react";
-import connectToDatabase from "@/lib/mongoose";
-import { SpecDossier } from "@/models/SpecDossier";
+import { db } from "@/db";
 
 // --- PDF STYLES ---
 const styles = StyleSheet.create({
@@ -139,7 +138,7 @@ const DossierPDF = ({ data }: { data: any }) => (
             Blueprint ID
           </Text>
           <Text style={{ fontSize: 14, fontFamily: "Helvetica-Bold" }}>
-            {data._id.toString()}
+            {data.id}
           </Text>
           <Text
             style={{
@@ -307,9 +306,9 @@ async function streamToBuffer(stream: NodeJS.ReadableStream): Promise<Buffer> {
 // --- SERVER ACTION ---
 export async function generateDossierPdfAction(id: string) {
   try {
-    await connectToDatabase();
-    // Updated to findById
-    const dossierData = await SpecDossier.findById(id).lean();
+    const dossierData = await db.query.specDossiers.findFirst({
+      where: (specDossiers, { eq }) => eq(specDossiers.id, id),
+    });
 
     if (!dossierData) {
       return { success: false, message: "Template not found." };

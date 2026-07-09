@@ -1,15 +1,9 @@
 "use server";
 
-import connectToDatabase from "@/lib/mongoose";
-import Request from "@/models/Request";
-// Side-effect import: registers the SpecDossier schema so Request.find()
-// .populate('dossierIds') never throws "Schema hasn't been registered" on a
-// cold serverless start (a likely cause of the dashboard showing 0 leads).
-import "@/models/SpecDossier";
-import { ObjectId } from "bson";
-import mongoose from "mongoose";
+import { and, desc, eq, inArray, ne, sql } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { headers } from "next/headers";
+import { accounts, db, requests, sessions, specDossiers, users } from "@/db";
 // Import the S2S conversion libraries you created earlier
 import { sendGoogleConversion, sendMetaConversion } from "@/lib/conversions";
 import { emailService } from "@/lib/email";
@@ -34,20 +28,61 @@ const DRAFT_TTL_MS = 30 * 60 * 1000; // 30 minutes
 export async function getRequests() {
   try {
     await requireAuth();
-    await connectToDatabase();
 
-    await Request.deleteMany({
-      isDraft: true,
-      createdAt: { $lt: new Date(Date.now() - DRAFT_TTL_MS) },
-    });
+    await db
+      .delete(requests)
+      .where(
+        and(
+          eq(requests.isDraft, true),
+          sql`${requests.createdAt} < ${new Date(Date.now() - DRAFT_TTL_MS)}`,
+        ),
+      );
 
     // Added .populate('dossierIds') so details views get full template objects
-    const requests = await Request.find({ isDraft: { $ne: true } })
-      .populate("dossierIds")
-      .sort({ createdAt: -1 })
-      .lean();
+    const dbRequests = await db
+      .select()
+      .from(requests)
+      .where(ne(requests.isDraft, true))
+      .orderBy(desc(requests.createdAt));
 
-    return JSON.parse(JSON.stringify(requests));
+    // Get all unique dossierIds
+    const allDossierIds = Array.from(
+      new Set(dbRequests.flatMap((r) => r.dossierIds || [])),
+    );
+
+    let dossierMap: Record<string, any> = {};
+    if (allDossierIds.length > 0) {
+      const dbDossiers = await db
+        .select()
+        .from(specDossiers)
+        .where(inArray(specDossiers.id, allDossierIds));
+
+      dossierMap = dbDossiers.reduce(
+        (acc, d) => {
+          acc[d.id] = {
+            ...d,
+            _id: d.id, // compatibility mapping
+          };
+          return acc;
+        },
+        {} as Record<string, any>,
+      );
+    }
+
+    const populatedRequests = dbRequests.map((r) => {
+      const populatedDossiers = (r.dossierIds || [])
+        .map((dId) => dossierMap[dId])
+        .filter(Boolean);
+
+      return {
+        ...r,
+        _id: r.id, // compatibility mapping
+        vehicle_model: r.vehicleModel, // compatibility mapping
+        dossierIds: populatedDossiers,
+      };
+    });
+
+    return JSON.parse(JSON.stringify(populatedRequests));
   } catch (error) {
     console.error("Failed to fetch requests:", error);
     return [];
@@ -57,15 +92,12 @@ export async function getRequests() {
 export async function getStaffUsers() {
   try {
     await requireAuth();
-    await connectToDatabase();
 
-    const users = await mongoose.connection.db
-      ?.collection("user")
-      .find({})
-      .toArray();
+    const dbUsers = await db.select().from(users);
 
-    return (users || []).map((u: any) => ({
-      id: u._id.toString(),
+    return dbUsers.map((u) => ({
+      id: u.id,
+      _id: u.id, // compatibility mapping
       name: u.name,
       email: u.email,
     }));
@@ -78,9 +110,8 @@ export async function getStaffUsers() {
 export async function deleteRequest(id: string) {
   try {
     await requireAuth();
-    await connectToDatabase();
 
-    await Request.findByIdAndDelete(id);
+    await db.delete(requests).where(eq(requests.id, id));
     revalidatePath("/admin");
 
     return { success: true };
@@ -103,9 +134,11 @@ export async function updateRequestStatus(
     const session = await requireAuth();
     const currentUser = session.user?.name || "System Admin";
 
-    await connectToDatabase();
+    const [existingRequest] = await db
+      .select()
+      .from(requests)
+      .where(eq(requests.id, id));
 
-    const existingRequest = await Request.findById(id);
     if (!existingRequest) {
       throw new Error("Lead not found in the database.");
     }
@@ -170,7 +203,7 @@ export async function updateRequestStatus(
 
     // 4. Smart Appending for Documents
     if (cleanedPayload.documents && cleanedPayload.documents.length > 0) {
-      const existingDocs = existingRequest.documents || [];
+      const existingDocs = (existingRequest.documents as any[]) || [];
       updateData.documents = [...existingDocs, ...cleanedPayload.documents];
     }
 
@@ -185,17 +218,33 @@ export async function updateRequestStatus(
       updateData.dossierIds = Array.from(new Set(combined));
     }
 
-    // 5. Execute Update (Safely merges updates using standard array aggregation rules)
-    const finalQuery: any = { $set: updateData };
+    // 5. Merge status history logs if any exist
+    const existingHistory = (existingRequest.statusHistory as any[]) || [];
     if (historyLogs.length > 0) {
-      // Using $each guarantees that if BOTH updates occur simultaneously, both records hit the log cleanly
-      finalQuery.$push = { statusHistory: { $each: historyLogs } };
+      updateData.statusHistory = [...existingHistory, ...historyLogs];
     }
 
-    // We use updating with $set and $push to cleanly add to the array
-    const updatedRequest = await Request.findByIdAndUpdate(id, finalQuery, {
-      new: true,
-    });
+    // Map properties for drizzle safety
+    if (updateData.vehicle_model !== undefined) {
+      updateData.vehicleModel = updateData.vehicle_model;
+      delete updateData.vehicle_model;
+    }
+
+    delete updateData.id;
+    delete updateData._id;
+
+    // Filter out undefined fields to avoid Drizzle complaining
+    for (const key of Object.keys(updateData)) {
+      if (updateData[key] === undefined) {
+        delete updateData[key];
+      }
+    }
+
+    const [updatedRequest] = await db
+      .update(requests)
+      .set(updateData)
+      .where(eq(requests.id, id))
+      .returning();
 
     // 6. --- S2S CONVERSION TRIGGERS ---
     if (updatedRequest) {
@@ -217,15 +266,25 @@ export async function updateRequestStatus(
         newStatus.toLowerCase().includes("won");
 
       if (isQualified && !wasQualified) {
+        const requestForConversions = {
+          ...updatedRequest,
+          _id: updatedRequest.id,
+          vehicle_model: updatedRequest.vehicleModel,
+        };
         await Promise.allSettled([
-          sendMetaConversion(updatedRequest, "QualifiedLead"),
-          sendGoogleConversion(updatedRequest),
+          sendMetaConversion(requestForConversions as any, "QualifiedLead"),
+          sendGoogleConversion(requestForConversions as any),
         ]);
       }
 
       if (isClosed && !wasClosed) {
+        const requestForConversions = {
+          ...updatedRequest,
+          _id: updatedRequest.id,
+          vehicle_model: updatedRequest.vehicleModel,
+        };
         await Promise.allSettled([
-          sendMetaConversion(updatedRequest, "Purchase"),
+          sendMetaConversion(requestForConversions as any, "Purchase"),
         ]);
       }
     }
@@ -244,13 +303,12 @@ export async function updateRequestStatus(
 
 export async function setFollowUpTimer(id: string, followUpAt: string) {
   try {
-    const session = await requireAuth();
-    const currentUser = session.user?.name || "System Admin";
-    await connectToDatabase();
+    await requireAuth();
 
-    await Request.findByIdAndUpdate(id, {
-      $set: { followUpAt: new Date(followUpAt), followUpSetAt: new Date() },
-    });
+    await db
+      .update(requests)
+      .set({ followUpAt: new Date(followUpAt), followUpSetAt: new Date() })
+      .where(eq(requests.id, id));
 
     revalidatePath("/admin");
     return { success: true };
@@ -263,11 +321,11 @@ export async function setFollowUpTimer(id: string, followUpAt: string) {
 export async function clearFollowUpTimer(id: string) {
   try {
     await requireAuth();
-    await connectToDatabase();
 
-    await Request.findByIdAndUpdate(id, {
-      $unset: { followUpAt: "", followUpSetAt: "" },
-    });
+    await db
+      .update(requests)
+      .set({ followUpAt: null, followUpSetAt: null })
+      .where(eq(requests.id, id));
 
     revalidatePath("/admin");
     return { success: true };
@@ -280,26 +338,34 @@ export async function clearFollowUpTimer(id: string) {
 export async function expireFollowUpTimer(id: string) {
   try {
     await requireAuth();
-    await connectToDatabase();
 
-    const existingRequest = await Request.findById(id);
+    const [existingRequest] = await db
+      .select()
+      .from(requests)
+      .where(eq(requests.id, id));
     if (!existingRequest) return { success: false };
 
-    await Request.findByIdAndUpdate(id, {
-      $set: {
+    const existingHistory = (existingRequest.statusHistory as any[]) || [];
+    const newStatusHistory = [
+      ...existingHistory,
+      {
+        action: "Updated Sales Status: Action required",
+        performedBy: "System (Follow-up Timer)",
+        date: new Date(),
+        comment: "Follow up required based on the time set up",
+      },
+    ];
+
+    await db
+      .update(requests)
+      .set({
         leadStatus: "Action required",
         statusUpdatedAt: new Date(),
-      },
-      $unset: { followUpAt: "", followUpSetAt: "" },
-      $push: {
-        statusHistory: {
-          action: "Updated Sales Status: Action required",
-          performedBy: "System (Follow-up Timer)",
-          date: new Date(),
-          comment: "Follow up required based on the time set up",
-        },
-      },
-    });
+        followUpAt: null,
+        followUpSetAt: null,
+        statusHistory: newStatusHistory,
+      })
+      .where(eq(requests.id, id));
 
     revalidatePath("/admin");
     return { success: true };
@@ -312,23 +378,22 @@ export async function expireFollowUpTimer(id: string) {
 export async function getUsers() {
   try {
     await requireAuth();
-    await connectToDatabase();
 
-    const dbUsers = await mongoose.connection.db
-      ?.collection("user")
-      .find({})
-      .sort({ createdAt: -1 })
-      .toArray();
+    const dbUsers = await db
+      .select()
+      .from(users)
+      .orderBy(desc(users.createdAt));
 
-    const users = (dbUsers || []).map((user: any) => ({
-      id: user._id.toString(),
+    const resultUsers = dbUsers.map((user: any) => ({
+      id: user.id,
+      _id: user.id, // compatibility mapping
       name: user.name || "Unknown User",
       email: user.email,
       role: user.role || "User",
-      status: user.status || "Active",
+      status: (user.isBanned ? "Inactive" : "Active") as "Inactive" | "Active",
     }));
 
-    return users;
+    return resultUsers;
   } catch (error) {
     console.error("Error fetching users:", error);
     return [];
@@ -342,11 +407,13 @@ export async function createAdminUser(data: {
 }) {
   try {
     await requireAuth();
-    await connectToDatabase();
 
-    const existingUser = await mongoose.connection.db
-      ?.collection("user")
-      .findOne({ email: data.email });
+    const [existingUser] = await db
+      .select()
+      .from(users)
+      .where(eq(users.email, data.email))
+      .limit(1);
+
     if (existingUser) {
       return {
         success: false,
@@ -354,7 +421,7 @@ export async function createAdminUser(data: {
       };
     }
 
-    const placeholderPassword = Math.random().toString(36).slice(-12) + "A1!";
+    const placeholderPassword = `${Math.random().toString(36).slice(-12)}A1!`;
 
     const newUser = await auth.api.signUpEmail({
       body: {
@@ -364,13 +431,11 @@ export async function createAdminUser(data: {
       } as any,
     });
 
-    if (newUser && newUser.user) {
-      await mongoose.connection.db
-        ?.collection("user")
-        .updateOne(
-          { email: data.email },
-          { $set: { role: data.role, status: "Active" } },
-        );
+    if (newUser?.user) {
+      await db
+        .update(users)
+        .set({ role: data.role })
+        .where(eq(users.email, data.email));
 
       await emailService.sendAdminInvitation(data.email, {
         name: data.name,
@@ -419,23 +484,12 @@ export async function updateAdminUser(
 ) {
   try {
     await requireAuth();
-    await connectToDatabase();
 
-    let targetId: any = userId;
-    try {
-      targetId = new ObjectId(userId);
-    } catch {
-      targetId = userId;
-    }
-
-    const query = { _id: targetId };
-
-    const emailExists = await mongoose.connection.db
-      ?.collection("user")
-      .findOne({
-        email: data.email,
-        _id: { $ne: targetId } as any,
-      });
+    const [emailExists] = await db
+      .select()
+      .from(users)
+      .where(and(eq(users.email, data.email), ne(users.id, userId)))
+      .limit(1);
 
     if (emailExists) {
       return {
@@ -444,24 +498,24 @@ export async function updateAdminUser(
       };
     }
 
-    const updateResult = await mongoose.connection.db
-      ?.collection("user")
-      .updateOne(query, {
-        $set: {
-          name: data.name,
-          email: data.email,
-          role: data.role,
-        },
-      });
+    const updatedUsers = await db
+      .update(users)
+      .set({
+        name: data.name,
+        email: data.email,
+        role: data.role,
+      })
+      .where(eq(users.id, userId))
+      .returning();
 
-    if (updateResult?.matchedCount === 0) {
+    if (updatedUsers.length === 0) {
       return {
         success: false,
         message: "User not found in the database. No changes applied.",
       };
     }
 
-    await mongoose.connection.db?.collection("session").deleteMany({ userId });
+    await db.delete(sessions).where(eq(sessions.userId, userId));
 
     revalidatePath("/admin/users");
     return { success: true };
@@ -480,30 +534,21 @@ export async function updateAdminUser(
 export async function deleteAdminUser(userId: string) {
   try {
     await requireAuth();
-    await connectToDatabase();
 
-    let targetId: any = userId;
-    try {
-      targetId = new ObjectId(userId);
-    } catch {
-      targetId = userId;
-    }
+    const deletedUsers = await db
+      .delete(users)
+      .where(eq(users.id, userId))
+      .returning();
 
-    const query = { _id: targetId };
-
-    const userDeleted = await mongoose.connection.db
-      ?.collection("user")
-      .deleteOne(query);
-
-    if (userDeleted?.deletedCount === 0) {
+    if (deletedUsers.length === 0) {
       return {
         success: false,
         message: "User was not found in the database to delete.",
       };
     }
 
-    await mongoose.connection.db?.collection("account").deleteMany({ userId });
-    await mongoose.connection.db?.collection("session").deleteMany({ userId });
+    await db.delete(accounts).where(eq(accounts.userId, userId));
+    await db.delete(sessions).where(eq(sessions.userId, userId));
 
     revalidatePath("/admin/users");
     return { success: true };

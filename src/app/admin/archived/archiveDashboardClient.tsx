@@ -12,7 +12,7 @@ import {
 import { useMemo, useState } from "react";
 import RequestTableClient from "@/components/RequestTableClient";
 
-const PIPELINE_STAGES = [
+const _PIPELINE_STAGES = [
   "New",
   "Vehicle Selection",
   "Price Agreement",
