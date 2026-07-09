@@ -1,7 +1,9 @@
 // @/actions/request-actions.ts
 "use server";
 
-import mongoose from "mongoose";
+import crypto from "node:crypto";
+import { and, asc, desc, eq, inArray, ne } from "drizzle-orm";
+import { db, requests, users } from "@/db";
 import {
   computePreferredContactAt,
   formatInIST,
@@ -9,7 +11,6 @@ import {
 } from "@/lib/contactScheduling";
 import { emailService } from "@/lib/email";
 import connectToDatabase from "@/lib/mongoose";
-import Request from "@/models/Request";
 
 export async function submitCarRequest(data: {
   // When present, update the existing lead instead of creating a new one
@@ -45,27 +46,26 @@ export async function submitCarRequest(data: {
     // 0. Update path — the lead already exists; refresh the vehicle/delivery
     //    fields only. Keep the assigned agent, source and tracking intact.
     if (data.id) {
-      const updated = await Request.findByIdAndUpdate(
-        data.id,
-        {
-          $set: {
-            make: data.make,
-            vehicle_model: data.vehicle_model,
-            condition: data.condition,
-            yearFrom: data.yearFrom || undefined,
-            yearTo: data.yearTo || undefined,
-            mileage: data.mileage,
-            specs: data.specs,
-            name: data.name,
-            email: data.email,
-            countryCode: data.countryCode,
-            phone: data.phone,
-            countryOfImport: data.countryOfImport,
-            importTimeline: data.importTimeline || undefined,
-          },
-        },
-        { new: true },
-      );
+      const [updated] = await db
+        .update(requests)
+        .set({
+          make: data.make,
+          vehicleModel: data.vehicle_model,
+          condition: data.condition,
+          yearFrom: data.yearFrom ? Number(data.yearFrom) : null,
+          yearTo: data.yearTo ? Number(data.yearTo) : null,
+          mileage: data.mileage || null,
+          specs: data.specs || null,
+          name: data.name,
+          email: data.email,
+          countryCode: data.countryCode,
+          phone: data.phone,
+          countryOfImport: data.countryOfImport,
+          importTimeline: data.importTimeline || null,
+          updatedAt: new Date(),
+        })
+        .where(eq(requests.id, data.id))
+        .returning();
 
       if (updated) {
         return {
@@ -73,7 +73,8 @@ export async function submitCarRequest(data: {
           message: "Request updated successfully!",
           requestId: data.id,
           agent: {
-            id: updated.assignedToId?.toString() || null,
+            id: updated.assignedToId || null,
+            _id: updated.assignedToId || null,
             name: updated.assignedToName || "Providence Support",
           },
         };
@@ -84,77 +85,104 @@ export async function submitCarRequest(data: {
     // 1. Assign an agent. A profile-page inquiry carries assignedAgentId and
     //    is pinned directly to that member; everything else rotates through
     //    the Sales team round-robin (alphabetically).
-    const db = mongoose.connection.db;
     let assignedAgent = null;
     let assignmentMethod: "direct" | "round-robin" = "round-robin";
 
-    if (db) {
-      const UserCollection = db.collection("user");
+    // 1a. Direct assignment — only honoured if the id resolves to a real
+    //     user whose role can actually own leads. Never trust the client
+    //     value blindly; an invalid id silently falls back to round-robin.
+    if (data.assignedAgentId) {
+      const [directAgent] = await db
+        .select()
+        .from(users)
+        .where(
+          and(
+            eq(users.id, data.assignedAgentId),
+            inArray(users.role, ["Sales", "admin"]),
+            ne(users.isBanned, true),
+          ),
+        )
+        .limit(1);
 
-      // 1a. Direct assignment — only honoured if the id resolves to a real
-      //     user whose role can actually own leads. Never trust the client
-      //     value blindly; an invalid id silently falls back to round-robin.
-      if (
-        data.assignedAgentId &&
-        mongoose.Types.ObjectId.isValid(data.assignedAgentId)
-      ) {
-        const directAgent = await UserCollection.findOne({
-          _id: new mongoose.Types.ObjectId(data.assignedAgentId),
-          role: { $in: ["Sales", "admin"] },
-          isBanned: { $ne: true },
-        });
-        if (directAgent) {
-          assignedAgent = directAgent;
-          assignmentMethod = "direct";
-        }
+      if (directAgent) {
+        assignedAgent = {
+          ...directAgent,
+          _id: directAgent.id,
+        };
+        assignmentMethod = "direct";
       }
+    }
 
-      if (!assignedAgent) {
-        // Fetch all users with the role 'Sales', sorted alphabetically by name
-        const staffMembers = await UserCollection.find({ role: "Sales" })
-          .sort({ name: 1 })
-          .toArray();
+    if (!assignedAgent) {
+      // Fetch all users with the role 'Sales', sorted alphabetically by name
+      const staffMembers = await db
+        .select()
+        .from(users)
+        .where(eq(users.role, "Sales"))
+        .orderBy(asc(users.name));
 
-        if (staffMembers.length > 0) {
-          // Fetch the most recently created round-robin lead. Direct
-          // (profile-page) leads are excluded so pinning a lead to one
-          // member doesn't advance the shared rotation past them.
-          const lastRequest = await Request.findOne(
-            { assignmentMethod: { $ne: "direct" } },
-            {},
-            { sort: { createdAt: -1 } }, // Assumes timestamps are enabled on your Request schema
-          ).lean();
+      const mappedStaffMembers = staffMembers.map((staff) => ({
+        ...staff,
+        _id: staff.id,
+      }));
 
-          if (!lastRequest || !lastRequest.assignedToId) {
-            // If there are no existing leads, start with the first person on the list
-            assignedAgent = staffMembers[0];
-          } else {
-            // Find where the last assigned agent sits in our alphabetical list
-            const lastAgentIndex = staffMembers.findIndex(
-              (staff) =>
-                staff._id.toString() === lastRequest.assignedToId.toString(),
-            );
+      if (mappedStaffMembers.length > 0) {
+        // Fetch the most recently created round-robin lead. Direct
+        // (profile-page) leads are excluded so pinning a lead to one
+        // member doesn't advance the shared rotation past them.
+        const [lastRequest] = await db
+          .select()
+          .from(requests)
+          .where(ne(requests.assignmentMethod, "direct"))
+          .orderBy(desc(requests.createdAt))
+          .limit(1);
 
-            // Calculate the next index. If the last agent isn't found, start at 0.
-            const nextIndex =
-              lastAgentIndex >= 0
-                ? (lastAgentIndex + 1) % staffMembers.length
-                : 0;
-
-            assignedAgent = staffMembers[nextIndex];
-          }
+        if (!lastRequest || !lastRequest.assignedToId) {
+          // If there are no existing leads, start with the first person on the list
+          assignedAgent = mappedStaffMembers[0];
         } else {
-          // Fallback: If no staff found, try to find an admin, or just grab the first user
-          assignedAgent =
-            (await UserCollection.findOne({ role: "admin" })) ||
-            (await UserCollection.findOne());
+          // Find where the last assigned agent sits in our alphabetical list
+          const lastAgentIndex = mappedStaffMembers.findIndex(
+            (staff) =>
+              staff.id === lastRequest.assignedToId ||
+              staff._id === lastRequest.assignedToId,
+          );
+
+          // Calculate the next index. If the last agent isn't found, start at 0.
+          const nextIndex =
+            lastAgentIndex >= 0
+              ? (lastAgentIndex + 1) % mappedStaffMembers.length
+              : 0;
+
+          assignedAgent = mappedStaffMembers[nextIndex];
+        }
+      } else {
+        // Fallback: If no staff found, try to find an admin, or just grab the first user
+        const [adminAgent] = await db
+          .select()
+          .from(users)
+          .where(eq(users.role, "admin"))
+          .limit(1);
+
+        let fallbackAgentObj = adminAgent;
+        if (!fallbackAgentObj) {
+          const [firstUser] = await db.select().from(users).limit(1);
+          fallbackAgentObj = firstUser;
+        }
+
+        if (fallbackAgentObj) {
+          assignedAgent = {
+            ...fallbackAgentObj,
+            _id: fallbackAgentObj.id,
+          };
         }
       }
     }
 
     // Standardize the agent data for the DB and frontend return
     const agentData = {
-      id: assignedAgent?._id?.toString() || null,
+      id: assignedAgent?.id || null,
+      _id: assignedAgent?.id || null,
       name: assignedAgent?.name || "Providence Support",
       email: assignedAgent?.email || "info@providenceauto.uk.com",
       image:
@@ -169,22 +197,45 @@ export async function submitCarRequest(data: {
     // Request field (assignmentMethod records the outcome instead).
     const { assignedAgentId: _assignedAgentId, ...requestData } = data;
 
-    const newRequest = await Request.create({
-      ...requestData,
-      assignedToId: agentData.id,
-      assignedToName: agentData.name,
-      assignmentMethod,
-      isDraft: true,
-    });
+    const newRequestId = crypto.randomUUID();
 
-    const requestId = newRequest._id.toString();
+    const [newRequest] = await db
+      .insert(requests)
+      .values({
+        id: newRequestId,
+        make: requestData.make,
+        vehicleModel: requestData.vehicle_model,
+        condition: requestData.condition,
+        yearFrom: requestData.yearFrom ? Number(requestData.yearFrom) : null,
+        yearTo: requestData.yearTo ? Number(requestData.yearTo) : null,
+        mileage: requestData.mileage || null,
+        specs: requestData.specs || null,
+        name: requestData.name,
+        email: requestData.email,
+        countryCode: requestData.countryCode,
+        phone: requestData.phone,
+        countryOfImport: requestData.countryOfImport,
+        importTimeline: requestData.importTimeline || null,
+        source: requestData.source || null,
+        gclid: requestData.gclid || null,
+        fbclid: requestData.fbclid || null,
+        fbc: requestData.fbc || null,
+        fbp: requestData.fbp || null,
+        assignedToId: agentData.id,
+        assignedToName: agentData.name,
+        assignmentMethod,
+        isDraft: true,
+        dossierIds: [],
+        contactMethods: [],
+        contactDays: [],
+        statusHistory: [],
+        documents: [],
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      })
+      .returning();
 
-    // NOTE: No emails are sent at this stage. The lead is recorded and an
-    // agent is assigned so the contact-preferences step can show who will
-    // handle the inquiry, but both the staff alert and the customer
-    // thank-you are deferred until the customer completes the contact
-    // preferences step (submitContactPreferences). Leads abandoned before
-    // that step won't generate noise for the sales team.
+    const requestId = newRequest.id;
 
     // Return the structure the Client Component needs to render the
     // contact-preferences step with the assigned agent's details.
@@ -194,11 +245,12 @@ export async function submitCarRequest(data: {
       requestId: requestId,
       agent: agentData,
     };
-  } catch (error: any) {
-    console.error("Database Error:", error);
+  } catch (error) {
+    const err = error as Error;
+    console.error("Database Error:", err);
     return {
       success: false,
-      message: error.message || "Failed to save request",
+      message: err.message || "Failed to save request",
     };
   }
 }
@@ -219,7 +271,12 @@ export async function submitContactPreferences(input: {
   try {
     await connectToDatabase();
 
-    const request = await Request.findById(input.requestId);
+    const [request] = await db
+      .select()
+      .from(requests)
+      .where(eq(requests.id, input.requestId))
+      .limit(1);
+
     if (!request) {
       return { success: false, message: "Inquiry not found" };
     }
@@ -242,23 +299,45 @@ export async function submitContactPreferences(input: {
 
     // 2. Persist preferences + wire the existing follow-up reminder so the
     //    countdown ring lights up automatically in the dashboard.
-    request.contactMethods = input.contactMethods;
-    request.contactDays = input.contactDays;
-    request.contactTimeWindow = input.contactTimeWindow;
-    request.contactTimezone = input.contactTimezone;
-    request.contactTimezoneLabel = input.contactTimezoneLabel;
-    request.preferredContactAt = preferredContactAt;
-    request.followUpAt = preferredContactAt;
-    request.followUpSetAt = new Date();
-    request.isDraft = false; // promote from draft → live lead
-    request.statusHistory = request.statusHistory || [];
-    request.statusHistory.push({
-      action: "Contact preferences submitted",
-      performedBy: "Customer (Inquiry Form)",
-      date: new Date(),
-      comment: `Prefers ${input.contactMethods.join(", ")} · ${input.contactTimeWindow} · ${input.contactDays.join(", ")} — reminder set for ${formatInIST(preferredContactAt)}`,
-    });
-    await request.save();
+    interface StatusHistoryItem {
+      id?: string;
+      _id?: string;
+      action: string;
+      performedBy: string;
+      date: string;
+      comment?: string;
+    }
+    const currentStatusHistory =
+      (request.statusHistory as StatusHistoryItem[]) || [];
+    const newHistoryId = crypto.randomUUID();
+    const updatedStatusHistory = [
+      ...currentStatusHistory,
+      {
+        id: newHistoryId,
+        _id: newHistoryId,
+        action: "Contact preferences submitted",
+        performedBy: "Customer (Inquiry Form)",
+        date: new Date().toISOString(),
+        comment: `Prefers ${input.contactMethods.join(", ")} · ${input.contactTimeWindow} · ${input.contactDays.join(", ")} — reminder set for ${formatInIST(preferredContactAt)}`,
+      },
+    ];
+
+    await db
+      .update(requests)
+      .set({
+        contactMethods: input.contactMethods,
+        contactDays: input.contactDays,
+        contactTimeWindow: input.contactTimeWindow,
+        contactTimezone: input.contactTimezone,
+        contactTimezoneLabel: input.contactTimezoneLabel || null,
+        preferredContactAt: preferredContactAt,
+        followUpAt: preferredContactAt,
+        followUpSetAt: new Date(),
+        isDraft: false, // promote from draft → live lead
+        statusHistory: updatedStatusHistory,
+        updatedAt: new Date(),
+      })
+      .where(eq(requests.id, input.requestId));
 
     // 3. Resolve the assigned agent for the alert + the from-the-rep email.
     const fallbackAgent = {
@@ -272,10 +351,11 @@ export async function submitContactPreferences(input: {
       ...fallbackAgent,
       name: request.assignedToName || fallbackAgent.name,
     };
-    if (request.assignedToId && mongoose.connection.db) {
-      const user = await mongoose.connection.db
-        .collection("user")
-        .findOne({ _id: new mongoose.Types.ObjectId(request.assignedToId) });
+    const assignedToId = request.assignedToId;
+    if (assignedToId) {
+      const user = await db.query.users.findFirst({
+        where: (users, { eq }) => eq(users.id, assignedToId),
+      });
       if (user) {
         agent = {
           name: user.name || agent.name,
@@ -291,7 +371,7 @@ export async function submitContactPreferences(input: {
       emailService.sendContactScheduledConfirmation(request.email, {
         userName: request.name,
         make: request.make,
-        model: request.vehicle_model,
+        model: request.vehicleModel,
         requestId: input.requestId,
         agent,
         contactMethods: input.contactMethods,
@@ -304,13 +384,13 @@ export async function submitContactPreferences(input: {
         agent.email,
         {
           make: request.make,
-          vehicle_model: request.vehicle_model,
+          vehicle_model: request.vehicleModel,
           name: request.name,
           email: request.email,
           countryCode: request.countryCode,
           phone: request.phone,
           countryOfImport: request.countryOfImport,
-          importTimeline: request.importTimeline,
+          importTimeline: request.importTimeline || undefined,
           contactMethods: input.contactMethods,
           contactDays: input.contactDays,
           contactTimeWindow: input.contactTimeWindow,
@@ -323,11 +403,12 @@ export async function submitContactPreferences(input: {
     ]);
 
     return { success: true, message: "Preferences saved" };
-  } catch (error: any) {
-    console.error("Contact Preferences Error:", error);
+  } catch (error) {
+    const err = error as Error;
+    console.error("Contact Preferences Error:", err);
     return {
       success: false,
-      message: error.message || "Failed to save preferences",
+      message: err.message || "Failed to save preferences",
     };
   }
 }

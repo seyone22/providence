@@ -1,9 +1,9 @@
 "use server";
 
 import { headers } from "next/headers";
-import connectToDatabase from "@/lib/mongoose";
-import Request from "@/models/Request";
+import { db, requests } from "@/db";
 import { auth } from "@/utils/auth";
+import { ne } from "drizzle-orm";
 
 async function requireAuth() {
   const session = await auth.api.getSession({
@@ -16,28 +16,32 @@ async function requireAuth() {
 export async function getDashboardData() {
   try {
     await requireAuth();
-    await connectToDatabase();
 
-    // Fetch all requests - using .lean() for performance since it's read-only
-    // Exclude drafts (incomplete inquiries without contact preferences).
-    const requests = await Request.find({ isDraft: { $ne: true } }).lean();
+    // Fetch all requests excluding drafts
+    const rawRequests = await db.query.requests.findMany({
+      where: (requests, { ne }) => ne(requests.isDraft, true),
+    });
+
+    const mappedRequests = rawRequests.map((req) => ({
+      ...req,
+      _id: req.id, // backward compatibility
+    }));
 
     // 1. Calculate Aggregates
-    const grossPipeline = requests.reduce(
+    const grossPipeline = mappedRequests.reduce(
       (acc, req) => acc + (req.agreedPrice || 0),
       0,
     );
 
     // 2. Format Activity Stream (Flattening the statusHistory array)
-    // We map logs to include the target name for the UI
-    const activityStream = requests
+    const activityStream = mappedRequests
       .flatMap((req: any) =>
         (req.statusHistory || []).map((h: any) => ({
-          id: h._id || Math.random().toString(),
+          id: h._id || h.id || Math.random().toString(),
           operator: h.performedBy,
           action: h.action,
           comment: h.comment,
-          target: `${req.name} (${req.make} ${req.vehicle_model})`,
+          target: `${req.name} (${req.make} ${req.vehicleModel})`,
           time: h.date,
           type: h.action.includes("Status") ? "status" : "pipeline",
         })),
@@ -46,7 +50,7 @@ export async function getDashboardData() {
       .slice(0, 10);
 
     // 3. Regional Weights
-    const regionalWeights = requests.reduce((acc: any, req: any) => {
+    const regionalWeights = mappedRequests.reduce((acc: any, req: any) => {
       if (!req.countryOfImport) return acc;
       acc[req.countryOfImport] =
         (acc[req.countryOfImport] || 0) + (req.agreedPrice || 0);
@@ -59,7 +63,7 @@ export async function getDashboardData() {
         grossPipeline,
         activityStream,
         regionalWeights,
-        rawRequests: requests, // You can use this if you need to perform client-side filtering
+        rawRequests: mappedRequests,
       },
     };
   } catch (error) {

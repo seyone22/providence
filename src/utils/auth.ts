@@ -1,19 +1,13 @@
 import { betterAuth } from "better-auth";
-import { mongodbAdapter } from "better-auth/adapters/mongodb";
+import { drizzleAdapter } from "@better-auth/drizzle-adapter";
 import { APIError } from "better-auth/api";
-import { ObjectId } from "bson";
-import { Db, MongoClient } from "mongodb";
+import { db } from "@/db";
 import { emailService } from "@/lib/email";
 
-if (!process.env.MONGODB_URI) {
-  throw new Error("FATAL: MONGODB_URI is not defined.");
-}
-
-const client = new MongoClient(process.env.MONGODB_URI);
-const db = new Db(client, "test");
-
 export const auth = betterAuth({
-  database: mongodbAdapter(db),
+  database: drizzleAdapter(db, {
+    provider: "pg",
+  }),
 
   // 1. Password Reset lives here
   emailAndPassword: {
@@ -72,9 +66,9 @@ export const auth = betterAuth({
     session: {
       create: {
         before: async (session) => {
-          const user = await db
-            .collection("user")
-            .findOne({ _id: new ObjectId(session.userId) });
+          const user = await db.query.users.findFirst({
+            where: (users, { eq }) => eq(users.id, session.userId),
+          });
           if (user && user.isBanned) {
             throw new APIError("FORBIDDEN", {
               message: "Your account has been suspended.",

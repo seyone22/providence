@@ -1,9 +1,23 @@
 "use server";
 
-import mongoose from "mongoose";
+import crypto from "node:crypto";
+import { and, desc, eq, ne, sql } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
-import connectToDatabase from "@/lib/mongoose";
-import { SpecDossier } from "@/models/SpecDossier";
+import { db, specDossiers } from "@/db";
+
+/**
+ * Strip a Drizzle record to a plain, serialisable object and map id to _id for backward compatibility.
+ */
+// biome-ignore lint/suspicious/noExplicitAny: backward compatibility
+function serializeDossier(dossier: any) {
+  if (!dossier) return null;
+  return JSON.parse(
+    JSON.stringify({
+      ...dossier,
+      _id: dossier.id,
+    }),
+  );
+}
 
 /**
  * Normalises a string into a url-safe slug (lowercase, hyphenated).
@@ -28,10 +42,15 @@ async function findAvailableSlug(base: string, currentId?: string) {
 
   // Loop until no other dossier owns this slug.
   while (true) {
-    const query: any = { slug: candidate };
-    if (currentId) query._id = { $ne: currentId };
+    const conditions = [eq(specDossiers.slug, candidate)];
+    if (currentId) {
+      conditions.push(ne(specDossiers.id, currentId));
+    }
 
-    const existing = await SpecDossier.findOne(query).select("_id").lean();
+    const existing = await db.query.specDossiers.findFirst({
+      columns: { id: true },
+      where: and(...conditions),
+    });
     if (!existing) return candidate;
 
     candidate = `${base}-${counter}`;
@@ -43,10 +62,9 @@ async function findAvailableSlug(base: string, currentId?: string) {
  * SAVE / UPSERT DOSSIER TEMPLATE
  * Handles creating new templates and updating existing ones based on _id.
  */
+// biome-ignore lint/suspicious/noExplicitAny: backward compatibility
 export async function saveSpecDossier(payload: any) {
   try {
-    await connectToDatabase();
-
     // --- Slug handling ---------------------------------------------------
     // Live (Active/Published) templates MUST have an explicit slug so their
     // public page is always a clean URL — never a raw Mongo _id. Drafts may
@@ -64,12 +82,14 @@ export async function saveSpecDossier(payload: any) {
     }
 
     if (slug) {
-      const conflict = await SpecDossier.findOne({
-        slug,
-        ...(payload._id ? { _id: { $ne: payload._id } } : {}),
-      })
-        .select("_id")
-        .lean();
+      const conditions = [eq(specDossiers.slug, slug)];
+      if (payload._id) {
+        conditions.push(ne(specDossiers.id, payload._id));
+      }
+      const conflict = await db.query.specDossiers.findFirst({
+        columns: { id: true },
+        where: and(...conditions),
+      });
 
       if (conflict) {
         // Caller did not opt into auto-numbering — surface the collision.
@@ -89,24 +109,99 @@ export async function saveSpecDossier(payload: any) {
     }
 
     // Strip the transient flag and persist the resolved slug.
-    const { forceSlug, ...rest } = payload;
-    payload = { ...rest, slug };
+    const { forceSlug: _, ...rest } = payload;
+    const resolvedPayload = { ...rest, slug };
 
+    // biome-ignore lint/suspicious/noExplicitAny: dynamic assignment mapping
+    const dataToSave: any = {};
+    const allowedKeys = [
+      "make",
+      "model",
+      "year",
+      "trim",
+      "condition",
+      "mileage",
+      "countryOfOrigin",
+      "engineConfig",
+      "displacement",
+      "maxPower",
+      "maxTorque",
+      "transmission",
+      "fuelSystem",
+      "steering",
+      "emissions",
+      "pricing",
+      "upholstery",
+      "infotainment",
+      "features",
+      "searchTags",
+      "heroImageUrl",
+      "images",
+      "customData",
+      "valuePoints",
+      "slug",
+      "notes",
+      "status",
+    ];
+    for (const key of allowedKeys) {
+      if (resolvedPayload[key] !== undefined) {
+        dataToSave[key] = resolvedPayload[key];
+      }
+    }
+
+    // biome-ignore lint/suspicious/noImplicitAnyLet: dynamic assignment
     let savedDossier;
 
     if (payload._id) {
       // If an ID exists, update the existing template
-      savedDossier = await SpecDossier.findByIdAndUpdate(
-        payload._id,
-        { $set: payload },
-        {
-          new: true,
-          runValidators: true,
-        },
-      );
+      const [updated] = await db
+        .update(specDossiers)
+        .set({
+          ...dataToSave,
+          updatedAt: new Date(),
+        })
+        .where(eq(specDossiers.id, payload._id))
+        .returning();
+      savedDossier = updated;
     } else {
       // If no ID exists, create a brand new template
-      savedDossier = await SpecDossier.create(payload);
+      const newId = crypto.randomUUID();
+      const [created] = await db
+        .insert(specDossiers)
+        .values({
+          id: newId,
+          make: dataToSave.make,
+          model: dataToSave.model,
+          year: dataToSave.year ?? "",
+          trim: dataToSave.trim ?? "",
+          condition: dataToSave.condition ?? "New",
+          mileage: dataToSave.mileage ?? "",
+          countryOfOrigin: dataToSave.countryOfOrigin ?? "Japan",
+          engineConfig: dataToSave.engineConfig ?? "",
+          displacement: dataToSave.displacement ?? "",
+          maxPower: dataToSave.maxPower ?? "",
+          maxTorque: dataToSave.maxTorque ?? "",
+          transmission: dataToSave.transmission ?? "",
+          fuelSystem: dataToSave.fuelSystem ?? "Petrol",
+          steering: dataToSave.steering ?? "RHD",
+          emissions: dataToSave.emissions ?? "",
+          pricing: dataToSave.pricing ?? [],
+          upholstery: dataToSave.upholstery ?? "",
+          infotainment: dataToSave.infotainment ?? "",
+          features: dataToSave.features ?? [],
+          searchTags: dataToSave.searchTags ?? [],
+          heroImageUrl: dataToSave.heroImageUrl ?? "",
+          images: dataToSave.images ?? [],
+          customData: dataToSave.customData ?? [],
+          valuePoints: dataToSave.valuePoints ?? [],
+          slug: dataToSave.slug ?? "",
+          notes: dataToSave.notes ?? "",
+          status: dataToSave.status ?? "Draft",
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        })
+        .returning();
+      savedDossier = created;
     }
 
     revalidatePath("/admin/dossiers");
@@ -116,9 +211,9 @@ export async function saveSpecDossier(payload: any) {
     return {
       success: true,
       message: "Template synchronized successfully.",
-      data: JSON.parse(JSON.stringify(savedDossier)),
+      data: serializeDossier(savedDossier),
     };
-  } catch (error: any) {
+  } catch (error) {
     console.error("Save Error:", error);
     return {
       success: false,
@@ -130,19 +225,23 @@ export async function saveSpecDossier(payload: any) {
 /**
  * GET SINGLE DOSSIER BY ID
  */
+// biome-ignore lint/suspicious/noExplicitAny: backward compatibility
 export async function getSpecDossierById(id: any) {
   const actionName = "[getSpecDossierById]";
   try {
-    await connectToDatabase();
-
-    // Resolve by Mongo _id when the value looks like an ObjectId,
-    // otherwise (or as a fallback) treat it as a public URL slug.
-    let dossier = null;
-    if (mongoose.Types.ObjectId.isValid(id)) {
-      dossier = await SpecDossier.findById(id);
+    const lookupId = typeof id === "string" ? id : String(id || "");
+    if (!lookupId) {
+      return { success: false, message: "Invalid ID provided." };
     }
+
+    let dossier = await db.query.specDossiers.findFirst({
+      where: eq(specDossiers.id, lookupId),
+    });
+
     if (!dossier) {
-      dossier = await SpecDossier.findOne({ slug: id });
+      dossier = await db.query.specDossiers.findFirst({
+        where: eq(specDossiers.slug, lookupId),
+      });
     }
 
     if (!dossier) {
@@ -151,7 +250,7 @@ export async function getSpecDossierById(id: any) {
 
     return {
       success: true,
-      data: JSON.parse(JSON.stringify(dossier)),
+      data: serializeDossier(dossier),
     };
   } catch (error) {
     console.error(`${actionName} Error:`, error);
@@ -174,7 +273,6 @@ export async function getAllSpecDossiers() {
     console.log(
       `${actionName} STEP 1: Attempting to connect to the database...`,
     );
-    await connectToDatabase();
     console.log(
       `${actionName} STEP 1 COMPLETE: Database connection established successfully.`,
     );
@@ -183,14 +281,16 @@ export async function getAllSpecDossiers() {
     console.log(
       `${actionName} STEP 2: Executing find() query on SpecDossier collection...`,
     );
-    const dossiers = await SpecDossier.find({}).sort({ createdAt: -1 });
+    const dossiers = await db.query.specDossiers.findMany({
+      orderBy: desc(specDossiers.createdAt),
+    });
     console.log(
       `${actionName} STEP 2 COMPLETE: Query successful. Found ${dossiers?.length || 0} template(s).`,
     );
 
     // Step 3: Payload Parsing and Return
     console.log(`${actionName} STEP 3: Parsing payload for client...`);
-    const parsedData = JSON.parse(JSON.stringify(dossiers));
+    const parsedData = dossiers.map(serializeDossier);
 
     const executionTime = Date.now() - startTime;
     console.log(
@@ -219,6 +319,7 @@ export async function getAllSpecDossiers() {
     return {
       success: false,
       message: "Error fetching templates.",
+      data: [],
     };
   }
 }
@@ -229,12 +330,14 @@ export async function getAllSpecDossiers() {
  */
 export async function updateDossierStatus(id: string, status: string) {
   try {
-    await connectToDatabase();
-    await SpecDossier.findByIdAndUpdate(id, { $set: { status } });
+    await db
+      .update(specDossiers)
+      .set({ status, updatedAt: new Date() })
+      .where(eq(specDossiers.id, id));
 
     revalidatePath("/admin/dossiers");
     return { success: true, message: `Status updated to ${status}` };
-  } catch (error) {
+  } catch (_error) {
     return { success: false, message: "Failed to update status." };
   }
 }
@@ -244,10 +347,12 @@ export async function updateDossierStatus(id: string, status: string) {
  */
 export async function deleteSpecDossier(id: string) {
   try {
-    await connectToDatabase();
-    const result = await SpecDossier.findByIdAndDelete(id);
+    const [deleted] = await db
+      .delete(specDossiers)
+      .where(eq(specDossiers.id, id))
+      .returning();
 
-    if (!result) return { success: false, message: "Template not found." };
+    if (!deleted) return { success: false, message: "Template not found." };
 
     revalidatePath("/admin/dossiers");
     revalidatePath("/admin/specs");
@@ -266,19 +371,27 @@ export async function deleteSpecDossier(id: string) {
 export async function getSpecDossiersByTags(tags: string[]) {
   const actionName = "[getSpecDossiersByTags]";
   try {
-    await connectToDatabase();
-
     // Convert tags to lowercase to ensure match compatibility
     const normalizedTags = tags.map((t) => t.toLowerCase());
 
-    const dossiers = await SpecDossier.find({
-      status: "Active",
-      searchTags: { $in: normalizedTags },
-    }).sort({ createdAt: -1 });
+    if (normalizedTags.length === 0) {
+      return {
+        success: true,
+        data: [],
+      };
+    }
+
+    const dossiers = await db.query.specDossiers.findMany({
+      where: and(
+        eq(specDossiers.status, "Active"),
+        sql`${specDossiers.searchTags} && ${normalizedTags}::text[]`,
+      ),
+      orderBy: desc(specDossiers.createdAt),
+    });
 
     return {
       success: true,
-      data: JSON.parse(JSON.stringify(dossiers)),
+      data: dossiers.map(serializeDossier),
     };
   } catch (error) {
     console.error(`${actionName} Error:`, error);

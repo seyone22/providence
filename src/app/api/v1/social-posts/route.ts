@@ -1,19 +1,34 @@
 import { type NextRequest, NextResponse } from "next/server";
-import connectToDatabase from "@/lib/mongoose";
-import SocialPost, { extractShortcode } from "@/models/SocialPost";
+import { db, socialPosts } from "@/db";
+import { eq, desc, asc } from "drizzle-orm";
+
+function extractShortcode(url: string): string | null {
+  // Matches instagram.com/p/XXXXX/ and /reel/XXXXX/
+  const match = url.match(/instagram\.com\/(?:p|reel)\/([A-Za-z0-9_-]+)/);
+  return match ? match[1] : null;
+}
 
 // GET /api/social-posts?page=home
 export async function GET(req: NextRequest) {
   try {
-    await connectToDatabase();
     const page = req.nextUrl.searchParams.get("page");
 
-    const filter = page ? { page } : {};
-    const posts = await SocialPost.find(filter)
-      .sort({ page: 1, order: 1 })
-      .lean();
+    const posts = await db.query.socialPosts.findMany({
+      where: page
+        ? (socialPosts, { eq }) => eq(socialPosts.page, page)
+        : undefined,
+      orderBy: (socialPosts, { asc }) => [
+        asc(socialPosts.page),
+        asc(socialPosts.order),
+      ],
+    });
 
-    return NextResponse.json(posts);
+    const mappedPosts = posts.map((p) => ({
+      ...p,
+      _id: p.id, // backward compatibility
+    }));
+
+    return NextResponse.json(mappedPosts);
   } catch (error) {
     console.error("GET /api/social-posts error:", error);
     return NextResponse.json(
@@ -26,7 +41,6 @@ export async function GET(req: NextRequest) {
 // POST /api/social-posts  { url, page }
 export async function POST(req: NextRequest) {
   try {
-    await connectToDatabase();
     const body = await req.json();
     const { url, page } = body;
 
@@ -46,12 +60,28 @@ export async function POST(req: NextRequest) {
     }
 
     // Set order to be last in the page's list
-    const lastPost = await SocialPost.findOne({ page }).sort({ order: -1 });
+    const lastPost = await db.query.socialPosts.findFirst({
+      where: (socialPosts, { eq }) => eq(socialPosts.page, page),
+      orderBy: (socialPosts, { desc }) => [desc(socialPosts.order)],
+    });
     const order = lastPost ? lastPost.order + 1 : 0;
 
-    const post = await SocialPost.create({ url, shortcode, page, order });
+    const randomId =
+      Math.random().toString(36).substring(2, 14) +
+      Math.random().toString(36).substring(2, 14);
 
-    return NextResponse.json(post, { status: 201 });
+    const [post] = await db
+      .insert(socialPosts)
+      .values({
+        id: randomId,
+        url,
+        shortcode,
+        page,
+        order,
+      })
+      .returning();
+
+    return NextResponse.json({ ...post, _id: post.id }, { status: 201 });
   } catch (error) {
     console.error("POST /api/social-posts error:", error);
     return NextResponse.json(

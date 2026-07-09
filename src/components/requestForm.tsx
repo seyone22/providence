@@ -960,7 +960,7 @@ export default function RequestForm({
       // Only capture the agent + id on first creation; on update the
       // assignment is unchanged and the agent's full details (image/email)
       // already live in state.
-      if (!submittedRequestId) {
+      if (!submittedRequestId && response.requestId) {
         setAssignedAgent(response.agent);
         setSubmittedRequestId(response.requestId);
       }
