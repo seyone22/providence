@@ -479,6 +479,62 @@ export default function IndianCarsLanding() {
         </div>
       </section>
 
+      {/* ── INQUIRY FORM + FAQ ───────────────────────── */}
+      <section
+        id="inquiry"
+        className="py-32 px-6 relative flex flex-col justify-center items-center bg-zinc-50 border-t border-black/5 z-10 overflow-hidden scroll-mt-20"
+      >
+        <Reveal
+          y={40}
+          duration={1}
+          className="relative z-10 text-center max-w-4xl mx-auto mb-10"
+        >
+          <h2 className="text-4xl md:text-5xl lg:text-6xl font-bold tracking-tighter text-black mb-6">
+            Tell us exactly what you want.
+          </h2>
+          <p className="text-xl md:text-2xl text-zinc-500 font-light max-w-2xl mx-auto">
+            Your car,{" "}
+            <span className="text-black font-medium">built in India</span> —
+            we'll source the exact spec through our dealer network and come back
+            with a full landed-cost quote before you commit.
+          </p>
+        </Reveal>
+
+        {/* Prefill notice */}
+        <AnimatePresence>
+          {showNotice && selectedMake && (
+            <motion.div
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -4 }}
+              transition={{ duration: 0.35 }}
+              className="w-full max-w-3xl mx-auto mb-4 px-6 py-3 bg-sky-500/10 border border-sky-500/20 rounded-2xl text-sky-700 text-sm font-medium text-center relative z-20"
+            >
+              Inquiry pre-filled with <strong>{selectedMake}</strong>. Now pick
+              your model and spec below.
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        <div className="w-full relative z-20">
+          <Suspense
+            fallback={
+              <div className="w-full max-w-3xl mx-auto h-[550px] flex items-center justify-center bg-white/80 backdrop-blur-xl rounded-[2.5rem] border border-black/5 text-zinc-500">
+                Loading form...
+              </div>
+            }
+          >
+            <RequestForm key={selectedMake} prefill={prefill} />
+          </Suspense>
+        </div>
+
+        <div className="mt-24 w-full relative z-20">
+          <FAQSection data={config.faqs} />
+        </div>
+
+        <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-[800px] h-[400px] bg-black/5 blur-[120px] rounded-full pointer-events-none" />
+      </section>
+
       {/* ── REVIEWS ──────────────────────────────────── */}
       <section className="py-32 px-6 bg-[#FAFAFA] border-y border-black/5 overflow-hidden">
         <div className="max-w-[1400px] mx-auto">
@@ -601,62 +657,6 @@ export default function IndianCarsLanding() {
             </div>
           </Reveal>
         </div>
-      </section>
-
-      {/* ── INQUIRY FORM + FAQ ───────────────────────── */}
-      <section
-        id="inquiry"
-        className="py-32 px-6 relative flex flex-col justify-center items-center bg-zinc-50 border-t border-black/5 z-10 overflow-hidden scroll-mt-20"
-      >
-        <Reveal
-          y={40}
-          duration={1}
-          className="relative z-10 text-center max-w-4xl mx-auto mb-10"
-        >
-          <h2 className="text-4xl md:text-5xl lg:text-6xl font-bold tracking-tighter text-black mb-6">
-            Tell us exactly what you want.
-          </h2>
-          <p className="text-xl md:text-2xl text-zinc-500 font-light max-w-2xl mx-auto">
-            Your car,{" "}
-            <span className="text-black font-medium">built in India</span> —
-            we'll source the exact spec through our dealer network and come back
-            with a full landed-cost quote before you commit.
-          </p>
-        </Reveal>
-
-        {/* Prefill notice */}
-        <AnimatePresence>
-          {showNotice && selectedMake && (
-            <motion.div
-              initial={{ opacity: 0, y: 8 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -4 }}
-              transition={{ duration: 0.35 }}
-              className="w-full max-w-3xl mx-auto mb-4 px-6 py-3 bg-sky-500/10 border border-sky-500/20 rounded-2xl text-sky-700 text-sm font-medium text-center relative z-20"
-            >
-              Inquiry pre-filled with <strong>{selectedMake}</strong>. Now pick
-              your model and spec below.
-            </motion.div>
-          )}
-        </AnimatePresence>
-
-        <div className="w-full relative z-20">
-          <Suspense
-            fallback={
-              <div className="w-full max-w-3xl mx-auto h-[550px] flex items-center justify-center bg-white/80 backdrop-blur-xl rounded-[2.5rem] border border-black/5 text-zinc-500">
-                Loading form...
-              </div>
-            }
-          >
-            <RequestForm key={selectedMake} prefill={prefill} />
-          </Suspense>
-        </div>
-
-        <div className="mt-24 w-full relative z-20">
-          <FAQSection data={config.faqs} />
-        </div>
-
-        <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-[800px] h-[400px] bg-black/5 blur-[120px] rounded-full pointer-events-none" />
       </section>
 
       <style jsx global>{`
