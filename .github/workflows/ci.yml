@@ -1,0 +1,64 @@
+name: CI/CD Pipeline Enforcement
+
+on:
+  pull_request:
+    branches:
+      - dev
+      - staging
+      - production
+
+jobs:
+  branch-check:
+    name: Enforce Branching Pipeline
+    runs-on: ubuntu-latest
+    steps:
+      - name: Validate Source and Target Branches
+        run: |
+          TARGET="${{ github.base_ref }}"
+          SOURCE="${{ github.head_ref }}"
+          echo "Target branch: $TARGET"
+          echo "Source branch: $SOURCE"
+          
+          if [ "$TARGET" = "staging" ] && [ "$SOURCE" != "dev" ]; then
+            echo "::error::PRs to 'staging' are only allowed from 'dev' branch!"
+            exit 1
+          fi
+          
+          if [ "$TARGET" = "production" ] && [ "$SOURCE" != "staging" ]; then
+            echo "::error::PRs to 'production' are only allowed from 'staging' branch!"
+            exit 1
+          fi
+          
+          echo "Branch path is valid."
+
+  build-and-test:
+    name: Lint, Typecheck, and Build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install Dependencies
+        run: npm ci
+
+      - name: Biome Lint Check
+        run: npm run lint
+        continue-on-error: true
+
+      - name: TypeScript Compiler Check
+        run: npx tsc --noEmit
+
+      - name: Dry Build Check
+        env:
+          DATABASE_URL: "postgresql://postgres:mock@localhost:5432/mock"
+          MONGODB_URI: "mongodb://mock:mock@localhost:27017/mock"
+          BETTER_AUTH_SECRET: "mock_secret_key_mock_secret_key_mock_secret_key"
+          BETTER_AUTH_URL: "http://localhost:3000"
+          NEXT_PUBLIC_BASE_URL: "http://localhost:3000"
+        run: npm run build
