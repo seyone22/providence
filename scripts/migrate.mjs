@@ -10,7 +10,13 @@ if (!databaseUrl) {
 
 async function run() {
   console.log("Connecting to PostgreSQL...");
-  const pool = new pg.Pool({ connectionString: databaseUrl, max: 1 });
+  const pool = new pg.Pool({
+    connectionString: databaseUrl,
+    max: 1,
+    ssl: databaseUrl.includes("localhost") || databaseUrl.includes("127.0.0.1")
+      ? false
+      : { rejectUnauthorized: false },
+  });
   const db = drizzle(pool);
 
   console.log("Applying migrations from ./drizzle...");

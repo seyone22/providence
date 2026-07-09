@@ -45,8 +45,13 @@ async function run() {
   await mongoClient.connect();
   const mongoDb = mongoClient.db("test");
 
-  console.log("Connecting to PostgreSQL...");
-  const pgPool = new pg.Pool({ connectionString: postgresUrl, max: 1 });
+  const pgPool = new pg.Pool({
+    connectionString: postgresUrl,
+    max: 1,
+    ssl: postgresUrl.includes("localhost") || postgresUrl.includes("127.0.0.1")
+      ? false
+      : { rejectUnauthorized: false },
+  });
   const pgDb = drizzle(pgPool, { schema });
 
   // Map MongoDB collections to Drizzle tables
