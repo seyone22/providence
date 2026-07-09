@@ -2,11 +2,13 @@ import { betterAuth } from "better-auth";
 import { drizzleAdapter } from "@better-auth/drizzle-adapter";
 import { APIError } from "better-auth/api";
 import { db } from "@/db";
+import * as schema from "@/db/schema";
 import { emailService } from "@/lib/email";
 
 export const auth = betterAuth({
   database: drizzleAdapter(db, {
     provider: "pg",
+    schema,
   }),
 
   // 1. Password Reset lives here
