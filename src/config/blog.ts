@@ -410,6 +410,63 @@ export const BLOG_POSTS: BlogPost[] = [
       },
     ],
   },
+
+  // ── 7 · INDIA-BUILT CARS: WHY CHEAPER (Source Country) ────────────────────
+  {
+    slug: "why-are-indian-manufactured-cars-cheaper",
+    title:
+      "Why Are Indian-Manufactured Cars Cheaper? (And Is the Quality Low?)",
+    h1: "Why Are Indian-Manufactured Cars So Much Cheaper — and Is the Quality Low?",
+    seoTitle:
+      "Why Are Indian-Manufactured Cars Cheaper? The Honest Answer on Price & Quality",
+    description:
+      "Indian-built cars cost roughly 30% less than the global average. Here's exactly why — the sub-4-metre tax rule, 95% local supply chains, frugal engineering and massive scale — plus the honest answer on whether the quality is low.",
+    excerpt:
+      "Roughly 30% cheaper than the global average — and it's not corner-cutting. The five real reasons India builds cars for less, and the truth about quality.",
+    cluster: "Source Country",
+    primaryKeyword: "why are indian manufactured cars cheaper",
+    keywords: [
+      "why are indian cars cheaper",
+      "indian manufactured cars quality",
+      "india built cars",
+      "are indian cars good quality",
+      "bharat ncap safety",
+      "import cars from india",
+    ],
+    author: AUTHOR,
+    publishDate: "2026-07-03",
+    updatedDate: "2026-07-03",
+    readingTimeMins: 9,
+    heroImage:
+      "https://images.unsplash.com/photo-1685019718640-6e562edc365e?q=80&w=2400&auto=format&fit=crop",
+    heroAlt: "Modern Indian-manufactured car",
+    related: [],
+    toc: [
+      { id: "short-answer", label: "The short answer" },
+      { id: "sub-4-meter", label: "The sub-4-metre tax rule" },
+      { id: "localization", label: "90–95% local supply chains" },
+      { id: "labour", label: "Lower labour & operating costs" },
+      { id: "frugal-engineering", label: "Frugal engineering" },
+      { id: "scale", label: "Massive economies of scale" },
+      { id: "quality", label: "So is the quality low?" },
+      { id: "providence", label: "How we bridge the gap" },
+      { id: "faqs", label: "FAQs" },
+    ],
+    faqs: [
+      {
+        q: "Why are cars manufactured in India so cheap?",
+        a: "Because India's entire automotive ecosystem is optimised for cost: tax rules that reward compact, efficient design; 90–95% domestically sourced parts; factory operating costs 10–25% below Western plants; engineering targeted at what buyers actually need; and the scale of the world's third-largest car market. India's comparative vehicle price index sits around 70 against a global benchmark of 100 — roughly 30% cheaper by design, not by corner-cutting.",
+      },
+      {
+        q: "Are Indian-manufactured cars low quality?",
+        a: "Not any more. Modern Indian plants build global models for Suzuki, Toyota, Hyundai, Kia and the Volkswagen Group on shared worldwide platforms, India-built cars are exported back to demanding markets including Japan and Europe, and the Bharat NCAP crash-test programme now independently rates new models — with Indian brands like Tata and Mahindra scoring five stars. Historic quality gaps have closed while the price advantage has held.",
+      },
+      {
+        q: "Is it safe to import a car manufactured in India?",
+        a: "Yes, with proper checks. Buy through a sourcing partner that verifies provenance and inspects every car before export. Providence inspects each India-built car against a multi-point standard — structure, brakes, engine, electronics and safety spec — and shares the report before you pay, so the lower price never means a compromised car.",
+      },
+    ],
+  },
 ];
 
 // ── Roadmap — remaining cluster posts to build in later batches ──────────────
@@ -448,7 +505,10 @@ export const CLUSTER_ORDER: BlogCluster[] = [
   "Source Country",
 ];
 
-export function getPostsByCluster(): { cluster: BlogCluster; posts: BlogPost[] }[] {
+export function getPostsByCluster(): {
+  cluster: BlogCluster;
+  posts: BlogPost[];
+}[] {
   return CLUSTER_ORDER.map((cluster) => ({
     cluster,
     posts: BLOG_POSTS.filter((p) => p.cluster === cluster),

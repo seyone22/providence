@@ -18,6 +18,7 @@ import LeadDistributionChart from "@/components/LeadDistributionChart";
 import RequestTableClient from "./RequestTableClient";
 import { format, isWithinInterval, startOfDay, endOfDay } from "date-fns";
 import { CONTACT_DUE_OPTIONS, contactDueMatches, type ContactDueBucket } from "@/lib/contactScheduling";
+import { pathnameToSource } from "@/lib/leadSource";
 import { DayPicker } from "react-day-picker";
 import "react-day-picker/dist/style.css"; // Basic styles
 
@@ -86,22 +87,7 @@ export default function DashboardClient({ requests, staffUsers, currentUserId }:
     }, [requests]);
 
     /** Normalise a stored source value (raw pathname or legacy label) → display label. */
-    const normalizeSource = (source: string): string => {
-        if (!source) return "";
-        if (!source.startsWith("/")) return source; // already a label
-        const slug = source.replace(/^\//, "").replace(/\/$/, "");
-        if (!slug) return "Home Page";
-        const MAP: Record<string, string> = {
-            "request":                            "Request Page",
-            "b2b":                                "B2B Landing",
-            "b2c":                                "B2C Landing",
-            "import-japanese-cars-to-ireland":    "Import to Ireland",
-            "ireland-cost-calculator":            "Ireland Calculator",
-        };
-        if (MAP[slug]) return MAP[slug];
-        if (slug.startsWith("campaigns/")) return `Campaign: ${slug.replace("campaigns/", "")}`;
-        return slug.replace(/-/g, " ").replace(/\b\w/g, c => c.toUpperCase());
-    };
+    const normalizeSource = pathnameToSource;
 
     const uniqueSources = useMemo(() => {
         const sources = new Set(

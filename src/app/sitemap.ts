@@ -1,7 +1,8 @@
-import { MetadataRoute } from "next";
+import type { MetadataRoute } from "next";
+import { listPublishedProfileSlugs } from "@/actions/sales-profile-actions";
 // Import your DB logic or Action
 import { getAllSpecDossiers } from "@/actions/spec-actions";
-import { BLOG_POSTS, BLOG_BASE_PATH } from "@/config/blog";
+import { BLOG_BASE_PATH, BLOG_POSTS } from "@/config/blog";
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const baseUrl = "https://www.providenceauto.co.uk";
@@ -13,7 +14,9 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     "/about",
     "/contact",
     "/dealer-dashboard",
+    "/import-japanese-cars",
     "/import-japanese-cars-to-ireland",
+    "/indian-manufactured-cars",
     "/ireland-cost-calculator",
     BLOG_BASE_PATH,
   ].map((route) => ({
@@ -40,5 +43,14 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     priority: 0.8,
   }));
 
-  return [...staticRoutes, ...blogRoutes, ...carRoutes];
+  // 3. Sales-member profile pages (/team/[slug]) — published only.
+  const profiles = await listPublishedProfileSlugs();
+  const profileRoutes = profiles.map((p) => ({
+    url: `${baseUrl}/team/${p.slug}`,
+    lastModified: p.updatedAt ? new Date(p.updatedAt) : new Date(),
+    changeFrequency: "weekly" as const,
+    priority: 0.7,
+  }));
+
+  return [...staticRoutes, ...blogRoutes, ...carRoutes, ...profileRoutes];
 }

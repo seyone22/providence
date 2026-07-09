@@ -371,6 +371,7 @@ export async function analyzeMarket(
     };
 
     const sources: string[] = [];
+    const scrapeErrors: string[] = [];
     let scraped: NormalizedListing[] = [];
 
     // 1. AutoTrader — the priority source. Wait for it.
@@ -389,6 +390,7 @@ export async function analyzeMarket(
       }
     } catch (e) {
       console.error("AutoTrader scrape failed:", e);
+      scrapeErrors.push(e instanceof Error ? e.message : String(e));
     }
 
     // 2. Only fall back to other sources if AutoTrader didn't yield enough
@@ -411,13 +413,31 @@ export async function analyzeMarket(
         }
       } catch (e) {
         console.error("PistonHeads scrape failed:", e);
+        scrapeErrors.push(e instanceof Error ? e.message : String(e));
       }
     }
 
     if (sources.length === 0) {
+      // Distinguish an infrastructure failure (scraper errored) from a genuinely
+      // empty search, so the operator isn't left guessing. The Apify free tier
+      // 403s once the monthly usage cap is hit — surface that explicitly.
+      const joined = scrapeErrors.join(" | ");
+      const quotaHit =
+        /hard limit|platform-feature-disabled|\b403\b|usage.*exceeded/i.test(
+          joined,
+        );
+      if (quotaHit) {
+        return {
+          success: false,
+          message:
+            "Market scraper is blocked: the Apify account has hit its monthly usage limit. Raise the limit or upgrade the plan in the Apify console, then retry.",
+        };
+      }
       return {
         success: false,
-        message: "No market sources returned any listings.",
+        message: scrapeErrors.length
+          ? `No market sources returned any listings (scraper error: ${joined.slice(0, 200)}).`
+          : "No market sources returned any listings.",
       };
     }
 
