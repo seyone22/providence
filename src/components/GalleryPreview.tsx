@@ -52,7 +52,7 @@ export default function GalleryPreview({
 
   // Serialise the tags so the effect only re-runs when the values change,
   // not on every render (a fresh array literal has a new identity each time).
-  const tagKey = tags ? tags.join(",") : "";
+  const _tagKey = tags ? tags.join(",") : "";
 
   useEffect(() => {
     let active = true;
@@ -79,7 +79,7 @@ export default function GalleryPreview({
     return () => {
       active = false;
     };
-  }, [tagKey]);
+  }, [tags]);
 
   // Don't render an empty band when there's nothing published to show.
   if (!loading && cars.length === 0) return null;

@@ -1,25 +1,8 @@
 "use client";
 
-import {
-  AlertCircle,
-  ArrowUpRight,
-  Award,
-  BarChart3,
-  Briefcase,
-  CheckCircle2,
-  Clock,
-  DollarSign,
-  Loader2,
-  PieChart,
-  RefreshCw,
-  Target,
-  TrendingUp,
-  Zap,
-} from "lucide-react";
-import React, { useEffect, useState } from "react";
+import { ArrowUpRight, Briefcase, Loader2 } from "lucide-react";
+import { useEffect, useState } from "react";
 import { getDashboardData } from "@/actions/dashboard-actions";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 
 export default function OperationsOverviewDashboard() {
   const [timeframe, setTimeframe] = useState("month");
@@ -59,7 +42,7 @@ export default function OperationsOverviewDashboard() {
     },
     {
       stage: "Shipped",
-      count: dashboardData?.pipelineStages?.["Shipped"] || 0,
+      count: dashboardData?.pipelineStages?.Shipped || 0,
       color: "bg-zinc-500",
     },
     {

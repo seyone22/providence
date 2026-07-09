@@ -96,7 +96,7 @@ export default function GalleryDetailClient({ car }: { car: Dossier }) {
         ];
 
   // Use heroImageUrl if it exists, otherwise default to index 0
-  const initialHero =
+  const _initialHero =
     car.heroImageUrl && car.images?.includes(car.heroImageUrl)
       ? car.heroImageUrl
       : displayImages[0];

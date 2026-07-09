@@ -48,9 +48,10 @@ async function run() {
   const pgPool = new pg.Pool({
     connectionString: postgresUrl,
     max: 1,
-    ssl: postgresUrl.includes("localhost") || postgresUrl.includes("127.0.0.1")
-      ? false
-      : { rejectUnauthorized: false },
+    ssl:
+      postgresUrl.includes("localhost") || postgresUrl.includes("127.0.0.1")
+        ? false
+        : { rejectUnauthorized: false },
   });
   const pgDb = drizzle(pgPool, { schema });
 

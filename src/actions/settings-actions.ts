@@ -1,7 +1,7 @@
 // actions/settings-actions.ts
 "use server";
 
-import { Db, MongoClient, ObjectId } from "mongodb";
+import { MongoClient, ObjectId } from "mongodb";
 import { headers } from "next/headers";
 import { auth } from "@/utils/auth";
 
@@ -48,7 +48,7 @@ export async function updatePasswordServer(
 ) {
   try {
     // Use Better Auth's native API to handle hashing and validation securely
-    const res = await auth.api.changePassword({
+    const _res = await auth.api.changePassword({
       headers: await headers(),
       body: {
         currentPassword,

@@ -1,6 +1,6 @@
+import { eq } from "drizzle-orm";
 import { type NextRequest, NextResponse } from "next/server";
 import { db, socialPosts } from "@/db";
-import { eq } from "drizzle-orm";
 
 // PUT /api/social-posts/reorder  { orderedIds: string[] }
 export async function PUT(req: NextRequest) {

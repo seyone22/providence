@@ -1,7 +1,7 @@
 // @/actions/sales-profile-actions.ts
 "use server";
 
-import crypto from "crypto";
+import crypto from "node:crypto";
 import { and, desc, eq, gte, inArray, lte, ne, sql } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { headers } from "next/headers";

@@ -1,9 +1,9 @@
 // @/actions/tracking.ts
 "use server";
 
+import { and, eq } from "drizzle-orm";
+import { db, requests } from "@/db";
 import { emailService } from "@/lib/email";
-import { db, requests, specDossiers } from "@/db";
-import { eq, and } from "drizzle-orm";
 
 export async function getTrackingData(id: string) {
   try {

@@ -1,12 +1,12 @@
 import {
-  pgTable,
-  text,
-  integer,
   boolean,
-  timestamp,
-  jsonb,
   doublePrecision,
   index,
+  integer,
+  jsonb,
+  pgTable,
+  text,
+  timestamp,
 } from "drizzle-orm/pg-core";
 
 // --- Better-Auth Tables ---

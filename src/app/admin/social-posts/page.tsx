@@ -8,7 +8,6 @@ import {
   GripVertical,
   Instagram,
   Loader2,
-  Pencil,
   Plus,
   Replace,
   Trash2,
@@ -362,7 +361,6 @@ export default function SocialPostsAdmin() {
                             }}
                             className="w-full px-4 py-3 rounded-xl border border-zinc-200 text-sm focus:outline-none focus:ring-2 focus:ring-black/10"
                             placeholder="New Instagram URL..."
-                            autoFocus
                           />
                           {editError && (
                             <p className="text-red-500 text-xs flex items-center gap-1">

@@ -1,4 +1,4 @@
-import crypto from "crypto";
+import crypto from "node:crypto";
 
 // Normalizes and hashes PII data per Meta/Google guidelines
 export function hashData(data: string): string {

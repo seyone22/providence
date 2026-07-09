@@ -41,7 +41,7 @@ export default function SignUp() {
           },
         },
       );
-    } catch (error) {
+    } catch (_error) {
       toast.error("Something went wrong");
       setIsLoading(false);
     }

@@ -826,7 +826,7 @@ export default function RequestForm({
     ) {
       setApiFailed(true);
     }
-  }, [availableModels, isLoadingModels]);
+  }, [availableModels, isLoadingModels, formData.vehicle_model]);
 
   const handleInputChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
@@ -1071,7 +1071,7 @@ export default function RequestForm({
       } else {
         setErrors({ submit: response.message });
       }
-    } catch (error) {
+    } catch (_error) {
       setErrors({ submit: "Submission failed. Please try again." });
     } finally {
       setIsSubmitting(false);

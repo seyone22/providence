@@ -57,7 +57,7 @@ export default function InventoryPage() {
 
   useEffect(() => {
     fetchDossiers();
-  }, []);
+  }, [fetchDossiers]);
 
   // 2. Delete Handler
   const handleDelete = async (id: string) => {

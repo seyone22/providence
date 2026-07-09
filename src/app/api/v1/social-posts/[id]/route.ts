@@ -1,6 +1,6 @@
+import { eq } from "drizzle-orm";
 import { type NextRequest, NextResponse } from "next/server";
 import { db, socialPosts } from "@/db";
-import { eq } from "drizzle-orm";
 
 function extractShortcode(url: string): string | null {
   // Matches instagram.com/p/XXXXX/ and /reel/XXXXX/
@@ -55,7 +55,7 @@ export async function PUT(
 
 // DELETE /api/social-posts/[id]
 export async function DELETE(
-  req: NextRequest,
+  _req: NextRequest,
   { params }: { params: Promise<{ id: string }> },
 ) {
   try {

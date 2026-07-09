@@ -1,5 +1,5 @@
-import { betterAuth } from "better-auth";
 import { drizzleAdapter } from "@better-auth/drizzle-adapter";
+import { betterAuth } from "better-auth";
 import { APIError } from "better-auth/api";
 import { db } from "@/db";
 import * as schema from "@/db/schema";
@@ -27,7 +27,7 @@ export const auth = betterAuth({
   // 2. Email Verification must be a TOP-LEVEL object (Fix for TS2353)
   emailVerification: {
     sendOnSignUp: true,
-    async sendVerificationEmail({ user, url, token }, request) {
+    async sendVerificationEmail({ user, url, token }, _request) {
       await emailService.sendAuthEmail(user.email, "verification", url);
     },
   },
@@ -76,7 +76,7 @@ export const auth = betterAuth({
           const user = await db.query.users.findFirst({
             where: (users, { eq }) => eq(users.id, session.userId),
           });
-          if (user && user.isBanned) {
+          if (user?.isBanned) {
             throw new APIError("FORBIDDEN", {
               message: "Your account has been suspended.",
             });

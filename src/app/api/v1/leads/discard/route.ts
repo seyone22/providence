@@ -1,6 +1,6 @@
+import { and, eq } from "drizzle-orm";
 import { type NextRequest, NextResponse } from "next/server";
 import { db, requests } from "@/db";
-import { and, eq } from "drizzle-orm";
 
 /**
  * POST /api/v1/leads/discard  { id }

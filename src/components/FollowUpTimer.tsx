@@ -123,7 +123,7 @@ export default function FollowUpTimer({
 }: FollowUpTimerProps) {
   const [open, setOpen] = useState(false);
   const [ratio, setRatio] = useState<number | null>(null);
-  const [expired, setExpired] = useState(false);
+  const [_expired, setExpired] = useState(false);
   const [saving, setSaving] = useState(false);
   const [clearing, setClearing] = useState(false);
   const [customDate, setCustomDate] = useState(
@@ -163,7 +163,7 @@ export default function FollowUpTimer({
     tick();
     const iv = setInterval(tick, 60_000); // update every minute
     return () => clearInterval(iv);
-  }, [followUpAt, followUpSetAt, hasTimer, handleExpiry]);
+  }, [hasTimer, handleExpiry, followUpAtDate, followUpSetAtDate]);
 
   const handlePreset = (days: number, idx: number) => {
     setSelectedPreset(idx);

@@ -1,12 +1,12 @@
 "use server";
 
 import { headers } from "next/headers";
+import { db, sourcingAnalyses } from "@/db";
 import {
   computeMarketStats,
   type MarketStats,
   type NormalizedListing,
 } from "@/lib/market-stats";
-import connectToDatabase from "@/lib/mongoose";
 import { cleanListings, dedupeListings } from "@/lib/scrapers/clean";
 import { scrapeAutoTrader, scrapePistonHeads } from "@/lib/scrapers/client";
 import {
@@ -15,7 +15,6 @@ import {
   selectTopComparables,
   tokenize,
 } from "@/lib/scrapers/matching";
-import { db, sourcingAnalyses } from "@/db";
 import { auth } from "@/utils/auth";
 
 // Server actions for the admin Sourcing & Profit tool: live FX (JPY→GBP) for

@@ -33,7 +33,7 @@ export default function ForgotPasswordPage() {
       });
       setIsSubmitted(true);
       toast.success("Reset link sent.");
-    } catch (error) {
+    } catch (_error) {
       toast.error("Failed to send reset email. Please try again.");
     } finally {
       setIsLoading(false);

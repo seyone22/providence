@@ -1,9 +1,8 @@
 "use server";
 
 import { headers } from "next/headers";
-import { db, requests } from "@/db";
+import { db } from "@/db";
 import { auth } from "@/utils/auth";
-import { ne } from "drizzle-orm";
 
 async function requireAuth() {
   const session = await auth.api.getSession({
