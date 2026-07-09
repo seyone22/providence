@@ -1,5 +1,5 @@
-import Link from "next/link";
 import { ChevronRight } from "lucide-react";
+import Link from "next/link";
 
 type Crumb = { label: string; href?: string };
 
@@ -21,7 +21,9 @@ export default function Breadcrumbs({ items }: { items: Crumb[] }) {
                   {item.label}
                 </Link>
               ) : (
-                <span className={last ? "text-zinc-600" : ""}>{item.label}</span>
+                <span className={last ? "text-zinc-600" : ""}>
+                  {item.label}
+                </span>
               )}
               {!last && <ChevronRight size={12} className="text-zinc-300" />}
             </li>

@@ -1,43 +1,40 @@
 import {
-  H2,
-  P,
-  Lead,
-  UL,
-  CheckLI,
-  Strong,
   Callout,
-  KeyTakeaways,
+  CheckLI,
   CostTable,
   Disclaimer,
+  H2,
   InlineLink,
+  KeyTakeaways,
+  Lead,
+  P,
+  Strong,
+  UL,
 } from "@/components/blog/prose";
 
 export default function Body() {
   return (
     <>
       <Lead>
-        The purchase price is only the first line on the bill. Here&rsquo;s every
-        cost of importing a car to Ireland in 2026 — duty, VAT, VRT and the NOx
-        levy — laid out in order, with worked totals for a car from Japan and one
-        from the UK so there are no surprises at the port.
+        The purchase price is only the first line on the bill. Here&rsquo;s
+        every cost of importing a car to Ireland in 2026 — duty, VAT, VRT and
+        the NOx levy — laid out in order, with worked totals for a car from
+        Japan and one from the UK so there are no surprises at the port.
       </Lead>
 
       <KeyTakeaways
         items={[
           <>
             Total landed cost ={" "}
-            <Strong>
-              price + shipping + duty + VAT + VRT + NOx levy
-            </Strong>
-            .
+            <Strong>price + shipping + duty + VAT + VRT + NOx levy</Strong>.
           </>,
           <>
             A typical <Strong>€11,000 Japanese hybrid lands ~€17,775</Strong>{" "}
             all-in — versus €22,000–€26,000 on an Irish forecourt.
           </>,
           <>
-            The charges are <Strong>stacked</Strong>: VAT is charged on the duty,
-            so saving duty saves twice.
+            The charges are <Strong>stacked</Strong>: VAT is charged on the
+            duty, so saving duty saves twice.
           </>,
           "VRT (7–41% of OMSP) is the swing factor — the same price can land very differently depending on the car.",
         ]}
@@ -46,11 +43,11 @@ export default function Body() {
       <H2 id="summary">The short answer</H2>
       <P>
         For a mainstream, low-emission car the all-in cost is usually{" "}
-        <Strong>40–60% above the foreign purchase price</Strong> once shipping and
-        Irish taxes are added — but still below the Irish retail price for the same
-        car, which is the whole point. The exact figure depends on three things:
-        where the car was built (duty), its CO₂ (VRT band), and its fuel type (NOx
-        levy).
+        <Strong>40–60% above the foreign purchase price</Strong> once shipping
+        and Irish taxes are added — but still below the Irish retail price for
+        the same car, which is the whole point. The exact figure depends on
+        three things: where the car was built (duty), its CO₂ (VRT band), and
+        its fuel type (NOx levy).
       </P>
 
       <H2 id="line-by-line">The cost, line by line</H2>
@@ -69,13 +66,13 @@ export default function Body() {
           insurance + freight).
         </CheckLI>
         <CheckLI>
-          <Strong>VAT at 23%</Strong> — on the landed value plus any duty. Applies
-          to all non-EU imports (Japan, GB). A genuinely used EU/NI car can be
-          VAT-free.
+          <Strong>VAT at 23%</Strong> — on the landed value plus any duty.
+          Applies to all non-EU imports (Japan, GB). A genuinely used EU/NI car
+          can be VAT-free.
         </CheckLI>
         <CheckLI>
-          <Strong>VRT</Strong> — 7–41% of the car&rsquo;s Irish OMSP, set by CO₂.
-          See{" "}
+          <Strong>VRT</Strong> — 7–41% of the car&rsquo;s Irish OMSP, set by
+          CO₂. See{" "}
           <InlineLink href="/blog/vrt-explained-ireland">
             how VRT is calculated
           </InlineLink>
@@ -93,12 +90,12 @@ export default function Body() {
 
       <H2 id="order">Why the order matters</H2>
       <P>
-        The charges aren&rsquo;t independent — they&rsquo;re applied in sequence,
-        each on the running total of the last. Duty is added to the CIF value,
-        then VAT is charged on{" "}
-        <Strong>value + duty</Strong>, then VRT is charged separately on the OMSP.
-        That&rsquo;s why securing 0% duty matters twice: you avoid the 10% itself{" "}
-        <em>and</em> the 23% VAT that would have sat on top of it.
+        The charges aren&rsquo;t independent — they&rsquo;re applied in
+        sequence, each on the running total of the last. Duty is added to the
+        CIF value, then VAT is charged on <Strong>value + duty</Strong>, then
+        VRT is charged separately on the OMSP. That&rsquo;s why securing 0% duty
+        matters twice: you avoid the 10% itself <em>and</em> the 23% VAT that
+        would have sat on top of it.
       </P>
 
       <H2 id="examples">Worked examples: Japan vs UK</H2>

@@ -1,418 +1,545 @@
 "use client";
 
-import { useState } from "react";
+import {
+  Edit,
+  KeyRound,
+  Loader2,
+  MoreHorizontal,
+  Plus,
+  Search,
+  ShieldAlert,
+  Trash2,
+} from "lucide-react"; // Grab the Edit icon
 import { useRouter } from "next/navigation";
+import { useState } from "react";
 import {
-    Search, Plus, MoreHorizontal, ShieldAlert, KeyRound, Trash2, Loader2
-} from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+  createAdminUser,
+  deleteAdminUser,
+  sendPasswordResetAdmin,
+  updateAdminUser,
+} from "@/actions/admin-actions";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import {
-    Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
-} from "@/components/ui/table";
-import {
-    DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger,
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { Input } from "@/components/ui/input";
 import {
-    Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetFooter
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetFooter,
+  SheetHeader,
+  SheetTitle,
 } from "@/components/ui/sheet";
 import {
-    Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
-} from "@/components/ui/select";
-
-import { createAdminUser, deleteAdminUser, sendPasswordResetAdmin, updateAdminUser } from "@/actions/admin-actions";
-import { Edit } from "lucide-react"; // Grab the Edit icon
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 
 type User = {
-    id: string;
-    name: string;
-    email: string;
-    role: "Admin" | "Staff" | "User";
-    status: "Active" | "Inactive";
+  id: string;
+  name: string;
+  email: string;
+  role: "Admin" | "Staff" | "User";
+  status: "Active" | "Inactive";
 };
 
-export default function UserManagementClient({ initialUsers }: { initialUsers: User[] }) {
-    const router = useRouter();
+export default function UserManagementClient({
+  initialUsers,
+}: {
+  initialUsers: User[];
+}) {
+  const router = useRouter();
 
-    // Core state
-    const [users, setUsers] = useState<User[]>(initialUsers);
-    const [search, setSearch] = useState("");
-    const [isPending, setIsPending] = useState(false);
+  // Core state
+  const [users, setUsers] = useState<User[]>(initialUsers);
+  const [search, setSearch] = useState("");
+  const [isPending, setIsPending] = useState(false);
 
-    // Create User Form State
-    const [isCreateOpen, setIsCreateOpen] = useState(false);
-    const [newName, setNewName] = useState("");
-    const [newEmail, setNewEmail] = useState("");
-    const [newRole, setNewRole] = useState("Staff");
+  // Create User Form State
+  const [isCreateOpen, setIsCreateOpen] = useState(false);
+  const [newName, setNewName] = useState("");
+  const [newEmail, setNewEmail] = useState("");
+  const [newRole, setNewRole] = useState("Staff");
 
-    const [isEditOpen, setIsEditOpen] = useState(false);
-    const [editUserId, setEditUserId] = useState("");
-    const [editName, setEditName] = useState("");
-    const [editEmail, setEditEmail] = useState("");
-    const [editRole, setEditRole] = useState("Staff");
+  const [isEditOpen, setIsEditOpen] = useState(false);
+  const [editUserId, setEditUserId] = useState("");
+  const [editName, setEditName] = useState("");
+  const [editEmail, setEditEmail] = useState("");
+  const [editRole, setEditRole] = useState("Staff");
 
-    // Action Sheet State
-    const [selectedUser, setSelectedUser] = useState<User | null>(null);
-    const [actionType, setActionType] = useState<"reset" | "delete" | null>(null);
+  // Action Sheet State
+  const [selectedUser, setSelectedUser] = useState<User | null>(null);
+  const [actionType, setActionType] = useState<"reset" | "delete" | null>(null);
 
-    const filteredUsers = users.filter(user =>
-        user.name.toLowerCase().includes(search.toLowerCase()) ||
-        user.email.toLowerCase().includes(search.toLowerCase())
-    );
+  const filteredUsers = users.filter(
+    (user) =>
+      user.name.toLowerCase().includes(search.toLowerCase()) ||
+      user.email.toLowerCase().includes(search.toLowerCase()),
+  );
 
-    const closeActionSheet = () => {
-        setSelectedUser(null);
-        setActionType(null);
-        setIsPending(false);
-    };
+  const closeActionSheet = () => {
+    setSelectedUser(null);
+    setActionType(null);
+    setIsPending(false);
+  };
 
-    // --- SERVER ACTION HANDLERS ---
+  // --- SERVER ACTION HANDLERS ---
 
-    // Call this when clicking "Edit Profile" in your Dropdown
-    const handleOpenEdit = (user: User) => {
-        setEditUserId(user.id);
-        setEditName(user.name);
-        setEditEmail(user.email);
-        setEditRole(user.role);
-        setIsEditOpen(true);
-    };
+  // Call this when clicking "Edit Profile" in your Dropdown
+  const handleOpenEdit = (user: User) => {
+    setEditUserId(user.id);
+    setEditName(user.name);
+    setEditEmail(user.email);
+    setEditRole(user.role);
+    setIsEditOpen(true);
+  };
 
-    const handleUpdateUser = async () => {
-        if (!editName || !editEmail) return alert("Name and Email are required");
-        setIsPending(true);
+  const handleUpdateUser = async () => {
+    if (!editName || !editEmail) return alert("Name and Email are required");
+    setIsPending(true);
 
-        const res = await updateAdminUser(editUserId, {
-            name: editName,
-            email: editEmail,
-            role: editRole
-        });
+    const res = await updateAdminUser(editUserId, {
+      name: editName,
+      email: editEmail,
+      role: editRole,
+    });
 
-        if (res.success) {
-            setIsEditOpen(false);
-            router.refresh();
-        } else {
-            alert(res.message);
-        }
-        setIsPending(false);
-    };
+    if (res.success) {
+      setIsEditOpen(false);
+      router.refresh();
+    } else {
+      alert(res.message);
+    }
+    setIsPending(false);
+  };
 
-    const handleCreateUser = async () => {
-        if (!newName || !newEmail) return alert("Name and Email are required");
-        setIsPending(true);
+  const handleCreateUser = async () => {
+    if (!newName || !newEmail) return alert("Name and Email are required");
+    setIsPending(true);
 
-        const res = await createAdminUser({ name: newName, email: newEmail, role: newRole });
+    const res = await createAdminUser({
+      name: newName,
+      email: newEmail,
+      role: newRole,
+    });
 
-        if (res.success) {
-            setIsCreateOpen(false);
-            setNewName("");
-            setNewEmail("");
-            setNewRole("Staff");
-            router.refresh(); // Tells Next.js to re-run the server component and fetch fresh data
-        } else {
-            alert(res.message);
-        }
-        setIsPending(false);
-    };
+    if (res.success) {
+      setIsCreateOpen(false);
+      setNewName("");
+      setNewEmail("");
+      setNewRole("Staff");
+      router.refresh(); // Tells Next.js to re-run the server component and fetch fresh data
+    } else {
+      alert(res.message);
+    }
+    setIsPending(false);
+  };
 
-    const handleDeleteUser = async () => {
-        if (!selectedUser) return;
-        setIsPending(true);
+  const handleDeleteUser = async () => {
+    if (!selectedUser) return;
+    setIsPending(true);
 
-        const res = await deleteAdminUser(selectedUser.id);
+    const res = await deleteAdminUser(selectedUser.id);
 
-        if (res.success) {
-            setUsers(prev => prev.filter(u => u.id !== selectedUser.id)); // Optimistic UI update
-            closeActionSheet();
-            router.refresh();
-        } else {
-            alert(res.message);
-        }
-        setIsPending(false);
-    };
+    if (res.success) {
+      setUsers((prev) => prev.filter((u) => u.id !== selectedUser.id)); // Optimistic UI update
+      closeActionSheet();
+      router.refresh();
+    } else {
+      alert(res.message);
+    }
+    setIsPending(false);
+  };
 
-    const handleResetPassword = async () => {
-        if (!selectedUser) return;
-        setIsPending(true);
+  const handleResetPassword = async () => {
+    if (!selectedUser) return;
+    setIsPending(true);
 
-        const res = await sendPasswordResetAdmin(selectedUser.email);
+    const res = await sendPasswordResetAdmin(selectedUser.email);
 
-        if (res.success) {
-            alert(`Reset link sent to ${selectedUser.email}`);
-            closeActionSheet();
-        } else {
-            alert(res.message);
-        }
-        setIsPending(false);
-    };
+    if (res.success) {
+      alert(`Reset link sent to ${selectedUser.email}`);
+      closeActionSheet();
+    } else {
+      alert(res.message);
+    }
+    setIsPending(false);
+  };
 
-    return (
-        <div className="space-y-6">
-            {/* Toolbar */}
-            <div className="flex flex-col sm:flex-row justify-between gap-4">
-                <div className="relative w-full sm:w-96">
-                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-400" size={18} />
-                    <Input
-                        placeholder="Search users by name or email..."
-                        className="pl-10 rounded-xl border-zinc-200/60 bg-white"
-                        value={search}
-                        onChange={(e: any) => setSearch(e.target.value)}
-                    />
-                </div>
-                <Button onClick={() => setIsCreateOpen(true)} className="rounded-xl gap-2">
-                    <Plus size={18} />
-                    Add New User
-                </Button>
-            </div>
-
-            {/* Data Table */}
-            <div className="bg-white border border-zinc-200/60 shadow-sm rounded-[2rem] overflow-hidden">
-                <Table>
-                    <TableHeader className="bg-zinc-50/50">
-                        <TableRow className="border-zinc-100 hover:bg-transparent">
-                            <TableHead className="px-6 py-4 font-semibold text-zinc-900">Name</TableHead>
-                            <TableHead className="py-4 font-semibold text-zinc-900">Role</TableHead>
-                            <TableHead className="py-4 font-semibold text-zinc-900">Status</TableHead>
-                            <TableHead className="px-6 py-4 text-right font-semibold text-zinc-900">Actions</TableHead>
-                        </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                        {filteredUsers.length === 0 ? (
-                            <TableRow>
-                                <TableCell colSpan={4} className="h-32 text-center text-zinc-500">
-                                    No users found matching "{search}"
-                                </TableCell>
-                            </TableRow>
-                        ) : (
-                            filteredUsers.map((user) => (
-                                <TableRow key={user.id} className="border-zinc-100">
-                                    <TableCell className="px-6 py-4">
-                                        <div className="font-medium text-zinc-900">{user.name}</div>
-                                        <div className="text-sm text-zinc-500">{user.email}</div>
-                                    </TableCell>
-                                    <TableCell className="py-4">
-                                        <Badge variant={user.role === "Admin" ? "default" : "secondary"} className="rounded-lg">
-                                            {user.role}
-                                        </Badge>
-                                    </TableCell>
-                                    <TableCell className="py-4">
-                                        <div className="flex items-center gap-2">
-                                            <div className={`size-2 rounded-full ${user.status === "Active" ? "bg-emerald-500" : "bg-zinc-300"}`} />
-                                            <span className="text-sm text-zinc-600">{user.status}</span>
-                                        </div>
-                                    </TableCell>
-                                    <TableCell className="px-6 py-4 text-right">
-                                        <DropdownMenu>
-                                            <DropdownMenuTrigger asChild>
-                                                <Button variant="ghost" className="size-8 p-0 rounded-lg">
-                                                    <MoreHorizontal size={18} />
-                                                </Button>
-                                            </DropdownMenuTrigger>
-                                            <DropdownMenuContent align="end" className="rounded-xl w-48">
-                                                <DropdownMenuLabel>Manage User</DropdownMenuLabel>
-                                                <DropdownMenuSeparator />
-
-                                                {/* 👉 ADD THIS EDIT BUTTON */}
-                                                <DropdownMenuItem onClick={() => handleOpenEdit(user)} className="gap-2 cursor-pointer">
-                                                    <Edit size={16} className="text-zinc-500" />
-                                                    Edit Details
-                                                </DropdownMenuItem>
-
-                                                <DropdownMenuItem onClick={() => { setSelectedUser(user); setActionType("reset"); }} className="gap-2 cursor-pointer">
-                                                    <KeyRound size={16} className="text-zinc-500" />
-                                                    Reset Password
-                                                </DropdownMenuItem>
-                                                <DropdownMenuItem onClick={() => { setSelectedUser(user); setActionType("delete"); }} className="gap-2 cursor-pointer text-red-600 focus:text-red-600 focus:bg-red-50">
-                                                    <Trash2 size={16} />
-                                                    Delete Account
-                                                </DropdownMenuItem>
-                                            </DropdownMenuContent>
-                                        </DropdownMenu>
-                                    </TableCell>
-                                </TableRow>
-                            ))
-                        )}
-                    </TableBody>
-                </Table>
-            </div>
-
-            {/* --- SIDEBARS (SHEETS) --- */}
-
-            {/* 3. Edit User Sheet */}
-            <Sheet open={isEditOpen} onOpenChange={setIsEditOpen}>
-                <SheetContent className="sm:max-w-md border-l border-zinc-200 p-6 flex flex-col h-full">
-
-                    <SheetHeader className="pb-4">
-                        <SheetTitle>Edit User Profile</SheetTitle>
-                        <SheetDescription>
-                            Update staff role designations or name modifications.
-                        </SheetDescription>
-                    </SheetHeader>
-
-                    <div className="flex-1 space-y-4 py-4">
-                        <div className="space-y-2">
-                            <label className="text-sm font-medium text-zinc-700">Full Name</label>
-                            <Input
-                                placeholder="John Doe"
-                                className="rounded-xl h-11"
-                                value={editName}
-                                onChange={(e) => setEditName(e.target.value)}
-                                disabled={isPending}
-                            />
-                        </div>
-
-                        <div className="space-y-2">
-                            <label className="text-sm font-medium text-zinc-700">Email Address</label>
-                            <Input
-                                type="email"
-                                placeholder="john@providenceauto.co.uk"
-                                className="rounded-xl h-11"
-                                value={editEmail}
-                                onChange={(e) => setEditEmail(e.target.value)}
-                                disabled={isPending}
-                                autoComplete="email"
-                            />
-                        </div>
-
-                        <div className="space-y-2">
-                            <label className="text-sm font-medium text-zinc-700">System Role</label>
-                            <Select value={editRole} onValueChange={(val: any) => setEditRole(val)} disabled={isPending}>
-                                <SelectTrigger className="rounded-xl h-11">
-                                    <SelectValue placeholder="Select a role" />
-                                </SelectTrigger>
-                                <SelectContent className="rounded-xl">
-                                    <SelectItem value="Admin">Admin</SelectItem>
-                                    <SelectItem value="Sales">Sales</SelectItem>
-                                    <SelectItem value="Staff">Staff</SelectItem>
-                                </SelectContent>
-                            </Select>
-                        </div>
-                    </div>
-
-                    <SheetFooter className="pt-4 border-t border-zinc-100">
-                        <Button className="w-full rounded-xl h-11" onClick={handleUpdateUser} disabled={isPending}>
-                            {isPending ? <Loader2 className="animate-spin" size={18} /> : "Save Changes"}
-                        </Button>
-                    </SheetFooter>
-
-                </SheetContent>
-            </Sheet>
-
-            {/* 1. Create User Sheet */}
-            <Sheet open={isCreateOpen} onOpenChange={setIsCreateOpen}>
-                <SheetContent className="sm:max-w-md border-l border-zinc-200 p-6 flex flex-col h-full">
-
-                    <SheetHeader className="pb-4">
-                        <SheetTitle>Add New User</SheetTitle>
-                        <SheetDescription>
-                            Create a new staff or admin account. They will receive an email to set their password.
-                        </SheetDescription>
-                    </SheetHeader>
-
-                    {/* Added flex-1 to push the footer to the bottom gracefully */}
-                    <div className="flex-1 space-y-4 py-4">
-                        <div className="space-y-2">
-                            <label className="text-sm font-medium text-zinc-700">Full Name</label>
-                            <Input
-                                placeholder="John Doe"
-                                className="rounded-xl h-11"
-                                value={newName}
-                                onChange={(e) => setNewName(e.target.value)}
-                                disabled={isPending}
-                            />
-                        </div>
-
-                        <div className="space-y-2">
-                            <label className="text-sm font-medium text-zinc-700">Email Address</label>
-                            <Input
-                                type="email"
-                                placeholder="john@providenceauto.co.uk"
-                                className="rounded-xl h-11"
-                                value={newEmail}
-                                onChange={(e) => setNewEmail(e.target.value)}
-                                disabled={isPending}
-                                autoComplete="email" // Helps browsers not trip over autofill
-                            />
-                        </div>
-
-                        <div className="space-y-2">
-                            <label className="text-sm font-medium text-zinc-700">System Role</label>
-                            <Select value={newRole} onValueChange={setNewRole} disabled={isPending}>
-                                <SelectTrigger className="rounded-xl h-11">
-                                    <SelectValue placeholder="Select a role" />
-                                </SelectTrigger>
-                                <SelectContent className="rounded-xl">
-                                    <SelectItem value="Admin">Admin</SelectItem>
-                                    <SelectItem value="Sales">Sales</SelectItem>
-                                    <SelectItem value="Staff">Staff</SelectItem>
-                                </SelectContent>
-                            </Select>
-                        </div>
-                    </div>
-
-                    {/* Footer with padding to distance itself from the bottom edges */}
-                    <SheetFooter className="pt-4 border-t border-zinc-100">
-                        <Button className="w-full rounded-xl h-11" onClick={handleCreateUser} disabled={isPending}>
-                            {isPending ? <Loader2 className="animate-spin" size={18} /> : "Create Account"}
-                        </Button>
-                    </SheetFooter>
-
-                </SheetContent>
-            </Sheet>
-
-            {/* 2. Reset Password & Delete User Sheet (Dynamic) */}
-            <Sheet open={!!selectedUser} onOpenChange={(open: any) => !open && closeActionSheet()}>
-                <SheetContent className="sm:max-w-md border-l border-zinc-200">
-                    <SheetHeader>
-                        <SheetTitle>
-                            {actionType === "reset" ? "Reset Password" : "Delete Account"}
-                        </SheetTitle>
-                        <SheetDescription>
-                            {actionType === "reset"
-                                ? `Generate a secure password reset link for ${selectedUser?.name}.`
-                                : `Are you sure you want to permanently delete ${selectedUser?.name}? This action cannot be undone.`}
-                        </SheetDescription>
-                    </SheetHeader>
-
-                    <div className="py-6">
-                        {actionType === "reset" && (
-                            <div className="p-4 bg-zinc-50 rounded-2xl border border-zinc-100 flex items-start gap-3">
-                                <ShieldAlert className="text-amber-500 shrink-0 mt-0.5" size={18} />
-                                <p className="text-sm text-zinc-600">
-                                    This will invalidate their current session immediately. A reset link will be sent to <strong>{selectedUser?.email}</strong>.
-                                </p>
-                            </div>
-                        )}
-
-                        {actionType === "delete" && (
-                            <div className="p-4 bg-red-50 rounded-2xl border border-red-100 text-red-600 flex items-start gap-3">
-                                <Trash2 className="shrink-0 mt-0.5" size={18} />
-                                <p className="text-sm">
-                                    All data associated with <strong>{selectedUser?.email}</strong> will be wiped. Proceed with extreme caution.
-                                </p>
-                            </div>
-                        )}
-                    </div>
-
-                    <SheetFooter>
-                        <Button
-                            variant={actionType === "delete" ? "destructive" : "default"}
-                            className="w-full rounded-xl"
-                            onClick={actionType === "delete" ? handleDeleteUser : handleResetPassword}
-                            disabled={isPending}
-                        >
-                            {isPending ? (
-                                <Loader2 className="animate-spin" size={18} />
-                            ) : actionType === "delete" ? (
-                                "Confirm Deletion"
-                            ) : (
-                                "Send Reset Link"
-                            )}
-                        </Button>
-                    </SheetFooter>
-                </SheetContent>
-            </Sheet>
-
+  return (
+    <div className="space-y-6">
+      {/* Toolbar */}
+      <div className="flex flex-col sm:flex-row justify-between gap-4">
+        <div className="relative w-full sm:w-96">
+          <Search
+            className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-400"
+            size={18}
+          />
+          <Input
+            placeholder="Search users by name or email..."
+            className="pl-10 rounded-xl border-zinc-200/60 bg-white"
+            value={search}
+            onChange={(e: any) => setSearch(e.target.value)}
+          />
         </div>
-    );
+        <Button
+          onClick={() => setIsCreateOpen(true)}
+          className="rounded-xl gap-2"
+        >
+          <Plus size={18} />
+          Add New User
+        </Button>
+      </div>
+
+      {/* Data Table */}
+      <div className="bg-white border border-zinc-200/60 shadow-sm rounded-[2rem] overflow-hidden">
+        <Table>
+          <TableHeader className="bg-zinc-50/50">
+            <TableRow className="border-zinc-100 hover:bg-transparent">
+              <TableHead className="px-6 py-4 font-semibold text-zinc-900">
+                Name
+              </TableHead>
+              <TableHead className="py-4 font-semibold text-zinc-900">
+                Role
+              </TableHead>
+              <TableHead className="py-4 font-semibold text-zinc-900">
+                Status
+              </TableHead>
+              <TableHead className="px-6 py-4 text-right font-semibold text-zinc-900">
+                Actions
+              </TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {filteredUsers.length === 0 ? (
+              <TableRow>
+                <TableCell
+                  colSpan={4}
+                  className="h-32 text-center text-zinc-500"
+                >
+                  No users found matching "{search}"
+                </TableCell>
+              </TableRow>
+            ) : (
+              filteredUsers.map((user) => (
+                <TableRow key={user.id} className="border-zinc-100">
+                  <TableCell className="px-6 py-4">
+                    <div className="font-medium text-zinc-900">{user.name}</div>
+                    <div className="text-sm text-zinc-500">{user.email}</div>
+                  </TableCell>
+                  <TableCell className="py-4">
+                    <Badge
+                      variant={user.role === "Admin" ? "default" : "secondary"}
+                      className="rounded-lg"
+                    >
+                      {user.role}
+                    </Badge>
+                  </TableCell>
+                  <TableCell className="py-4">
+                    <div className="flex items-center gap-2">
+                      <div
+                        className={`size-2 rounded-full ${user.status === "Active" ? "bg-emerald-500" : "bg-zinc-300"}`}
+                      />
+                      <span className="text-sm text-zinc-600">
+                        {user.status}
+                      </span>
+                    </div>
+                  </TableCell>
+                  <TableCell className="px-6 py-4 text-right">
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button
+                          variant="ghost"
+                          className="size-8 p-0 rounded-lg"
+                        >
+                          <MoreHorizontal size={18} />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent
+                        align="end"
+                        className="rounded-xl w-48"
+                      >
+                        <DropdownMenuLabel>Manage User</DropdownMenuLabel>
+                        <DropdownMenuSeparator />
+
+                        {/* 👉 ADD THIS EDIT BUTTON */}
+                        <DropdownMenuItem
+                          onClick={() => handleOpenEdit(user)}
+                          className="gap-2 cursor-pointer"
+                        >
+                          <Edit size={16} className="text-zinc-500" />
+                          Edit Details
+                        </DropdownMenuItem>
+
+                        <DropdownMenuItem
+                          onClick={() => {
+                            setSelectedUser(user);
+                            setActionType("reset");
+                          }}
+                          className="gap-2 cursor-pointer"
+                        >
+                          <KeyRound size={16} className="text-zinc-500" />
+                          Reset Password
+                        </DropdownMenuItem>
+                        <DropdownMenuItem
+                          onClick={() => {
+                            setSelectedUser(user);
+                            setActionType("delete");
+                          }}
+                          className="gap-2 cursor-pointer text-red-600 focus:text-red-600 focus:bg-red-50"
+                        >
+                          <Trash2 size={16} />
+                          Delete Account
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  </TableCell>
+                </TableRow>
+              ))
+            )}
+          </TableBody>
+        </Table>
+      </div>
+
+      {/* --- SIDEBARS (SHEETS) --- */}
+
+      {/* 3. Edit User Sheet */}
+      <Sheet open={isEditOpen} onOpenChange={setIsEditOpen}>
+        <SheetContent className="sm:max-w-md border-l border-zinc-200 p-6 flex flex-col h-full">
+          <SheetHeader className="pb-4">
+            <SheetTitle>Edit User Profile</SheetTitle>
+            <SheetDescription>
+              Update staff role designations or name modifications.
+            </SheetDescription>
+          </SheetHeader>
+
+          <div className="flex-1 space-y-4 py-4">
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-zinc-700">
+                Full Name
+              </label>
+              <Input
+                placeholder="John Doe"
+                className="rounded-xl h-11"
+                value={editName}
+                onChange={(e) => setEditName(e.target.value)}
+                disabled={isPending}
+              />
+            </div>
+
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-zinc-700">
+                Email Address
+              </label>
+              <Input
+                type="email"
+                placeholder="john@providenceauto.co.uk"
+                className="rounded-xl h-11"
+                value={editEmail}
+                onChange={(e) => setEditEmail(e.target.value)}
+                disabled={isPending}
+                autoComplete="email"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-zinc-700">
+                System Role
+              </label>
+              <Select
+                value={editRole}
+                onValueChange={(val: any) => setEditRole(val)}
+                disabled={isPending}
+              >
+                <SelectTrigger className="rounded-xl h-11">
+                  <SelectValue placeholder="Select a role" />
+                </SelectTrigger>
+                <SelectContent className="rounded-xl">
+                  <SelectItem value="Admin">Admin</SelectItem>
+                  <SelectItem value="Sales">Sales</SelectItem>
+                  <SelectItem value="Staff">Staff</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+
+          <SheetFooter className="pt-4 border-t border-zinc-100">
+            <Button
+              className="w-full rounded-xl h-11"
+              onClick={handleUpdateUser}
+              disabled={isPending}
+            >
+              {isPending ? (
+                <Loader2 className="animate-spin" size={18} />
+              ) : (
+                "Save Changes"
+              )}
+            </Button>
+          </SheetFooter>
+        </SheetContent>
+      </Sheet>
+
+      {/* 1. Create User Sheet */}
+      <Sheet open={isCreateOpen} onOpenChange={setIsCreateOpen}>
+        <SheetContent className="sm:max-w-md border-l border-zinc-200 p-6 flex flex-col h-full">
+          <SheetHeader className="pb-4">
+            <SheetTitle>Add New User</SheetTitle>
+            <SheetDescription>
+              Create a new staff or admin account. They will receive an email to
+              set their password.
+            </SheetDescription>
+          </SheetHeader>
+
+          {/* Added flex-1 to push the footer to the bottom gracefully */}
+          <div className="flex-1 space-y-4 py-4">
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-zinc-700">
+                Full Name
+              </label>
+              <Input
+                placeholder="John Doe"
+                className="rounded-xl h-11"
+                value={newName}
+                onChange={(e) => setNewName(e.target.value)}
+                disabled={isPending}
+              />
+            </div>
+
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-zinc-700">
+                Email Address
+              </label>
+              <Input
+                type="email"
+                placeholder="john@providenceauto.co.uk"
+                className="rounded-xl h-11"
+                value={newEmail}
+                onChange={(e) => setNewEmail(e.target.value)}
+                disabled={isPending}
+                autoComplete="email" // Helps browsers not trip over autofill
+              />
+            </div>
+
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-zinc-700">
+                System Role
+              </label>
+              <Select
+                value={newRole}
+                onValueChange={setNewRole}
+                disabled={isPending}
+              >
+                <SelectTrigger className="rounded-xl h-11">
+                  <SelectValue placeholder="Select a role" />
+                </SelectTrigger>
+                <SelectContent className="rounded-xl">
+                  <SelectItem value="Admin">Admin</SelectItem>
+                  <SelectItem value="Sales">Sales</SelectItem>
+                  <SelectItem value="Staff">Staff</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+
+          {/* Footer with padding to distance itself from the bottom edges */}
+          <SheetFooter className="pt-4 border-t border-zinc-100">
+            <Button
+              className="w-full rounded-xl h-11"
+              onClick={handleCreateUser}
+              disabled={isPending}
+            >
+              {isPending ? (
+                <Loader2 className="animate-spin" size={18} />
+              ) : (
+                "Create Account"
+              )}
+            </Button>
+          </SheetFooter>
+        </SheetContent>
+      </Sheet>
+
+      {/* 2. Reset Password & Delete User Sheet (Dynamic) */}
+      <Sheet
+        open={!!selectedUser}
+        onOpenChange={(open: any) => !open && closeActionSheet()}
+      >
+        <SheetContent className="sm:max-w-md border-l border-zinc-200">
+          <SheetHeader>
+            <SheetTitle>
+              {actionType === "reset" ? "Reset Password" : "Delete Account"}
+            </SheetTitle>
+            <SheetDescription>
+              {actionType === "reset"
+                ? `Generate a secure password reset link for ${selectedUser?.name}.`
+                : `Are you sure you want to permanently delete ${selectedUser?.name}? This action cannot be undone.`}
+            </SheetDescription>
+          </SheetHeader>
+
+          <div className="py-6">
+            {actionType === "reset" && (
+              <div className="p-4 bg-zinc-50 rounded-2xl border border-zinc-100 flex items-start gap-3">
+                <ShieldAlert
+                  className="text-amber-500 shrink-0 mt-0.5"
+                  size={18}
+                />
+                <p className="text-sm text-zinc-600">
+                  This will invalidate their current session immediately. A
+                  reset link will be sent to{" "}
+                  <strong>{selectedUser?.email}</strong>.
+                </p>
+              </div>
+            )}
+
+            {actionType === "delete" && (
+              <div className="p-4 bg-red-50 rounded-2xl border border-red-100 text-red-600 flex items-start gap-3">
+                <Trash2 className="shrink-0 mt-0.5" size={18} />
+                <p className="text-sm">
+                  All data associated with{" "}
+                  <strong>{selectedUser?.email}</strong> will be wiped. Proceed
+                  with extreme caution.
+                </p>
+              </div>
+            )}
+          </div>
+
+          <SheetFooter>
+            <Button
+              variant={actionType === "delete" ? "destructive" : "default"}
+              className="w-full rounded-xl"
+              onClick={
+                actionType === "delete" ? handleDeleteUser : handleResetPassword
+              }
+              disabled={isPending}
+            >
+              {isPending ? (
+                <Loader2 className="animate-spin" size={18} />
+              ) : actionType === "delete" ? (
+                "Confirm Deletion"
+              ) : (
+                "Send Reset Link"
+              )}
+            </Button>
+          </SheetFooter>
+        </SheetContent>
+      </Sheet>
+    </div>
+  );
 }

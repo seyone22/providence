@@ -1,8 +1,8 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { getPost, getAllSlugs } from "@/config/blog";
-import { getBody } from "@/content/blog";
 import ArticleShell from "@/components/blog/ArticleShell";
+import { getAllSlugs, getPost } from "@/config/blog";
+import { getBody } from "@/content/blog";
 
 const SITE = "https://www.providenceauto.co.uk";
 
@@ -97,7 +97,12 @@ export default async function BlogPostPage({
     "@type": "BreadcrumbList",
     itemListElement: [
       { "@type": "ListItem", position: 1, name: "Home", item: `${SITE}/` },
-      { "@type": "ListItem", position: 2, name: "Guides", item: `${SITE}/blog` },
+      {
+        "@type": "ListItem",
+        position: 2,
+        name: "Guides",
+        item: `${SITE}/blog`,
+      },
       { "@type": "ListItem", position: 3, name: post.title, item: url },
     ],
   };

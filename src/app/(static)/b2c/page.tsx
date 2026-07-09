@@ -1,190 +1,238 @@
 "use client";
 
+import { ArrowRight, Compass, Landmark, ShieldCheck, Ship } from "lucide-react";
 import { Suspense } from "react";
-import MinimalHeader from "@/components/MinimalHeader";
-import { Landmark, Compass, Ship, ShieldCheck, ArrowRight } from "lucide-react";
-import { Reveal } from "@/components/Reveal";
-import GradientMesh from "@/components/GradientMesh";
-import RequestForm from "@/components/requestForm";
 import FAQSection from "@/components/faqSection";
+import GradientMesh from "@/components/GradientMesh";
+import MinimalHeader from "@/components/MinimalHeader";
+import { Reveal } from "@/components/Reveal";
+import RequestForm from "@/components/requestForm";
 
 export default function B2CLanding() {
-    return (
-        <main className="min-h-screen bg-white text-black selection:bg-black/10 selection:text-black font-sans overflow-x-hidden">
-            <MinimalHeader />
+  return (
+    <main className="min-h-screen bg-white text-black selection:bg-black/10 selection:text-black font-sans overflow-x-hidden">
+      <MinimalHeader />
 
-            <section className="relative min-h-screen flex flex-col justify-center items-start px-6 pt-20 bg-white overflow-hidden">
-                <GradientMesh image="https://images.unsplash.com/photo-1614162692292-7ac56d7f7f1e?q=80&w=3000&auto=format&fit=cover" />
+      <section className="relative min-h-screen flex flex-col justify-center items-start px-6 pt-20 bg-white overflow-hidden">
+        <GradientMesh image="https://images.unsplash.com/photo-1614162692292-7ac56d7f7f1e?q=80&w=3000&auto=format&fit=cover" />
 
-                <div className="relative z-10 text-center max-w-5xl mx-auto flex flex-col items-center mt-0">
-                    <Reveal
-                        immediate
-                        as="p"
-                        y={20}
-                        delay={0.2}
-                        duration={0.8}
-                        className="text-sm font-bold tracking-[0.4em] text-zinc-500 uppercase mb-8"
-                    >
-                        Direct Import Network
-                    </Reveal>
-                    <Reveal
-                        immediate
-                        as="h1"
-                        y={30}
-                        scale={0.95}
-                        delay={0.3}
-                        duration={1}
-                        className="pa-headline-gradient text-4xl md:text-8xl lg:text-12xl font-bold tracking-tighter mb-6 leading-[1.1] drop-shadow-[0_0_15px_rgba(255,255,255,1)]"
-                    >
-                        The Global<br/> Shortcut to <br/>Your Dream Car.
-                    </Reveal>
-                    <Reveal
-                        immediate
-                        as="p"
-                        y={20}
-                        delay={0.5}
-                        duration={0.8}
-                        className="text-xl md:text-3xl text-zinc-600 font-medium tracking-tight mb-12 max-w-2xl drop-shadow-[0_0_10px_rgba(255,255,255,1)]"
-                    >
-                        Don't settle for what's on the lot.
-                    </Reveal>
-                    <Reveal
-                        immediate
-                        y={20}
-                        delay={0.6}
-                        duration={0.8}
-                    >
-                        <a href="#inquiry" className="group relative inline-flex items-center justify-center px-10 py-5 text-lg font-bold  text-white bg-black rounded-full overflow-hidden transition-transform hover:scale-105 shadow-[0_10px_40px_rgba(0,0,0,0.1)]">
-                            <span className="relative z-10 flex items-center gap-2">
-                                Begin Your Inquiry <ArrowRight size={18} className="group-hover:translate-x-1 transition-transform" />
-                            </span>
-                        </a>
-                    </Reveal>
-                </div>
-            </section>
+        <div className="relative z-10 text-center max-w-5xl mx-auto flex flex-col items-center mt-0">
+          <Reveal
+            immediate
+            as="p"
+            y={20}
+            delay={0.2}
+            duration={0.8}
+            className="text-sm font-bold tracking-[0.4em] text-zinc-500 uppercase mb-8"
+          >
+            Direct Import Network
+          </Reveal>
+          <Reveal
+            immediate
+            as="h1"
+            y={30}
+            scale={0.95}
+            delay={0.3}
+            duration={1}
+            className="pa-headline-gradient text-4xl md:text-8xl lg:text-12xl font-bold tracking-tighter mb-6 leading-[1.1] drop-shadow-[0_0_15px_rgba(255,255,255,1)]"
+          >
+            The Global
+            <br /> Shortcut to <br />
+            Your Dream Car.
+          </Reveal>
+          <Reveal
+            immediate
+            as="p"
+            y={20}
+            delay={0.5}
+            duration={0.8}
+            className="text-xl md:text-3xl text-zinc-600 font-medium tracking-tight mb-12 max-w-2xl drop-shadow-[0_0_10px_rgba(255,255,255,1)]"
+          >
+            Don't settle for what's on the lot.
+          </Reveal>
+          <Reveal immediate y={20} delay={0.6} duration={0.8}>
+            <a
+              href="#inquiry"
+              className="group relative inline-flex items-center justify-center px-10 py-5 text-lg font-bold  text-white bg-black rounded-full overflow-hidden transition-transform hover:scale-105 shadow-[0_10px_40px_rgba(0,0,0,0.1)]"
+            >
+              <span className="relative z-10 flex items-center gap-2">
+                Begin Your Inquiry{" "}
+                <ArrowRight
+                  size={18}
+                  className="group-hover:translate-x-1 transition-transform"
+                />
+              </span>
+            </a>
+          </Reveal>
+        </div>
+      </section>
 
-            <section className="py-32 md:py-48 px-6 bg-white border-y border-black/5 relative z-10 overflow-hidden">
-                <div className="max-w-5xl mx-auto text-center">
-                    <Reveal
-                        as="p"
-                        className="text-3xl md:text-5xl lg:text-6xl font-medium tracking-tight leading-tight text-zinc-400"
-                    >
-                        For the last 15 years, we’ve supplied the top car dealers in your country. For the first time ever, we are <span className="text-black drop-shadow-sm">cutting out the middleman</span> and offering our global sourcing network <span className="text-black drop-shadow-sm">directly to you</span>.
-                    </Reveal>
-                </div>
-            </section>
+      <section className="py-32 md:py-48 px-6 bg-white border-y border-black/5 relative z-10 overflow-hidden">
+        <div className="max-w-5xl mx-auto text-center">
+          <Reveal
+            as="p"
+            className="text-3xl md:text-5xl lg:text-6xl font-medium tracking-tight leading-tight text-zinc-400"
+          >
+            For the last 15 years, we’ve supplied the top car dealers in your
+            country. For the first time ever, we are{" "}
+            <span className="text-black drop-shadow-sm">
+              cutting out the middleman
+            </span>{" "}
+            and offering our global sourcing network{" "}
+            <span className="text-black drop-shadow-sm">directly to you</span>.
+          </Reveal>
+        </div>
+      </section>
 
-            <section className="py-32 px-6 max-w-7xl mx-auto bg-white relative z-10">
-                <Reveal y={40} duration={0.8} className="text-center mb-24">
-                    <h2 className="text-4xl md:text-6xl font-bold tracking-tighter text-black mb-6">
-                        Never compromise again.
-                    </h2>
-                    <p className="text-xl text-zinc-500 max-w-2xl mx-auto font-light">
-                        We are industry experts. We know exactly where to source your desired vehicle for the cheapest price, with the exact specifications you demand.
-                    </p>
-                </Reveal>
+      <section className="py-32 px-6 max-w-7xl mx-auto bg-white relative z-10">
+        <Reveal y={40} duration={0.8} className="text-center mb-24">
+          <h2 className="text-4xl md:text-6xl font-bold tracking-tighter text-black mb-6">
+            Never compromise again.
+          </h2>
+          <p className="text-xl text-zinc-500 max-w-2xl mx-auto font-light">
+            We are industry experts. We know exactly where to source your
+            desired vehicle for the cheapest price, with the exact
+            specifications you demand.
+          </p>
+        </Reveal>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-16">
-                    {[
-                        { icon: Compass, title: "Currency & Market Optimization", desc: "We don't just find the car; we analyze global markets to optimize currency conversions, ensuring you buy from the most financially efficient country at that exact moment.", glowColor: "group-hover:bg-blue-500/15" },
-                        { icon: Landmark, title: "Mastery of Tax Law", desc: "Importing luxury vehicles requires navigating complex tax codes. We know every loophole, tariff, and regulation to legally minimize your import duties.", glowColor: "group-hover:bg-emerald-500/15" },
-                        { icon: Ship, title: "White-Glove Logistics", desc: "From the showroom floor in Germany to your driveway. We handle every single form, marine insurance policy, and freight mile for you. Zero friction.", glowColor: "group-hover:bg-indigo-500/15" },
-                        { icon: ShieldCheck, title: "15 Years of Heritage", desc: "We aren't a startup guessing how to ship cars. We have over a decade of established infrastructure, delivering the most reliable service in the industry.", glowColor: "group-hover:bg-amber-500/15" }
-                    ].map((feature, index) => (
-                        <Reveal
-                            key={index}
-                            y={40}
-                            scale={0.95}
-                            delay={index * 0.1}
-                            duration={0.8}
-                            className="relative overflow-hidden group flex flex-col items-start p-8 rounded-[2rem] bg-transparent hover:bg-zinc-50 transition-all duration-500 border border-transparent hover:border-black/5 hover:shadow-[0_20px_40px_rgba(0,0,0,0.04)]"
-                        >
-                            <div className={`absolute -bottom-24 -right-24 w-64 h-64 rounded-full blur-[80px] bg-transparent transition-colors duration-700 ${feature.glowColor}`} />
-                            <div className="relative z-10">
-                                <div className="p-4 bg-black/5 border border-black/10 rounded-2xl mb-6 inline-flex group-hover:bg-sky-500 group-hover:border-sky-500 transition-colors duration-500">
-                                    <feature.icon className="text-sky-500 h-8 w-8 group-hover:text-white transition-colors duration-500" />
-                                </div>
-
-                                <h3 className="text-2xl font-bold text-black mb-4 group-hover:text-sky-500 transition-colors duration-500">
-                                    {feature.title}
-                                </h3>
-
-                                <p className="text-zinc-500 text-lg leading-relaxed font-light">
-                                    {feature.desc}
-                                </p>
-                            </div>
-                        </Reveal>
-                    ))}
-                </div>
-            </section>
-
-            {/*/!* Gallery Promo Section *!/*/}
-            {/*<section className="py-16 px-6 max-w-7xl mx-auto bg-white relative z-10">*/}
-            {/*    <motion.div*/}
-            {/*        initial={{ y: 40, opacity: 0, scale: 0.98 }}*/}
-            {/*        whileInView={{ y: 0, opacity: 1, scale: 1 }}*/}
-            {/*        viewport={{ once: true, margin: "-100px" }}*/}
-            {/*        transition={{ duration: 0.8, ease: appleEase }}*/}
-            {/*    >*/}
-            {/*        <Link href="/b2c/gallery" className="group relative block w-full overflow-hidden rounded-[2.5rem] bg-black min-h-[400px] md:min-h-[500px]">*/}
-            {/*            <img*/}
-            {/*                src="https://images.unsplash.com/photo-1603584173870-7f23fdae1b7a?q=80&w=2938&auto=format&fit=crop"*/}
-            {/*                alt="The Providence Gallery"*/}
-            {/*                className="absolute inset-0 w-full h-full object-cover opacity-60 group-hover:scale-105 transition-transform duration-[1.5s] ease-out"*/}
-            {/*            />*/}
-            {/*            <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/30 to-transparent" />*/}
-
-            {/*            <div className="absolute inset-0 p-8 md:p-16 flex flex-col justify-end">*/}
-            {/*                <div className="flex flex-col md:flex-row md:items-end justify-between gap-8">*/}
-            {/*                    <div className="max-w-2xl">*/}
-            {/*                        <div className="flex items-center gap-3 mb-4">*/}
-            {/*                            <Images className="text-white/70 h-6 w-6" />*/}
-            {/*                            <span className="text-white/70 font-bold tracking-[0.2em] uppercase text-sm">Portfolio</span>*/}
-            {/*                        </div>*/}
-            {/*                        <h2 className="text-4xl md:text-5xl lg:text-6xl font-bold tracking-tighter text-white mb-4">*/}
-            {/*                            The Gallery.*/}
-            {/*                        </h2>*/}
-            {/*                        <p className="text-lg md:text-xl text-zinc-300 font-light">*/}
-            {/*                            Explore our collection of curated, globally-sourced vehicles successfully delivered to our clients.*/}
-            {/*                        </p>*/}
-            {/*                    </div>*/}
-
-            {/*                    <div className="shrink-0 inline-flex items-center justify-center px-8 py-4 text-base font-bold text-black bg-white rounded-full transition-transform group-hover:scale-105">*/}
-            {/*                        <span className="flex items-center gap-2">*/}
-            {/*                            View Collection <ArrowRight size={18} className="group-hover:translate-x-1 transition-transform" />*/}
-            {/*                        </span>*/}
-            {/*                    </div>*/}
-            {/*                </div>*/}
-            {/*            </div>*/}
-            {/*        </Link>*/}
-            {/*    </motion.div>*/}
-            {/*</section>*/}
-
-            <section id="inquiry" className="py-32 px-6 relative flex flex-col justify-center items-center bg-zinc-50 border-t border-black/5 z-10 overflow-hidden">
-                <Reveal y={40} duration={1} className="relative z-10 text-center max-w-4xl mx-auto mb-16">
-                    <h2 className="text-4xl md:text-5xl lg:text-6xl font-bold tracking-tighter text-black mb-6">
-                        Tell us exactly what you want.
-                    </h2>
-                    <p className="text-xl md:text-2xl text-zinc-500 font-light max-w-2xl mx-auto">
-                        Like a <span className="text-black font-medium">2023 Defender in Fuji White</span>. Our team will find that version in the global markets where it costs you the least.
-                    </p>
-                </Reveal>
-
-                <div className="w-full relative z-20">
-                    <Suspense fallback={
-                        <div className="w-full max-w-3xl mx-auto h-[550px] flex items-center justify-center bg-white/80 backdrop-blur-xl rounded-[2.5rem] border border-black/5 text-zinc-500">
-                            Loading form...
-                        </div>
-                    }>
-                        <RequestForm />
-                    </Suspense>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-16">
+          {[
+            {
+              icon: Compass,
+              title: "Currency & Market Optimization",
+              desc: "We don't just find the car; we analyze global markets to optimize currency conversions, ensuring you buy from the most financially efficient country at that exact moment.",
+              glowColor: "group-hover:bg-blue-500/15",
+            },
+            {
+              icon: Landmark,
+              title: "Mastery of Tax Law",
+              desc: "Importing luxury vehicles requires navigating complex tax codes. We know every loophole, tariff, and regulation to legally minimize your import duties.",
+              glowColor: "group-hover:bg-emerald-500/15",
+            },
+            {
+              icon: Ship,
+              title: "White-Glove Logistics",
+              desc: "From the showroom floor in Germany to your driveway. We handle every single form, marine insurance policy, and freight mile for you. Zero friction.",
+              glowColor: "group-hover:bg-indigo-500/15",
+            },
+            {
+              icon: ShieldCheck,
+              title: "15 Years of Heritage",
+              desc: "We aren't a startup guessing how to ship cars. We have over a decade of established infrastructure, delivering the most reliable service in the industry.",
+              glowColor: "group-hover:bg-amber-500/15",
+            },
+          ].map((feature, index) => (
+            <Reveal
+              key={index}
+              y={40}
+              scale={0.95}
+              delay={index * 0.1}
+              duration={0.8}
+              className="relative overflow-hidden group flex flex-col items-start p-8 rounded-[2rem] bg-transparent hover:bg-zinc-50 transition-all duration-500 border border-transparent hover:border-black/5 hover:shadow-[0_20px_40px_rgba(0,0,0,0.04)]"
+            >
+              <div
+                className={`absolute -bottom-24 -right-24 w-64 h-64 rounded-full blur-[80px] bg-transparent transition-colors duration-700 ${feature.glowColor}`}
+              />
+              <div className="relative z-10">
+                <div className="p-4 bg-black/5 border border-black/10 rounded-2xl mb-6 inline-flex group-hover:bg-sky-500 group-hover:border-sky-500 transition-colors duration-500">
+                  <feature.icon className="text-sky-500 h-8 w-8 group-hover:text-white transition-colors duration-500" />
                 </div>
 
-                {/* FAQs Section */}
-                <FAQSection/>
+                <h3 className="text-2xl font-bold text-black mb-4 group-hover:text-sky-500 transition-colors duration-500">
+                  {feature.title}
+                </h3>
 
-                <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-[800px] h-[400px] bg-black/5 blur-[120px] rounded-full pointer-events-none" />
-            </section>
-        </main>
-    );
+                <p className="text-zinc-500 text-lg leading-relaxed font-light">
+                  {feature.desc}
+                </p>
+              </div>
+            </Reveal>
+          ))}
+        </div>
+      </section>
+
+      {/*/!* Gallery Promo Section *!/*/}
+      {/*<section className="py-16 px-6 max-w-7xl mx-auto bg-white relative z-10">*/}
+      {/*    <motion.div*/}
+      {/*        initial={{ y: 40, opacity: 0, scale: 0.98 }}*/}
+      {/*        whileInView={{ y: 0, opacity: 1, scale: 1 }}*/}
+      {/*        viewport={{ once: true, margin: "-100px" }}*/}
+      {/*        transition={{ duration: 0.8, ease: appleEase }}*/}
+      {/*    >*/}
+      {/*        <Link href="/b2c/gallery" className="group relative block w-full overflow-hidden rounded-[2.5rem] bg-black min-h-[400px] md:min-h-[500px]">*/}
+      {/*            <img*/}
+      {/*                src="https://images.unsplash.com/photo-1603584173870-7f23fdae1b7a?q=80&w=2938&auto=format&fit=crop"*/}
+      {/*                alt="The Providence Gallery"*/}
+      {/*                className="absolute inset-0 w-full h-full object-cover opacity-60 group-hover:scale-105 transition-transform duration-[1.5s] ease-out"*/}
+      {/*            />*/}
+      {/*            <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/30 to-transparent" />*/}
+
+      {/*            <div className="absolute inset-0 p-8 md:p-16 flex flex-col justify-end">*/}
+      {/*                <div className="flex flex-col md:flex-row md:items-end justify-between gap-8">*/}
+      {/*                    <div className="max-w-2xl">*/}
+      {/*                        <div className="flex items-center gap-3 mb-4">*/}
+      {/*                            <Images className="text-white/70 h-6 w-6" />*/}
+      {/*                            <span className="text-white/70 font-bold tracking-[0.2em] uppercase text-sm">Portfolio</span>*/}
+      {/*                        </div>*/}
+      {/*                        <h2 className="text-4xl md:text-5xl lg:text-6xl font-bold tracking-tighter text-white mb-4">*/}
+      {/*                            The Gallery.*/}
+      {/*                        </h2>*/}
+      {/*                        <p className="text-lg md:text-xl text-zinc-300 font-light">*/}
+      {/*                            Explore our collection of curated, globally-sourced vehicles successfully delivered to our clients.*/}
+      {/*                        </p>*/}
+      {/*                    </div>*/}
+
+      {/*                    <div className="shrink-0 inline-flex items-center justify-center px-8 py-4 text-base font-bold text-black bg-white rounded-full transition-transform group-hover:scale-105">*/}
+      {/*                        <span className="flex items-center gap-2">*/}
+      {/*                            View Collection <ArrowRight size={18} className="group-hover:translate-x-1 transition-transform" />*/}
+      {/*                        </span>*/}
+      {/*                    </div>*/}
+      {/*                </div>*/}
+      {/*            </div>*/}
+      {/*        </Link>*/}
+      {/*    </motion.div>*/}
+      {/*</section>*/}
+
+      <section
+        id="inquiry"
+        className="py-32 px-6 relative flex flex-col justify-center items-center bg-zinc-50 border-t border-black/5 z-10 overflow-hidden"
+      >
+        <Reveal
+          y={40}
+          duration={1}
+          className="relative z-10 text-center max-w-4xl mx-auto mb-16"
+        >
+          <h2 className="text-4xl md:text-5xl lg:text-6xl font-bold tracking-tighter text-black mb-6">
+            Tell us exactly what you want.
+          </h2>
+          <p className="text-xl md:text-2xl text-zinc-500 font-light max-w-2xl mx-auto">
+            Like a{" "}
+            <span className="text-black font-medium">
+              2023 Defender in Fuji White
+            </span>
+            . Our team will find that version in the global markets where it
+            costs you the least.
+          </p>
+        </Reveal>
+
+        <div className="w-full relative z-20">
+          <Suspense
+            fallback={
+              <div className="w-full max-w-3xl mx-auto h-[550px] flex items-center justify-center bg-white/80 backdrop-blur-xl rounded-[2.5rem] border border-black/5 text-zinc-500">
+                Loading form...
+              </div>
+            }
+          >
+            <RequestForm />
+          </Suspense>
+        </div>
+
+        {/* FAQs Section */}
+        <FAQSection />
+
+        <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-[800px] h-[400px] bg-black/5 blur-[120px] rounded-full pointer-events-none" />
+      </section>
+    </main>
+  );
 }

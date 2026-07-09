@@ -1,14 +1,14 @@
-import type { ReactNode } from "react";
 import { Clock } from "lucide-react";
-import MinimalHeader from "@/components/MinimalHeader";
+import type { ReactNode } from "react";
 import FAQSection from "@/components/faqSection";
+import MinimalHeader from "@/components/MinimalHeader";
 import { Reveal } from "@/components/Reveal";
 import type { BlogPost } from "@/config/blog";
 import { BLOG_BASE_PATH } from "@/config/blog";
-import Breadcrumbs from "./Breadcrumbs";
-import TableOfContents from "./TableOfContents";
-import RelatedPosts from "./RelatedPosts";
 import BlogCTA from "./BlogCTA";
+import Breadcrumbs from "./Breadcrumbs";
+import RelatedPosts from "./RelatedPosts";
+import TableOfContents from "./TableOfContents";
 
 function formatDate(iso: string) {
   return new Intl.DateTimeFormat("en-IE", {

@@ -11,5 +11,5 @@ import type { ReactNode } from "react";
  * animations that are not wrapped by <Reveal>.
  */
 export default function MotionProvider({ children }: { children: ReactNode }) {
-    return <MotionConfig reducedMotion="user">{children}</MotionConfig>;
+  return <MotionConfig reducedMotion="user">{children}</MotionConfig>;
 }

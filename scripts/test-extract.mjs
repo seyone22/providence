@@ -88,7 +88,12 @@ async function main() {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         contents: [
-          { parts: [{ text: PROMPT }, { inlineData: { mimeType, data: dataBase64 } }] },
+          {
+            parts: [
+              { text: PROMPT },
+              { inlineData: { mimeType, data: dataBase64 } },
+            ],
+          },
         ],
         generationConfig: {
           temperature: 0,
@@ -111,7 +116,9 @@ async function main() {
     parsed.mileageMiles = Math.round(parsed.mileageKm * 0.621371);
   }
 
-  console.log(`\n✓ Extracted in ${((Date.now() - t0) / 1000).toFixed(1)}s · ${json.usageMetadata?.totalTokenCount ?? "?"} tokens\n`);
+  console.log(
+    `\n✓ Extracted in ${((Date.now() - t0) / 1000).toFixed(1)}s · ${json.usageMetadata?.totalTokenCount ?? "?"} tokens\n`,
+  );
   console.log(JSON.stringify(parsed, null, 2));
 }
 

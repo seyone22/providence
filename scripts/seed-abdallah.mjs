@@ -30,7 +30,9 @@ const USER_NAME = nameArg ? nameArg.split("=")[1] : "Abdallah";
 
 const uri = process.env.MONGODB_URI;
 if (!uri) {
-  console.error("Missing MONGODB_URI. Run with: node --env-file=.env.local scripts/seed-abdallah.mjs");
+  console.error(
+    "Missing MONGODB_URI. Run with: node --env-file=.env.local scripts/seed-abdallah.mjs",
+  );
   process.exit(1);
 }
 
@@ -53,16 +55,48 @@ const CONTENT = {
   whatsappNumber: "", // ⚠️ set Abdallah's real WhatsApp number before publish
   photoUrl: "", // ⚠️ upload a portrait via the editor
   expertise: [
-    { icon: "FileSearch", title: "Auction-Sheet Literacy", desc: "I read Japanese auction grade sheets daily and translate what they actually mean for you — grade, repair history, the notes other importers skim past." },
-    { icon: "Handshake", title: "Straight-Talk Negotiation", desc: "I bid with your ceiling, not mine. If the car runs past its value, I let it go and find the next one — there is always a next one." },
-    { icon: "Landmark", title: "Landed-Cost Clarity", desc: "One all-in figure — car, freight, insurance, duty and VAT — before you commit a penny. The price I quote is the price you pay." },
-    { icon: "Ship", title: "Door-to-Door Ownership", desc: "I stay on your file through shipping, customs and registration. You get milestone updates from me, not a tracking portal." },
+    {
+      icon: "FileSearch",
+      title: "Auction-Sheet Literacy",
+      desc: "I read Japanese auction grade sheets daily and translate what they actually mean for you — grade, repair history, the notes other importers skim past.",
+    },
+    {
+      icon: "Handshake",
+      title: "Straight-Talk Negotiation",
+      desc: "I bid with your ceiling, not mine. If the car runs past its value, I let it go and find the next one — there is always a next one.",
+    },
+    {
+      icon: "Landmark",
+      title: "Landed-Cost Clarity",
+      desc: "One all-in figure — car, freight, insurance, duty and VAT — before you commit a penny. The price I quote is the price you pay.",
+    },
+    {
+      icon: "Ship",
+      title: "Door-to-Door Ownership",
+      desc: "I stay on your file through shipping, customs and registration. You get milestone updates from me, not a tracking portal.",
+    },
   ],
   sourcingCountries: [
-    { country: "Japan", flag: "🇯🇵", note: "Grade-verified auction cars — my home turf. Low mileage, honest history, wholesale pricing." },
-    { country: "India", flag: "🇮🇳", note: "Factory-fresh value through Providence's direct dealer network — the same badges for ~30% less." },
-    { country: "United Kingdom", flag: "🇬🇧", note: "Right-hand-drive stock and UK-market specials, sourced and inspected before export." },
-    { country: "UAE", flag: "🇦🇪", note: "GCC-spec cars and re-exports through Dubai's trade hubs." },
+    {
+      country: "Japan",
+      flag: "🇯🇵",
+      note: "Grade-verified auction cars — my home turf. Low mileage, honest history, wholesale pricing.",
+    },
+    {
+      country: "India",
+      flag: "🇮🇳",
+      note: "Factory-fresh value through Providence's direct dealer network — the same badges for ~30% less.",
+    },
+    {
+      country: "United Kingdom",
+      flag: "🇬🇧",
+      note: "Right-hand-drive stock and UK-market specials, sourced and inspected before export.",
+    },
+    {
+      country: "UAE",
+      flag: "🇦🇪",
+      note: "GCC-spec cars and re-exports through Dubai's trade hubs.",
+    },
   ],
   trackRecord: [
     { value: "120+", label: "cars delivered" },
@@ -70,9 +104,24 @@ const CONTENT = {
     { value: "< 1 hr", label: "avg. first response" },
   ],
   testimonials: [
-    { name: "Omar R.", title: "He talked me out of the first car.", rating: 5, text: "The auction grade looked fine to me, but Abdallah spotted repair notes on the sheet and refused to bid. The car he found a week later was better and cheaper. That's whose hands you want your money in." },
-    { name: "Ciara N.", title: "One person, start to finish.", rating: 5, text: "Every question — shipping, VAT, registration in Ireland — answered by the same person on WhatsApp, usually in minutes. My Swace landed exactly on the quoted price." },
-    { name: "Yusuf A.", title: "Felt like having a friend in the trade.", rating: 5, text: "Abdallah sent me videos from the yard before shipping and flagged a scratch I'd never have seen. Second car already on the way." },
+    {
+      name: "Omar R.",
+      title: "He talked me out of the first car.",
+      rating: 5,
+      text: "The auction grade looked fine to me, but Abdallah spotted repair notes on the sheet and refused to bid. The car he found a week later was better and cheaper. That's whose hands you want your money in.",
+    },
+    {
+      name: "Ciara N.",
+      title: "One person, start to finish.",
+      rating: 5,
+      text: "Every question — shipping, VAT, registration in Ireland — answered by the same person on WhatsApp, usually in minutes. My Swace landed exactly on the quoted price.",
+    },
+    {
+      name: "Yusuf A.",
+      title: "Felt like having a friend in the trade.",
+      rating: 5,
+      text: "Abdallah sent me videos from the yard before shipping and flagged a scratch I'd never have seen. Second car already on the way.",
+    },
   ],
 };
 
@@ -102,7 +151,9 @@ async function main() {
       updatedAt: now,
     });
     user = await db.collection("user").findOne({ _id: res.insertedId });
-    console.log(`Provisioned demo Sales user: ${USER_NAME} <${email}> (${res.insertedId})`);
+    console.log(
+      `Provisioned demo Sales user: ${USER_NAME} <${email}> (${res.insertedId})`,
+    );
   }
 
   if (!user) {
@@ -128,7 +179,9 @@ async function main() {
     updatedAt: now,
   };
 
-  const existing = await db.collection("salesprofiles").findOne({ userId: doc.userId });
+  const existing = await db
+    .collection("salesprofiles")
+    .findOne({ userId: doc.userId });
 
   if (existing) {
     // Preserve any vehicles / overrides already curated in the editor.
@@ -142,14 +195,22 @@ async function main() {
         },
       },
     );
-    console.log(`Updated existing profile (${existing._id}). Published: ${existing.isPublished ?? PUBLISH}`);
+    console.log(
+      `Updated existing profile (${existing._id}). Published: ${existing.isPublished ?? PUBLISH}`,
+    );
   } else {
-    const res = await db.collection("salesprofiles").insertOne({ ...doc, createdAt: now });
+    const res = await db
+      .collection("salesprofiles")
+      .insertOne({ ...doc, createdAt: now });
     console.log(`Created profile ${res.insertedId}. Published: ${PUBLISH}`);
   }
 
-  console.log(`\nDone. Review at /admin/my-profile, preview at /team/${CONTENT.slug}.`);
-  console.log("⚠️ Set WhatsApp number, portrait, and real testimonials/figures before promoting.");
+  console.log(
+    `\nDone. Review at /admin/my-profile, preview at /team/${CONTENT.slug}.`,
+  );
+  console.log(
+    "⚠️ Set WhatsApp number, portrait, and real testimonials/figures before promoting.",
+  );
   await client.close();
 }
 

@@ -1,25 +1,25 @@
 import {
-  H2,
-  P,
-  Lead,
-  UL,
-  CheckLI,
-  Strong,
   Callout,
-  KeyTakeaways,
-  Table,
+  CheckLI,
   CostTable,
   Disclaimer,
+  H2,
   InlineLink,
+  KeyTakeaways,
+  Lead,
+  P,
+  Strong,
+  Table,
+  UL,
 } from "@/components/blog/prose";
 
 export default function Body() {
   return (
     <>
       <Lead>
-        &ldquo;Cheap to import&rdquo; isn&rsquo;t about the sticker price abroad —
-        it&rsquo;s about what the car costs once Irish customs, VAT and VRT are
-        paid. These specific models stack every advantage: 0% duty, low VRT
+        &ldquo;Cheap to import&rdquo; isn&rsquo;t about the sticker price abroad
+        — it&rsquo;s about what the car costs once Irish customs, VAT and VRT
+        are paid. These specific models stack every advantage: 0% duty, low VRT
         bands, and genuine value at source.
       </Lead>
 
@@ -47,30 +47,33 @@ export default function Body() {
 
       <H2 id="what-makes-cheap">What makes a car cheap to import</H2>
       <P>
-        Four things decide whether a car lands cheaply in Ireland. Every model on
-        this list ticks all four:
+        Four things decide whether a car lands cheaply in Ireland. Every model
+        on this list ticks all four:
       </P>
       <UL>
         <CheckLI>
-          <Strong>0% customs duty</Strong> — built in Japan (EU–Japan EPA) or the
-          UK (with proof of origin), saving 10% of the landed value.
+          <Strong>0% customs duty</Strong> — built in Japan (EU–Japan EPA) or
+          the UK (with proof of origin), saving 10% of the landed value.
         </CheckLI>
         <CheckLI>
           <Strong>Low CO₂</Strong> — keeps VRT in the 7–14% range instead of
           30–41%. This is the biggest single lever.
         </CheckLI>
         <CheckLI>
-          <Strong>Petrol or hybrid, not diesel</Strong> — avoids the heavy diesel
-          NOx levy (capped at €4,850 vs €600 for petrol).
+          <Strong>Petrol or hybrid, not diesel</Strong> — avoids the heavy
+          diesel NOx levy (capped at €4,850 vs €600 for petrol).
         </CheckLI>
         <CheckLI>
           <Strong>Real value at source</Strong> — Japan&rsquo;s auctions clear
-          low-mileage cars below Irish retail, leaving margin to absorb the taxes.
+          low-mileage cars below Irish retail, leaving margin to absorb the
+          taxes.
         </CheckLI>
       </UL>
       <P>
         If those terms are new to you, start with{" "}
-        <InlineLink href="/blog/vrt-explained-ireland">VRT explained</InlineLink>{" "}
+        <InlineLink href="/blog/vrt-explained-ireland">
+          VRT explained
+        </InlineLink>{" "}
         and{" "}
         <InlineLink href="/blog/cost-of-importing-a-car-to-ireland">
           how much it costs to import a car
@@ -87,14 +90,54 @@ export default function Body() {
       <Table
         head={["Model", "Type", "Indicative VRT", "Why it's cheap"]}
         rows={[
-          ["Toyota Aqua", "Hybrid", "7–9%", "Lowest VRT band; Japan's most abundant hybrid keeps prices low"],
-          ["Suzuki Swift / kei cars", "Petrol", "7–11%", "Very low value + low CO₂ = minimal VRT"],
-          ["Nissan Note e-Power", "Hybrid", "9–11%", "Self-charging, no plug, excellent efficiency"],
-          ["Honda Fit / Jazz hybrid", "Hybrid", "9–12%", "Small, efficient, cheap at auction"],
-          ["Toyota Prius", "Hybrid", "7–9%", "Proven reliability, strong Irish resale demand"],
-          ["Toyota Corolla hybrid", "Hybrid", "11–13%", "Mainstream demand, strong residuals"],
-          ["Mazda 2 / Mazda 3 (Skyactiv)", "Petrol", "11–14%", "Efficient petrol, high-grade auction stock"],
-          ["Nissan Leaf", "EV", "7%", "Lowest band, zero NOx, up to €5,000 VRT relief (until end-2026)"],
+          [
+            "Toyota Aqua",
+            "Hybrid",
+            "7–9%",
+            "Lowest VRT band; Japan's most abundant hybrid keeps prices low",
+          ],
+          [
+            "Suzuki Swift / kei cars",
+            "Petrol",
+            "7–11%",
+            "Very low value + low CO₂ = minimal VRT",
+          ],
+          [
+            "Nissan Note e-Power",
+            "Hybrid",
+            "9–11%",
+            "Self-charging, no plug, excellent efficiency",
+          ],
+          [
+            "Honda Fit / Jazz hybrid",
+            "Hybrid",
+            "9–12%",
+            "Small, efficient, cheap at auction",
+          ],
+          [
+            "Toyota Prius",
+            "Hybrid",
+            "7–9%",
+            "Proven reliability, strong Irish resale demand",
+          ],
+          [
+            "Toyota Corolla hybrid",
+            "Hybrid",
+            "11–13%",
+            "Mainstream demand, strong residuals",
+          ],
+          [
+            "Mazda 2 / Mazda 3 (Skyactiv)",
+            "Petrol",
+            "11–14%",
+            "Efficient petrol, high-grade auction stock",
+          ],
+          [
+            "Nissan Leaf",
+            "EV",
+            "7%",
+            "Lowest band, zero NOx, up to €5,000 VRT relief (until end-2026)",
+          ],
         ]}
         caption="VRT bands are indicative; confirm the exact figure for your car with Revenue."
       />
@@ -135,9 +178,7 @@ export default function Body() {
       </P>
 
       <H2 id="avoid">The cars that are never cheap</H2>
-      <P>
-        For pure cost-efficiency, steer clear of:
-      </P>
+      <P>For pure cost-efficiency, steer clear of:</P>
       <UL>
         <CheckLI>
           <Strong>Large diesel SUVs</Strong> — the 35–41% VRT band plus the
@@ -148,8 +189,8 @@ export default function Body() {
           Mercedes, VW) — built in the EU, so 10% duty stacks on top of 23% VAT.
         </CheckLI>
         <CheckLI>
-          <Strong>Performance cars over 190 g/km</Strong> — the 41% VRT band only
-          makes sense if the car itself is the goal, not savings.
+          <Strong>Performance cars over 190 g/km</Strong> — the 41% VRT band
+          only makes sense if the car itself is the goal, not savings.
         </CheckLI>
         <CheckLI>
           <Strong>Pre-2018 cars with NEDC-only CO₂ data</Strong> — risk of the

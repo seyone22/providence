@@ -1,41 +1,41 @@
 "use client";
 
-import { useState, useMemo, useRef, useEffect } from "react";
-import MinimalHeader from "@/components/MinimalHeader";
-import Link from "next/link";
-import { motion, AnimatePresence } from "framer-motion";
-import { Reveal } from "@/components/Reveal";
+import { AnimatePresence, motion } from "framer-motion";
 import {
-  Calculator,
   AlertTriangle,
-  CheckCircle,
-  Info,
   ArrowRight,
+  Calculator,
+  CheckCircle,
   ChevronDown,
   Download,
-  Mail,
+  Info,
   Loader2,
+  Mail,
 } from "lucide-react";
+import Link from "next/link";
+import { useEffect, useMemo, useRef, useState } from "react";
 import {
-  MONTH_NAMES,
-  FUEL_LABELS,
-  SOURCE_LABELS,
-  MFR_LABELS,
-  ageInMonths,
-  type BreakdownData,
-  type ExchangeRates,
-  FALLBACK_EXCHANGE_RATES,
-  type DepreciationCode,
-  type VehicleCondition,
-  DEPRECIATION_GROUPS,
-  DEPRECIATION_TABLES,
-  estimateOmsp,
-} from "@/lib/ireland-cost";
-import {
-  generateBreakdownPdf,
   emailBreakdown,
+  generateBreakdownPdf,
   getExchangeRates,
 } from "@/actions/calculator-actions";
+import MinimalHeader from "@/components/MinimalHeader";
+import { Reveal } from "@/components/Reveal";
+import {
+  ageInMonths,
+  type BreakdownData,
+  DEPRECIATION_GROUPS,
+  DEPRECIATION_TABLES,
+  type DepreciationCode,
+  type ExchangeRates,
+  estimateOmsp,
+  FALLBACK_EXCHANGE_RATES,
+  FUEL_LABELS,
+  MFR_LABELS,
+  MONTH_NAMES,
+  SOURCE_LABELS,
+  type VehicleCondition,
+} from "@/lib/ireland-cost";
 
 // ─── Typical shipping to Ireland (EUR, midpoint of range) ───────────────────
 const SHIPPING_ESTIMATES: Record<string, number> = {
@@ -1757,7 +1757,10 @@ export default function IrelandCostCalculator() {
                 </span>
                 <span className="mt-3 inline-flex items-center gap-1.5 text-xs font-bold text-sky-600">
                   Read guide
-                  <ArrowRight size={12} className="group-hover:translate-x-1 transition-transform" />
+                  <ArrowRight
+                    size={12}
+                    className="group-hover:translate-x-1 transition-transform"
+                  />
                 </span>
               </Link>
             ))}

@@ -22,10 +22,10 @@
 //   --dry-run            report what would change without writing
 
 import {
-    S3Client,
-    ListObjectsV2Command,
-    GetObjectCommand,
-    PutObjectCommand,
+  GetObjectCommand,
+  ListObjectsV2Command,
+  PutObjectCommand,
+  S3Client,
 } from "@aws-sdk/client-s3";
 import sharp from "sharp";
 
@@ -34,110 +34,121 @@ const DRY_RUN = args.includes("--dry-run");
 const prefixArg = args.find((a) => a.startsWith("--prefix="));
 const PREFIX = prefixArg ? prefixArg.split("=")[1] : "dossiers/";
 
-const { R2_ACCESS_KEY_ID, R2_SECRET_ACCESS_KEY, R2_ENDPOINT, R2_BUCKET_NAME } = process.env;
+const { R2_ACCESS_KEY_ID, R2_SECRET_ACCESS_KEY, R2_ENDPOINT, R2_BUCKET_NAME } =
+  process.env;
 
-if (!R2_ACCESS_KEY_ID || !R2_SECRET_ACCESS_KEY || !R2_ENDPOINT || !R2_BUCKET_NAME) {
-    console.error(
-        "Missing R2 credentials. Set R2_ACCESS_KEY_ID, R2_SECRET_ACCESS_KEY, R2_ENDPOINT, R2_BUCKET_NAME\n" +
-            "(e.g. `vercel env pull .env.r2` then `node --env-file=.env.r2 scripts/backfill-image-orientation.mjs`).",
-    );
-    process.exit(1);
+if (
+  !R2_ACCESS_KEY_ID ||
+  !R2_SECRET_ACCESS_KEY ||
+  !R2_ENDPOINT ||
+  !R2_BUCKET_NAME
+) {
+  console.error(
+    "Missing R2 credentials. Set R2_ACCESS_KEY_ID, R2_SECRET_ACCESS_KEY, R2_ENDPOINT, R2_BUCKET_NAME\n" +
+      "(e.g. `vercel env pull .env.r2` then `node --env-file=.env.r2 scripts/backfill-image-orientation.mjs`).",
+  );
+  process.exit(1);
 }
 
 const s3 = new S3Client({
-    region: "auto",
-    endpoint: R2_ENDPOINT,
-    credentials: { accessKeyId: R2_ACCESS_KEY_ID, secretAccessKey: R2_SECRET_ACCESS_KEY },
+  region: "auto",
+  endpoint: R2_ENDPOINT,
+  credentials: {
+    accessKeyId: R2_ACCESS_KEY_ID,
+    secretAccessKey: R2_SECRET_ACCESS_KEY,
+  },
 });
 
 const CONTENT_TYPES = {
-    jpg: "image/jpeg",
-    jpeg: "image/jpeg",
-    png: "image/png",
-    webp: "image/webp",
-    tif: "image/tiff",
-    tiff: "image/tiff",
+  jpg: "image/jpeg",
+  jpeg: "image/jpeg",
+  png: "image/png",
+  webp: "image/webp",
+  tif: "image/tiff",
+  tiff: "image/tiff",
 };
 
 function contentTypeFor(key) {
-    const ext = key.split(".").pop()?.toLowerCase() || "";
-    return CONTENT_TYPES[ext];
+  const ext = key.split(".").pop()?.toLowerCase() || "";
+  return CONTENT_TYPES[ext];
 }
 
 async function listAllKeys(prefix) {
-    const keys = [];
-    let token;
-    do {
-        const res = await s3.send(
-            new ListObjectsV2Command({
-                Bucket: R2_BUCKET_NAME,
-                Prefix: prefix,
-                ContinuationToken: token,
-            }),
-        );
-        for (const obj of res.Contents || []) {
-            if (obj.Key && contentTypeFor(obj.Key)) keys.push(obj.Key);
-        }
-        token = res.IsTruncated ? res.NextContinuationToken : undefined;
-    } while (token);
-    return keys;
+  const keys = [];
+  let token;
+  do {
+    const res = await s3.send(
+      new ListObjectsV2Command({
+        Bucket: R2_BUCKET_NAME,
+        Prefix: prefix,
+        ContinuationToken: token,
+      }),
+    );
+    for (const obj of res.Contents || []) {
+      if (obj.Key && contentTypeFor(obj.Key)) keys.push(obj.Key);
+    }
+    token = res.IsTruncated ? res.NextContinuationToken : undefined;
+  } while (token);
+  return keys;
 }
 
 async function main() {
-    console.log(
-        `Backfill orientation — bucket "${R2_BUCKET_NAME}", prefix "${PREFIX}"${DRY_RUN ? " (dry run)" : ""}`,
-    );
+  console.log(
+    `Backfill orientation — bucket "${R2_BUCKET_NAME}", prefix "${PREFIX}"${DRY_RUN ? " (dry run)" : ""}`,
+  );
 
-    const keys = await listAllKeys(PREFIX);
-    console.log(`Found ${keys.length} image object(s) to inspect.\n`);
+  const keys = await listAllKeys(PREFIX);
+  console.log(`Found ${keys.length} image object(s) to inspect.\n`);
 
-    let rotated = 0;
-    let skipped = 0;
-    let failed = 0;
+  let rotated = 0;
+  let skipped = 0;
+  let failed = 0;
 
-    for (const key of keys) {
-        try {
-            const obj = await s3.send(new GetObjectCommand({ Bucket: R2_BUCKET_NAME, Key: key }));
-            const bytes = await obj.Body.transformToByteArray();
-            const buffer = Buffer.from(bytes);
+  for (const key of keys) {
+    try {
+      const obj = await s3.send(
+        new GetObjectCommand({ Bucket: R2_BUCKET_NAME, Key: key }),
+      );
+      const bytes = await obj.Body.transformToByteArray();
+      const buffer = Buffer.from(bytes);
 
-            const meta = await sharp(buffer).metadata();
-            const orientation = meta.orientation || 1;
+      const meta = await sharp(buffer).metadata();
+      const orientation = meta.orientation || 1;
 
-            if (orientation === 1) {
-                skipped++;
-                continue;
-            }
+      if (orientation === 1) {
+        skipped++;
+        continue;
+      }
 
-            if (DRY_RUN) {
-                console.log(`would rotate: ${key} (orientation ${orientation})`);
-                rotated++;
-                continue;
-            }
+      if (DRY_RUN) {
+        console.log(`would rotate: ${key} (orientation ${orientation})`);
+        rotated++;
+        continue;
+      }
 
-            const normalized = await sharp(buffer).rotate().toBuffer();
-            await s3.send(
-                new PutObjectCommand({
-                    Bucket: R2_BUCKET_NAME,
-                    Key: key,
-                    Body: normalized,
-                    ContentType: obj.ContentType || contentTypeFor(key),
-                }),
-            );
-            console.log(`rotated: ${key} (orientation ${orientation})`);
-            rotated++;
-        } catch (err) {
-            failed++;
-            console.error(`failed: ${key} — ${err?.message || err}`);
-        }
+      const normalized = await sharp(buffer).rotate().toBuffer();
+      await s3.send(
+        new PutObjectCommand({
+          Bucket: R2_BUCKET_NAME,
+          Key: key,
+          Body: normalized,
+          ContentType: obj.ContentType || contentTypeFor(key),
+        }),
+      );
+      console.log(`rotated: ${key} (orientation ${orientation})`);
+      rotated++;
+    } catch (err) {
+      failed++;
+      console.error(`failed: ${key} — ${err?.message || err}`);
     }
+  }
 
-    console.log(
-        `\nDone. ${DRY_RUN ? "Would rotate" : "Rotated"}: ${rotated}, already-upright: ${skipped}, failed: ${failed}.`,
-    );
+  console.log(
+    `\nDone. ${DRY_RUN ? "Would rotate" : "Rotated"}: ${rotated}, already-upright: ${skipped}, failed: ${failed}.`,
+  );
 }
 
 main().catch((err) => {
-    console.error("Backfill aborted:", err);
-    process.exit(1);
+  console.error("Backfill aborted:", err);
+  process.exit(1);
 });

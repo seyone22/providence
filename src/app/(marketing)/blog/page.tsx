@@ -1,15 +1,15 @@
+import { ArrowRight, Clock } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
-import { ArrowRight, Clock } from "lucide-react";
+import BlogCTA from "@/components/blog/BlogCTA";
 import MinimalHeader from "@/components/MinimalHeader";
 import { Reveal } from "@/components/Reveal";
 import {
-  BLOG_POSTS,
-  getPostsByCluster,
-  getPost,
   BLOG_BASE_PATH,
+  BLOG_POSTS,
+  getPost,
+  getPostsByCluster,
 } from "@/config/blog";
-import BlogCTA from "@/components/blog/BlogCTA";
 
 const SITE = "https://www.providenceauto.co.uk";
 const PATH = "/blog";
@@ -55,7 +55,12 @@ export default function BlogIndexPage() {
     "@type": "BreadcrumbList",
     itemListElement: [
       { "@type": "ListItem", position: 1, name: "Home", item: `${SITE}/` },
-      { "@type": "ListItem", position: 2, name: "Guides", item: `${SITE}${PATH}` },
+      {
+        "@type": "ListItem",
+        position: 2,
+        name: "Guides",
+        item: `${SITE}${PATH}`,
+      },
     ],
   };
 
@@ -163,7 +168,11 @@ export default function BlogIndexPage() {
             if (posts.length === 0) return null;
             return (
               <div key={group.cluster} className="mb-16">
-                <Reveal y={20} duration={0.5} className="flex items-center gap-4 mb-6">
+                <Reveal
+                  y={20}
+                  duration={0.5}
+                  className="flex items-center gap-4 mb-6"
+                >
                   <p className="text-xs font-bold tracking-[0.3em] text-zinc-400 uppercase shrink-0">
                     {group.cluster}
                   </p>
@@ -171,7 +180,13 @@ export default function BlogIndexPage() {
                 </Reveal>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
                   {posts.map((post, i) => (
-                    <Reveal as="div" key={post.slug} y={20} delay={i * 0.05} duration={0.5}>
+                    <Reveal
+                      as="div"
+                      key={post.slug}
+                      y={20}
+                      delay={i * 0.05}
+                      duration={0.5}
+                    >
                       <Link
                         href={`${BLOG_BASE_PATH}/${post.slug}`}
                         className="group flex h-full flex-col overflow-hidden rounded-[1.5rem] border border-black/5 bg-white shadow-[0_10px_30px_rgba(0,0,0,0.03)] transition-all duration-300 hover:border-sky-500/20 hover:shadow-[0_20px_40px_rgba(0,0,0,0.07)]"

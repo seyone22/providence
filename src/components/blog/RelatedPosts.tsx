@@ -1,7 +1,7 @@
-import Link from "next/link";
 import { ArrowRight } from "lucide-react";
+import Link from "next/link";
 import { Reveal } from "@/components/Reveal";
-import { getRelated, BLOG_BASE_PATH } from "@/config/blog";
+import { BLOG_BASE_PATH, getRelated } from "@/config/blog";
 
 // Internal-linking block: surfaces the registry `related` posts for the cluster.
 export default function RelatedPosts({ slug }: { slug: string }) {
