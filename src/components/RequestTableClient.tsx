@@ -19,6 +19,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import Link from "next/link";
 import RequestActionModal from "@/components/RequestActionModal";
+import { pathnameToSource } from "@/lib/leadSource";
 
 const PIPELINE_STAGES = [
     "New", "Vehicle Selection", "Price Agreement", "Deposit Collected",
@@ -66,23 +67,16 @@ function sourceToUrl(source: string): string {
 }
 
 /** Convert a stored source value → human-readable display label. */
-function sourceToLabel(source: string): string {
-    // Legacy format: already a readable label
-    if (!source.startsWith("/")) return source;
-    // New format: pathname → label
-    const slug = source.replace(/^\//, "").replace(/\/$/, "");
-    if (!slug) return "Home Page";
-    const MAP: Record<string, string> = {
-        "request":                            "Request Page",
-        "b2b":                                "B2B Landing",
-        "b2c":                                "B2C Landing",
-        "import-japanese-cars-to-ireland":    "Import to Ireland",
-        "ireland-cost-calculator":            "Ireland Calculator",
-    };
-    if (MAP[slug]) return MAP[slug];
-    if (slug.startsWith("campaigns/")) return `Campaign: ${slug.replace("campaigns/", "")}`;
-    // Prettify unknown slugs: kebab-case → Title Case
-    return slug.replace(/-/g, " ").replace(/\b\w/g, c => c.toUpperCase());
+const sourceToLabel = pathnameToSource;
+
+/**
+ * Path of the Japanese left-hand-drive luxury landing page. Leads that come
+ * through this page are flagged with a red "LHD" badge so the team immediately
+ * knows to handle them as left-hand-drive enquiries.
+ */
+const LHD_LANDING_PATH = "/japanese-luxury-cars-lhd";
+function isLhdLead(source?: string): boolean {
+    return !!source && source.replace(/\/$/, "") === LHD_LANDING_PATH;
 }
 
 // ADDED "sales_status" to the type definition
@@ -241,6 +235,9 @@ export default function RequestTableClient({
                                         <TableCell className="align-top">
                                             <span className="font-bold text-black text-sm">{req.make} {req.vehicle_model}</span><br />
                                             <div className="flex flex-wrap gap-1 mt-1.5">
+                                                {isLhdLead(req.source) && (
+                                                    <span className="px-1.5 py-0.5 bg-red-600 text-white rounded text-[10px] font-bold tracking-wide">LHD</span>
+                                                )}
                                                 {req.condition === "Used" ? (
                                                     <>
                                                         <span className="px-1.5 py-0.5 bg-zinc-100 border border-black/5 rounded text-[10px] text-zinc-600 font-medium">Pre-Owned</span>

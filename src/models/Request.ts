@@ -92,6 +92,12 @@ export interface IRequest extends Document {
     assignedToId?: mongoose.Types.ObjectId;
     assignedToName?: string;
 
+    // How the lead was routed to its agent. "direct" means it came through a
+    // sales member's personal profile page (/team/[slug]) and is intentionally
+    // pinned to that agent; "round-robin" is the default rotation. Direct leads
+    // are excluded from the round-robin anchor so they don't skew the rotation.
+    assignmentMethod?: string;
+
     documents: IRequestDocument[];
     createdAt: Date;
     updatedAt: Date;
@@ -167,6 +173,7 @@ const RequestSchema: Schema = new Schema(
 
         assignedToId: {type: mongoose.Schema.Types.ObjectId, ref: 'user'},
         assignedToName: {type: String},
+        assignmentMethod: {type: String, enum: ['round-robin', 'direct'], default: 'round-robin'},
 
         // Add this inside your new Schema({ ... }) definition:
         statusHistory: [{

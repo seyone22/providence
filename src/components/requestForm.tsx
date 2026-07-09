@@ -1,21 +1,43 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
-import { useSearchParams, usePathname } from "next/navigation";
-import { Loader2, ArrowLeft, ChevronDown, AlertCircle, User, MessageCircle, Phone, PhoneCall, Mail, Clock, Globe, CalendarDays, CheckCircle2 } from "lucide-react";
-import { submitCarRequest, submitContactPreferences } from "@/actions/request-actions";
-import { motion, AnimatePresence } from "framer-motion";
-import { isValidPhoneNumber } from 'libphonenumber-js';
+import { AnimatePresence, motion } from "framer-motion";
+import { isValidPhoneNumber } from "libphonenumber-js";
 import {
-    CONTACT_METHODS, TIME_WINDOWS, DAY_OPTIONS, TIMEZONE_OPTIONS,
-    timezoneForCountry, formatInTz, computePreferredContactAt,
+  AlertCircle,
+  ArrowLeft,
+  CalendarDays,
+  CheckCircle2,
+  ChevronDown,
+  Clock,
+  Globe,
+  Loader2,
+  Mail,
+  MessageCircle,
+  Phone,
+  PhoneCall,
+  User,
+} from "lucide-react";
+import { usePathname, useSearchParams } from "next/navigation";
+import { useEffect, useRef, useState } from "react";
+import {
+  submitCarRequest,
+  submitContactPreferences,
+} from "@/actions/request-actions";
+import {
+  CONTACT_METHODS,
+  computePreferredContactAt,
+  DAY_OPTIONS,
+  formatInTz,
+  TIME_WINDOWS,
+  TIMEZONE_OPTIONS,
+  timezoneForCountry,
 } from "@/lib/contactScheduling";
 
 const CONTACT_METHOD_ICONS: Record<string, any> = {
-    "WhatsApp": MessageCircle,
-    "Call": Phone,
-    "WhatsApp Call": PhoneCall,
-    "Email": Mail,
+  WhatsApp: MessageCircle,
+  Call: Phone,
+  "WhatsApp Call": PhoneCall,
+  Email: Mail,
 };
 
 const TOTAL_STEPS = 3;
@@ -27,12 +49,17 @@ const MILEAGE_STEP = 2_500;
 
 /** Format a mileage value for display; the top of the range reads as "150,000+". */
 const formatMileage = (v: number) =>
-    v >= MILEAGE_MAX ? `${MILEAGE_MAX.toLocaleString()}+` : v.toLocaleString();
+  v >= MILEAGE_MAX ? `${MILEAGE_MAX.toLocaleString()}+` : v.toLocaleString();
 
 /** Human-readable label stored on the request (e.g. "Up to 60,000 mi", "20,000–80,000 mi"). */
 const mileageRangeLabel = (lo: number, hi: number) => {
-    const hiTxt = hi >= MILEAGE_MAX ? `${MILEAGE_MAX.toLocaleString()}+` : hi.toLocaleString();
-    return lo <= MILEAGE_MIN ? `Up to ${hiTxt} mi` : `${lo.toLocaleString()}–${hiTxt} mi`;
+  const hiTxt =
+    hi >= MILEAGE_MAX
+      ? `${MILEAGE_MAX.toLocaleString()}+`
+      : hi.toLocaleString();
+  return lo <= MILEAGE_MIN
+    ? `Up to ${hiTxt} mi`
+    : `${lo.toLocaleString()}–${hiTxt} mi`;
 };
 
 /**
@@ -41,1321 +68,1785 @@ const mileageRangeLabel = (lo: number, hi: number) => {
  * brackets the value by one step so the known figure is clearly represented.
  * Exported so vehicle detail pages can prefill the form from a spec dossier.
  */
-export const mileageToPrefillRange = (mileage: number): { mileageMin: number; mileageMax: number } => {
-    const clamped = Math.max(MILEAGE_MIN, Math.min(MILEAGE_MAX, mileage));
-    const snapped = Math.round(clamped / MILEAGE_STEP) * MILEAGE_STEP;
-    const mileageMin = Math.max(MILEAGE_MIN, snapped - MILEAGE_STEP);
-    const mileageMax = Math.min(MILEAGE_MAX, Math.max(snapped, mileageMin + MILEAGE_STEP));
-    return { mileageMin, mileageMax };
+export const mileageToPrefillRange = (
+  mileage: number,
+): { mileageMin: number; mileageMax: number } => {
+  const clamped = Math.max(MILEAGE_MIN, Math.min(MILEAGE_MAX, mileage));
+  const snapped = Math.round(clamped / MILEAGE_STEP) * MILEAGE_STEP;
+  const mileageMin = Math.max(MILEAGE_MIN, snapped - MILEAGE_STEP);
+  const mileageMax = Math.min(
+    MILEAGE_MAX,
+    Math.max(snapped, mileageMin + MILEAGE_STEP),
+  );
+  return { mileageMin, mileageMax };
 };
 
 // Year presets grouped the way buyers actually think ("2020 or newer"), each
 // mapping to a concrete numeric from/to so the request stores clean years.
 const CURRENT_YEAR = new Date().getFullYear();
 const YEAR_PRESETS: { label: string; from: number; to: number }[] = [
-    { label: "2024 & newer", from: 2024, to: CURRENT_YEAR },
-    { label: "2020 – 2023", from: 2020, to: 2023 },
-    { label: "2016 – 2019", from: 2016, to: 2019 },
-    { label: "2015 & older", from: 1990, to: 2015 },
+  { label: "2024 & newer", from: 2024, to: CURRENT_YEAR },
+  { label: "2020 – 2023", from: 2020, to: 2023 },
+  { label: "2016 – 2019", from: 2016, to: 2019 },
+  { label: "2015 & older", from: 1990, to: 2015 },
 ];
 
 const CAR_MAKES = [
-    "Acura", "Alfa Romeo", "Aston Martin", "Audi", "Bentley", "BMW", "Bugatti",
-    "Buick", "BYD", "Cadillac", "Chevrolet", "Chrysler", "Citroën", "Dacia",
-    "Dodge", "Ferrari", "Fiat", "Fisker", "Ford", "Genesis", "GMC", "Honda",
-    "Hyundai", "Infiniti", "Jaguar", "Jeep", "Kia", "Koenigsegg", "Lamborghini",
-    "Land Rover", "Lexus", "Lincoln", "Lotus", "Lucid", "Maserati", "Mazda",
-    "McLaren", "Mercedes-Benz", "MG", "Mini", "Mitsubishi", "Nio", "Nissan",
-    "Pagani", "Peugeot", "Polestar", "Porsche", "Ram", "Renault", "Rivian",
-    "Rolls-Royce", "Seat", "Skoda", "Subaru", "Suzuki", "Tesla", "Toyota",
-    "VinFast", "Volkswagen", "Volvo", "Xpeng", "Zeekr"
+  "Acura",
+  "Alfa Romeo",
+  "Aston Martin",
+  "Audi",
+  "Bentley",
+  "BMW",
+  "Bugatti",
+  "Buick",
+  "BYD",
+  "Cadillac",
+  "Chevrolet",
+  "Chrysler",
+  "Citroën",
+  "Dacia",
+  "Dodge",
+  "Ferrari",
+  "Fiat",
+  "Fisker",
+  "Ford",
+  "Genesis",
+  "GMC",
+  "Honda",
+  "Hyundai",
+  "Infiniti",
+  "Jaguar",
+  "Jeep",
+  "Kia",
+  "Koenigsegg",
+  "Lamborghini",
+  "Land Rover",
+  "Lexus",
+  "Lincoln",
+  "Lotus",
+  "Lucid",
+  "Mahindra",
+  "Maserati",
+  "Mazda",
+  "McLaren",
+  "Mercedes-Benz",
+  "MG",
+  "Mini",
+  "Mitsubishi",
+  "Nio",
+  "Nissan",
+  "Pagani",
+  "Peugeot",
+  "Polestar",
+  "Porsche",
+  "Ram",
+  "Renault",
+  "Rivian",
+  "Rolls-Royce",
+  "Seat",
+  "Skoda",
+  "Subaru",
+  "Suzuki",
+  "Tata",
+  "Tesla",
+  "Toyota",
+  "VinFast",
+  "Volkswagen",
+  "Volvo",
+  "Xpeng",
+  "Zeekr",
 ].sort();
 
 const COUNTRIES = [
-    { n: "Afghanistan", c: "+93" },
-    { n: "Albania", c: "+355" },
-    { n: "Algeria", c: "+213" },
-    { n: "American Samoa", c: "+1-684" },
-    { n: "Andorra", c: "+376" },
-    { n: "Angola", c: "+244" },
-    { n: "Anguilla", c: "+1-264" },
-    { n: "Antarctica", c: "+672" },
-    { n: "Antigua and Barbuda", c: "+1-268" },
-    { n: "Argentina", c: "+54" },
-    { n: "Armenia", c: "+374" },
-    { n: "Aruba", c: "+297" },
-    { n: "Australia", c: "+61" },
-    { n: "Austria", c: "+43" },
-    { n: "Azerbaijan", c: "+994" },
-    { n: "Bahamas", c: "+1-242" },
-    { n: "Bahrain", c: "+973" },
-    { n: "Bangladesh", c: "+880" },
-    { n: "Barbados", c: "+1-246" },
-    { n: "Belarus", c: "+375" },
-    { n: "Belgium", c: "+32" },
-    { n: "Belize", c: "+501" },
-    { n: "Benin", c: "+229" },
-    { n: "Bermuda", c: "+1-441" },
-    { n: "Bhutan", c: "+975" },
-    { n: "Bolivia", c: "+591" },
-    { n: "Bosnia and Herzegovina", c: "+387" },
-    { n: "Botswana", c: "+267" },
-    { n: "Brazil", c: "+55" },
-    { n: "British Indian Ocean Territory", c: "+246" },
-    { n: "British Virgin Islands", c: "+1-284" },
-    { n: "Brunei", c: "+673" },
-    { n: "Bulgaria", c: "+359" },
-    { n: "Burkina Faso", c: "+226" },
-    { n: "Burundi", c: "+257" },
-    { n: "Cambodia", c: "+855" },
-    { n: "Cameroon", c: "+237" },
-    { n: "Canada", c: "+1" },
-    { n: "Cape Verde", c: "+238" },
-    { n: "Cayman Islands", c: "+1-345" },
-    { n: "Central African Republic", c: "+236" },
-    { n: "Chad", c: "+235" },
-    { n: "Chile", c: "+56" },
-    { n: "China", c: "+86" },
-    { n: "Christmas Island", c: "+61" },
-    { n: "Cocos (Keeling) Islands", c: "+61" },
-    { n: "Colombia", c: "+57" },
-    { n: "Comoros", c: "+269" },
-    { n: "Cook Islands", c: "+682" },
-    { n: "Costa Rica", c: "+506" },
-    { n: "Croatia", c: "+385" },
-    { n: "Cuba", c: "+53" },
-    { n: "Curacao", c: "+599" },
-    { n: "Cyprus", c: "+357" },
-    { n: "Czech Republic", c: "+420" },
-    { n: "Democratic Republic of the Congo", c: "+243" },
-    { n: "Denmark", c: "+45" },
-    { n: "Djibouti", c: "+253" },
-    { n: "Dominica", c: "+1-767" },
-    { n: "Dominican Republic", c: "+1-809" },
-    { n: "East Timor (Timor-Leste)", c: "+670" },
-    { n: "Ecuador", c: "+593" },
-    { n: "Egypt", c: "+20" },
-    { n: "El Salvador", c: "+503" },
-    { n: "Equatorial Guinea", c: "+240" },
-    { n: "Eritrea", c: "+291" },
-    { n: "Estonia", c: "+372" },
-    { n: "Eswatini (Swaziland)", c: "+268" },
-    { n: "Ethiopia", c: "+251" },
-    { n: "Falkland Islands", c: "+500" },
-    { n: "Faroe Islands", c: "+298" },
-    { n: "Fiji", c: "+679" },
-    { n: "Finland", c: "+358" },
-    { n: "France", c: "+33" },
-    { n: "French Polynesia", c: "+689" },
-    { n: "Gabon", c: "+241" },
-    { n: "Gambia", c: "+220" },
-    { n: "Georgia", c: "+995" },
-    { n: "Germany", c: "+49" },
-    { n: "Ghana", c: "+233" },
-    { n: "Gibraltar", c: "+350" },
-    { n: "Greece", c: "+30" },
-    { n: "Greenland", c: "+299" },
-    { n: "Grenada", c: "+1-473" },
-    { n: "Guam", c: "+1-671" },
-    { n: "Guatemala", c: "+502" },
-    { n: "Guernsey", c: "+44-1481" },
-    { n: "Guinea", c: "+224" },
-    { n: "Guinea-Bissau", c: "+245" },
-    { n: "Guyana", c: "+592" },
-    { n: "Haiti", c: "+509" },
-    { n: "Honduras", c: "+504" },
-    { n: "Hong Kong", c: "+852" },
-    { n: "Hungary", c: "+36" },
-    { n: "Iceland", c: "+354" },
-    { n: "India", c: "+91" },
-    { n: "Indonesia", c: "+62" },
-    { n: "Iran", c: "+98" },
-    { n: "Iraq", c: "+964" },
-    { n: "Ireland", c: "+353" },
-    { n: "Isle of Man", c: "+44-1624" },
-    { n: "Israel", c: "+972" },
-    { n: "Italy", c: "+39" },
-    { n: "Ivory Coast", c: "+225" },
-    { n: "Jamaica", c: "+1-876" },
-    { n: "Japan", c: "+81" },
-    { n: "Jersey", c: "+44-1534" },
-    { n: "Jordan", c: "+962" },
-    { n: "Kazakhstan", c: "+7" },
-    { n: "Kenya", c: "+254" },
-    { n: "Kiribati", c: "+686" },
-    { n: "Kosovo", c: "+383" },
-    { n: "Kuwait", c: "+965" },
-    { n: "Kyrgyzstan", c: "+996" },
-    { n: "Laos", c: "+856" },
-    { n: "Latvia", c: "+371" },
-    { n: "Lebanon", c: "+961" },
-    { n: "Lesotho", c: "+266" },
-    { n: "Liberia", c: "+231" },
-    { n: "Libya", c: "+218" },
-    { n: "Liechtenstein", c: "+423" },
-    { n: "Lithuania", c: "+370" },
-    { n: "Luxembourg", c: "+352" },
-    { n: "Macau", c: "+853" },
-    { n: "Macedonia", c: "+389" },
-    { n: "Madagascar", c: "+261" },
-    { n: "Malawi", c: "+265" },
-    { n: "Malaysia", c: "+60" },
-    { n: "Maldives", c: "+960" },
-    { n: "Mali", c: "+223" },
-    { n: "Malta", c: "+356" },
-    { n: "Marshall Islands", c: "+692" },
-    { n: "Mauritania", c: "+222" },
-    { n: "Mauritius", c: "+230" },
-    { n: "Mayotte", c: "+262" },
-    { n: "Mexico", c: "+52" },
-    { n: "Micronesia", c: "+691" },
-    { n: "Moldova", c: "+373" },
-    { n: "Monaco", c: "+377" },
-    { n: "Mongolia", c: "+976" },
-    { n: "Montenegro", c: "+382" },
-    { n: "Montserrat", c: "+1-664" },
-    { n: "Morocco", c: "+212" },
-    { n: "Mozambique", c: "+258" },
-    { n: "Myanmar", c: "+95" },
-    { n: "Namibia", c: "+264" },
-    { n: "Nauru", c: "+674" },
-    { n: "Nepal", c: "+977" },
-    { n: "Netherlands", c: "+31" },
-    { n: "Netherlands Antilles", c: "+599" },
-    { n: "New Caledonia", c: "+687" },
-    { n: "New Zealand", c: "+64" },
-    { n: "Nicaragua", c: "+505" },
-    { n: "Niger", c: "+227" },
-    { n: "Nigeria", c: "+234" },
-    { n: "Niue", c: "+683" },
-    { n: "Norfolk Island", c: "+672" },
-    { n: "North Korea", c: "+850" },
-    { n: "Northern Ireland", c: "+44" },
-    { n: "Northern Mariana Islands", c: "+1-670" },
-    { n: "Norway", c: "+47" },
-    { n: "Oman", c: "+968" },
-    { n: "Pakistan", c: "+92" },
-    { n: "Palau", c: "+680" },
-    { n: "Palestine", c: "+970" },
-    { n: "Panama", c: "+507" },
-    { n: "Papua New Guinea", c: "+675" },
-    { n: "Paraguay", c: "+595" },
-    { n: "Peru", c: "+51" },
-    { n: "Philippines", c: "+63" },
-    { n: "Pitcairn Islands", c: "+64" },
-    { n: "Poland", c: "+48" },
-    { n: "Portugal", c: "+351" },
-    { n: "Puerto Rico", c: "+1-787" },
-    { n: "Qatar", c: "+974" },
-    { n: "Republic of the Congo", c: "+242" },
-    { n: "Reunion", c: "+262" },
-    { n: "Romania", c: "+40" },
-    { n: "Russia", c: "+7" },
-    { n: "Rwanda", c: "+250" },
-    { n: "Saint Barthelemy", c: "+590" },
-    { n: "Saint Helena", c: "+290" },
-    { n: "Saint Kitts and Nevis", c: "+1-869" },
-    { n: "Saint Lucia", c: "+1-758" },
-    { n: "Saint Martin", c: "+590" },
-    { n: "Saint Pierre and Miquelon", c: "+508" },
-    { n: "Saint Vincent and the Grenadines", c: "+1-784" },
-    { n: "Samoa", c: "+685" },
-    { n: "San Marino", c: "+378" },
-    { n: "Sao Tome and Principe", c: "+239" },
-    { n: "Saudi Arabia", c: "+966" },
-    { n: "Senegal", c: "+221" },
-    { n: "Serbia", c: "+381" },
-    { n: "Seychelles", c: "+248" },
-    { n: "Sierra Leone", c: "+232" },
-    { n: "Singapore", c: "+65" },
-    { n: "Sint Maarten", c: "+1-721" },
-    { n: "Slovakia", c: "+421" },
-    { n: "Slovenia", c: "+386" },
-    { n: "Solomon Islands", c: "+677" },
-    { n: "Somalia", c: "+252" },
-    { n: "South Africa", c: "+27" },
-    { n: "South Korea", c: "+82" },
-    { n: "South Sudan", c: "+211" },
-    { n: "Spain", c: "+34" },
-    { n: "Sri Lanka", c: "+94" },
-    { n: "Sudan", c: "+249" },
-    { n: "Suriname", c: "+597" },
-    { n: "Svalbard and Jan Mayen", c: "+47" },
-    { n: "Sweden", c: "+46" },
-    { n: "Switzerland", c: "+41" },
-    { n: "Syria", c: "+963" },
-    { n: "Taiwan", c: "+886" },
-    { n: "Tajikistan", c: "+992" },
-    { n: "Tanzania", c: "+255" },
-    { n: "Thailand", c: "+66" },
-    { n: "Togo", c: "+228" },
-    { n: "Tokelau", c: "+690" },
-    { n: "Tonga", c: "+676" },
-    { n: "Trinidad and Tobago", c: "+1-868" },
-    { n: "Tunisia", c: "+216" },
-    { n: "Turkey", c: "+90" },
-    { n: "Turkmenistan", c: "+993" },
-    { n: "Turks and Caicos Islands", c: "+1-649" },
-    { n: "Tuvalu", c: "+688" },
-    { n: "U.S. Virgin Islands", c: "+1-340" },
-    { n: "Uganda", c: "+256" },
-    { n: "Ukraine", c: "+380" },
-    { n: "United Arab Emirates", c: "+971" },
-    { n: "United Kingdom", c: "+44" },
-    { n: "United States", c: "+1" },
-    { n: "Uruguay", c: "+598" },
-    { n: "Uzbekistan", c: "+998" },
-    { n: "Vanuatu", c: "+678" },
-    { n: "Vatican", c: "+379" },
-    { n: "Venezuela", c: "+58" },
-    { n: "Vietnam", c: "+84" },
-    { n: "Wallis and Futuna", c: "+681" },
-    { n: "Western Sahara", c: "+212" },
-    { n: "Yemen", c: "+967" },
-    { n: "Zambia", c: "+260" },
-    { n: "Zimbabwe", c: "+263" }
+  { n: "Afghanistan", c: "+93" },
+  { n: "Albania", c: "+355" },
+  { n: "Algeria", c: "+213" },
+  { n: "American Samoa", c: "+1-684" },
+  { n: "Andorra", c: "+376" },
+  { n: "Angola", c: "+244" },
+  { n: "Anguilla", c: "+1-264" },
+  { n: "Antarctica", c: "+672" },
+  { n: "Antigua and Barbuda", c: "+1-268" },
+  { n: "Argentina", c: "+54" },
+  { n: "Armenia", c: "+374" },
+  { n: "Aruba", c: "+297" },
+  { n: "Australia", c: "+61" },
+  { n: "Austria", c: "+43" },
+  { n: "Azerbaijan", c: "+994" },
+  { n: "Bahamas", c: "+1-242" },
+  { n: "Bahrain", c: "+973" },
+  { n: "Bangladesh", c: "+880" },
+  { n: "Barbados", c: "+1-246" },
+  { n: "Belarus", c: "+375" },
+  { n: "Belgium", c: "+32" },
+  { n: "Belize", c: "+501" },
+  { n: "Benin", c: "+229" },
+  { n: "Bermuda", c: "+1-441" },
+  { n: "Bhutan", c: "+975" },
+  { n: "Bolivia", c: "+591" },
+  { n: "Bosnia and Herzegovina", c: "+387" },
+  { n: "Botswana", c: "+267" },
+  { n: "Brazil", c: "+55" },
+  { n: "British Indian Ocean Territory", c: "+246" },
+  { n: "British Virgin Islands", c: "+1-284" },
+  { n: "Brunei", c: "+673" },
+  { n: "Bulgaria", c: "+359" },
+  { n: "Burkina Faso", c: "+226" },
+  { n: "Burundi", c: "+257" },
+  { n: "Cambodia", c: "+855" },
+  { n: "Cameroon", c: "+237" },
+  { n: "Canada", c: "+1" },
+  { n: "Cape Verde", c: "+238" },
+  { n: "Cayman Islands", c: "+1-345" },
+  { n: "Central African Republic", c: "+236" },
+  { n: "Chad", c: "+235" },
+  { n: "Chile", c: "+56" },
+  { n: "China", c: "+86" },
+  { n: "Christmas Island", c: "+61" },
+  { n: "Cocos (Keeling) Islands", c: "+61" },
+  { n: "Colombia", c: "+57" },
+  { n: "Comoros", c: "+269" },
+  { n: "Cook Islands", c: "+682" },
+  { n: "Costa Rica", c: "+506" },
+  { n: "Croatia", c: "+385" },
+  { n: "Cuba", c: "+53" },
+  { n: "Curacao", c: "+599" },
+  { n: "Cyprus", c: "+357" },
+  { n: "Czech Republic", c: "+420" },
+  { n: "Democratic Republic of the Congo", c: "+243" },
+  { n: "Denmark", c: "+45" },
+  { n: "Djibouti", c: "+253" },
+  { n: "Dominica", c: "+1-767" },
+  { n: "Dominican Republic", c: "+1-809" },
+  { n: "East Timor (Timor-Leste)", c: "+670" },
+  { n: "Ecuador", c: "+593" },
+  { n: "Egypt", c: "+20" },
+  { n: "El Salvador", c: "+503" },
+  { n: "Equatorial Guinea", c: "+240" },
+  { n: "Eritrea", c: "+291" },
+  { n: "Estonia", c: "+372" },
+  { n: "Eswatini (Swaziland)", c: "+268" },
+  { n: "Ethiopia", c: "+251" },
+  { n: "Falkland Islands", c: "+500" },
+  { n: "Faroe Islands", c: "+298" },
+  { n: "Fiji", c: "+679" },
+  { n: "Finland", c: "+358" },
+  { n: "France", c: "+33" },
+  { n: "French Polynesia", c: "+689" },
+  { n: "Gabon", c: "+241" },
+  { n: "Gambia", c: "+220" },
+  { n: "Georgia", c: "+995" },
+  { n: "Germany", c: "+49" },
+  { n: "Ghana", c: "+233" },
+  { n: "Gibraltar", c: "+350" },
+  { n: "Greece", c: "+30" },
+  { n: "Greenland", c: "+299" },
+  { n: "Grenada", c: "+1-473" },
+  { n: "Guam", c: "+1-671" },
+  { n: "Guatemala", c: "+502" },
+  { n: "Guernsey", c: "+44-1481" },
+  { n: "Guinea", c: "+224" },
+  { n: "Guinea-Bissau", c: "+245" },
+  { n: "Guyana", c: "+592" },
+  { n: "Haiti", c: "+509" },
+  { n: "Honduras", c: "+504" },
+  { n: "Hong Kong", c: "+852" },
+  { n: "Hungary", c: "+36" },
+  { n: "Iceland", c: "+354" },
+  { n: "India", c: "+91" },
+  { n: "Indonesia", c: "+62" },
+  { n: "Iran", c: "+98" },
+  { n: "Iraq", c: "+964" },
+  { n: "Ireland", c: "+353" },
+  { n: "Isle of Man", c: "+44-1624" },
+  { n: "Israel", c: "+972" },
+  { n: "Italy", c: "+39" },
+  { n: "Ivory Coast", c: "+225" },
+  { n: "Jamaica", c: "+1-876" },
+  { n: "Japan", c: "+81" },
+  { n: "Jersey", c: "+44-1534" },
+  { n: "Jordan", c: "+962" },
+  { n: "Kazakhstan", c: "+7" },
+  { n: "Kenya", c: "+254" },
+  { n: "Kiribati", c: "+686" },
+  { n: "Kosovo", c: "+383" },
+  { n: "Kuwait", c: "+965" },
+  { n: "Kyrgyzstan", c: "+996" },
+  { n: "Laos", c: "+856" },
+  { n: "Latvia", c: "+371" },
+  { n: "Lebanon", c: "+961" },
+  { n: "Lesotho", c: "+266" },
+  { n: "Liberia", c: "+231" },
+  { n: "Libya", c: "+218" },
+  { n: "Liechtenstein", c: "+423" },
+  { n: "Lithuania", c: "+370" },
+  { n: "Luxembourg", c: "+352" },
+  { n: "Macau", c: "+853" },
+  { n: "Macedonia", c: "+389" },
+  { n: "Madagascar", c: "+261" },
+  { n: "Malawi", c: "+265" },
+  { n: "Malaysia", c: "+60" },
+  { n: "Maldives", c: "+960" },
+  { n: "Mali", c: "+223" },
+  { n: "Malta", c: "+356" },
+  { n: "Marshall Islands", c: "+692" },
+  { n: "Mauritania", c: "+222" },
+  { n: "Mauritius", c: "+230" },
+  { n: "Mayotte", c: "+262" },
+  { n: "Mexico", c: "+52" },
+  { n: "Micronesia", c: "+691" },
+  { n: "Moldova", c: "+373" },
+  { n: "Monaco", c: "+377" },
+  { n: "Mongolia", c: "+976" },
+  { n: "Montenegro", c: "+382" },
+  { n: "Montserrat", c: "+1-664" },
+  { n: "Morocco", c: "+212" },
+  { n: "Mozambique", c: "+258" },
+  { n: "Myanmar", c: "+95" },
+  { n: "Namibia", c: "+264" },
+  { n: "Nauru", c: "+674" },
+  { n: "Nepal", c: "+977" },
+  { n: "Netherlands", c: "+31" },
+  { n: "Netherlands Antilles", c: "+599" },
+  { n: "New Caledonia", c: "+687" },
+  { n: "New Zealand", c: "+64" },
+  { n: "Nicaragua", c: "+505" },
+  { n: "Niger", c: "+227" },
+  { n: "Nigeria", c: "+234" },
+  { n: "Niue", c: "+683" },
+  { n: "Norfolk Island", c: "+672" },
+  { n: "North Korea", c: "+850" },
+  { n: "Northern Ireland", c: "+44" },
+  { n: "Northern Mariana Islands", c: "+1-670" },
+  { n: "Norway", c: "+47" },
+  { n: "Oman", c: "+968" },
+  { n: "Pakistan", c: "+92" },
+  { n: "Palau", c: "+680" },
+  { n: "Palestine", c: "+970" },
+  { n: "Panama", c: "+507" },
+  { n: "Papua New Guinea", c: "+675" },
+  { n: "Paraguay", c: "+595" },
+  { n: "Peru", c: "+51" },
+  { n: "Philippines", c: "+63" },
+  { n: "Pitcairn Islands", c: "+64" },
+  { n: "Poland", c: "+48" },
+  { n: "Portugal", c: "+351" },
+  { n: "Puerto Rico", c: "+1-787" },
+  { n: "Qatar", c: "+974" },
+  { n: "Republic of the Congo", c: "+242" },
+  { n: "Reunion", c: "+262" },
+  { n: "Romania", c: "+40" },
+  { n: "Russia", c: "+7" },
+  { n: "Rwanda", c: "+250" },
+  { n: "Saint Barthelemy", c: "+590" },
+  { n: "Saint Helena", c: "+290" },
+  { n: "Saint Kitts and Nevis", c: "+1-869" },
+  { n: "Saint Lucia", c: "+1-758" },
+  { n: "Saint Martin", c: "+590" },
+  { n: "Saint Pierre and Miquelon", c: "+508" },
+  { n: "Saint Vincent and the Grenadines", c: "+1-784" },
+  { n: "Samoa", c: "+685" },
+  { n: "San Marino", c: "+378" },
+  { n: "Sao Tome and Principe", c: "+239" },
+  { n: "Saudi Arabia", c: "+966" },
+  { n: "Senegal", c: "+221" },
+  { n: "Serbia", c: "+381" },
+  { n: "Seychelles", c: "+248" },
+  { n: "Sierra Leone", c: "+232" },
+  { n: "Singapore", c: "+65" },
+  { n: "Sint Maarten", c: "+1-721" },
+  { n: "Slovakia", c: "+421" },
+  { n: "Slovenia", c: "+386" },
+  { n: "Solomon Islands", c: "+677" },
+  { n: "Somalia", c: "+252" },
+  { n: "South Africa", c: "+27" },
+  { n: "South Korea", c: "+82" },
+  { n: "South Sudan", c: "+211" },
+  { n: "Spain", c: "+34" },
+  { n: "Sri Lanka", c: "+94" },
+  { n: "Sudan", c: "+249" },
+  { n: "Suriname", c: "+597" },
+  { n: "Svalbard and Jan Mayen", c: "+47" },
+  { n: "Sweden", c: "+46" },
+  { n: "Switzerland", c: "+41" },
+  { n: "Syria", c: "+963" },
+  { n: "Taiwan", c: "+886" },
+  { n: "Tajikistan", c: "+992" },
+  { n: "Tanzania", c: "+255" },
+  { n: "Thailand", c: "+66" },
+  { n: "Togo", c: "+228" },
+  { n: "Tokelau", c: "+690" },
+  { n: "Tonga", c: "+676" },
+  { n: "Trinidad and Tobago", c: "+1-868" },
+  { n: "Tunisia", c: "+216" },
+  { n: "Turkey", c: "+90" },
+  { n: "Turkmenistan", c: "+993" },
+  { n: "Turks and Caicos Islands", c: "+1-649" },
+  { n: "Tuvalu", c: "+688" },
+  { n: "U.S. Virgin Islands", c: "+1-340" },
+  { n: "Uganda", c: "+256" },
+  { n: "Ukraine", c: "+380" },
+  { n: "United Arab Emirates", c: "+971" },
+  { n: "United Kingdom", c: "+44" },
+  { n: "United States", c: "+1" },
+  { n: "Uruguay", c: "+598" },
+  { n: "Uzbekistan", c: "+998" },
+  { n: "Vanuatu", c: "+678" },
+  { n: "Vatican", c: "+379" },
+  { n: "Venezuela", c: "+58" },
+  { n: "Vietnam", c: "+84" },
+  { n: "Wallis and Futuna", c: "+681" },
+  { n: "Western Sahara", c: "+212" },
+  { n: "Yemen", c: "+967" },
+  { n: "Zambia", c: "+260" },
+  { n: "Zimbabwe", c: "+263" },
 ].sort((a, b) => a.n.localeCompare(b.n));
 
 // Alpha-2 → dial code for defaultPhoneCountry prop
 const ALPHA2_TO_DIAL: Record<string, string> = {
-    US: "+1", GB: "+44", IE: "+353", AU: "+61", CA: "+1", NZ: "+64",
-    DE: "+49", FR: "+33", ES: "+34", IT: "+39", NL: "+31", BE: "+32",
-    SE: "+46", NO: "+47", DK: "+45", FI: "+358", JP: "+81", SG: "+65",
-    AE: "+971", ZA: "+27", IN: "+91", NG: "+234", KE: "+254", GH: "+233",
-    PK: "+92", LK: "+94", CN: "+86", BR: "+55", MX: "+52", AR: "+54",
+  US: "+1",
+  GB: "+44",
+  IE: "+353",
+  AU: "+61",
+  CA: "+1",
+  NZ: "+64",
+  DE: "+49",
+  FR: "+33",
+  ES: "+34",
+  IT: "+39",
+  NL: "+31",
+  BE: "+32",
+  SE: "+46",
+  NO: "+47",
+  DK: "+45",
+  FI: "+358",
+  JP: "+81",
+  SG: "+65",
+  AE: "+971",
+  ZA: "+27",
+  IN: "+91",
+  NG: "+234",
+  KE: "+254",
+  GH: "+233",
+  PK: "+92",
+  LK: "+94",
+  CN: "+86",
+  BR: "+55",
+  MX: "+52",
+  AR: "+54",
 };
 
 // --- HELPER: Read Cookies for Meta Pixel Data ---
 function getCookie(name: string) {
-    if (typeof document === 'undefined') return undefined;
-    const value = `; ${document.cookie}`;
-    const parts = value.split(`; ${name}=`);
-    if (parts.length === 2) return parts.pop()?.split(';').shift();
-    return undefined;
+  if (typeof document === "undefined") return undefined;
+  const value = `; ${document.cookie}`;
+  const parts = value.split(`; ${name}=`);
+  if (parts.length === 2) return parts.pop()?.split(";").shift();
+  return undefined;
 }
 
 // --- CUSTOM UI COMPONENTS ---
 
 const SelectDropdown = ({
-                            id, options, value, onChange, placeholder, error, disabled = false, isLoading = false
-                        }: {
-    id: string, options: {label: string, value: string}[], value: string, onChange: (id: string, val: string) => void, placeholder: string, error?: string, disabled?: boolean, isLoading?: boolean
+  id,
+  options,
+  value,
+  onChange,
+  placeholder,
+  error,
+  disabled = false,
+  isLoading = false,
+}: {
+  id: string;
+  options: { label: string; value: string }[];
+  value: string;
+  onChange: (id: string, val: string) => void;
+  placeholder: string;
+  error?: string;
+  disabled?: boolean;
+  isLoading?: boolean;
 }) => {
-    const [isOpen, setIsOpen] = useState(false);
-    const [searchTerm, setSearchTerm] = useState("");
-    const dropdownRef = useRef<HTMLDivElement>(null);
+  const [isOpen, setIsOpen] = useState(false);
+  const [searchTerm, setSearchTerm] = useState("");
+  const dropdownRef = useRef<HTMLDivElement>(null);
 
-    // Filter options based on user input
-    const filteredOptions = options.filter(opt =>
-        opt.label.toLowerCase().includes(searchTerm.toLowerCase())
-    );
+  // Filter options based on user input
+  const filteredOptions = options.filter((opt) =>
+    opt.label.toLowerCase().includes(searchTerm.toLowerCase()),
+  );
 
-    const selectedLabel = options.find(o => o.value === value)?.label;
+  const selectedLabel = options.find((o) => o.value === value)?.label;
 
-    // Sync search term with selection when closed
-    useEffect(() => {
-        if (!isOpen) setSearchTerm("");
-    }, [isOpen]);
+  // Sync search term with selection when closed
+  useEffect(() => {
+    if (!isOpen) setSearchTerm("");
+  }, [isOpen]);
 
-    useEffect(() => {
-        const handleClickOutside = (event: MouseEvent) => {
-            if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
-                setIsOpen(false);
-            }
-        };
-        document.addEventListener("mousedown", handleClickOutside);
-        return () => document.removeEventListener("mousedown", handleClickOutside);
-    }, []);
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        dropdownRef.current &&
+        !dropdownRef.current.contains(event.target as Node)
+      ) {
+        setIsOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
 
-    return (
-        <div className="relative w-full" ref={dropdownRef}>
-            <div
-                className={`w-full bg-transparent border-b flex items-center justify-between px-0 py-3 text-lg transition-colors outline-none
+  return (
+    <div className="relative w-full" ref={dropdownRef}>
+      <div
+        className={`w-full bg-transparent border-b flex items-center justify-between px-0 py-3 text-lg transition-colors outline-none
                     ${disabled || isLoading ? "opacity-50 cursor-not-allowed" : ""}
                     ${error ? "border-red-500 text-red-500" : isOpen ? "border-sky-500 text-black" : "border-black/10 text-black hover:border-black/30"}
                 `}
-            >
-                <input
-                    type="text"
-                    disabled={disabled || isLoading}
-                    className="font-sans bg-transparent w-full outline-none placeholder:text-zinc-400 text-black"
-                    placeholder={selectedLabel || value || placeholder}
-                    value={isOpen ? searchTerm : (selectedLabel || value || "")}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                    onFocus={() => setIsOpen(true)}
-                />
+      >
+        <input
+          type="text"
+          disabled={disabled || isLoading}
+          className="font-sans bg-transparent w-full outline-none placeholder:text-zinc-400 text-black"
+          placeholder={selectedLabel || value || placeholder}
+          value={isOpen ? searchTerm : selectedLabel || value || ""}
+          onChange={(e) => setSearchTerm(e.target.value)}
+          onFocus={() => setIsOpen(true)}
+        />
 
-                <div className="flex items-center gap-2">
-                    {isLoading ? (
-                        <Loader2 size={18} className="animate-spin text-zinc-400" />
-                    ) : (
-                        <ChevronDown
-                            size={18}
-                            onClick={() => !disabled && setIsOpen(!isOpen)}
-                            className={`transition-transform duration-300 cursor-pointer ${isOpen ? "rotate-180 text-sky-500" : "text-zinc-400"}`}
-                        />
-                    )}
-                </div>
-            </div>
-
-            <AnimatePresence>
-                {isOpen && (
-                    <motion.div
-                        initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 10 }} transition={{ duration: 0.2 }}
-                        className="absolute z-50 top-full left-0 w-full mt-2 bg-white rounded-2xl shadow-[0_20px_40px_rgba(0,0,0,0.1)] border border-black/5 max-h-64 overflow-y-auto py-2"
-                    >
-                        {filteredOptions.length === 0 ? (
-                            <div className="px-4 py-3 text-sm text-zinc-500 italic">No results found</div>
-                        ) : (
-                            filteredOptions.map((opt) => (
-                                <div
-                                    key={opt.value}
-                                    onClick={() => {
-                                        onChange(id, opt.value);
-                                        setSearchTerm("");
-                                        setIsOpen(false);
-                                    }}
-                                    className={`px-4 py-3 text-sm cursor-pointer transition-colors hover:bg-sky-50 hover:text-sky-600 ${value === opt.value ? "bg-sky-500/10 text-sky-600 font-bold" : "text-zinc-700"}`}
-                                >
-                                    {opt.label}
-                                </div>
-                            ))
-                        )}
-                    </motion.div>
-                )}
-            </AnimatePresence>
-            {error && <p className="absolute -bottom-5 left-0 text-[10px] font-bold text-red-500 flex items-center gap-1"><AlertCircle size={10}/> {error}</p>}
+        <div className="flex items-center gap-2">
+          {isLoading ? (
+            <Loader2 size={18} className="animate-spin text-zinc-400" />
+          ) : (
+            <ChevronDown
+              size={18}
+              onClick={() => !disabled && setIsOpen(!isOpen)}
+              className={`transition-transform duration-300 cursor-pointer ${isOpen ? "rotate-180 text-sky-500" : "text-zinc-400"}`}
+            />
+          )}
         </div>
-    );
+      </div>
+
+      <AnimatePresence>
+        {isOpen && (
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 10 }}
+            transition={{ duration: 0.2 }}
+            className="absolute z-50 top-full left-0 w-full mt-2 bg-white rounded-2xl shadow-[0_20px_40px_rgba(0,0,0,0.1)] border border-black/5 max-h-64 overflow-y-auto py-2"
+          >
+            {filteredOptions.length === 0 ? (
+              <div className="px-4 py-3 text-sm text-zinc-500 italic">
+                No results found
+              </div>
+            ) : (
+              filteredOptions.map((opt) => (
+                <div
+                  key={opt.value}
+                  onClick={() => {
+                    onChange(id, opt.value);
+                    setSearchTerm("");
+                    setIsOpen(false);
+                  }}
+                  className={`px-4 py-3 text-sm cursor-pointer transition-colors hover:bg-sky-50 hover:text-sky-600 ${value === opt.value ? "bg-sky-500/10 text-sky-600 font-bold" : "text-zinc-700"}`}
+                >
+                  {opt.label}
+                </div>
+              ))
+            )}
+          </motion.div>
+        )}
+      </AnimatePresence>
+      {error && (
+        <p className="absolute -bottom-5 left-0 text-[10px] font-bold text-red-500 flex items-center gap-1">
+          <AlertCircle size={10} /> {error}
+        </p>
+      )}
+    </div>
+  );
 };
 
 // Dual-thumb range slider. Two stacked native range inputs (styled in
 // globals.css as .pa-range) let each end be dragged independently; the visible
 // track + active fill are the divs behind them.
 const DualRangeSlider = ({
-    min, max, step, valueMin, valueMax, onChange,
+  min,
+  max,
+  step,
+  valueMin,
+  valueMax,
+  onChange,
 }: {
-    min: number; max: number; step: number;
-    valueMin: number; valueMax: number;
-    onChange: (lo: number, hi: number) => void;
+  min: number;
+  max: number;
+  step: number;
+  valueMin: number;
+  valueMax: number;
+  onChange: (lo: number, hi: number) => void;
 }) => {
-    const minPct = ((valueMin - min) / (max - min)) * 100;
-    const maxPct = ((valueMax - min) / (max - min)) * 100;
-    // When both thumbs sit at the very top the min input would cover the max
-    // thumb and trap it; lift the min input above only in that corner case.
-    const minOnTop = valueMin > max - (max - min) * 0.04;
+  const minPct = ((valueMin - min) / (max - min)) * 100;
+  const maxPct = ((valueMax - min) / (max - min)) * 100;
+  // When both thumbs sit at the very top the min input would cover the max
+  // thumb and trap it; lift the min input above only in that corner case.
+  const minOnTop = valueMin > max - (max - min) * 0.04;
 
-    return (
-        <div className="relative h-6 flex items-center touch-none">
-            <div className="absolute h-1.5 w-full rounded-full bg-black/10" />
-            <div
-                className="absolute h-1.5 rounded-full bg-[#4da8da]"
-                style={{ left: `${minPct}%`, right: `${100 - maxPct}%` }}
-            />
-            <input
-                type="range" className="pa-range" style={{ zIndex: minOnTop ? 5 : 3 }}
-                min={min} max={max} step={step} value={valueMin}
-                aria-label="Minimum mileage"
-                onChange={(e) => onChange(Math.min(Number(e.target.value), valueMax - step), valueMax)}
-            />
-            <input
-                type="range" className="pa-range" style={{ zIndex: 4 }}
-                min={min} max={max} step={step} value={valueMax}
-                aria-label="Maximum mileage"
-                onChange={(e) => onChange(valueMin, Math.max(Number(e.target.value), valueMin + step))}
-            />
-        </div>
-    );
+  return (
+    <div className="relative h-6 flex items-center touch-none">
+      <div className="absolute h-1.5 w-full rounded-full bg-black/10" />
+      <div
+        className="absolute h-1.5 rounded-full bg-[#4da8da]"
+        style={{ left: `${minPct}%`, right: `${100 - maxPct}%` }}
+      />
+      <input
+        type="range"
+        className="pa-range"
+        style={{ zIndex: minOnTop ? 5 : 3 }}
+        min={min}
+        max={max}
+        step={step}
+        value={valueMin}
+        aria-label="Minimum mileage"
+        onChange={(e) =>
+          onChange(Math.min(Number(e.target.value), valueMax - step), valueMax)
+        }
+      />
+      <input
+        type="range"
+        className="pa-range"
+        style={{ zIndex: 4 }}
+        min={min}
+        max={max}
+        step={step}
+        value={valueMax}
+        aria-label="Maximum mileage"
+        onChange={(e) =>
+          onChange(valueMin, Math.max(Number(e.target.value), valueMin + step))
+        }
+      />
+    </div>
+  );
 };
 
 // --- MAIN FORM COMPONENT ---
 
 const initialFormState = {
-    make: "", vehicle_model: "", condition: "",
-    yearRange: YEAR_PRESETS[0].label, mileageMin: MILEAGE_MIN, mileageMax: MILEAGE_MAX,
-    specs: "", name: "", email: "", phone: "",
-    countryCode: "+1", countryOfImport: "", importTimeline: "",
-    // Contact preferences (step 3)
-    contactMethods: [] as string[], contactDays: [] as string[], contactTimeWindow: [] as string[],
-    contactTimezone: "", contactTimezoneLabel: "",
+  make: "",
+  vehicle_model: "",
+  condition: "",
+  yearRange: YEAR_PRESETS[0].label,
+  mileageMin: MILEAGE_MIN,
+  mileageMax: MILEAGE_MAX,
+  specs: "",
+  name: "",
+  email: "",
+  phone: "",
+  countryCode: "+1",
+  countryOfImport: "",
+  importTimeline: "",
+  // Contact preferences (step 3)
+  contactMethods: [] as string[],
+  contactDays: [] as string[],
+  contactTimeWindow: [] as string[],
+  contactTimezone: "",
+  contactTimezoneLabel: "",
 };
 
 // Type for the returned agent
 interface AgentData {
-    name: string;
-    email?: string;
-    image?: string;
+  name: string;
+  email?: string;
+  image?: string;
 }
 
-/** Map a Next.js pathname to a human-readable lead source label. */
-function pathnameToSource(pathname: string): string {
-    if (!pathname || pathname === "/") return "Home Page";
-    const slug = pathname.replace(/^\//, "").replace(/\/$/, "");
-    const MAP: Record<string, string> = {
-        "request":                            "Request Page",
-        "b2b":                                "B2B Landing",
-        "b2c":                                "B2C Landing",
-        "import-japanese-cars-to-ireland":    "Import to Ireland",
-        "ireland-cost-calculator":            "Ireland Calculator",
+export default function RequestForm({
+  prefill,
+  defaultPhoneCountry = "US",
+  assignedAgentId,
+}: {
+  prefill?: Partial<typeof initialFormState>;
+  defaultPhoneCountry?: string;
+  // When set (sales-member profile pages), pins the inquiry directly to this
+  // agent instead of the round-robin rotation.
+  assignedAgentId?: string;
+}) {
+  const searchParams = useSearchParams();
+  const pathname = usePathname();
+
+  const [step, setStep] = useState(1);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isCreatingLead, setIsCreatingLead] = useState(false);
+
+  // Success States
+  const [isSuccess, setIsSuccess] = useState(false);
+  const [submittedRequestId, setSubmittedRequestId] = useState<string>("");
+  const [assignedAgent, setAssignedAgent] = useState<
+    AgentData | null | undefined
+  >(null);
+
+  const [availableModels, setAvailableModels] = useState<string[]>([]);
+  const [isLoadingModels, setIsLoadingModels] = useState(false);
+  const [apiFailed, setApiFailed] = useState(false);
+
+  const [countryCodeUpdated, setCountryCodeUpdated] = useState(false);
+  const [updatedCountryCodeLabel, setUpdatedCountryCodeLabel] = useState("");
+
+  const [formData, setFormData] = useState(() => ({
+    ...initialFormState,
+    countryCode: ALPHA2_TO_DIAL[defaultPhoneCountry] || "+1",
+  }));
+  const [errors, setErrors] = useState<Record<string, string>>({});
+
+  // Identity keys for Server-to-Server tracking
+  const [trackingData, setTrackingData] = useState({
+    gclid: "",
+    fbclid: "",
+    fbc: "",
+    fbp: "",
+  });
+
+  // Best-effort cleanup: if the customer abandons the contact-preferences step
+  // (closes/refreshes the tab) without submitting, discard the draft lead so
+  // it never lingers in the admin pipeline. A server-side TTL purge is the
+  // safety net for cases where the beacon doesn't fire.
+  const shouldDiscardRef = useRef(false);
+  const discardIdRef = useRef("");
+
+  useEffect(() => {
+    shouldDiscardRef.current = step === 3 && !!submittedRequestId && !isSuccess;
+    discardIdRef.current = submittedRequestId;
+  }, [step, submittedRequestId, isSuccess]);
+
+  useEffect(() => {
+    const discardDraft = () => {
+      if (!shouldDiscardRef.current || !discardIdRef.current) return;
+      try {
+        const blob = new Blob([JSON.stringify({ id: discardIdRef.current })], {
+          type: "application/json",
+        });
+        navigator.sendBeacon("/api/v1/leads/discard", blob);
+      } catch {
+        /* best-effort only */
+      }
     };
-    if (MAP[slug]) return MAP[slug];
-    if (slug.startsWith("campaigns/")) return `Campaign: ${slug.replace("campaigns/", "")}`;
-    // Prettify unknown slugs: kebab-case → Title Case
-    return slug.replace(/-/g, " ").replace(/\b\w/g, c => c.toUpperCase());
-}
+    window.addEventListener("pagehide", discardDraft);
+    return () => window.removeEventListener("pagehide", discardDraft);
+  }, []);
 
-export default function RequestForm({ prefill, defaultPhoneCountry = "US" }: { prefill?: Partial<typeof initialFormState>; defaultPhoneCountry?: string }) {
-    const searchParams = useSearchParams();
-    const pathname = usePathname();
+  // Capture URL params and Cookies on mount
+  useEffect(() => {
+    setTrackingData({
+      gclid: searchParams?.get("gclid") || "",
+      fbclid: searchParams?.get("fbclid") || "",
+      fbc: getCookie("_fbc") || "",
+      fbp: getCookie("_fbp") || "",
+    });
+  }, [searchParams]);
 
-    const [step, setStep] = useState(1);
-    const [isSubmitting, setIsSubmitting] = useState(false);
-    const [isCreatingLead, setIsCreatingLead] = useState(false);
+  // Sync form data whenever prefill changes.
+  // The parent memoises the prefill object, so this only fires:
+  //   1. On initial mount (to apply countryOfImport / model-card data), and
+  //   2. When the user clicks a different model card.
+  // Case 2 also changes the `key` prop, which unmounts + remounts the form
+  // at step 1 automatically — so we never need to call setStep(1) here.
+  useEffect(() => {
+    if (!prefill) return;
 
-    // Success States
-    const [isSuccess, setIsSuccess] = useState(false);
-    const [submittedRequestId, setSubmittedRequestId] = useState<string>("");
-    const [assignedAgent, setAssignedAgent] = useState<AgentData | null | undefined>(null);
+    let syncedCountryCode = ALPHA2_TO_DIAL[defaultPhoneCountry] || "+1";
+    if (prefill.countryOfImport) {
+      const match = COUNTRIES.find((c) => c.n === prefill.countryOfImport);
+      if (match) syncedCountryCode = match.c;
+    }
+    if (prefill.countryCode) syncedCountryCode = prefill.countryCode;
 
-    const [availableModels, setAvailableModels] = useState<string[]>([]);
-    const [isLoadingModels, setIsLoadingModels] = useState(false);
-    const [apiFailed, setApiFailed] = useState(false);
-
-    const [countryCodeUpdated, setCountryCodeUpdated] = useState(false);
-    const [updatedCountryCodeLabel, setUpdatedCountryCodeLabel] = useState("");
-
-    const [formData, setFormData] = useState(() => ({
-        ...initialFormState,
-        countryCode: ALPHA2_TO_DIAL[defaultPhoneCountry] || "+1"
+    setFormData((prev) => ({
+      ...prev,
+      ...prefill,
+      countryCode: syncedCountryCode,
+      // Honour an explicit condition from the prefill (e.g. a spec dossier
+      // marked Brand New / Used); otherwise fall back to the legacy default
+      // of assuming a make-prefilled inquiry is for a used vehicle.
+      condition: prefill.condition ?? (prefill.make ? "Used" : prev.condition),
     }));
-    const [errors, setErrors] = useState<Record<string, string>>({});
+  }, [prefill, defaultPhoneCountry]);
 
-    // Identity keys for Server-to-Server tracking
-    const [trackingData, setTrackingData] = useState({ gclid: '', fbclid: '', fbc: '', fbp: '' });
+  useEffect(() => {
+    if (!formData.make) {
+      setAvailableModels([]);
+      setApiFailed(false); // Reset on empty
+      return;
+    }
+    const fetchModels = async () => {
+      setIsLoadingModels(true);
+      setApiFailed(false); // Reset before new attempt
 
-    // Best-effort cleanup: if the customer abandons the contact-preferences step
-    // (closes/refreshes the tab) without submitting, discard the draft lead so
-    // it never lingers in the admin pipeline. A server-side TTL purge is the
-    // safety net for cases where the beacon doesn't fire.
-    const shouldDiscardRef = useRef(false);
-    const discardIdRef = useRef("");
+      try {
+        const url = `https://vpic.nhtsa.dot.gov/api/vehicles/GetModelsForMake/${encodeURIComponent(formData.make)}?format=json`;
+        const res = await fetch(
+          `https://corsproxy.io/?${encodeURIComponent(url)}`,
+        );
 
-    useEffect(() => {
-        shouldDiscardRef.current = step === 3 && !!submittedRequestId && !isSuccess;
-        discardIdRef.current = submittedRequestId;
-    }, [step, submittedRequestId, isSuccess]);
-
-    useEffect(() => {
-        const discardDraft = () => {
-            if (!shouldDiscardRef.current || !discardIdRef.current) return;
-            try {
-                const blob = new Blob([JSON.stringify({ id: discardIdRef.current })], { type: "application/json" });
-                navigator.sendBeacon("/api/v1/leads/discard", blob);
-            } catch {
-                /* best-effort only */
-            }
-        };
-        window.addEventListener("pagehide", discardDraft);
-        return () => window.removeEventListener("pagehide", discardDraft);
-    }, []);
-
-    // Capture URL params and Cookies on mount
-    useEffect(() => {
-        setTrackingData({
-            gclid: searchParams?.get('gclid') || '',
-            fbclid: searchParams?.get('fbclid') || '',
-            fbc: getCookie('_fbc') || '',
-            fbp: getCookie('_fbp') || ''
-        });
-    }, [searchParams]);
-
-    // Sync form data whenever prefill changes.
-    // The parent memoises the prefill object, so this only fires:
-    //   1. On initial mount (to apply countryOfImport / model-card data), and
-    //   2. When the user clicks a different model card.
-    // Case 2 also changes the `key` prop, which unmounts + remounts the form
-    // at step 1 automatically — so we never need to call setStep(1) here.
-    useEffect(() => {
-        if (!prefill) return;
-
-        let syncedCountryCode = ALPHA2_TO_DIAL[defaultPhoneCountry] || "+1";
-        if (prefill.countryOfImport) {
-            const match = COUNTRIES.find(c => c.n === prefill.countryOfImport);
-            if (match) syncedCountryCode = match.c;
+        if (res.status === 503) {
+          throw new Error(
+            "NHTSA Server is currently unavailable (503). Please try again later.",
+          );
         }
-        if (prefill.countryCode) syncedCountryCode = prefill.countryCode;
 
-        setFormData(prev => ({
-            ...prev,
-            ...prefill,
-            countryCode: syncedCountryCode,
-            // Honour an explicit condition from the prefill (e.g. a spec dossier
-            // marked Brand New / Used); otherwise fall back to the legacy default
-            // of assuming a make-prefilled inquiry is for a used vehicle.
-            condition: prefill.condition ?? (prefill.make ? "Used" : prev.condition),
-        }));
-    }, [prefill, defaultPhoneCountry]);
+        if (!res.ok) throw new Error("Network response was not ok");
 
-    useEffect(() => {
-        if (!formData.make) {
-            setAvailableModels([]);
-            setApiFailed(false); // Reset on empty
-            return;
+        const data = await res.json();
+
+        if (data.Results) {
+          const models = data.Results.map((item: any) =>
+            item.Model_Name.trim()
+              .toLowerCase()
+              .replace(/\b\w/g, (c: string) => c.toUpperCase()),
+          );
+          setAvailableModels([...new Set(models)].sort() as string[]);
         }
-        const fetchModels = async () => {
-            setIsLoadingModels(true);
-            setApiFailed(false); // Reset before new attempt
-
-            try {
-                const url = `https://vpic.nhtsa.dot.gov/api/vehicles/GetModelsForMake/${encodeURIComponent(formData.make)}?format=json`;
-                const res = await fetch(`https://corsproxy.io/?${encodeURIComponent(url)}`);
-
-                if (res.status === 503) {
-                    throw new Error("NHTSA Server is currently unavailable (503). Please try again later.");
-                }
-
-                if (!res.ok) throw new Error("Network response was not ok");
-
-                const data = await res.json();
-
-                if (data.Results) {
-                    const models = data.Results.map((item: any) =>
-                        item.Model_Name
-                            .trim()
-                            .toLowerCase()
-                            .replace(/\b\w/g, (c: string) => c.toUpperCase())
-                    );
-                    setAvailableModels([...new Set(models)].sort() as string[]);
-                }
-            } catch (err) {
-                console.error("Fetch Error:", err);
-                setApiFailed(true); // <-- Trigger the manual input fallback
-            } finally {
-                setIsLoadingModels(false);
-            }
-        };
-
-        const delayDebounceFn = setTimeout(fetchModels, 500);
-        return () => clearTimeout(delayDebounceFn);
-    }, [formData.make]);
-
-    // If a prefilled model doesn't exist in API results, fall back to manual entry
-    useEffect(() => {
-        if (!isLoadingModels && availableModels.length > 0 && formData.vehicle_model && !availableModels.includes(formData.vehicle_model)) {
-            setApiFailed(true);
-        }
-    }, [availableModels, isLoadingModels]);
-
-    const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-        const { id, value } = e.target;
-        setFormData(prev => ({ ...prev, [id]: value }));
-        if (errors[id]) setErrors(prev => ({ ...prev, [id]: "" }));
+      } catch (err) {
+        console.error("Fetch Error:", err);
+        setApiFailed(true); // <-- Trigger the manual input fallback
+      } finally {
+        setIsLoadingModels(false);
+      }
     };
 
-    const handleDropdownChange = (id: string, value: string) => {
-        if (id === "countryOfImport") {
-            const match = COUNTRIES.find(c => c.n === value);
-            const newCode = match ? match.c : formData.countryCode;
-            setFormData(prev => ({ ...prev, countryOfImport: value, countryCode: newCode }));
-            if (match && match.c !== formData.countryCode) {
-                setUpdatedCountryCodeLabel(`${match.c} (${match.n})`);
-                setCountryCodeUpdated(true);
-                setTimeout(() => setCountryCodeUpdated(false), 4500);
-            }
-        } else if (id === "make" && formData.make !== value) {
-            setFormData(prev => ({ ...prev, make: value, vehicle_model: "" }));
-        } else {
-            setFormData(prev => ({ ...prev, [id]: value }));
-        }
-        if (errors[id]) setErrors(prev => ({ ...prev, [id]: "" }));
-    };
+    const delayDebounceFn = setTimeout(fetchModels, 500);
+    return () => clearTimeout(delayDebounceFn);
+  }, [formData.make]);
 
-    const validateStep = () => {
-        const newErrors: Record<string, string> = {};
+  // If a prefilled model doesn't exist in API results, fall back to manual entry
+  useEffect(() => {
+    if (
+      !isLoadingModels &&
+      availableModels.length > 0 &&
+      formData.vehicle_model &&
+      !availableModels.includes(formData.vehicle_model)
+    ) {
+      setApiFailed(true);
+    }
+  }, [availableModels, isLoadingModels]);
 
-        if (step === 1) {
-            if (!formData.make) newErrors.make = "Please select a make";
-            if (!formData.vehicle_model) newErrors.vehicle_model = "Please select a model";
-            if (!formData.condition) newErrors.condition = "Please choose Brand New or Pre-Owned";
-        }
+  const handleInputChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
+  ) => {
+    const { id, value } = e.target;
+    setFormData((prev) => ({ ...prev, [id]: value }));
+    if (errors[id]) setErrors((prev) => ({ ...prev, [id]: "" }));
+  };
 
-        if (step === 2) {
-            if (!formData.name.trim()) newErrors.name = "Full name is required";
-            if (!formData.email.trim() || !/^\S+@\S+\.\S+$/.test(formData.email)) newErrors.email = "Valid email is required";
-            if (!formData.phone.trim()) {
-                newErrors.phone = "Phone number is required";
-            } else {
-                const dialDigits = formData.countryCode.replace(/[^\d]/g, '');
-                const localDigits = formData.phone.replace(/\D/g, '').replace(/^0+/, '');
-                const fullE164 = `+${dialDigits}${localDigits}`;
-                try {
-                    if (!isValidPhoneNumber(fullE164)) newErrors.phone = "Invalid phone number for the selected country";
-                } catch {
-                    newErrors.phone = "Invalid phone number for the selected country";
-                }
-            }
-            if (!formData.countryOfImport) newErrors.countryOfImport = "Destination country is required";
-            if (!formData.importTimeline) newErrors.importTimeline = "Please select when you're planning to import";
-        }
+  const handleDropdownChange = (id: string, value: string) => {
+    if (id === "countryOfImport") {
+      const match = COUNTRIES.find((c) => c.n === value);
+      const newCode = match ? match.c : formData.countryCode;
+      setFormData((prev) => ({
+        ...prev,
+        countryOfImport: value,
+        countryCode: newCode,
+      }));
+      if (match && match.c !== formData.countryCode) {
+        setUpdatedCountryCodeLabel(`${match.c} (${match.n})`);
+        setCountryCodeUpdated(true);
+        setTimeout(() => setCountryCodeUpdated(false), 4500);
+      }
+    } else if (id === "make" && formData.make !== value) {
+      setFormData((prev) => ({ ...prev, make: value, vehicle_model: "" }));
+    } else {
+      setFormData((prev) => ({ ...prev, [id]: value }));
+    }
+    if (errors[id]) setErrors((prev) => ({ ...prev, [id]: "" }));
+  };
 
-        if (step === 3) {
-            if (!formData.contactMethods || formData.contactMethods.length === 0) newErrors.contactMethods = "Please choose how we should contact you";
-            if (!formData.contactDays || formData.contactDays.length === 0) newErrors.contactDays = "Pick at least one day that suits you";
-            if (!formData.contactTimeWindow || formData.contactTimeWindow.length === 0) newErrors.contactTimeWindow = "Pick at least one time that works for you";
-            if (!formData.contactTimezone) newErrors.contactTimezone = "Select your timezone";
-        }
+  const validateStep = () => {
+    const newErrors: Record<string, string> = {};
 
-        setErrors(newErrors);
-        return Object.keys(newErrors).length === 0;
-    };
+    if (step === 1) {
+      if (!formData.make) newErrors.make = "Please select a make";
+      if (!formData.vehicle_model)
+        newErrors.vehicle_model = "Please select a model";
+      if (!formData.condition)
+        newErrors.condition = "Please choose Brand New or Pre-Owned";
+    }
 
-    // Create the lead + assign an agent when leaving the Delivery step, so the
-    // contact-preferences step can show who's handling the inquiry. No email is
-    // sent yet — that happens after the customer submits their preferences.
-    const createLead = async (): Promise<boolean> => {
-        let yearFrom: number | undefined, yearTo: number | undefined;
-        if (formData.condition === "Used" && formData.yearRange) {
-            const preset = YEAR_PRESETS.find(p => p.label === formData.yearRange);
-            if (preset) { yearFrom = preset.from; yearTo = preset.to; }
-        }
-
-        const payload = {
-            // If a lead was already created (user went Back then forward again),
-            // update it in place instead of creating a duplicate.
-            id: submittedRequestId || undefined,
-            make: formData.make,
-            vehicle_model: formData.vehicle_model,
-            condition: formData.condition,
-            yearFrom,
-            yearTo,
-            mileage: formData.condition === "Used" ? mileageRangeLabel(formData.mileageMin, formData.mileageMax) : undefined,
-            specs: formData.specs,
-            name: formData.name,
-            email: formData.email,
-            countryCode: formData.countryCode,
-            phone: formData.phone,
-            countryOfImport: formData.countryOfImport,
-            importTimeline: formData.importTimeline || undefined,
-            // Prefer ?ref= (set when the header button navigates here from another page)
-            // so the lead is attributed to the originating page, not the form page itself.
-            source: searchParams?.get("ref") || pathname,
-            ...trackingData
-        };
-
-        const response = await submitCarRequest(payload);
-        if (response.success) {
-            // Only capture the agent + id on first creation; on update the
-            // assignment is unchanged and the agent's full details (image/email)
-            // already live in state.
-            if (!submittedRequestId) {
-                setAssignedAgent(response.agent);
-                setSubmittedRequestId(response.requestId);
-            }
-            return true;
-        }
-        setErrors({ submit: response.message });
-        return false;
-    };
-
-    const handleNext = async () => {
-        if (!validateStep()) return;
-
-        // Leaving Delivery (step 2) → record the lead, then default the timezone
-        // from the chosen import country before showing the preferences step.
-        if (step === 2) {
-            setIsCreatingLead(true);
-            try {
-                const created = await createLead();
-                if (!created) return;
-                if (!formData.contactTimezone) {
-                    const tz = timezoneForCountry(formData.countryOfImport);
-                    setFormData(prev => ({ ...prev, contactTimezone: tz.tz, contactTimezoneLabel: tz.label }));
-                }
-            } catch {
-                setErrors({ submit: "Something went wrong. Please try again." });
-                return;
-            } finally {
-                setIsCreatingLead(false);
-            }
-        }
-
-        setStep((prev) => Math.min(prev + 1, TOTAL_STEPS));
-    };
-
-    const handlePrev = () => {
-        setStep((prev) => Math.max(prev - 1, 1));
-    };
-
-    const toggleContactDay = (day: string) => {
-        setFormData(prev => {
-            const exists = prev.contactDays.includes(day);
-            return { ...prev, contactDays: exists ? prev.contactDays.filter(d => d !== day) : [...prev.contactDays, day] };
-        });
-        if (errors.contactDays) setErrors(prev => ({ ...prev, contactDays: "" }));
-    };
-
-    const toggleContactMethod = (method: string) => {
-        setFormData(prev => {
-            const exists = prev.contactMethods.includes(method);
-            return { ...prev, contactMethods: exists ? prev.contactMethods.filter(m => m !== method) : [...prev.contactMethods, method] };
-        });
-        if (errors.contactMethods) setErrors(prev => ({ ...prev, contactMethods: "" }));
-    };
-
-    const toggleContactTimeWindow = (label: string) => {
-        setFormData(prev => {
-            const exists = prev.contactTimeWindow.includes(label);
-            return { ...prev, contactTimeWindow: exists ? prev.contactTimeWindow.filter(w => w !== label) : [...prev.contactTimeWindow, label] };
-        });
-        if (errors.contactTimeWindow) setErrors(prev => ({ ...prev, contactTimeWindow: "" }));
-    };
-
-    // Earliest selected window label (for the reminder-time preview).
-    const earliestTimeWindow = () =>
-        TIME_WINDOWS.filter(w => formData.contactTimeWindow.includes(w.label))
-            .sort((a, b) => a.startHour - b.startHour)[0]?.label;
-
-    // Final step: save contact preferences, set the reminder, send the emails.
-    const handleSubmit = async (e: React.FormEvent) => {
-        e.preventDefault();
-        if (!validateStep()) return;
-
-        setIsSubmitting(true);
+    if (step === 2) {
+      if (!formData.name.trim()) newErrors.name = "Full name is required";
+      if (!formData.email.trim() || !/^\S+@\S+\.\S+$/.test(formData.email))
+        newErrors.email = "Valid email is required";
+      if (!formData.phone.trim()) {
+        newErrors.phone = "Phone number is required";
+      } else {
+        const dialDigits = formData.countryCode.replace(/[^\d]/g, "");
+        const localDigits = formData.phone
+          .replace(/\D/g, "")
+          .replace(/^0+/, "");
+        const fullE164 = `+${dialDigits}${localDigits}`;
         try {
-            const response = await submitContactPreferences({
-                requestId: submittedRequestId,
-                contactMethods: formData.contactMethods,
-                contactDays: formData.contactDays,
-                contactTimeWindow: formData.contactTimeWindow.join(", "),
-                contactTimezone: formData.contactTimezone,
-                contactTimezoneLabel: formData.contactTimezoneLabel,
-            });
-
-            if (response.success) {
-                setIsSuccess(true);
-            } else {
-                setErrors({ submit: response.message });
-            }
-        } catch (error) {
-            setErrors({ submit: "Submission failed. Please try again." });
-        } finally {
-            setIsSubmitting(false);
+          if (!isValidPhoneNumber(fullE164))
+            newErrors.phone = "Invalid phone number for the selected country";
+        } catch {
+          newErrors.phone = "Invalid phone number for the selected country";
         }
+      }
+      if (!formData.countryOfImport)
+        newErrors.countryOfImport = "Destination country is required";
+      if (!formData.importTimeline)
+        newErrors.importTimeline =
+          "Please select when you're planning to import";
+    }
+
+    if (step === 3) {
+      if (!formData.contactMethods || formData.contactMethods.length === 0)
+        newErrors.contactMethods = "Please choose how we should contact you";
+      if (!formData.contactDays || formData.contactDays.length === 0)
+        newErrors.contactDays = "Pick at least one day that suits you";
+      if (
+        !formData.contactTimeWindow ||
+        formData.contactTimeWindow.length === 0
+      )
+        newErrors.contactTimeWindow =
+          "Pick at least one time that works for you";
+      if (!formData.contactTimezone)
+        newErrors.contactTimezone = "Select your timezone";
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
+  // Create the lead + assign an agent when leaving the Delivery step, so the
+  // contact-preferences step can show who's handling the inquiry. No email is
+  // sent yet — that happens after the customer submits their preferences.
+  const createLead = async (): Promise<boolean> => {
+    let yearFrom: number | undefined, yearTo: number | undefined;
+    if (formData.condition === "Used" && formData.yearRange) {
+      const preset = YEAR_PRESETS.find((p) => p.label === formData.yearRange);
+      if (preset) {
+        yearFrom = preset.from;
+        yearTo = preset.to;
+      }
+    }
+
+    const payload = {
+      // If a lead was already created (user went Back then forward again),
+      // update it in place instead of creating a duplicate.
+      id: submittedRequestId || undefined,
+      make: formData.make,
+      vehicle_model: formData.vehicle_model,
+      condition: formData.condition,
+      yearFrom,
+      yearTo,
+      mileage:
+        formData.condition === "Used"
+          ? mileageRangeLabel(formData.mileageMin, formData.mileageMax)
+          : undefined,
+      specs: formData.specs,
+      name: formData.name,
+      email: formData.email,
+      countryCode: formData.countryCode,
+      phone: formData.phone,
+      countryOfImport: formData.countryOfImport,
+      importTimeline: formData.importTimeline || undefined,
+      // Prefer ?ref= (set when the header button navigates here from another page)
+      // so the lead is attributed to the originating page, not the form page itself.
+      source: searchParams?.get("ref") || pathname,
+      // Pin the lead directly to the profile owner when embedded on /team/[slug].
+      assignedAgentId: assignedAgentId || undefined,
+      ...trackingData,
     };
 
-    const inputClasses = (id: string) => `w-full font-sans bg-transparent border-b text-black placeholder:text-zinc-400 focus:outline-none transition-colors rounded-none px-0 py-3 text-lg
+    const response = await submitCarRequest(payload);
+    if (response.success) {
+      // Only capture the agent + id on first creation; on update the
+      // assignment is unchanged and the agent's full details (image/email)
+      // already live in state.
+      if (!submittedRequestId) {
+        setAssignedAgent(response.agent);
+        setSubmittedRequestId(response.requestId);
+      }
+      return true;
+    }
+    setErrors({ submit: response.message });
+    return false;
+  };
+
+  const handleNext = async () => {
+    if (!validateStep()) return;
+
+    // Leaving Delivery (step 2) → record the lead, then default the timezone
+    // from the chosen import country before showing the preferences step.
+    if (step === 2) {
+      setIsCreatingLead(true);
+      try {
+        const created = await createLead();
+        if (!created) return;
+        if (!formData.contactTimezone) {
+          const tz = timezoneForCountry(formData.countryOfImport);
+          setFormData((prev) => ({
+            ...prev,
+            contactTimezone: tz.tz,
+            contactTimezoneLabel: tz.label,
+          }));
+        }
+      } catch {
+        setErrors({ submit: "Something went wrong. Please try again." });
+        return;
+      } finally {
+        setIsCreatingLead(false);
+      }
+    }
+
+    setStep((prev) => Math.min(prev + 1, TOTAL_STEPS));
+  };
+
+  const handlePrev = () => {
+    setStep((prev) => Math.max(prev - 1, 1));
+  };
+
+  const toggleContactDay = (day: string) => {
+    setFormData((prev) => {
+      const exists = prev.contactDays.includes(day);
+      return {
+        ...prev,
+        contactDays: exists
+          ? prev.contactDays.filter((d) => d !== day)
+          : [...prev.contactDays, day],
+      };
+    });
+    if (errors.contactDays) setErrors((prev) => ({ ...prev, contactDays: "" }));
+  };
+
+  const toggleContactMethod = (method: string) => {
+    setFormData((prev) => {
+      const exists = prev.contactMethods.includes(method);
+      return {
+        ...prev,
+        contactMethods: exists
+          ? prev.contactMethods.filter((m) => m !== method)
+          : [...prev.contactMethods, method],
+      };
+    });
+    if (errors.contactMethods)
+      setErrors((prev) => ({ ...prev, contactMethods: "" }));
+  };
+
+  const toggleContactTimeWindow = (label: string) => {
+    setFormData((prev) => {
+      const exists = prev.contactTimeWindow.includes(label);
+      return {
+        ...prev,
+        contactTimeWindow: exists
+          ? prev.contactTimeWindow.filter((w) => w !== label)
+          : [...prev.contactTimeWindow, label],
+      };
+    });
+    if (errors.contactTimeWindow)
+      setErrors((prev) => ({ ...prev, contactTimeWindow: "" }));
+  };
+
+  // Earliest selected window label (for the reminder-time preview).
+  const earliestTimeWindow = () =>
+    TIME_WINDOWS.filter((w) =>
+      formData.contactTimeWindow.includes(w.label),
+    ).sort((a, b) => a.startHour - b.startHour)[0]?.label;
+
+  // Final step: save contact preferences, set the reminder, send the emails.
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!validateStep()) return;
+
+    setIsSubmitting(true);
+    try {
+      const response = await submitContactPreferences({
+        requestId: submittedRequestId,
+        contactMethods: formData.contactMethods,
+        contactDays: formData.contactDays,
+        contactTimeWindow: formData.contactTimeWindow.join(", "),
+        contactTimezone: formData.contactTimezone,
+        contactTimezoneLabel: formData.contactTimezoneLabel,
+      });
+
+      if (response.success) {
+        setIsSuccess(true);
+      } else {
+        setErrors({ submit: response.message });
+      }
+    } catch (error) {
+      setErrors({ submit: "Submission failed. Please try again." });
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const inputClasses = (
+    id: string,
+  ) => `w-full font-sans bg-transparent border-b text-black placeholder:text-zinc-400 focus:outline-none transition-colors rounded-none px-0 py-3 text-lg
         ${errors[id] ? "border-red-500 focus:border-red-600" : "border-black/10 focus:border-sky-500"}`;
 
-    return (
-        <motion.div id="inquiry-form" className="w-full max-w-3xl font-sans bg-white/80 backdrop-blur-xl rounded-[2.5rem] border border-black/5 shadow-[0_40px_100px_rgba(0,0,0,0.08)] overflow-visible relative text-black mx-auto">
-            {/* Progress Bar */}
-            <div className="w-full h-1.5 bg-[#4da8da]/10 absolute top-0 left-0 overflow-hidden rounded-t-[2.5rem]">
-                <motion.div className="h-full bg-[#4da8da]" animate={{ width: `${(step / TOTAL_STEPS) * 100}%` }} transition={{ duration: 0.5 }} />
-            </div>
+  return (
+    <motion.div
+      id="inquiry-form"
+      className="w-full max-w-3xl font-sans bg-white/80 backdrop-blur-xl rounded-[2.5rem] border border-black/5 shadow-[0_40px_100px_rgba(0,0,0,0.08)] overflow-visible relative text-black mx-auto"
+    >
+      {/* Progress Bar */}
+      <div className="w-full h-1.5 bg-[#4da8da]/10 absolute top-0 left-0 overflow-hidden rounded-t-[2.5rem]">
+        <motion.div
+          className="h-full bg-[#4da8da]"
+          animate={{ width: `${(step / TOTAL_STEPS) * 100}%` }}
+          transition={{ duration: 0.5 }}
+        />
+      </div>
 
-            {isSuccess ? (
-                // === NEW SUCCESS VIEW MATCHING SCREENSHOT ===
-                <motion.div
-                    initial={{ opacity: 0, scale: 0.95 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    className="p-10 md:p-16 text-center flex flex-col items-center justify-center min-h-[500px]"
-                >
-                    <h2 className="text-3xl md:text-4xl font-extrabold text-[#4da8da] mb-10 tracking-tight">
-                        You're all set, {formData.name.split(' ')[0]}!
-                    </h2>
+      {isSuccess ? (
+        // === NEW SUCCESS VIEW MATCHING SCREENSHOT ===
+        <motion.div
+          initial={{ opacity: 0, scale: 0.95 }}
+          animate={{ opacity: 1, scale: 1 }}
+          className="p-10 md:p-16 text-center flex flex-col items-center justify-center min-h-[500px]"
+        >
+          <h2 className="text-3xl md:text-4xl font-extrabold text-[#4da8da] mb-10 tracking-tight">
+            You're all set, {formData.name.split(" ")[0]}!
+          </h2>
 
-                    <div className="w-32 h-32 rounded-full border-4 border-[#e6f3fa] overflow-hidden mb-6 shadow-sm bg-[#f2f8fc] flex items-center justify-center">
-                        {assignedAgent?.image ? (
-                            <img src={assignedAgent.image} alt={assignedAgent.name} className="w-full h-full object-cover" />
-                        ) : (
-                            <User className="h-14 w-14 text-[#4da8da]" />
-                        )}
-                    </div>
-
-                    <p className="text-zinc-800 text-base md:text-lg leading-relaxed max-w-xl mb-6">
-                        Hi {formData.name.split(' ')[0]}, I'm {assignedAgent?.name} and I'll be handling your inquiry personally from here.<br/>
-                        I'll reach out via <strong>{formData.contactMethods.join(' & ')}</strong>{formData.contactTimeWindow.length ? <> during the <strong>{formData.contactTimeWindow.join(', ')}</strong></> : null}{formData.contactDays?.length ? <> on <strong>{formData.contactDays.join(', ')}</strong></> : null} to talk through pricing, availability and shipping.
-                    </p>
-
-                    {/* Contact plan summary card */}
-                    <div className="w-full max-w-md bg-[#f0f9ff] border border-[#bae6fd] rounded-2xl p-5 mb-8 text-left space-y-2">
-                        <div className="flex items-center gap-2 text-sm text-zinc-700">
-                            {(() => { const Icon = CONTACT_METHOD_ICONS[formData.contactMethods[0]] || MessageCircle; return <Icon size={16} className="text-[#0369a1]" />; })()}
-                            <span className="font-semibold">{formData.contactMethods.join(' & ') || "—"}</span>
-                        </div>
-                        <div className="flex items-center gap-2 text-sm text-zinc-700">
-                            <Clock size={16} className="text-[#0369a1]" />
-                            <span>{formData.contactTimeWindow.join(', ')} · {formData.contactDays?.join(', ')}</span>
-                        </div>
-                        <div className="flex items-center gap-2 text-sm text-zinc-700">
-                            <Globe size={16} className="text-[#0369a1]" />
-                            <span>{formData.contactTimezoneLabel || formData.contactTimezone}</span>
-                        </div>
-                    </div>
-
-                    <p className="text-zinc-500 text-sm max-w-xl mb-8">
-                        I've emailed you a summary and a live tracking link from <a href={`mailto:${assignedAgent?.email}`} className="text-zinc-700 underline decoration-1 underline-offset-4 font-medium">{assignedAgent?.email}</a> — if you don't see it, check your spam folder.
-                    </p>
-
-                    <div className="flex flex-col items-center gap-6 w-full max-w-md">
-                        <a
-                            href={`/track/${submittedRequestId}`}
-                            className="w-full bg-[#4da8da] hover:bg-[#3d92c2] text-white py-4 px-6 rounded-2xl font-bold text-lg transition-colors text-center shadow-md shadow-[#4da8da]/20"
-                        >
-                            Track My Inquiry
-                        </a>
-                        <button
-                            onClick={() => {
-                                setIsSuccess(false);
-                                setStep(1);
-                                setFormData(initialFormState);
-                                setSubmittedRequestId("");
-                                setAssignedAgent(null);
-                                setErrors({});
-                            }}
-                            className="text-[#4da8da] font-bold hover:text-[#3d92c2] transition-colors underline decoration-2 underline-offset-4 text-base"
-                        >
-                            New Inquiry
-                        </button>
-                    </div>
-                </motion.div>
+          <div className="w-32 h-32 rounded-full border-4 border-[#e6f3fa] overflow-hidden mb-6 shadow-sm bg-[#f2f8fc] flex items-center justify-center">
+            {assignedAgent?.image ? (
+              <img
+                src={assignedAgent.image}
+                alt={assignedAgent.name}
+                className="w-full h-full object-cover"
+              />
             ) : (
-                <div className="p-5 sm:p-8 md:p-14 min-h-[520px] flex flex-col">
-                    <div className="flex justify-between items-end border-b border-black/5 pb-4 mb-6 sm:pb-6 sm:mb-8">
-                        <h3 className="text-xl sm:text-2xl font-bold">
-                            {step === 1 && "1. Vehicle & Specs"}
-                            {step === 2 && "2. Delivery Details"}
-                            {step === 3 && "3. How should we reach you?"}
-                        </h3>
-                        <span className="text-[#4da8da] text-xs font-bold uppercase tracking-widest">Step {step}/{TOTAL_STEPS}</span>
+              <User className="h-14 w-14 text-[#4da8da]" />
+            )}
+          </div>
+
+          <p className="text-zinc-800 text-base md:text-lg leading-relaxed max-w-xl mb-6">
+            Hi {formData.name.split(" ")[0]}, I'm {assignedAgent?.name} and I'll
+            be handling your inquiry personally from here.
+            <br />
+            I'll reach out via{" "}
+            <strong>{formData.contactMethods.join(" & ")}</strong>
+            {formData.contactTimeWindow.length ? (
+              <>
+                {" "}
+                during the{" "}
+                <strong>{formData.contactTimeWindow.join(", ")}</strong>
+              </>
+            ) : null}
+            {formData.contactDays?.length ? (
+              <>
+                {" "}
+                on <strong>{formData.contactDays.join(", ")}</strong>
+              </>
+            ) : null}{" "}
+            to talk through pricing, availability and shipping.
+          </p>
+
+          {/* Contact plan summary card */}
+          <div className="w-full max-w-md bg-[#f0f9ff] border border-[#bae6fd] rounded-2xl p-5 mb-8 text-left space-y-2">
+            <div className="flex items-center gap-2 text-sm text-zinc-700">
+              {(() => {
+                const Icon =
+                  CONTACT_METHOD_ICONS[formData.contactMethods[0]] ||
+                  MessageCircle;
+                return <Icon size={16} className="text-[#0369a1]" />;
+              })()}
+              <span className="font-semibold">
+                {formData.contactMethods.join(" & ") || "—"}
+              </span>
+            </div>
+            <div className="flex items-center gap-2 text-sm text-zinc-700">
+              <Clock size={16} className="text-[#0369a1]" />
+              <span>
+                {formData.contactTimeWindow.join(", ")} ·{" "}
+                {formData.contactDays?.join(", ")}
+              </span>
+            </div>
+            <div className="flex items-center gap-2 text-sm text-zinc-700">
+              <Globe size={16} className="text-[#0369a1]" />
+              <span>
+                {formData.contactTimezoneLabel || formData.contactTimezone}
+              </span>
+            </div>
+          </div>
+
+          <p className="text-zinc-500 text-sm max-w-xl mb-8">
+            I've emailed you a summary and a live tracking link from{" "}
+            <a
+              href={`mailto:${assignedAgent?.email}`}
+              className="text-zinc-700 underline decoration-1 underline-offset-4 font-medium"
+            >
+              {assignedAgent?.email}
+            </a>{" "}
+            — if you don't see it, check your spam folder.
+          </p>
+
+          <div className="flex flex-col items-center gap-6 w-full max-w-md">
+            <a
+              href={`/track/${submittedRequestId}`}
+              className="w-full bg-[#4da8da] hover:bg-[#3d92c2] text-white py-4 px-6 rounded-2xl font-bold text-lg transition-colors text-center shadow-md shadow-[#4da8da]/20"
+            >
+              Track My Inquiry
+            </a>
+            <button
+              onClick={() => {
+                setIsSuccess(false);
+                setStep(1);
+                setFormData(initialFormState);
+                setSubmittedRequestId("");
+                setAssignedAgent(null);
+                setErrors({});
+              }}
+              className="text-[#4da8da] font-bold hover:text-[#3d92c2] transition-colors underline decoration-2 underline-offset-4 text-base"
+            >
+              New Inquiry
+            </button>
+          </div>
+        </motion.div>
+      ) : (
+        <div className="p-5 sm:p-8 md:p-14 min-h-[520px] flex flex-col">
+          <div className="flex justify-between items-end border-b border-black/5 pb-4 mb-6 sm:pb-6 sm:mb-8">
+            <h3 className="text-xl sm:text-2xl font-bold">
+              {step === 1 && "1. Vehicle & Specs"}
+              {step === 2 && "2. Delivery Details"}
+              {step === 3 && "3. How should we reach you?"}
+            </h3>
+            <span className="text-[#4da8da] text-xs font-bold uppercase tracking-widest">
+              Step {step}/{TOTAL_STEPS}
+            </span>
+          </div>
+
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={step}
+              initial={{ opacity: 0, x: 10 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -10 }}
+              className="flex-1"
+            >
+              {step === 1 && (
+                <>
+                  <div className="flex flex-col gap-10 sm:gap-14">
+                    <SelectDropdown
+                      id="make"
+                      placeholder="Select Make"
+                      options={CAR_MAKES.map((m) => ({ label: m, value: m }))}
+                      value={formData.make}
+                      onChange={handleDropdownChange}
+                      error={errors.make}
+                    />
+
+                    {/* CONDITIONAL RENDER BASED ON API STATUS */}
+                    {apiFailed ? (
+                      <div className="space-y-2">
+                        <input
+                          id="vehicle_model"
+                          value={formData.vehicle_model}
+                          onChange={handleInputChange}
+                          placeholder="Type Vehicle Model (e.g. Aqua, Prius, 911)"
+                          className={inputClasses("vehicle_model")}
+                        />
+                        <div className="flex items-center justify-between">
+                          {errors.vehicle_model ? (
+                            <p className="text-[10px] font-bold text-red-500 flex items-center gap-1">
+                              <AlertCircle size={10} /> {errors.vehicle_model}
+                            </p>
+                          ) : (
+                            <span />
+                          )}
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setApiFailed(false);
+                              setFormData((prev) => ({
+                                ...prev,
+                                vehicle_model: "",
+                              }));
+                            }}
+                            className="text-[10px] text-zinc-400 hover:text-sky-500 transition-colors"
+                          >
+                            Use dropdown instead
+                          </button>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="space-y-2">
+                        <SelectDropdown
+                          id="vehicle_model"
+                          placeholder="Select Model"
+                          options={availableModels.map((m) => ({
+                            label: m,
+                            value: m,
+                          }))}
+                          value={formData.vehicle_model}
+                          onChange={handleDropdownChange}
+                          disabled={!formData.make}
+                          isLoading={isLoadingModels}
+                          error={errors.vehicle_model}
+                        />
+                        {formData.make && !isLoadingModels && (
+                          <div className="flex justify-end">
+                            <button
+                              type="button"
+                              onClick={() => setApiFailed(true)}
+                              className="text-[10px] text-zinc-400 hover:text-sky-500 transition-colors"
+                            >
+                              Type manually
+                            </button>
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Condition */}
+                  <div className="mt-12">
+                    <label className="text-[10px] font-bold text-[#4da8da] uppercase tracking-wider block mb-3">
+                      Condition
+                    </label>
+                    <div className="flex gap-4">
+                      {["New", "Used"].map((cond) => (
+                        <button
+                          key={cond}
+                          type="button"
+                          aria-pressed={formData.condition === cond}
+                          onClick={() => {
+                            setFormData((prev) => ({
+                              ...prev,
+                              condition: cond,
+                            }));
+                            if (errors.condition)
+                              setErrors((prev) => ({ ...prev, condition: "" }));
+                          }}
+                          className={`flex-1 py-4 rounded-2xl font-bold border transition-all ${formData.condition === cond ? "bg-[#4da8da] text-white border-[#4da8da] shadow-md" : `bg-transparent text-zinc-400 hover:border-[#4da8da]/30 ${errors.condition ? "border-red-300" : "border-black/10"}`}`}
+                        >
+                          {cond === "New" ? "Brand New" : "Pre-Owned"}
+                        </button>
+                      ))}
                     </div>
 
-                    <AnimatePresence mode="wait">
-                        <motion.div key={step} initial={{ opacity: 0, x: 10 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -10 }} className="flex-1">
-                            {step === 1 && (
-                                <>
-                                    <div className="flex flex-col gap-10 sm:gap-14">
-                                        <SelectDropdown
-                                            id="make"
-                                            placeholder="Select Make"
-                                            options={CAR_MAKES.map(m => ({ label: m, value: m }))}
-                                            value={formData.make}
-                                            onChange={handleDropdownChange}
-                                            error={errors.make}
-                                        />
+                    {errors.condition && (
+                      <p className="text-[10px] font-bold text-red-500 flex items-center gap-1 mt-3">
+                        <AlertCircle size={10} /> {errors.condition}
+                      </p>
+                    )}
 
-                                        {/* CONDITIONAL RENDER BASED ON API STATUS */}
-                                        {apiFailed ? (
-                                            <div className="space-y-2">
-                                                <input
-                                                    id="vehicle_model"
-                                                    value={formData.vehicle_model}
-                                                    onChange={handleInputChange}
-                                                    placeholder="Type Vehicle Model (e.g. Aqua, Prius, 911)"
-                                                    className={inputClasses("vehicle_model")}
-                                                />
-                                                <div className="flex items-center justify-between">
-                                                    {errors.vehicle_model ? (
-                                                        <p className="text-[10px] font-bold text-red-500 flex items-center gap-1">
-                                                            <AlertCircle size={10}/> {errors.vehicle_model}
-                                                        </p>
-                                                    ) : <span />}
-                                                    <button
-                                                        type="button"
-                                                        onClick={() => { setApiFailed(false); setFormData(prev => ({ ...prev, vehicle_model: "" })); }}
-                                                        className="text-[10px] text-zinc-400 hover:text-sky-500 transition-colors"
-                                                    >
-                                                        Use dropdown instead
-                                                    </button>
-                                                </div>
-                                            </div>
-                                        ) : (
-                                            <div className="space-y-2">
-                                                <SelectDropdown
-                                                    id="vehicle_model"
-                                                    placeholder="Select Model"
-                                                    options={availableModels.map(m => ({ label: m, value: m }))}
-                                                    value={formData.vehicle_model}
-                                                    onChange={handleDropdownChange}
-                                                    disabled={!formData.make}
-                                                    isLoading={isLoadingModels}
-                                                    error={errors.vehicle_model}
-                                                />
-                                                {formData.make && !isLoadingModels && (
-                                                    <div className="flex justify-end">
-                                                        <button
-                                                            type="button"
-                                                            onClick={() => setApiFailed(true)}
-                                                            className="text-[10px] text-zinc-400 hover:text-sky-500 transition-colors"
-                                                        >
-                                                            Type manually
-                                                        </button>
-                                                    </div>
-                                                )}
-                                            </div>
-                                        )}
-                                    </div>
+                    <AnimatePresence>
+                      {formData.condition === "Used" && (
+                        <motion.div
+                          initial={{ opacity: 0, height: 0 }}
+                          animate={{ opacity: 1, height: "auto" }}
+                          exit={{ opacity: 0, height: 0 }}
+                          className="overflow-hidden mt-8 space-y-8"
+                        >
+                          {/* Model year — quick presets */}
+                          <div>
+                            <label className="text-[10px] font-bold text-[#4da8da] uppercase tracking-wider block mb-3">
+                              Model Year
+                            </label>
+                            <div className="flex flex-wrap gap-2">
+                              {YEAR_PRESETS.map((p) => {
+                                const active = formData.yearRange === p.label;
+                                return (
+                                  <button
+                                    key={p.label}
+                                    type="button"
+                                    onClick={() =>
+                                      setFormData((prev) => ({
+                                        ...prev,
+                                        yearRange: p.label,
+                                      }))
+                                    }
+                                    className={`px-4 py-2.5 rounded-full text-sm font-medium border transition-all ${active ? "bg-[#4da8da] text-white border-[#4da8da] shadow-md" : "bg-transparent text-zinc-500 border-black/10 hover:border-[#4da8da]/40"}`}
+                                  >
+                                    {p.label}
+                                  </button>
+                                );
+                              })}
+                            </div>
+                          </div>
 
-                                    {/* Condition */}
-                                    <div className="mt-12">
-                                        <label className="text-[10px] font-bold text-[#4da8da] uppercase tracking-wider block mb-3">Condition</label>
-                                        <div className="flex gap-4">
-                                            {["New", "Used"].map((cond) => (
-                                                <button
-                                                    key={cond}
-                                                    type="button"
-                                                    aria-pressed={formData.condition === cond}
-                                                    onClick={() => {
-                                                        setFormData(prev => ({ ...prev, condition: cond }));
-                                                        if (errors.condition) setErrors(prev => ({ ...prev, condition: "" }));
-                                                    }}
-                                                    className={`flex-1 py-4 rounded-2xl font-bold border transition-all ${formData.condition === cond ? "bg-[#4da8da] text-white border-[#4da8da] shadow-md" : `bg-transparent text-zinc-400 hover:border-[#4da8da]/30 ${errors.condition ? "border-red-300" : "border-black/10"}`}`}
-                                                >
-                                                    {cond === "New" ? "Brand New" : "Pre-Owned"}
-                                                </button>
-                                            ))}
-                                        </div>
-
-                                        {errors.condition && (
-                                            <p className="text-[10px] font-bold text-red-500 flex items-center gap-1 mt-3">
-                                                <AlertCircle size={10}/> {errors.condition}
-                                            </p>
-                                        )}
-
-                                        <AnimatePresence>
-                                            {formData.condition === "Used" && (
-                                                <motion.div
-                                                    initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} exit={{ opacity: 0, height: 0 }}
-                                                    className="overflow-hidden mt-8 space-y-8"
-                                                >
-                                                    {/* Model year — quick presets */}
-                                                    <div>
-                                                        <label className="text-[10px] font-bold text-[#4da8da] uppercase tracking-wider block mb-3">Model Year</label>
-                                                        <div className="flex flex-wrap gap-2">
-                                                            {YEAR_PRESETS.map((p) => {
-                                                                const active = formData.yearRange === p.label;
-                                                                return (
-                                                                    <button
-                                                                        key={p.label}
-                                                                        type="button"
-                                                                        onClick={() => setFormData(prev => ({ ...prev, yearRange: p.label }))}
-                                                                        className={`px-4 py-2.5 rounded-full text-sm font-medium border transition-all ${active ? "bg-[#4da8da] text-white border-[#4da8da] shadow-md" : "bg-transparent text-zinc-500 border-black/10 hover:border-[#4da8da]/40"}`}
-                                                                    >
-                                                                        {p.label}
-                                                                    </button>
-                                                                );
-                                                            })}
-                                                        </div>
-                                                    </div>
-
-                                                    {/* Mileage — draggable min/max range */}
-                                                    <div>
-                                                        <label className="text-[10px] font-bold text-[#4da8da] uppercase tracking-wider block mb-5">Mileage Range</label>
-                                                        <div className="px-2.5">
-                                                            <DualRangeSlider
-                                                                min={MILEAGE_MIN} max={MILEAGE_MAX} step={MILEAGE_STEP}
-                                                                valueMin={formData.mileageMin} valueMax={formData.mileageMax}
-                                                                onChange={(lo, hi) => setFormData(prev => ({ ...prev, mileageMin: lo, mileageMax: hi }))}
-                                                            />
-                                                        </div>
-                                                        <div className="flex justify-between mt-4 text-sm">
-                                                            <span className="text-zinc-500">Minimum <strong className="text-black font-bold">{formatMileage(formData.mileageMin)} mi</strong></span>
-                                                            <span className="text-zinc-500">Maximum <strong className="text-black font-bold">{formatMileage(formData.mileageMax)} mi</strong></span>
-                                                        </div>
-                                                    </div>
-                                                </motion.div>
-                                            )}
-                                        </AnimatePresence>
-
-                                        {formData.condition === "New" && (
-                                            <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-zinc-500 italic text-center py-4 text-sm">
-                                                New vehicles will be sourced with 2025/2026 factory specifications.
-                                            </motion.p>
-                                        )}
-                                    </div>
-
-                                    {/* Specs */}
-                                    <div className="relative mt-10">
-                                        <label className="text-[10px] font-bold text-[#4da8da] uppercase tracking-wider block mb-2">Specification requests (optional)</label>
-                                        <textarea
-                                            id="specs"
-                                            value={formData.specs}
-                                            onChange={handleInputChange}
-                                            placeholder="e.g. Carbon Fiber Pack, Magma Red Interior, Night Package..."
-                                            className={`${inputClasses("specs")} min-h-[100px] resize-none`}
-                                        />
-                                    </div>
-                                </>
-                            )}
-
-                            {step === 2 && (
-                                <div className="space-y-8">
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                                        <div className="relative">
-                                            <input id="name" value={formData.name} onChange={handleInputChange} placeholder="Full Name" className={inputClasses("name")} />
-                                            {errors.name && <p className="absolute -bottom-5 left-0 text-[10px] font-bold text-red-500 flex items-center gap-1"><AlertCircle size={10}/> {errors.name}</p>}
-                                        </div>
-                                        <div className="relative">
-                                            <input id="email" type="email" value={formData.email} onChange={handleInputChange} placeholder="Email" className={inputClasses("email")} />
-                                            {errors.email && <p className="absolute -bottom-5 left-0 text-[10px] font-bold text-red-500 flex items-center gap-1"><AlertCircle size={10}/> {errors.email}</p>}
-                                        </div>
-                                    </div>
-
-                                    {/* Country of Import — before phone so selection auto-fills the country code */}
-                                    <div className="relative">
-                                        <label className="text-[10px] font-bold text-[#4da8da] uppercase tracking-wider block mb-1">
-                                            Where are you importing to?
-                                        </label>
-                                        <SelectDropdown
-                                            id="countryOfImport" placeholder="Destination Country..."
-                                            options={COUNTRIES.map(c => ({ label: c.n, value: c.n }))}
-                                            value={formData.countryOfImport} onChange={handleDropdownChange}
-                                            error={errors.countryOfImport}
-                                        />
-                                    </div>
-
-                                    {/* Sync notification */}
-                                    <AnimatePresence>
-                                        {countryCodeUpdated && (
-                                            <motion.p
-                                                initial={{ opacity: 0, y: -4 }}
-                                                animate={{ opacity: 1, y: 0 }}
-                                                exit={{ opacity: 0 }}
-                                                transition={{ duration: 0.3 }}
-                                                className="text-xs text-sky-500 font-medium -mt-4 pl-1"
-                                            >
-                                                Country code updated to {updatedCountryCodeLabel} based on your import destination.
-                                            </motion.p>
-                                        )}
-                                    </AnimatePresence>
-
-                                    {/* Phone: country code selector | local number — two separate columns */}
-                                    <div className="space-y-1">
-                                        <label className="text-[10px] font-bold text-[#4da8da] uppercase tracking-wider block">
-                                            WhatsApp / Phone Number
-                                        </label>
-                                        <div className="grid grid-cols-[120px_1fr] sm:grid-cols-[150px_1fr] gap-3 items-start">
-                                            <SelectDropdown
-                                                id="countryCode"
-                                                placeholder="+1"
-                                                options={COUNTRIES.map(c => ({ label: `${c.c}  ${c.n}`, value: c.c }))}
-                                                value={formData.countryCode}
-                                                onChange={handleDropdownChange}
-                                            />
-                                            <input
-                                                id="phone"
-                                                type="tel"
-                                                value={formData.phone}
-                                                onChange={handleInputChange}
-                                                placeholder="Local number (e.g. 085 123 4567)"
-                                                className={inputClasses("phone")}
-                                            />
-                                        </div>
-                                        {/* Error / hint always in normal flow — no overlay */}
-                                        {errors.phone ? (
-                                            <p className="text-[10px] font-bold text-red-500 flex items-center gap-1 pt-0.5">
-                                                <AlertCircle size={10}/> {errors.phone}
-                                            </p>
-                                        ) : (
-                                            <p className="text-[10px] text-zinc-400 pt-0.5">
-                                                Enter local number only — country code is selected above
-                                            </p>
-                                        )}
-                                    </div>
-
-                                    <div>
-                                        <label className="text-[10px] font-bold text-[#4da8da] uppercase tracking-wider block mb-3">
-                                            When are you planning to import? <span className="text-red-500">*</span>
-                                        </label>
-                                        <div className="flex flex-wrap gap-2">
-                                            {["Immediately", "1–3 months", "3–6 months", "Not sure", "Just Inquiring"].map((option) => (
-                                                <button
-                                                    key={option}
-                                                    type="button"
-                                                    onClick={() => {
-                                                        setFormData(prev => ({ ...prev, importTimeline: option }));
-                                                        if (errors.importTimeline) setErrors(prev => ({ ...prev, importTimeline: "" }));
-                                                    }}
-                                                    className={`px-3 sm:px-4 py-2 sm:py-2.5 rounded-full text-xs sm:text-sm font-medium border transition-all ${
-                                                        formData.importTimeline === option
-                                                            ? "bg-[#4da8da] text-white border-[#4da8da] shadow-md"
-                                                            : "bg-transparent text-zinc-500 border-black/10 hover:border-[#4da8da]/30"
-                                                    }`}
-                                                >
-                                                    {option}
-                                                </button>
-                                            ))}
-                                        </div>
-                                        {errors.importTimeline && (
-                                            <p className="text-[10px] font-bold text-red-500 flex items-center gap-1 pt-2">
-                                                <AlertCircle size={10}/> {errors.importTimeline}
-                                            </p>
-                                        )}
-                                    </div>
-
-                                    {errors.submit && (
-                                        <div className="p-4 bg-red-50 border border-red-200 rounded-xl text-red-600 text-sm font-medium text-center">
-                                            {errors.submit}
-                                        </div>
-                                    )}
-                                </div>
-                            )}
-
-                            {step === 3 && (
-                                <div className="space-y-8">
-                                    {/* Assigned agent header */}
-                                    <div className="flex items-center gap-4 bg-[#f0f9ff] border border-[#bae6fd] rounded-2xl p-4">
-                                        <div className="w-14 h-14 rounded-full border-2 border-white overflow-hidden bg-[#e6f3fa] shrink-0 flex items-center justify-center shadow-sm">
-                                            {assignedAgent?.image ? (
-                                                <img src={assignedAgent.image} alt={assignedAgent.name} className="w-full h-full object-cover" />
-                                            ) : (
-                                                <User className="h-7 w-7 text-[#4da8da]" />
-                                            )}
-                                        </div>
-                                        <div className="text-sm">
-                                            <p className="text-zinc-800">
-                                                Hi {formData.name.split(' ')[0] || "there"}, I'm <strong>{assignedAgent?.name || "your specialist"}</strong>. I'll be in touch to discuss pricing, availability and shipping.
-                                            </p>
-                                            <p className="text-zinc-500 text-xs mt-1">Just let me know how and when works best for you.</p>
-                                        </div>
-                                    </div>
-
-                                    {/* Contact method (multi-select) */}
-                                    <div>
-                                        <label className="text-[10px] font-bold text-[#4da8da] uppercase tracking-wider block mb-1">How should we contact you?</label>
-                                        <p className="text-[11px] text-zinc-400 mb-3">Pick all that work — e.g. WhatsApp and WhatsApp Call.</p>
-                                        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-                                            {CONTACT_METHODS.map((method) => {
-                                                const Icon = CONTACT_METHOD_ICONS[method];
-                                                const active = formData.contactMethods.includes(method);
-                                                return (
-                                                    <button
-                                                        key={method}
-                                                        type="button"
-                                                        aria-pressed={active}
-                                                        onClick={() => toggleContactMethod(method)}
-                                                        className={`relative flex flex-col items-center justify-center gap-1.5 py-3 rounded-2xl border text-xs font-semibold transition-all ${active ? "bg-[#4da8da] text-white border-[#4da8da] shadow-md" : "bg-transparent text-zinc-500 border-black/10 hover:border-[#4da8da]/40"}`}
-                                                    >
-                                                        {active && <CheckCircle2 size={14} className="absolute top-1.5 right-1.5 text-white" />}
-                                                        <Icon size={18} />
-                                                        {method}
-                                                    </button>
-                                                );
-                                            })}
-                                        </div>
-                                        {errors.contactMethods && <p className="text-[10px] font-bold text-red-500 flex items-center gap-1 mt-2"><AlertCircle size={10}/> {errors.contactMethods}</p>}
-                                    </div>
-
-                                    {/* Preferred day(s) */}
-                                    <div>
-                                        <label className="text-[10px] font-bold text-[#4da8da] uppercase tracking-wider block mb-3 flex items-center gap-1.5">
-                                            <CalendarDays size={12} /> Which day(s) suit you?
-                                        </label>
-                                        <div className="flex flex-wrap gap-2">
-                                            {DAY_OPTIONS.map((day) => {
-                                                const active = formData.contactDays.includes(day);
-                                                return (
-                                                    <button
-                                                        key={day}
-                                                        type="button"
-                                                        onClick={() => toggleContactDay(day)}
-                                                        className={`px-3 py-2 rounded-full text-xs font-medium border transition-all ${active ? "bg-[#4da8da] text-white border-[#4da8da] shadow-md" : "bg-transparent text-zinc-500 border-black/10 hover:border-[#4da8da]/40"}`}
-                                                    >
-                                                        {day}
-                                                    </button>
-                                                );
-                                            })}
-                                        </div>
-                                        {errors.contactDays && <p className="text-[10px] font-bold text-red-500 flex items-center gap-1 mt-2"><AlertCircle size={10}/> {errors.contactDays}</p>}
-                                    </div>
-
-                                    {/* Time window */}
-                                    <div>
-                                        <label className="text-[10px] font-bold text-[#4da8da] uppercase tracking-wider block mb-1 flex items-center gap-1.5">
-                                            <Clock size={12} /> Best time of day
-                                        </label>
-                                        <p className="text-[11px] text-zinc-400 mb-3">Pick every time that works — select all that apply.</p>
-                                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
-                                            {TIME_WINDOWS.map((w) => {
-                                                const active = formData.contactTimeWindow.includes(w.label);
-                                                return (
-                                                    <button
-                                                        key={w.label}
-                                                        type="button"
-                                                        onClick={() => toggleContactTimeWindow(w.label)}
-                                                        className={`py-3 rounded-2xl border text-sm font-semibold transition-all ${active ? "bg-[#4da8da] text-white border-[#4da8da] shadow-md" : "bg-transparent text-zinc-500 border-black/10 hover:border-[#4da8da]/40"}`}
-                                                    >
-                                                        {w.label}
-                                                    </button>
-                                                );
-                                            })}
-                                        </div>
-                                        {errors.contactTimeWindow && <p className="text-[10px] font-bold text-red-500 flex items-center gap-1 mt-2"><AlertCircle size={10}/> {errors.contactTimeWindow}</p>}
-                                    </div>
-
-                                    {/* Timezone */}
-                                    <div className="relative">
-                                        <label className="text-[10px] font-bold text-[#4da8da] uppercase tracking-wider block mb-1 flex items-center gap-1.5">
-                                            <Globe size={12} /> Your timezone
-                                        </label>
-                                        <SelectDropdown
-                                            id="contactTimezone" placeholder="Select your timezone..."
-                                            options={TIMEZONE_OPTIONS.map(t => ({ label: t.label, value: t.tz }))}
-                                            value={formData.contactTimezone}
-                                            onChange={(_id, val) => {
-                                                const opt = TIMEZONE_OPTIONS.find(o => o.tz === val);
-                                                setFormData(prev => ({ ...prev, contactTimezone: val, contactTimezoneLabel: opt?.label || val }));
-                                                if (errors.contactTimezone) setErrors(prev => ({ ...prev, contactTimezone: "" }));
-                                            }}
-                                            error={errors.contactTimezone}
-                                        />
-                                        {formData.countryOfImport && (
-                                            <p className="text-[10px] text-zinc-400 mt-1">Auto-set from {formData.countryOfImport} — change it if you're elsewhere.</p>
-                                        )}
-                                    </div>
-
-                                    {/* Preview */}
-                                    {formData.contactMethods.length > 0 && formData.contactDays.length > 0 && formData.contactTimeWindow.length > 0 && formData.contactTimezone && (
-                                        <div className="bg-zinc-50 border border-black/5 rounded-xl px-4 py-3 text-xs text-zinc-600 flex items-start gap-2">
-                                            <CheckCircle2 size={14} className="text-[#4da8da] mt-0.5 shrink-0" />
-                                            <span>
-                                                We'll reach you via <strong>{formData.contactMethods.join(' & ')}</strong> during the <strong>{formData.contactTimeWindow.join(', ')}</strong> on <strong>{formData.contactDays.join(', ')}</strong>.
-                                                {(() => {
-                                                    try {
-                                                        const when = computePreferredContactAt(formData.contactDays, earliestTimeWindow(), formData.contactTimezone);
-                                                        return <> Approx. <strong>{formatInTz(when, formData.contactTimezone)}</strong> your time.</>;
-                                                    } catch { return null; }
-                                                })()}
-                                            </span>
-                                        </div>
-                                    )}
-
-                                    {errors.submit && (
-                                        <div className="p-4 bg-red-50 border border-red-200 rounded-xl text-red-600 text-sm font-medium text-center">
-                                            {errors.submit}
-                                        </div>
-                                    )}
-                                </div>
-                            )}
+                          {/* Mileage — draggable min/max range */}
+                          <div>
+                            <label className="text-[10px] font-bold text-[#4da8da] uppercase tracking-wider block mb-5">
+                              Mileage Range
+                            </label>
+                            <div className="px-2.5">
+                              <DualRangeSlider
+                                min={MILEAGE_MIN}
+                                max={MILEAGE_MAX}
+                                step={MILEAGE_STEP}
+                                valueMin={formData.mileageMin}
+                                valueMax={formData.mileageMax}
+                                onChange={(lo, hi) =>
+                                  setFormData((prev) => ({
+                                    ...prev,
+                                    mileageMin: lo,
+                                    mileageMax: hi,
+                                  }))
+                                }
+                              />
+                            </div>
+                            <div className="flex justify-between mt-4 text-sm">
+                              <span className="text-zinc-500">
+                                Minimum{" "}
+                                <strong className="text-black font-bold">
+                                  {formatMileage(formData.mileageMin)} mi
+                                </strong>
+                              </span>
+                              <span className="text-zinc-500">
+                                Maximum{" "}
+                                <strong className="text-black font-bold">
+                                  {formatMileage(formData.mileageMax)} mi
+                                </strong>
+                              </span>
+                            </div>
+                          </div>
                         </motion.div>
+                      )}
                     </AnimatePresence>
 
-                    <div className="mt-12 pt-8 flex items-center justify-between border-t border-black/5">
-                        <button onClick={handlePrev} className={`flex items-center gap-2 font-bold transition-all ${step === 1 ? "opacity-0 pointer-events-none" : "opacity-100 text-zinc-500 hover:text-[#4da8da]"}`}>
-                            <ArrowLeft size={18} /> Back
-                        </button>
-                        {step < TOTAL_STEPS ? (
-                            <button onClick={handleNext} disabled={isCreatingLead} className="bg-[#4da8da] text-white px-10 py-4 rounded-full font-bold hover:bg-[#3d92c2] hover:scale-105 transition-all shadow-[0_10px_20px_rgba(77,168,218,0.3)] disabled:opacity-50 disabled:hover:scale-100 flex items-center gap-2">
-                                {isCreatingLead ? <><Loader2 className="animate-spin" size={18} /> Saving...</> : "Continue"}
-                            </button>
-                        ) : (
-                            <button onClick={handleSubmit} disabled={isSubmitting} className="bg-[#4da8da] text-white px-10 py-4 rounded-full font-bold hover:bg-[#3d92c2] hover:scale-105 transition-all shadow-[0_10px_20px_rgba(77,168,218,0.3)] disabled:opacity-50 disabled:hover:scale-100 flex items-center gap-2">
-                                {isSubmitting ? <><Loader2 className="animate-spin" size={18} /> Sending...</> : "Submit"}
-                            </button>
-                        )}
+                    {formData.condition === "New" && (
+                      <motion.p
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        className="text-zinc-500 italic text-center py-4 text-sm"
+                      >
+                        New vehicles will be sourced with 2025/2026 factory
+                        specifications.
+                      </motion.p>
+                    )}
+                  </div>
+
+                  {/* Specs */}
+                  <div className="relative mt-10">
+                    <label className="text-[10px] font-bold text-[#4da8da] uppercase tracking-wider block mb-2">
+                      Specification requests (optional)
+                    </label>
+                    <textarea
+                      id="specs"
+                      value={formData.specs}
+                      onChange={handleInputChange}
+                      placeholder="e.g. Carbon Fiber Pack, Magma Red Interior, Night Package..."
+                      className={`${inputClasses("specs")} min-h-[100px] resize-none`}
+                    />
+                  </div>
+                </>
+              )}
+
+              {step === 2 && (
+                <div className="space-y-8">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <div className="relative">
+                      <input
+                        id="name"
+                        value={formData.name}
+                        onChange={handleInputChange}
+                        placeholder="Full Name"
+                        className={inputClasses("name")}
+                      />
+                      {errors.name && (
+                        <p className="absolute -bottom-5 left-0 text-[10px] font-bold text-red-500 flex items-center gap-1">
+                          <AlertCircle size={10} /> {errors.name}
+                        </p>
+                      )}
                     </div>
+                    <div className="relative">
+                      <input
+                        id="email"
+                        type="email"
+                        value={formData.email}
+                        onChange={handleInputChange}
+                        placeholder="Email"
+                        className={inputClasses("email")}
+                      />
+                      {errors.email && (
+                        <p className="absolute -bottom-5 left-0 text-[10px] font-bold text-red-500 flex items-center gap-1">
+                          <AlertCircle size={10} /> {errors.email}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Country of Import — before phone so selection auto-fills the country code */}
+                  <div className="relative">
+                    <label className="text-[10px] font-bold text-[#4da8da] uppercase tracking-wider block mb-1">
+                      Where are you importing to?
+                    </label>
+                    <SelectDropdown
+                      id="countryOfImport"
+                      placeholder="Destination Country..."
+                      options={COUNTRIES.map((c) => ({
+                        label: c.n,
+                        value: c.n,
+                      }))}
+                      value={formData.countryOfImport}
+                      onChange={handleDropdownChange}
+                      error={errors.countryOfImport}
+                    />
+                  </div>
+
+                  {/* Sync notification */}
+                  <AnimatePresence>
+                    {countryCodeUpdated && (
+                      <motion.p
+                        initial={{ opacity: 0, y: -4 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0 }}
+                        transition={{ duration: 0.3 }}
+                        className="text-xs text-sky-500 font-medium -mt-4 pl-1"
+                      >
+                        Country code updated to {updatedCountryCodeLabel} based
+                        on your import destination.
+                      </motion.p>
+                    )}
+                  </AnimatePresence>
+
+                  {/* Phone: country code selector | local number — two separate columns */}
+                  <div className="space-y-1">
+                    <label className="text-[10px] font-bold text-[#4da8da] uppercase tracking-wider block">
+                      WhatsApp / Phone Number
+                    </label>
+                    <div className="grid grid-cols-[120px_1fr] sm:grid-cols-[150px_1fr] gap-3 items-start">
+                      <SelectDropdown
+                        id="countryCode"
+                        placeholder="+1"
+                        options={COUNTRIES.map((c) => ({
+                          label: `${c.c}  ${c.n}`,
+                          value: c.c,
+                        }))}
+                        value={formData.countryCode}
+                        onChange={handleDropdownChange}
+                      />
+                      <input
+                        id="phone"
+                        type="tel"
+                        value={formData.phone}
+                        onChange={handleInputChange}
+                        placeholder="Local number (e.g. 085 123 4567)"
+                        className={inputClasses("phone")}
+                      />
+                    </div>
+                    {/* Error / hint always in normal flow — no overlay */}
+                    {errors.phone ? (
+                      <p className="text-[10px] font-bold text-red-500 flex items-center gap-1 pt-0.5">
+                        <AlertCircle size={10} /> {errors.phone}
+                      </p>
+                    ) : (
+                      <p className="text-[10px] text-zinc-400 pt-0.5">
+                        Enter local number only — country code is selected above
+                      </p>
+                    )}
+                  </div>
+
+                  <div>
+                    <label className="text-[10px] font-bold text-[#4da8da] uppercase tracking-wider block mb-3">
+                      When are you planning to import?{" "}
+                      <span className="text-red-500">*</span>
+                    </label>
+                    <div className="flex flex-wrap gap-2">
+                      {[
+                        "Immediately",
+                        "1–3 months",
+                        "3–6 months",
+                        "Not sure",
+                        "Just Inquiring",
+                      ].map((option) => (
+                        <button
+                          key={option}
+                          type="button"
+                          onClick={() => {
+                            setFormData((prev) => ({
+                              ...prev,
+                              importTimeline: option,
+                            }));
+                            if (errors.importTimeline)
+                              setErrors((prev) => ({
+                                ...prev,
+                                importTimeline: "",
+                              }));
+                          }}
+                          className={`px-3 sm:px-4 py-2 sm:py-2.5 rounded-full text-xs sm:text-sm font-medium border transition-all ${
+                            formData.importTimeline === option
+                              ? "bg-[#4da8da] text-white border-[#4da8da] shadow-md"
+                              : "bg-transparent text-zinc-500 border-black/10 hover:border-[#4da8da]/30"
+                          }`}
+                        >
+                          {option}
+                        </button>
+                      ))}
+                    </div>
+                    {errors.importTimeline && (
+                      <p className="text-[10px] font-bold text-red-500 flex items-center gap-1 pt-2">
+                        <AlertCircle size={10} /> {errors.importTimeline}
+                      </p>
+                    )}
+                  </div>
+
+                  {errors.submit && (
+                    <div className="p-4 bg-red-50 border border-red-200 rounded-xl text-red-600 text-sm font-medium text-center">
+                      {errors.submit}
+                    </div>
+                  )}
                 </div>
+              )}
+
+              {step === 3 && (
+                <div className="space-y-8">
+                  {/* Assigned agent header */}
+                  <div className="flex items-center gap-4 bg-[#f0f9ff] border border-[#bae6fd] rounded-2xl p-4">
+                    <div className="w-14 h-14 rounded-full border-2 border-white overflow-hidden bg-[#e6f3fa] shrink-0 flex items-center justify-center shadow-sm">
+                      {assignedAgent?.image ? (
+                        <img
+                          src={assignedAgent.image}
+                          alt={assignedAgent.name}
+                          className="w-full h-full object-cover"
+                        />
+                      ) : (
+                        <User className="h-7 w-7 text-[#4da8da]" />
+                      )}
+                    </div>
+                    <div className="text-sm">
+                      <p className="text-zinc-800">
+                        Hi {formData.name.split(" ")[0] || "there"}, I'm{" "}
+                        <strong>
+                          {assignedAgent?.name || "your specialist"}
+                        </strong>
+                        . I'll be in touch to discuss pricing, availability and
+                        shipping.
+                      </p>
+                      <p className="text-zinc-500 text-xs mt-1">
+                        Just let me know how and when works best for you.
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Contact method (multi-select) */}
+                  <div>
+                    <label className="text-[10px] font-bold text-[#4da8da] uppercase tracking-wider block mb-1">
+                      How should we contact you?
+                    </label>
+                    <p className="text-[11px] text-zinc-400 mb-3">
+                      Pick all that work — e.g. WhatsApp and WhatsApp Call.
+                    </p>
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                      {CONTACT_METHODS.map((method) => {
+                        const Icon = CONTACT_METHOD_ICONS[method];
+                        const active = formData.contactMethods.includes(method);
+                        return (
+                          <button
+                            key={method}
+                            type="button"
+                            aria-pressed={active}
+                            onClick={() => toggleContactMethod(method)}
+                            className={`relative flex flex-col items-center justify-center gap-1.5 py-3 rounded-2xl border text-xs font-semibold transition-all ${active ? "bg-[#4da8da] text-white border-[#4da8da] shadow-md" : "bg-transparent text-zinc-500 border-black/10 hover:border-[#4da8da]/40"}`}
+                          >
+                            {active && (
+                              <CheckCircle2
+                                size={14}
+                                className="absolute top-1.5 right-1.5 text-white"
+                              />
+                            )}
+                            <Icon size={18} />
+                            {method}
+                          </button>
+                        );
+                      })}
+                    </div>
+                    {errors.contactMethods && (
+                      <p className="text-[10px] font-bold text-red-500 flex items-center gap-1 mt-2">
+                        <AlertCircle size={10} /> {errors.contactMethods}
+                      </p>
+                    )}
+                  </div>
+
+                  {/* Preferred day(s) */}
+                  <div>
+                    <label className="text-[10px] font-bold text-[#4da8da] uppercase tracking-wider block mb-3 flex items-center gap-1.5">
+                      <CalendarDays size={12} /> Which day(s) suit you?
+                    </label>
+                    <div className="flex flex-wrap gap-2">
+                      {DAY_OPTIONS.map((day) => {
+                        const active = formData.contactDays.includes(day);
+                        return (
+                          <button
+                            key={day}
+                            type="button"
+                            onClick={() => toggleContactDay(day)}
+                            className={`px-3 py-2 rounded-full text-xs font-medium border transition-all ${active ? "bg-[#4da8da] text-white border-[#4da8da] shadow-md" : "bg-transparent text-zinc-500 border-black/10 hover:border-[#4da8da]/40"}`}
+                          >
+                            {day}
+                          </button>
+                        );
+                      })}
+                    </div>
+                    {errors.contactDays && (
+                      <p className="text-[10px] font-bold text-red-500 flex items-center gap-1 mt-2">
+                        <AlertCircle size={10} /> {errors.contactDays}
+                      </p>
+                    )}
+                  </div>
+
+                  {/* Time window */}
+                  <div>
+                    <label className="text-[10px] font-bold text-[#4da8da] uppercase tracking-wider block mb-1 flex items-center gap-1.5">
+                      <Clock size={12} /> Best time of day
+                    </label>
+                    <p className="text-[11px] text-zinc-400 mb-3">
+                      Pick every time that works — select all that apply.
+                    </p>
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                      {TIME_WINDOWS.map((w) => {
+                        const active = formData.contactTimeWindow.includes(
+                          w.label,
+                        );
+                        return (
+                          <button
+                            key={w.label}
+                            type="button"
+                            onClick={() => toggleContactTimeWindow(w.label)}
+                            className={`py-3 rounded-2xl border text-sm font-semibold transition-all ${active ? "bg-[#4da8da] text-white border-[#4da8da] shadow-md" : "bg-transparent text-zinc-500 border-black/10 hover:border-[#4da8da]/40"}`}
+                          >
+                            {w.label}
+                          </button>
+                        );
+                      })}
+                    </div>
+                    {errors.contactTimeWindow && (
+                      <p className="text-[10px] font-bold text-red-500 flex items-center gap-1 mt-2">
+                        <AlertCircle size={10} /> {errors.contactTimeWindow}
+                      </p>
+                    )}
+                  </div>
+
+                  {/* Timezone */}
+                  <div className="relative">
+                    <label className="text-[10px] font-bold text-[#4da8da] uppercase tracking-wider block mb-1 flex items-center gap-1.5">
+                      <Globe size={12} /> Your timezone
+                    </label>
+                    <SelectDropdown
+                      id="contactTimezone"
+                      placeholder="Select your timezone..."
+                      options={TIMEZONE_OPTIONS.map((t) => ({
+                        label: t.label,
+                        value: t.tz,
+                      }))}
+                      value={formData.contactTimezone}
+                      onChange={(_id, val) => {
+                        const opt = TIMEZONE_OPTIONS.find((o) => o.tz === val);
+                        setFormData((prev) => ({
+                          ...prev,
+                          contactTimezone: val,
+                          contactTimezoneLabel: opt?.label || val,
+                        }));
+                        if (errors.contactTimezone)
+                          setErrors((prev) => ({
+                            ...prev,
+                            contactTimezone: "",
+                          }));
+                      }}
+                      error={errors.contactTimezone}
+                    />
+                    {formData.countryOfImport && (
+                      <p className="text-[10px] text-zinc-400 mt-1">
+                        Auto-set from {formData.countryOfImport} — change it if
+                        you're elsewhere.
+                      </p>
+                    )}
+                  </div>
+
+                  {/* Preview */}
+                  {formData.contactMethods.length > 0 &&
+                    formData.contactDays.length > 0 &&
+                    formData.contactTimeWindow.length > 0 &&
+                    formData.contactTimezone && (
+                      <div className="bg-zinc-50 border border-black/5 rounded-xl px-4 py-3 text-xs text-zinc-600 flex items-start gap-2">
+                        <CheckCircle2
+                          size={14}
+                          className="text-[#4da8da] mt-0.5 shrink-0"
+                        />
+                        <span>
+                          We'll reach you via{" "}
+                          <strong>{formData.contactMethods.join(" & ")}</strong>{" "}
+                          during the{" "}
+                          <strong>
+                            {formData.contactTimeWindow.join(", ")}
+                          </strong>{" "}
+                          on <strong>{formData.contactDays.join(", ")}</strong>.
+                          {(() => {
+                            try {
+                              const when = computePreferredContactAt(
+                                formData.contactDays,
+                                earliestTimeWindow(),
+                                formData.contactTimezone,
+                              );
+                              return (
+                                <>
+                                  {" "}
+                                  Approx.{" "}
+                                  <strong>
+                                    {formatInTz(when, formData.contactTimezone)}
+                                  </strong>{" "}
+                                  your time.
+                                </>
+                              );
+                            } catch {
+                              return null;
+                            }
+                          })()}
+                        </span>
+                      </div>
+                    )}
+
+                  {errors.submit && (
+                    <div className="p-4 bg-red-50 border border-red-200 rounded-xl text-red-600 text-sm font-medium text-center">
+                      {errors.submit}
+                    </div>
+                  )}
+                </div>
+              )}
+            </motion.div>
+          </AnimatePresence>
+
+          <div className="mt-12 pt-8 flex items-center justify-between border-t border-black/5">
+            <button
+              onClick={handlePrev}
+              className={`flex items-center gap-2 font-bold transition-all ${step === 1 ? "opacity-0 pointer-events-none" : "opacity-100 text-zinc-500 hover:text-[#4da8da]"}`}
+            >
+              <ArrowLeft size={18} /> Back
+            </button>
+            {step < TOTAL_STEPS ? (
+              <button
+                onClick={handleNext}
+                disabled={isCreatingLead}
+                className="bg-[#4da8da] text-white px-10 py-4 rounded-full font-bold hover:bg-[#3d92c2] hover:scale-105 transition-all shadow-[0_10px_20px_rgba(77,168,218,0.3)] disabled:opacity-50 disabled:hover:scale-100 flex items-center gap-2"
+              >
+                {isCreatingLead ? (
+                  <>
+                    <Loader2 className="animate-spin" size={18} /> Saving...
+                  </>
+                ) : (
+                  "Continue"
+                )}
+              </button>
+            ) : (
+              <button
+                onClick={handleSubmit}
+                disabled={isSubmitting}
+                className="bg-[#4da8da] text-white px-10 py-4 rounded-full font-bold hover:bg-[#3d92c2] hover:scale-105 transition-all shadow-[0_10px_20px_rgba(77,168,218,0.3)] disabled:opacity-50 disabled:hover:scale-100 flex items-center gap-2"
+              >
+                {isSubmitting ? (
+                  <>
+                    <Loader2 className="animate-spin" size={18} /> Sending...
+                  </>
+                ) : (
+                  "Submit"
+                )}
+              </button>
             )}
-        </motion.div>
-    );
+          </div>
+        </div>
+      )}
+    </motion.div>
+  );
 }

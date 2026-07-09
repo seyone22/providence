@@ -25,6 +25,10 @@ export async function submitCarRequest(data: {
     countryOfImport: string;
     importTimeline?: string;
     source?: string;
+    // When set, the inquiry came through a sales member's personal profile page
+    // (/team/[slug]) and must be assigned directly to that member, bypassing the
+    // round-robin rotation. Validated server-side against the Sales/admin role.
+    assignedAgentId?: string;
     // S2S Tracking Fields
     gclid?: string;
     fbclid?: string;
@@ -73,43 +77,65 @@ export async function submitCarRequest(data: {
             // If the id no longer resolves, fall through and create a fresh lead.
         }
 
-        // 1. Logic to assign a 'Sales' member round-robin (alphabetically)
+        // 1. Assign an agent. A profile-page inquiry carries assignedAgentId and
+        //    is pinned directly to that member; everything else rotates through
+        //    the Sales team round-robin (alphabetically).
         const db = mongoose.connection.db;
         let assignedAgent = null;
+        let assignmentMethod: "direct" | "round-robin" = "round-robin";
 
         if (db) {
             const UserCollection = db.collection("user");
 
-            // Fetch all users with the role 'Sales', sorted alphabetically by name
-            const staffMembers = await UserCollection.find({ role: "Sales" })
-                .sort({ name: 1 })
-                .toArray();
-
-            if (staffMembers.length > 0) {
-                // Fetch the most recently created request
-                const lastRequest = await Request.findOne(
-                    {},
-                    {},
-                    { sort: { createdAt: -1 } } // Assumes timestamps are enabled on your Request schema
-                ).lean();
-
-                if (!lastRequest || !lastRequest.assignedToId) {
-                    // If there are no existing leads, start with the first person on the list
-                    assignedAgent = staffMembers[0];
-                } else {
-                    // Find where the last assigned agent sits in our alphabetical list
-                    const lastAgentIndex = staffMembers.findIndex(
-                        (staff) => staff._id.toString() === lastRequest.assignedToId.toString()
-                    );
-
-                    // Calculate the next index. If the last agent isn't found, start at 0.
-                    const nextIndex = lastAgentIndex >= 0 ? (lastAgentIndex + 1) % staffMembers.length : 0;
-
-                    assignedAgent = staffMembers[nextIndex];
+            // 1a. Direct assignment — only honoured if the id resolves to a real
+            //     user whose role can actually own leads. Never trust the client
+            //     value blindly; an invalid id silently falls back to round-robin.
+            if (data.assignedAgentId && mongoose.Types.ObjectId.isValid(data.assignedAgentId)) {
+                const directAgent = await UserCollection.findOne({
+                    _id: new mongoose.Types.ObjectId(data.assignedAgentId),
+                    role: { $in: ["Sales", "admin"] },
+                    isBanned: { $ne: true },
+                });
+                if (directAgent) {
+                    assignedAgent = directAgent;
+                    assignmentMethod = "direct";
                 }
-            } else {
-                // Fallback: If no staff found, try to find an admin, or just grab the first user
-                assignedAgent = await UserCollection.findOne({ role: "admin" }) || await UserCollection.findOne();
+            }
+
+            if (!assignedAgent) {
+                // Fetch all users with the role 'Sales', sorted alphabetically by name
+                const staffMembers = await UserCollection.find({ role: "Sales" })
+                    .sort({ name: 1 })
+                    .toArray();
+
+                if (staffMembers.length > 0) {
+                    // Fetch the most recently created round-robin lead. Direct
+                    // (profile-page) leads are excluded so pinning a lead to one
+                    // member doesn't advance the shared rotation past them.
+                    const lastRequest = await Request.findOne(
+                        { assignmentMethod: { $ne: "direct" } },
+                        {},
+                        { sort: { createdAt: -1 } } // Assumes timestamps are enabled on your Request schema
+                    ).lean();
+
+                    if (!lastRequest || !lastRequest.assignedToId) {
+                        // If there are no existing leads, start with the first person on the list
+                        assignedAgent = staffMembers[0];
+                    } else {
+                        // Find where the last assigned agent sits in our alphabetical list
+                        const lastAgentIndex = staffMembers.findIndex(
+                            (staff) => staff._id.toString() === lastRequest.assignedToId.toString()
+                        );
+
+                        // Calculate the next index. If the last agent isn't found, start at 0.
+                        const nextIndex = lastAgentIndex >= 0 ? (lastAgentIndex + 1) % staffMembers.length : 0;
+
+                        assignedAgent = staffMembers[nextIndex];
+                    }
+                } else {
+                    // Fallback: If no staff found, try to find an admin, or just grab the first user
+                    assignedAgent = await UserCollection.findOne({ role: "admin" }) || await UserCollection.findOne();
+                }
             }
         }
 
@@ -124,10 +150,15 @@ export async function submitCarRequest(data: {
         // 2. Create the database record, appending the assigned agent's details.
         //    Marked as a draft until the customer submits contact preferences —
         //    drafts are hidden from the admin pipeline and purged if abandoned.
+        // Strip the routing hint before persisting — it's an input, not a
+        // Request field (assignmentMethod records the outcome instead).
+        const { assignedAgentId: _assignedAgentId, ...requestData } = data;
+
         const newRequest = await Request.create({
-            ...data,
+            ...requestData,
             assignedToId: agentData.id,
             assignedToName: agentData.name,
+            assignmentMethod,
             isDraft: true
         });
 

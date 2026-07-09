@@ -6,6 +6,7 @@ import {
   Car,
   ChevronRight,
   FilePlus2,
+  IdCard,
   LayoutDashboard,
   LogOut,
   Settings,
@@ -31,6 +32,7 @@ import { authClient } from "@/lib/auth-client";
 
 const navItems = [
   { title: "Me", url: "/admin/me", icon: User },
+  { title: "My Profile Page", url: "/admin/my-profile", icon: IdCard },
   { title: "Dashboard", url: "/admin", icon: LayoutDashboard },
   { title: "Archived", url: "/admin/archived", icon: Archive },
   { title: "Cars", url: "/admin/dossiers", icon: Car },
