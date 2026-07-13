@@ -31,9 +31,10 @@ const CAMPAIGN_TAG = "import-japanese-cars";
 // (not built in Japan). `make` must match a value in the request form's
 // CAR_MAKES list so the prefill lands on a valid option; `model` prefills the
 // free-text/model field. Card images are model-correct photos from Wikimedia
-// Commons (CC-licensed), downloaded and self-hosted under /public/import-cars
-// with any visible number plates blurred. The Honda Vezel card intentionally
-// keeps its original hotlinked photo.
+// Commons (CC-licensed) that have been cut out and re-composited onto a uniform
+// studio-grey (#f4f4f5 / zinc-100) background with a soft contact shadow, so
+// the whole grid reads as one cohesive studio set. Self-hosted under
+// /public/import-cars with any visible number plates blurred.
 const FAST_MOVERS: {
   name: string;
   make: string;
@@ -81,8 +82,7 @@ const FAST_MOVERS: {
     make: "Honda",
     model: "Vezel",
     blurb: "The compact hybrid crossover",
-    image:
-      "https://upload.wikimedia.org/wikipedia/commons/thumb/7/71/2023_Honda_HR-V_Advance_i-MMD_CVT_1.5.jpg/960px-2023_Honda_HR-V_Advance_i-MMD_CVT_1.5.jpg",
+    image: "/import-cars/vezel.jpg",
   },
   {
     name: "Nissan Note e-POWER",
@@ -499,27 +499,27 @@ export default function JapanImportLanding() {
                   type="button"
                   onClick={() => handleModelSelect(model)}
                   aria-label={`Enquire about importing a ${model.name} from Japan`}
-                  className="group relative w-full h-44 md:h-52 overflow-hidden rounded-[1.75rem] border border-black/10 bg-zinc-900 hover:border-black/40 hover:shadow-[0_24px_50px_rgba(0,0,0,0.18)] hover:-translate-y-1 transition-all duration-300 text-left"
+                  className="group relative w-full h-44 md:h-52 overflow-hidden rounded-[1.75rem] border border-black/10 bg-zinc-100 hover:border-black/40 hover:shadow-[0_24px_50px_rgba(0,0,0,0.12)] hover:-translate-y-1 transition-all duration-300 text-left"
                 >
                   <img
                     src={model.image}
                     alt={`${model.name} — Japanese import fast mover`}
                     loading="lazy"
-                    className="absolute inset-0 w-full h-full object-cover opacity-90 group-hover:opacity-100 group-hover:scale-105 transition-all duration-500 ease-out"
+                    className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 ease-out"
                   />
-                  {/* Legibility gradient behind the label */}
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/20 to-transparent" />
+                  {/* Studio-grey fade behind the label (matches image background) */}
+                  <div className="absolute inset-0 bg-gradient-to-t from-zinc-100 via-zinc-100/70 to-transparent" />
                   <div className="absolute inset-x-0 bottom-0 p-4 flex items-end justify-between gap-2">
                     <span className="flex flex-col leading-tight">
-                      <span className="text-white text-base md:text-lg font-bold tracking-tight drop-shadow-sm">
+                      <span className="text-black text-base md:text-lg font-bold tracking-tight">
                         {model.name}
                       </span>
-                      <span className="text-white/70 text-xs font-medium drop-shadow-sm">
+                      <span className="text-zinc-500 text-xs font-medium">
                         {model.blurb}
                       </span>
                     </span>
-                    <span className="shrink-0 w-8 h-8 rounded-full bg-white/15 border border-white/30 backdrop-blur-sm flex items-center justify-center opacity-0 -translate-x-1 group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-300">
-                      <ArrowRight size={15} className="text-white" />
+                    <span className="shrink-0 w-8 h-8 rounded-full bg-black/5 border border-black/10 backdrop-blur-sm flex items-center justify-center opacity-0 -translate-x-1 group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-300">
+                      <ArrowRight size={15} className="text-black" />
                     </span>
                   </div>
                 </button>
