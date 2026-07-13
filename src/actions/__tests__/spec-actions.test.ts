@@ -1,13 +1,20 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { beforeEach, describe, expect, it, type Mock, vi } from "vitest";
+import { db as dbClient, specDossiers } from "@/db";
 import {
-  saveSpecDossier,
-  getSpecDossierById,
-  getAllSpecDossiers,
-  updateDossierStatus,
   deleteSpecDossier,
+  getAllSpecDossiers,
+  getSpecDossierById,
   getSpecDossiersByTags,
+  saveSpecDossier,
+  updateDossierStatus,
 } from "../spec-actions";
-import { db, specDossiers } from "@/db";
+
+// The @/db module is fully mocked below; alias the imported client to a
+// permissive mock shape so the insert/update/returning mocks type-check.
+type MockedDb = Record<string, Mock> & {
+  query: Record<string, Record<string, Mock>>;
+};
+const db = dbClient as unknown as MockedDb;
 
 // Mock database
 vi.mock("@/db", () => {
@@ -31,7 +38,12 @@ vi.mock("@/db", () => {
   };
   return {
     db: mockDb,
-    specDossiers: { id: "spec_id_col", slug: "spec_slug_col", status: "spec_status_col", searchTags: "spec_search_tags_col" },
+    specDossiers: {
+      id: "spec_id_col",
+      slug: "spec_slug_col",
+      status: "spec_status_col",
+      searchTags: "spec_search_tags_col",
+    },
   };
 });
 
@@ -52,9 +64,15 @@ describe("spec-actions", () => {
     });
 
     it("should insert a new dossier if no _id is provided", async () => {
-      const mockSavedDossier = { id: "new-spec-id", slug: "toyota-supra", status: "Draft" };
+      const mockSavedDossier = {
+        id: "new-spec-id",
+        slug: "toyota-supra",
+        status: "Draft",
+      };
       vi.mocked(db.query.specDossiers.findFirst).mockResolvedValue(null as any);
-      vi.mocked(db.insert(specDossiers).returning).mockResolvedValue([mockSavedDossier] as any);
+      vi.mocked(db.insert(specDossiers).returning).mockResolvedValue([
+        mockSavedDossier,
+      ] as any);
 
       const result = await saveSpecDossier({
         make: "Toyota",
@@ -68,9 +86,15 @@ describe("spec-actions", () => {
     });
 
     it("should update an existing dossier if _id is provided", async () => {
-      const mockSavedDossier = { id: "spec-123", slug: "toyota-supra", status: "Draft" };
+      const mockSavedDossier = {
+        id: "spec-123",
+        slug: "toyota-supra",
+        status: "Draft",
+      };
       vi.mocked(db.query.specDossiers.findFirst).mockResolvedValue(null as any);
-      vi.mocked(db.update(specDossiers).returning).mockResolvedValue([mockSavedDossier] as any);
+      vi.mocked(db.update(specDossiers).returning).mockResolvedValue([
+        mockSavedDossier,
+      ] as any);
 
       const result = await saveSpecDossier({
         _id: "spec-123",
@@ -86,12 +110,12 @@ describe("spec-actions", () => {
 
     it("should handle slug conflict and suggest alternative slug", async () => {
       const mockConflict = { id: "spec-other", slug: "toyota-supra" };
-      
+
       // First findFirst call (conflict check) returns the conflicting dossier
       vi.mocked(db.query.specDossiers.findFirst)
         .mockResolvedValueOnce(mockConflict as any) // conflict check
         .mockResolvedValueOnce(mockConflict as any) // findAvailableSlug base check
-        .mockResolvedValueOnce(null as any);        // findAvailableSlug base-2 check
+        .mockResolvedValueOnce(null as any); // findAvailableSlug base-2 check
 
       const result = await saveSpecDossier({
         make: "Toyota",
@@ -109,7 +133,9 @@ describe("spec-actions", () => {
   describe("getSpecDossierById", () => {
     it("should retrieve a dossier by ID and serialize it", async () => {
       const mockDossier = { id: "spec-123", make: "Nissan" };
-      vi.mocked(db.query.specDossiers.findFirst).mockResolvedValue(mockDossier as any);
+      vi.mocked(db.query.specDossiers.findFirst).mockResolvedValue(
+        mockDossier as any,
+      );
 
       const result = await getSpecDossierById("spec-123");
       expect(result.success).toBe(true);
@@ -123,7 +149,9 @@ describe("spec-actions", () => {
   describe("updateDossierStatus", () => {
     it("should update status in DB", async () => {
       const mockDossier = { id: "spec-123", status: "Active" };
-      vi.mocked(db.update(specDossiers).returning).mockResolvedValue([mockDossier] as any);
+      vi.mocked(db.update(specDossiers).returning).mockResolvedValue([
+        mockDossier,
+      ] as any);
 
       const result = await updateDossierStatus("spec-123", "Active");
       expect(result.success).toBe(true);
