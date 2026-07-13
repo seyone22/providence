@@ -1,13 +1,20 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { beforeEach, describe, expect, it, type Mock, vi } from "vitest";
+import { db as dbClient, salesProfiles } from "@/db";
 import {
-  getPublishedProfileBySlug,
   getMyProfile,
-  updateMyProfile,
-  listPublishedProfileSlugs,
-  listGalleryForPicker,
   getMyStats,
+  getPublishedProfileBySlug,
+  listGalleryForPicker,
+  listPublishedProfileSlugs,
+  updateMyProfile,
 } from "../sales-profile-actions";
-import { db, salesProfiles } from "@/db";
+
+// The @/db module is fully mocked below; alias the imported client to a
+// permissive mock shape so the thenable/query mocks type-check.
+type MockedDb = Record<string, Mock> & {
+  query: Record<string, Record<string, Mock>>;
+};
+const db = dbClient as unknown as MockedDb;
 
 // Mock database
 vi.mock("@/db", () => {
@@ -33,7 +40,12 @@ vi.mock("@/db", () => {
   };
   return {
     db: mockDb,
-    salesProfiles: { id: "sales_id_col", isPublished: "sales_isPublished_col", slug: "sales_slug_col", userId: "sales_user_id_col" },
+    salesProfiles: {
+      id: "sales_id_col",
+      isPublished: "sales_isPublished_col",
+      slug: "sales_slug_col",
+      userId: "sales_user_id_col",
+    },
     specDossiers: { id: "spec_id_col", status: "spec_status_col" },
     requests: { id: "req_id_col", assignedToId: "req_assigned_to_id_col" },
   };
@@ -85,13 +97,15 @@ describe("sales-profile-actions", () => {
         createdAt: new Date(),
         updatedAt: new Date(),
       };
-      vi.mocked(db.then).mockImplementationOnce((onFulfilled) => onFulfilled([mockProfile]));
+      vi.mocked(db.then).mockImplementationOnce((onFulfilled) =>
+        onFulfilled([mockProfile]),
+      );
       vi.mocked(db.query.specDossiers.findMany).mockResolvedValue([] as any);
 
       const result = await getPublishedProfileBySlug("test-slug");
       expect(result.success).toBe(true);
       if (result.success) {
-        expect(result.data.profile.displayName).toBe("Test Display");
+        expect(result.data?.profile.displayName).toBe("Test Display");
       }
     });
   });
@@ -117,12 +131,14 @@ describe("sales-profile-actions", () => {
         createdAt: new Date(),
         updatedAt: new Date(),
       };
-      vi.mocked(db.then).mockImplementationOnce((onFulfilled) => onFulfilled([mockProfile]));
+      vi.mocked(db.then).mockImplementationOnce((onFulfilled) =>
+        onFulfilled([mockProfile]),
+      );
 
       const result = await getMyProfile();
       expect(result.success).toBe(true);
       if (result.success) {
-        expect(result.data.userId).toBe("user-1");
+        expect(result.data?.userId).toBe("user-1");
       }
     });
   });
@@ -142,10 +158,10 @@ describe("sales-profile-actions", () => {
         createdAt: new Date(),
         updatedAt: new Date(),
       };
-      
+
       vi.mocked(db.then)
         .mockImplementationOnce((onFulfilled) => onFulfilled([mockProfile])) // getMyProfile select
-        .mockImplementationOnce((onFulfilled) => onFulfilled([]))           // slug conflict select
+        .mockImplementationOnce((onFulfilled) => onFulfilled([])) // slug conflict select
         .mockImplementationOnce((onFulfilled) => onFulfilled([mockProfile])); // update returning
 
       const result = await updateMyProfile({
