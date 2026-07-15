@@ -1,6 +1,6 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
-import { getDashboardData } from "../dashboard-actions";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import { db } from "@/db";
+import { getDashboardData } from "../dashboard-actions";
 
 // Mock database
 vi.mock("@/db", () => {
@@ -78,16 +78,18 @@ describe("dashboard-actions", () => {
           statusHistory: [],
         },
       ];
-      vi.mocked(db.query.requests.findMany).mockResolvedValue(mockRequests as any);
+      vi.mocked(db.query.requests.findMany).mockResolvedValue(
+        mockRequests as any,
+      );
 
       const result = await getDashboardData();
       expect(result.success).toBe(true);
       if (result.success) {
-        expect(result.data.grossPipeline).toBe(35000);
-        expect(result.data.regionalWeights["Ireland"]).toBe(15000);
-        expect(result.data.regionalWeights["UK"]).toBe(20000);
-        expect(result.data.activityStream.length).toBe(1);
-        expect(result.data.activityStream[0].operator).toBe("Admin");
+        expect(result.data?.grossPipeline).toBe(35000);
+        expect(result.data?.regionalWeights["Ireland"]).toBe(15000);
+        expect(result.data?.regionalWeights["UK"]).toBe(20000);
+        expect(result.data?.activityStream.length).toBe(1);
+        expect(result.data?.activityStream[0].operator).toBe("Admin");
       }
     });
   });

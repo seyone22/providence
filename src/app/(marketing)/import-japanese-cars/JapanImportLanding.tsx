@@ -26,11 +26,15 @@ import { japanImportCampaignConfig } from "@/config/landing-pages";
 // slug so the gallery stays scoped to this campaign's stock.
 const CAMPAIGN_TAG = "import-japanese-cars";
 
-// Japan's fastest-moving auction exports across RHD markets. `make` must match
-// a value in the request form's CAR_MAKES list so the prefill lands on a valid
-// option; `model` prefills the free-text/model field. Card images are the lead
-// photos of each exact model from Wikimedia Commons (verified model-correct on
-// render), served through upload.wikimedia.org — CC-licensed, hotlink-safe.
+// Japan's fastest-moving auction exports plus the European luxury its owners
+// keep in exceptional condition — every one sourced from Japanese auctions
+// (not built in Japan). `make` must match a value in the request form's
+// CAR_MAKES list so the prefill lands on a valid option; `model` prefills the
+// free-text/model field. Card images are model-correct photos from Wikimedia
+// Commons (CC-licensed) that have been cut out and re-composited onto a uniform
+// studio-grey (#f4f4f5 / zinc-100) background with a soft contact shadow, so
+// the whole grid reads as one cohesive studio set. Self-hosted under
+// /public/import-cars with any visible number plates blurred.
 const FAST_MOVERS: {
   name: string;
   make: string;
@@ -43,64 +47,77 @@ const FAST_MOVERS: {
     make: "Toyota",
     model: "Aqua",
     blurb: "Japan's best-selling hybrid hatch",
-    image:
-      "https://upload.wikimedia.org/wikipedia/commons/thumb/d/d8/2017-2021_Toyota_Aqua.jpg/960px-2017-2021_Toyota_Aqua.jpg",
+    image: "/import-cars/aqua.jpg",
   },
   {
     name: "Toyota Prius",
     make: "Toyota",
     model: "Prius",
     blurb: "The hybrid that started it all",
-    image:
-      "https://upload.wikimedia.org/wikipedia/commons/thumb/b/b7/Toyota_Prius_2.0_HEV_Limited_%28V%29_%E2%80%93_f_18112022.jpg/960px-Toyota_Prius_2.0_HEV_Limited_%28V%29_%E2%80%93_f_18112022.jpg",
+    image: "/import-cars/prius.jpg",
   },
   {
     name: "Toyota Harrier",
     make: "Toyota",
     model: "Harrier",
     blurb: "East Africa's favourite premium SUV",
-    image:
-      "https://upload.wikimedia.org/wikipedia/commons/thumb/d/dc/TOYOTA_HARRIER_%28XU80%29_China_%283%29_%28cropped%29.jpg/960px-TOYOTA_HARRIER_%28XU80%29_China_%283%29_%28cropped%29.jpg",
+    image: "/import-cars/harrier.jpg",
   },
   {
     name: "Land Cruiser Prado",
     make: "Toyota",
     model: "Land Cruiser Prado",
     blurb: "Go-anywhere status, auction-priced",
-    image:
-      "https://upload.wikimedia.org/wikipedia/commons/thumb/e/e8/2024_Toyota_Land_Cruiser_250_VX_in_Platinum_White_Pearl_Mica%2C_front_left.jpg/960px-2024_Toyota_Land_Cruiser_250_VX_in_Platinum_White_Pearl_Mica%2C_front_left.jpg",
+    image: "/import-cars/prado.jpg",
   },
   {
     name: "Honda Fit",
     make: "Honda",
     model: "Fit",
     blurb: "Big inside, frugal everywhere",
-    image:
-      "https://upload.wikimedia.org/wikipedia/commons/thumb/8/85/Honda_Jazz_Hybrid_Executive_%28IV%29_%E2%80%93_f_18102020.jpg/960px-Honda_Jazz_Hybrid_Executive_%28IV%29_%E2%80%93_f_18102020.jpg",
+    image: "/import-cars/fit.jpg",
   },
   {
     name: "Honda Vezel",
     make: "Honda",
     model: "Vezel",
     blurb: "The compact hybrid crossover",
-    image:
-      "https://upload.wikimedia.org/wikipedia/commons/thumb/7/71/2023_Honda_HR-V_Advance_i-MMD_CVT_1.5.jpg/960px-2023_Honda_HR-V_Advance_i-MMD_CVT_1.5.jpg",
+    image: "/import-cars/vezel.jpg",
   },
   {
     name: "Nissan Note e-POWER",
     make: "Nissan",
     model: "Note e-POWER",
     blurb: "Electric drive, no plug needed",
-    image:
-      "https://upload.wikimedia.org/wikipedia/commons/thumb/4/41/2020-2024_Nissan_Note_S.jpg/960px-2020-2024_Nissan_Note_S.jpg",
+    image: "/import-cars/note.jpg",
   },
   {
     name: "Suzuki Swift",
     make: "Suzuki",
     model: "Swift",
     blurb: "The evergreen city fast-mover",
-    image:
-      "https://upload.wikimedia.org/wikipedia/commons/thumb/3/3d/Suzuki_Swift_%282024%29_hybrid_DSC_6076.jpg/960px-Suzuki_Swift_%282024%29_hybrid_DSC_6076.jpg",
+    image: "/import-cars/swift.jpg",
+  },
+  {
+    name: "Mercedes-Benz C-Class",
+    make: "Mercedes-Benz",
+    model: "C-Class",
+    blurb: "Executive luxury, Japan-kept low miles",
+    image: "/import-cars/mercedes.jpg",
+  },
+  {
+    name: "BMW 3 Series",
+    make: "BMW",
+    model: "3 Series",
+    blurb: "The driver's saloon, auction-fresh",
+    image: "/import-cars/bmw.jpg",
+  },
+  {
+    name: "Rolls-Royce Ghost",
+    make: "Rolls-Royce",
+    model: "Ghost",
+    blurb: "Ultra-luxury, sourced from Japan",
+    image: "/import-cars/rolls.jpg",
   },
 ];
 
@@ -463,9 +480,10 @@ export default function JapanImportLanding() {
               The cars that never sit still.
             </h2>
             <p className="text-lg text-zinc-500 font-light">
-              These are Japan's fastest-moving exports — the models that hold
-              value, find parts anywhere, and sell on in a week. Tap one and
-              we'll open your inquiry with it pre-selected.
+              From Japan's fastest-moving hybrids to the low-mileage European
+              luxury its owners keep in showroom condition — every one sourced
+              straight from Japanese auctions. Tap a model and we'll open your
+              inquiry with it pre-selected.
             </p>
           </Reveal>
 
@@ -481,27 +499,27 @@ export default function JapanImportLanding() {
                   type="button"
                   onClick={() => handleModelSelect(model)}
                   aria-label={`Enquire about importing a ${model.name} from Japan`}
-                  className="group relative w-full h-44 md:h-52 overflow-hidden rounded-[1.75rem] border border-black/10 bg-zinc-900 hover:border-black/40 hover:shadow-[0_24px_50px_rgba(0,0,0,0.18)] hover:-translate-y-1 transition-all duration-300 text-left"
+                  className="group relative w-full h-44 md:h-52 overflow-hidden rounded-[1.75rem] border border-black/10 bg-zinc-100 hover:border-black/40 hover:shadow-[0_24px_50px_rgba(0,0,0,0.12)] hover:-translate-y-1 transition-all duration-300 text-left"
                 >
                   <img
                     src={model.image}
                     alt={`${model.name} — Japanese import fast mover`}
                     loading="lazy"
-                    className="absolute inset-0 w-full h-full object-cover opacity-90 group-hover:opacity-100 group-hover:scale-105 transition-all duration-500 ease-out"
+                    className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 ease-out"
                   />
-                  {/* Legibility gradient behind the label */}
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/20 to-transparent" />
+                  {/* Studio-grey fade behind the label (matches image background) */}
+                  <div className="absolute inset-0 bg-gradient-to-t from-zinc-100 via-zinc-100/70 to-transparent" />
                   <div className="absolute inset-x-0 bottom-0 p-4 flex items-end justify-between gap-2">
                     <span className="flex flex-col leading-tight">
-                      <span className="text-white text-base md:text-lg font-bold tracking-tight drop-shadow-sm">
+                      <span className="text-black text-base md:text-lg font-bold tracking-tight">
                         {model.name}
                       </span>
-                      <span className="text-white/70 text-xs font-medium drop-shadow-sm">
+                      <span className="text-zinc-500 text-xs font-medium">
                         {model.blurb}
                       </span>
                     </span>
-                    <span className="shrink-0 w-8 h-8 rounded-full bg-white/15 border border-white/30 backdrop-blur-sm flex items-center justify-center opacity-0 -translate-x-1 group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-300">
-                      <ArrowRight size={15} className="text-white" />
+                    <span className="shrink-0 w-8 h-8 rounded-full bg-black/5 border border-black/10 backdrop-blur-sm flex items-center justify-center opacity-0 -translate-x-1 group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-300">
+                      <ArrowRight size={15} className="text-black" />
                     </span>
                   </div>
                 </button>

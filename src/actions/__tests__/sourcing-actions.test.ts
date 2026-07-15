@@ -1,13 +1,20 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { beforeEach, describe, expect, it, type Mock, vi } from "vitest";
+import { db as dbClient, sourcingAnalyses } from "@/db";
 import {
-  getGbpFxRates,
-  extractAuctionSheet,
   analyzeMarket,
+  extractAuctionSheet,
+  getGbpFxRates,
+  getRecentSourcingAnalyses,
   getVerdict,
   saveSourcingAnalysis,
-  getRecentSourcingAnalyses,
 } from "../sourcing-actions";
-import { db, sourcingAnalyses } from "@/db";
+
+// The @/db module is fully mocked below; alias the imported client to a
+// permissive mock shape so the insert/returning/query mocks type-check.
+type MockedDb = Record<string, Mock> & {
+  query: Record<string, Record<string, Mock>>;
+};
+const db = dbClient as unknown as MockedDb;
 
 // Mock database
 vi.mock("@/db", () => {
@@ -77,7 +84,10 @@ describe("sourcing-actions", () => {
   describe("extractAuctionSheet", () => {
     it("should return failure if key is missing", async () => {
       process.env.GEMINI_API_KEY = "";
-      const result = await extractAuctionSheet({ dataBase64: "test", mimeType: "image/jpeg" });
+      const result = await extractAuctionSheet({
+        dataBase64: "test",
+        mimeType: "image/jpeg",
+      });
       expect(result.success).toBe(false);
       if (!result.success) {
         expect(result.message).toContain("GEMINI_API_KEY is not configured");
@@ -108,7 +118,10 @@ describe("sourcing-actions", () => {
       };
       vi.mocked(fetch).mockResolvedValue(mockResponse as any);
 
-      const result = await extractAuctionSheet({ dataBase64: "test", mimeType: "image/jpeg" });
+      const result = await extractAuctionSheet({
+        dataBase64: "test",
+        mimeType: "image/jpeg",
+      });
       expect(result.success).toBe(true);
       if (result.success) {
         expect(result.data.make).toBe("Toyota");
@@ -128,14 +141,16 @@ describe("sourcing-actions", () => {
 
     it("should save analysis to database on success", async () => {
       const mockSave = { id: "analysis-1" };
-      vi.mocked(db.insert(sourcingAnalyses).returning).mockResolvedValue([mockSave] as any);
+      vi.mocked(db.insert(sourcingAnalyses).returning).mockResolvedValue([
+        mockSave,
+      ] as any);
 
       const result = await saveSourcingAnalysis({
         make: "Nissan",
         model: "GT-R",
         edition: "Nismo",
         year: 2020,
-        mileage: "10000",
+        mileage: 10000,
         landedCostGbp: 120000,
         currency: "JPY",
         dutyBasis: "Standard",
@@ -145,18 +160,28 @@ describe("sourcing-actions", () => {
           stats: {
             count: 5,
             min: 130000,
-            median: 140000,
-            mean: 142000,
             max: 150000,
+            mean: 142000,
+            median: 140000,
+            p25: 135000,
+            p75: 145000,
+            stdDev: 8000,
+            histogram: [],
+            trimmedOutliers: 0,
           },
-          matchUsed: true,
+          listings: [],
+          allListings: [],
+          matchUsed: "±1yr · ±20% mileage",
           widened: false,
+          totalMatched: 5,
+          totalScraped: 20,
+          totalAfterClean: 12,
         },
         verdict: {
-          recommendation: "Buy",
+          recommendation: "source",
           headline: "Strong margins",
           reasoning: "Excellent condition",
-          confidence: 4,
+          confidence: "high",
           grossMargin: 20000,
           marginPct: 15,
         },
@@ -169,26 +194,30 @@ describe("sourcing-actions", () => {
 
   describe("getRecentSourcingAnalyses", () => {
     it("should return list of analyses", async () => {
-      const mockList = [{
-        id: "analysis-1",
-        make: "Nissan",
-        vehicleModel: "GT-R",
-        edition: "Nismo",
-        year: 2020,
-        mileage: "10000",
-        landedCostGbp: 120000,
-        marketMedian: 140000,
-        listingCount: 5,
-        sources: [],
-        widened: false,
-        recommendation: "Buy",
-        headline: "Strong margins",
-        grossMargin: 20000,
-        marginPct: 15,
-        createdByName: "Admin User",
-        createdAt: new Date(),
-      }];
-      vi.mocked(db.query.sourcingAnalyses.findMany).mockResolvedValue(mockList as any);
+      const mockList = [
+        {
+          id: "analysis-1",
+          make: "Nissan",
+          vehicleModel: "GT-R",
+          edition: "Nismo",
+          year: 2020,
+          mileage: "10000",
+          landedCostGbp: 120000,
+          marketMedian: 140000,
+          listingCount: 5,
+          sources: [],
+          widened: false,
+          recommendation: "Buy",
+          headline: "Strong margins",
+          grossMargin: 20000,
+          marginPct: 15,
+          createdByName: "Admin User",
+          createdAt: new Date(),
+        },
+      ];
+      vi.mocked(db.query.sourcingAnalyses.findMany).mockResolvedValue(
+        mockList as any,
+      );
 
       const result = await getRecentSourcingAnalyses();
       expect(result.length).toBe(1);

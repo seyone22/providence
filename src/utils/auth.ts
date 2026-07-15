@@ -16,6 +16,12 @@ export const auth = betterAuth({
     },
   }),
 
+  trustedOrigins: [
+    "http://localhost:3000",
+    "https://providenceauto.co.uk",
+    "https://*.providenceauto.co.uk",
+  ],
+
   // 1. Password Reset lives here
   emailAndPassword: {
     enabled: true,

@@ -233,3 +233,17 @@ export const sourcingAnalyses = pgTable("sourcinganalysis", {
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().notNull(),
 });
+
+export const dealerProfiles = pgTable("dealerprofile", {
+  id: text("id").primaryKey(),
+  userId: text("userId")
+    .notNull()
+    .unique()
+    .references(() => users.id, { onDelete: "cascade" }),
+  dealerId: text("dealerId").notNull().unique(), // e.g. "DL-98273"
+  companyName: text("companyName").notNull(),
+  website: text("website"),
+  commissionRate: doublePrecision("commissionRate").default(10.0).notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().notNull(),
+});
