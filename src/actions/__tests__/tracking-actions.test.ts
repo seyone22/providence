@@ -1,7 +1,18 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
-import { getTrackingData, markLeadAsQualified, markLeadAsOpened } from "../tracking-actions";
-import { db, requests } from "@/db";
+import { beforeEach, describe, expect, it, type Mock, vi } from "vitest";
+import { db as dbClient, requests } from "@/db";
 import { emailService } from "@/lib/email";
+import {
+  getTrackingData,
+  markLeadAsOpened,
+  markLeadAsQualified,
+} from "../tracking-actions";
+
+// The @/db module is fully mocked below; alias the imported client to a
+// permissive mock shape so the update/returning/query mocks type-check.
+type MockedDb = Record<string, Mock> & {
+  query: Record<string, Record<string, Mock>>;
+};
+const db = dbClient as unknown as MockedDb;
 
 // Mock the dependencies
 vi.mock("@/db", () => {
@@ -41,8 +52,10 @@ describe("tracking-actions", () => {
 
   describe("getTrackingData", () => {
     it("should return null if request is not found", async () => {
-      vi.mocked(db.query.requests.findFirst).mockResolvedValue(undefined as any);
-      
+      vi.mocked(db.query.requests.findFirst).mockResolvedValue(
+        undefined as any,
+      );
+
       const result = await getTrackingData("non-existent-id");
       expect(result).toBeNull();
     });
@@ -79,9 +92,13 @@ describe("tracking-actions", () => {
         updatedAt: new Date("2026-07-09T09:00:00Z"),
       };
 
-      vi.mocked(db.query.requests.findFirst).mockResolvedValue(mockRequest as any);
+      vi.mocked(db.query.requests.findFirst).mockResolvedValue(
+        mockRequest as any,
+      );
       vi.mocked(db.query.users.findFirst).mockResolvedValue(mockAgent as any);
-      vi.mocked(db.query.specDossiers.findMany).mockResolvedValue([mockDossier] as any);
+      vi.mocked(db.query.specDossiers.findMany).mockResolvedValue([
+        mockDossier,
+      ] as any);
 
       const result = await getTrackingData("req-1");
       expect(result).not.toBeNull();
@@ -95,12 +112,16 @@ describe("tracking-actions", () => {
   describe("markLeadAsQualified", () => {
     it("should update status and trigger email if request is found", async () => {
       const mockRequest = { id: "req-1", leadStatus: "Qualified" };
-      vi.mocked(db.update(requests).returning).mockResolvedValue([mockRequest] as any);
+      vi.mocked(db.update(requests).returning).mockResolvedValue([
+        mockRequest,
+      ] as any);
 
       await markLeadAsQualified("req-1");
 
       expect(db.update).toHaveBeenCalledWith(requests);
-      expect(db.update(requests).set).toHaveBeenCalledWith({ leadStatus: "Qualified" });
+      expect(db.update(requests).set).toHaveBeenCalledWith({
+        leadStatus: "Qualified",
+      });
       expect(emailService.sendLeadQualifiedAlert).toHaveBeenCalled();
     });
 
@@ -118,7 +139,9 @@ describe("tracking-actions", () => {
       await markLeadAsOpened("req-1");
 
       expect(db.update).toHaveBeenCalledWith(requests);
-      expect(db.update(requests).set).toHaveBeenCalledWith({ leadStatus: "Opened" });
+      expect(db.update(requests).set).toHaveBeenCalledWith({
+        leadStatus: "Opened",
+      });
     });
   });
 });

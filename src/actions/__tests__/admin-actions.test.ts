@@ -1,18 +1,26 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
-import {
-  getRequests,
-  deleteRequest,
-  updateRequestStatus,
-  setFollowUpTimer,
-  clearFollowUpTimer,
-  expireFollowUpTimer,
-  createAdminUser,
-  updateAdminUser,
-  deleteAdminUser,
-} from "../admin-actions";
-import { db, requests, users, sessions, accounts } from "@/db";
+import { beforeEach, describe, expect, it, type Mock, vi } from "vitest";
+import { accounts, db as dbClient, requests, sessions, users } from "@/db";
 import { sendGoogleConversion, sendMetaConversion } from "@/lib/conversions";
 import { emailService } from "@/lib/email";
+import {
+  clearFollowUpTimer,
+  createAdminUser,
+  deleteAdminUser,
+  deleteRequest,
+  expireFollowUpTimer,
+  getRequests,
+  setFollowUpTimer,
+  updateAdminUser,
+  updateRequestStatus,
+} from "../admin-actions";
+
+// The @/db module is fully mocked below, but the imported client keeps its real
+// Drizzle type. Alias it to a permissive mock shape so the thenable/query mocks
+// used in these tests type-check.
+type MockedDb = Record<string, Mock> & {
+  query: Record<string, Record<string, Mock>>;
+};
+const db = dbClient as unknown as MockedDb;
 
 // Mock database
 vi.mock("@/db", () => {
@@ -37,8 +45,16 @@ vi.mock("@/db", () => {
   };
   return {
     db: mockDb,
-    requests: { id: "req_id_col", isDraft: "req_draft_col", createdAt: "req_created_col" },
-    users: { id: "user_id_col", email: "user_email_col", role: "user_role_col" },
+    requests: {
+      id: "req_id_col",
+      isDraft: "req_draft_col",
+      createdAt: "req_created_col",
+    },
+    users: {
+      id: "user_id_col",
+      email: "user_email_col",
+      role: "user_role_col",
+    },
     sessions: { userId: "session_user_col" },
     accounts: { userId: "account_user_col" },
     specDossiers: { id: "spec_id_col" },
@@ -74,7 +90,12 @@ vi.mock("@/utils/auth", () => ({
   auth: {
     api: {
       getSession: vi.fn().mockResolvedValue({
-        user: { id: "admin-1", name: "Admin User", role: "admin", email: "admin@test.com" },
+        user: {
+          id: "admin-1",
+          name: "Admin User",
+          role: "admin",
+          email: "admin@test.com",
+        },
       }),
       signUpEmail: vi.fn().mockResolvedValue({
         user: { id: "user-new", name: "New Admin", email: "new@admin.com" },
@@ -90,8 +111,13 @@ describe("admin-actions", () => {
 
   describe("getRequests", () => {
     it("should delete old drafts and return active requests", async () => {
-      const mockRequest = { id: "req-1", make: "Toyota", isDraft: false, createdAt: new Date() };
-      
+      const mockRequest = {
+        id: "req-1",
+        make: "Toyota",
+        isDraft: false,
+        createdAt: new Date(),
+      };
+
       vi.mocked(db.then)
         .mockImplementationOnce((onFulfilled) => onFulfilled([])) // delete query
         .mockImplementationOnce((onFulfilled) => onFulfilled([mockRequest])); // select query
@@ -104,7 +130,9 @@ describe("admin-actions", () => {
 
   describe("deleteRequest", () => {
     it("should delete the request from DB", async () => {
-      vi.mocked(db.then).mockImplementationOnce((onFulfilled) => onFulfilled([{ id: "req-1" }]));
+      vi.mocked(db.then).mockImplementationOnce((onFulfilled) =>
+        onFulfilled([{ id: "req-1" }]),
+      );
 
       const result = await deleteRequest("req-1");
       expect(result.success).toBe(true);
@@ -120,7 +148,7 @@ describe("admin-actions", () => {
         statusHistory: [],
         createdAt: new Date(),
       };
-      
+
       vi.mocked(db.then)
         .mockImplementationOnce((onFulfilled) => onFulfilled([mockRequest])) // select existing
         .mockImplementationOnce((onFulfilled) => onFulfilled([mockRequest])); // update query
@@ -151,10 +179,14 @@ describe("admin-actions", () => {
         statusHistory: [],
         createdAt: new Date(),
       };
-      
+
       vi.mocked(db.then)
-        .mockImplementationOnce((onFulfilled) => onFulfilled([mockRequestExisting]))
-        .mockImplementationOnce((onFulfilled) => onFulfilled([mockRequestUpdated]));
+        .mockImplementationOnce((onFulfilled) =>
+          onFulfilled([mockRequestExisting]),
+        )
+        .mockImplementationOnce((onFulfilled) =>
+          onFulfilled([mockRequestUpdated]),
+        );
 
       const result = await updateRequestStatus("req-1", "ContactedStage", {
         leadStatus: "Qualified",
@@ -170,7 +202,9 @@ describe("admin-actions", () => {
   describe("setFollowUpTimer", () => {
     it("should set follow up timestamp on request", async () => {
       const mockRequest = { id: "req-1" };
-      vi.mocked(db.then).mockImplementationOnce((onFulfilled) => onFulfilled([mockRequest]));
+      vi.mocked(db.then).mockImplementationOnce((onFulfilled) =>
+        onFulfilled([mockRequest]),
+      );
 
       const result = await setFollowUpTimer("req-1", "2026-07-10T12:00:00Z");
       expect(result.success).toBe(true);
@@ -180,7 +214,7 @@ describe("admin-actions", () => {
   describe("createAdminUser", () => {
     it("should insert user and trigger invite email", async () => {
       const mockUser = { id: "user-new", email: "new@admin.com" };
-      
+
       vi.mocked(db.then)
         .mockImplementationOnce((onFulfilled) => onFulfilled([])) // conflict check select
         .mockImplementationOnce((onFulfilled) => onFulfilled([mockUser])); // update query
@@ -199,9 +233,15 @@ describe("admin-actions", () => {
   describe("deleteAdminUser", () => {
     it("should delete sessions, accounts, and user", async () => {
       vi.mocked(db.then)
-        .mockImplementationOnce((onFulfilled) => onFulfilled([{ id: "session-1" }])) // sessions delete
-        .mockImplementationOnce((onFulfilled) => onFulfilled([{ id: "account-1" }])) // accounts delete
-        .mockImplementationOnce((onFulfilled) => onFulfilled([{ id: "user-old" }])); // user delete
+        .mockImplementationOnce((onFulfilled) =>
+          onFulfilled([{ id: "session-1" }]),
+        ) // sessions delete
+        .mockImplementationOnce((onFulfilled) =>
+          onFulfilled([{ id: "account-1" }]),
+        ) // accounts delete
+        .mockImplementationOnce((onFulfilled) =>
+          onFulfilled([{ id: "user-old" }]),
+        ); // user delete
 
       const result = await deleteAdminUser("user-old");
       expect(result.success).toBe(true);

@@ -1,7 +1,14 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
-import { submitCarRequest, submitContactPreferences } from "../request-actions";
-import { db, requests, users } from "@/db";
+import { beforeEach, describe, expect, it, type Mock, vi } from "vitest";
+import { db as dbClient, requests, users } from "@/db";
 import { emailService } from "@/lib/email";
+import { submitCarRequest, submitContactPreferences } from "../request-actions";
+
+// The @/db module is fully mocked below; alias the imported client to a
+// permissive mock shape so the thenable/query mocks type-check.
+type MockedDb = Record<string, Mock> & {
+  query: Record<string, Record<string, Mock>>;
+};
+const db = dbClient as unknown as MockedDb;
 
 // Mock database
 vi.mock("@/db", () => {
@@ -28,8 +35,17 @@ vi.mock("@/db", () => {
   };
   return {
     db: mockDb,
-    requests: { id: "requests_id_col", assignmentMethod: "requests_assignmentMethod_col", createdAt: "requests_createdAt_col" },
-    users: { id: "users_id_col", role: "users_role_col", name: "users_name_col", isBanned: "users_is_banned_col" },
+    requests: {
+      id: "requests_id_col",
+      assignmentMethod: "requests_assignmentMethod_col",
+      createdAt: "requests_createdAt_col",
+    },
+    users: {
+      id: "users_id_col",
+      role: "users_role_col",
+      name: "users_name_col",
+      isBanned: "users_is_banned_col",
+    },
   };
 });
 
@@ -52,12 +68,19 @@ describe("request-actions", () => {
 
   describe("submitCarRequest", () => {
     it("should assign a specified agent directly if valid", async () => {
-      const mockAgent = { id: "agent-123", name: "John Doe", role: "Sales", isBanned: false };
+      const mockAgent = {
+        id: "agent-123",
+        name: "John Doe",
+        role: "Sales",
+        isBanned: false,
+      };
       const mockResultRequest = { id: "new-req-id" };
 
       vi.mocked(db.then)
-        .mockImplementationOnce((onFulfilled) => onFulfilled([mockAgent]))     // users select
-        .mockImplementationOnce((onFulfilled) => onFulfilled([mockResultRequest])); // requests insert
+        .mockImplementationOnce((onFulfilled) => onFulfilled([mockAgent])) // users select
+        .mockImplementationOnce((onFulfilled) =>
+          onFulfilled([mockResultRequest]),
+        ); // requests insert
 
       const result = await submitCarRequest({
         make: "Toyota",
@@ -72,8 +95,8 @@ describe("request-actions", () => {
       });
 
       expect(result.success).toBe(true);
-      expect(result.agent.id).toBe("agent-123");
-      expect(result.agent.name).toBe("John Doe");
+      expect(result.agent?.id).toBe("agent-123");
+      expect(result.agent?.name).toBe("John Doe");
     });
 
     it("should use round-robin assignment alphabetically if no agent is specified", async () => {
@@ -87,7 +110,9 @@ describe("request-actions", () => {
       vi.mocked(db.then)
         .mockImplementationOnce((onFulfilled) => onFulfilled(mockSalesMembers)) // staff list select
         .mockImplementationOnce((onFulfilled) => onFulfilled([mockLastRequest])) // last request select
-        .mockImplementationOnce((onFulfilled) => onFulfilled([mockResultRequest])); // request insert
+        .mockImplementationOnce((onFulfilled) =>
+          onFulfilled([mockResultRequest]),
+        ); // request insert
 
       const result = await submitCarRequest({
         make: "Tesla",
@@ -101,8 +126,8 @@ describe("request-actions", () => {
       });
 
       expect(result.success).toBe(true);
-      expect(result.agent.id).toBe("sales-2");
-      expect(result.agent.name).toBe("Bob");
+      expect(result.agent?.id).toBe("sales-2");
+      expect(result.agent?.name).toBe("Bob");
     });
   });
 
@@ -116,7 +141,7 @@ describe("request-actions", () => {
         name: "Test Customer",
         email: "customer@test.com",
       };
-      
+
       const mockAgent = {
         id: "agent-123",
         name: "John Doe",
