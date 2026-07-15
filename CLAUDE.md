@@ -10,7 +10,14 @@ npm run build      # Production build
 npm run lint       # Biome linter check
 npm run format     # Biome auto-format (writes changes)
 npx tsc --noEmit  # Type-check without emitting
+
+# Database (Drizzle + PostgreSQL)
+npx drizzle-kit generate   # Generate a SQL migration from src/db/schema.ts into drizzle/
+npx drizzle-kit migrate    # Apply pending migrations
+npx drizzle-kit studio     # Open Drizzle Studio to browse data
 ```
+
+`DATABASE_URL` (Railway-hosted Postgres) must be set for the app, migrations, and the build.
 
 ## Architecture Overview
 
@@ -19,8 +26,8 @@ npx tsc --noEmit  # Type-check without emitting
 ### Tech Stack
 
 - **Framework:** Next.js 16 (App Router, RSC, Server Actions)
-- **Database:** MongoDB via Mongoose (Atlas hosted)
-- **Auth:** Better-Auth with MongoDB adapter — server config at `src/utils/auth.ts`, client at `src/lib/auth-client.ts`, API at `/api/v1/auth/[...all]`
+- **Database:** PostgreSQL (Railway hosted) via Drizzle ORM. Schema at `src/db/schema.ts`, connection/`db` export at `src/db/index.ts`, migrations in `drizzle/`, config in `drizzle.config.ts`. (Migrated from MongoDB/Mongoose in PR #61.)
+- **Auth:** Better-Auth with the Drizzle adapter (`@better-auth/drizzle-adapter`, `provider: "pg"`) — server config at `src/utils/auth.ts`, client at `src/lib/auth-client.ts`, API at `/api/v1/auth/[...all]`. Better-Auth's singular table names are mapped explicitly to the plural Drizzle schema exports (`user`→`users`, etc.).
 - **Styling:** Tailwind CSS v4 + shadcn/ui (new-york style, slate base)
 - **Linting/Formatting:** Biome (replaces ESLint + Prettier)
 - **Email:** Resend with React Email templates in `src/emails/`
@@ -33,12 +40,25 @@ npx tsc --noEmit  # Type-check without emitting
 
 ### Data Layer
 
-Three Mongoose models in `src/models/`:
-- **Request** — Car purchase requests from customers (lead tracking, assignment, shipping, docs)
-- **SpecDossier** — Vehicle inventory with multi-country pricing matrices and media
-- **SocialPost** — Instagram embed posts per page (home/b2c/b2b), with ordering
+Drizzle tables are defined in `src/db/schema.ts`. Import the `db` client and tables from `@/db` and query with drizzle-orm operators (`eq`, `and`, `desc`, `inArray`, …). Application tables:
+- **requests** — Car purchase requests from customers (lead tracking, assignment, shipping, docs, payments, UTM/click attribution)
+- **specDossiers** — Vehicle inventory with multi-country `pricing` matrix and media (JSONB/array columns)
+- **socialPosts** — Instagram embed posts per page (home/b2c/b2b), ordered via a `page_order_idx`
+- **salesProfiles** — Per-agent public sales landing-page profiles
+- **sourcingAnalyses** — Saved landed-cost / market analyses from the sourcing tool
 
-MongoDB connection is cached globally in `src/lib/mongoose.ts` — always call this before any DB operation in server components/actions.
+Plus the Better-Auth tables (`users`, `sessions`, `accounts`, `verifications`). JSON-shaped fields (`pricing`, `statusHistory`, `documents`, testimonials, etc.) use `jsonb`; list fields use Postgres text arrays.
+
+**Legacy:** `src/lib/mongoose.ts` is now a thin compatibility shim whose `connectToDatabase()` just returns the Drizzle `db` (old call sites still work but no MongoDB connection happens). The Mongoose schemas in `src/models/` are retained only for the one-off `scripts/migrate-mongo-to-pg.js` data migration — do **not** use them for new code.
+
+### Migration scripts
+
+- `scripts/migrate-mongo-to-pg.js` — one-off backfill copying documents from the old MongoDB into Postgres.
+- `scripts/migrate.mjs` — runs the generated `drizzle/` SQL migrations against `DATABASE_URL` (SSL configured for the Railway pool).
+
+### CI/CD
+
+`.github/workflows/ci.yml` enforces a `dev → staging → production` branch pipeline on PRs and runs lint (non-blocking), `tsc --noEmit`, and a dry `next build` (with mock env vars) as required checks.
 
 ### Route Structure
 

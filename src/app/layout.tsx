@@ -3,7 +3,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import Script from "next/script";
 import { Toaster } from "sonner";
-import Footer from "@/components/Footer";
+import ConditionalFooter from "@/components/ConditionalFooter";
 import MotionProvider from "@/components/MotionProvider";
 
 const geistSans = Geist({
@@ -245,7 +245,7 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
         </noscript>
         <MotionProvider>
           <div className="flex-1">{children}</div>
-          <Footer />
+          <ConditionalFooter />
         </MotionProvider>
         <Toaster position="bottom-right" richColors />
       </body>

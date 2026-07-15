@@ -2,12 +2,14 @@ import {
   Activity,
   Car,
   Code,
-  Copy,
   DollarSign,
   ExternalLink,
   Users,
 } from "lucide-react";
 import Link from "next/link";
+import { redirect } from "next/navigation";
+import { getDealerDashboardData } from "@/actions/dealer-actions";
+import CopyButton from "@/components/CopyButton";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -20,35 +22,19 @@ import {
   TableRow,
 } from "@/components/ui/table";
 
-// Mock Data for the Dealer's generated leads
-const mockLeads = [
-  {
-    id: "REQ-001",
-    client: "Sarah Jenkins",
-    car: "Porsche 911 GT3",
-    budget: "$220,000",
-    status: "Processing",
-    date: "Oct 24, 2024",
-  },
-  {
-    id: "REQ-002",
-    client: "Michael Chen",
-    car: "Mercedes G63 AMG",
-    budget: "$185,000",
-    status: "Shipped",
-    date: "Oct 22, 2024",
-  },
-  {
-    id: "REQ-003",
-    client: "David Alaba",
-    car: "Land Rover Defender",
-    budget: "$90,000",
-    status: "New Lead",
-    date: "Oct 24, 2024",
-  },
-];
+export default async function DealerDashboard() {
+  const res = await getDealerDashboardData();
 
-export default function DealerDashboard() {
+  // If unauthorized or no profile found, redirect to partner signup
+  if (!res.success || !res.profile || !res.stats || !res.leads) {
+    redirect("/signup");
+  }
+
+  const { profile, stats, leads } = res;
+  const baseUrl =
+    process.env.NEXT_PUBLIC_BASE_URL || "https://providenceauto.com";
+  const embedCode = `<script src="${baseUrl}/embed.js" \n  data-dealer-id="${profile.dealerId}"></script>\n<div id="providence-widget"></div>`;
+
   return (
     <div className="min-h-screen bg-[#0a0a0a] text-white font-sans">
       {/* Dashboard Header */}
@@ -68,9 +54,14 @@ export default function DealerDashboard() {
             </div>
           </div>
           <div className="flex items-center gap-4">
-            <span className="text-sm text-gray-400">Elite Motors LLC</span>
-            <div className="h-10 w-10 rounded-full bg-white/10 border border-white/20 flex items-center justify-center font-bold">
-              EM
+            <span className="text-sm text-gray-400">{profile.companyName}</span>
+            <div className="h-10 w-10 rounded-full bg-white/10 border border-white/20 flex items-center justify-center font-bold text-sm tracking-wider">
+              {profile.companyName
+                .split(" ")
+                .map((w) => w[0])
+                .join("")
+                .substring(0, 2)
+                .toUpperCase()}
             </div>
           </div>
         </div>
@@ -83,12 +74,15 @@ export default function DealerDashboard() {
               Welcome back.
             </h2>
             <p className="text-gray-400">
-              Here is an overview of your borderless inventory performance.
+              Here is an overview of your B2B sourcing network (Dealer ID:{" "}
+              {profile.dealerId}).
             </p>
           </div>
-          <Button className="bg-white text-black hover:bg-gray-200 rounded-full px-6 font-bold shadow-[0_0_20px_rgba(255,255,255,0.1)]">
-            + New Manual Request
-          </Button>
+          <Link href="/request">
+            <Button className="bg-white text-black hover:bg-gray-200 rounded-full px-6 font-bold shadow-[0_0_20px_rgba(255,255,255,0.1)]">
+              + New Manual Request
+            </Button>
+          </Link>
         </div>
 
         {/* KPI Stats Row */}
@@ -96,31 +90,31 @@ export default function DealerDashboard() {
           {[
             {
               title: "Active Leads",
-              value: "14",
+              value: stats.activeLeadsCount.toString(),
               icon: Users,
               color: "text-blue-400",
             },
             {
               title: "Vehicles Sourcing",
-              value: "6",
+              value: stats.vehiclesSourcingCount.toString(),
               icon: Activity,
               color: "text-orange-400",
             },
             {
               title: "Successfully Shipped",
-              value: "24",
+              value: stats.successfullyShippedCount.toString(),
               icon: Car,
               color: "text-green-400",
             },
             {
               title: "Est. Commission",
-              value: "$42,500",
+              value: `$${stats.estimatedCommission.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`,
               icon: DollarSign,
               color: "text-emerald-400",
             },
-          ].map((stat, i) => (
+          ].map((stat) => (
             <Card
-              key={i}
+              key={stat.title}
               className="bg-white/5 border-white/10 backdrop-blur-md"
             >
               <CardHeader className="flex flex-row items-center justify-between pb-2">
@@ -150,19 +144,13 @@ export default function DealerDashboard() {
             <CardContent className="space-y-4">
               <p className="text-gray-400 text-sm">
                 Copy and paste this code snippet into your website's HTML to
-                display the global sourcing form to your customers.
+                display the request form to your customers.
               </p>
               <div className="relative">
-                <pre className="bg-black/60 p-4 rounded-xl border border-white/10 text-xs text-blue-300 overflow-x-auto">
-                  <code>{`<script src="https://providenceauto.com/embed.js" \ndata-dealer-id="EM-98273"></script>\n<div id="providence-widget"></div>`}</code>
+                <pre className="bg-black/60 p-4 rounded-xl border border-white/10 text-xs text-blue-300 overflow-x-auto whitespace-pre">
+                  <code>{embedCode}</code>
                 </pre>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="absolute top-2 right-2 text-gray-400 hover:text-white hover:bg-white/10"
-                >
-                  <Copy className="h-4 w-4" />
-                </Button>
+                <CopyButton textToCopy={embedCode} />
               </div>
               <Button
                 variant="outline"
@@ -180,61 +168,71 @@ export default function DealerDashboard() {
               <CardTitle className="text-xl">Recent Widget Leads</CardTitle>
             </CardHeader>
             <CardContent>
-              <Table>
-                <TableHeader className="border-b border-white/10">
-                  <TableRow className="hover:bg-transparent">
-                    <TableHead className="text-gray-400">Client</TableHead>
-                    <TableHead className="text-gray-400">
-                      Requested Vehicle
-                    </TableHead>
-                    <TableHead className="text-gray-400">Budget</TableHead>
-                    <TableHead className="text-gray-400">Status</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {mockLeads.map((lead, i) => (
-                    <TableRow
-                      key={i}
-                      className="border-b border-white/5 hover:bg-white/5 transition-colors"
-                    >
-                      <TableCell className="font-medium text-white">
-                        {lead.client}
-                        <br />
-                        <span className="text-xs text-gray-500 font-normal">
-                          {lead.date}
-                        </span>
-                      </TableCell>
-                      <TableCell className="text-gray-300">
-                        {lead.car}
-                      </TableCell>
-                      <TableCell className="text-gray-300">
-                        {lead.budget}
-                      </TableCell>
-                      <TableCell>
-                        <Badge
-                          variant="outline"
-                          className={`
-                                                        ${lead.status === "New Lead" ? "border-blue-500/50 text-blue-400" : ""}
-                                                        ${lead.status === "Processing" ? "border-orange-500/50 text-orange-400" : ""}
-                                                        ${lead.status === "Shipped" ? "border-green-500/50 text-green-400" : ""}
-                                                        bg-black/40 backdrop-blur-md
-                                                    `}
-                        >
-                          {lead.status}
-                        </Badge>
-                      </TableCell>
+              {leads.length === 0 ? (
+                <div className="text-center py-12 text-gray-500 text-sm">
+                  No widget leads generated yet. Deploy the embed snippet on
+                  your website to start receiving inquiries.
+                </div>
+              ) : (
+                <Table>
+                  <TableHeader className="border-b border-white/10">
+                    <TableRow className="hover:bg-transparent">
+                      <TableHead className="text-gray-400">Client</TableHead>
+                      <TableHead className="text-gray-400">
+                        Requested Vehicle
+                      </TableHead>
+                      <TableHead className="text-gray-400">
+                        Agreed Value
+                      </TableHead>
+                      <TableHead className="text-gray-400">Status</TableHead>
                     </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-              <div className="mt-4 text-center">
-                <Link
-                  href="#"
-                  className="text-sm text-blue-400 hover:text-blue-300 transition-colors"
-                >
-                  View all leads &rarr;
-                </Link>
-              </div>
+                  </TableHeader>
+                  <TableBody>
+                    {leads.map((lead) => (
+                      <TableRow
+                        key={lead.id}
+                        className="border-b border-white/5 hover:bg-white/5 transition-colors"
+                      >
+                        <TableCell className="font-medium text-white">
+                          {lead.name}
+                          <br />
+                          <span className="text-xs text-gray-500 font-normal">
+                            {new Date(lead.createdAt).toLocaleDateString(
+                              "en-US",
+                              {
+                                month: "short",
+                                day: "numeric",
+                                year: "numeric",
+                              },
+                            )}
+                          </span>
+                        </TableCell>
+                        <TableCell className="text-gray-300">
+                          {lead.make} {lead.vehicleModel}
+                        </TableCell>
+                        <TableCell className="text-gray-300">
+                          {lead.agreedPrice
+                            ? `$${lead.agreedPrice.toLocaleString()}`
+                            : "Pending Quote"}
+                        </TableCell>
+                        <TableCell>
+                          <Badge
+                            variant="outline"
+                            className={`
+                              ${lead.status === "New" ? "border-blue-500/50 text-blue-400" : ""}
+                              ${["Sourcing", "Inspected", "Acquired"].includes(lead.status) ? "border-orange-500/50 text-orange-400" : ""}
+                              ${lead.status === "Shipped" ? "border-green-500/50 text-green-400" : ""}
+                              bg-black/40 backdrop-blur-md
+                            `}
+                          >
+                            {lead.status}
+                          </Badge>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              )}
             </CardContent>
           </Card>
         </div>

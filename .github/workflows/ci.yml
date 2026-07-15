@@ -54,6 +54,9 @@ jobs:
       - name: TypeScript Compiler Check
         run: npx tsc --noEmit
 
+      - name: Run Unit and Integration Tests
+        run: npm run test
+
       - name: Dry Build Check
         env:
           DATABASE_URL: "postgresql://postgres:mock@localhost:5432/mock"
