@@ -66,6 +66,9 @@ export const auth = betterAuth({
     },
   },
   basePath: "/api/v1/auth",
+  advanced: {
+    trustedProxyHeaders: true,
+  },
   user: {
     additionalFields: {
       role: { type: "string", defaultValue: "user" },
