@@ -68,6 +68,9 @@ export const auth = betterAuth({
   basePath: "/api/v1/auth",
   advanced: {
     trustedProxyHeaders: true,
+    crossSubDomainCookies: {
+      enabled: true,
+    },
   },
   user: {
     additionalFields: {
