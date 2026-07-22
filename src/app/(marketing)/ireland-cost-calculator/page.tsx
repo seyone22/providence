@@ -132,6 +132,9 @@ function vatApplies(
 }
 
 // ─── EV VRT relief (up to €5,000, tapering €40k–€50k OMSP) ────────────────
+// Returns the maximum relief the OMSP band allows. Revenue applies this relief
+// against the VRT liability only — it can never exceed the VRT due, so callers
+// must cap it at the VRT amount (relief cannot create a negative VRT charge).
 function getEVRelief(
   omsp: number,
   isEV: boolean,
@@ -312,10 +315,11 @@ export default function IrelandCostCalculator() {
     const noxValue = form.hasNoxData ? form.nox : DEFAULT_NOX[form.fuelType];
     const noxLevy = isClassic ? 0 : getNOxLevy(noxValue, form.fuelType);
 
-    // EV relief
+    // EV relief — capped at the VRT due (relief is applied against the VRT
+    // liability and can never exceed it: it's the lower of €5,000 and the VRT).
     const evRelief = isClassic
       ? 0
-      : getEVRelief(omsp, isEV, form.evBeforeDeadline);
+      : Math.min(getEVRelief(omsp, isEV, form.evBeforeDeadline), vrtAmount);
 
     // Totals
     const totalTaxes = customsDuty + vatAmount + vrtAmount + noxLevy - evRelief;
