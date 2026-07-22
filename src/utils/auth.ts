@@ -19,7 +19,9 @@ export const auth = betterAuth({
   trustedOrigins: [
     "http://localhost:3000",
     "https://providenceauto.co.uk",
-    "https://*.providenceauto.co.uk",
+    "https://www.providenceauto.co.uk",
+    "https://dev.providenceauto.co.uk",
+    "https://www.dev.providenceauto.co.uk",
   ],
 
   // 1. Password Reset lives here
@@ -64,6 +66,12 @@ export const auth = betterAuth({
     },
   },
   basePath: "/api/v1/auth",
+  advanced: {
+    trustedProxyHeaders: true,
+    crossSubDomainCookies: {
+      enabled: true,
+    },
+  },
   user: {
     additionalFields: {
       role: { type: "string", defaultValue: "user" },
