@@ -3,7 +3,20 @@
 import crypto from "node:crypto";
 import { and, desc, eq, ne, sql } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
+import { headers } from "next/headers";
 import { db, specDossiers } from "@/db";
+import { auth } from "@/utils/auth";
+
+/**
+ * Guard for admin-only mutations. Read helpers below stay public because they
+ * power the storefront (gallery, sitemap, campaign carousels), but anything
+ * that creates, edits, or deletes a template requires a signed-in session.
+ */
+async function requireAuth() {
+  const session = await auth.api.getSession({ headers: await headers() });
+  if (!session) return null;
+  return session;
+}
 
 /**
  * Strip a Drizzle record to a plain, serialisable object and map id to _id for backward compatibility.
@@ -64,6 +77,9 @@ async function findAvailableSlug(base: string, currentId?: string) {
  */
 // biome-ignore lint/suspicious/noExplicitAny: backward compatibility
 export async function saveSpecDossier(payload: any) {
+  if (!(await requireAuth())) {
+    return { success: false, message: "Unauthorized. Please sign in." };
+  }
   try {
     // --- Slug handling ---------------------------------------------------
     // Live (Active/Published) templates MUST have an explicit slug so their
@@ -329,6 +345,9 @@ export async function getAllSpecDossiers() {
  * Useful for switching between 'Draft', 'Active', 'Archived' without sending the whole payload.
  */
 export async function updateDossierStatus(id: string, status: string) {
+  if (!(await requireAuth())) {
+    return { success: false, message: "Unauthorized. Please sign in." };
+  }
   try {
     await db
       .update(specDossiers)
@@ -346,6 +365,9 @@ export async function updateDossierStatus(id: string, status: string) {
  * DELETE DOSSIER
  */
 export async function deleteSpecDossier(id: string) {
+  if (!(await requireAuth())) {
+    return { success: false, message: "Unauthorized. Please sign in." };
+  }
   try {
     const [deleted] = await db
       .delete(specDossiers)
