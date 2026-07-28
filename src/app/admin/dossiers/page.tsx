@@ -16,7 +16,7 @@ import {
   Zap,
 } from "lucide-react";
 import Link from "next/link";
-import { useEffect, useState, useTransition } from "react";
+import { useCallback, useEffect, useState, useTransition } from "react";
 // Actions
 import { deleteSpecDossier, getAllSpecDossiers } from "@/actions/spec-actions";
 import { Badge } from "@/components/ui/badge";
@@ -48,12 +48,15 @@ export default function InventoryPage() {
   const [isPending, startTransition] = useTransition();
 
   // 1. Fetch Data on Mount
-  const fetchDossiers = async () => {
+  // useCallback keeps the function reference stable so the effect below runs
+  // once on mount instead of looping (a new function each render would keep
+  // re-triggering the effect and re-fetching forever).
+  const fetchDossiers = useCallback(async () => {
     setLoading(true);
     const res = await getAllSpecDossiers();
     if (res.success) setDossiers(res.data);
     setLoading(false);
-  };
+  }, []);
 
   useEffect(() => {
     fetchDossiers();
