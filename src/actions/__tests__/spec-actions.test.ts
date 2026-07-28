@@ -1,5 +1,6 @@
 import { beforeEach, describe, expect, it, type Mock, vi } from "vitest";
 import { db as dbClient, specDossiers } from "@/db";
+import { auth } from "@/utils/auth";
 import {
   deleteSpecDossier,
   getAllSpecDossiers,
@@ -51,12 +52,46 @@ vi.mock("next/cache", () => ({
   revalidatePath: vi.fn(),
 }));
 
+// Mutations now require a signed-in session (requireAuth -> headers() +
+// auth.api.getSession). Mock both so the request-scope-only headers() call does
+// not throw, and default to an authenticated session for the happy-path tests.
+vi.mock("next/headers", () => ({
+  headers: vi.fn(() => Promise.resolve(new Headers())),
+}));
+
+vi.mock("@/utils/auth", () => ({
+  auth: {
+    api: {
+      getSession: vi.fn(),
+    },
+  },
+}));
+
 describe("spec-actions", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    // Authenticated by default; individual tests override for the unauth path.
+    vi.mocked(auth.api.getSession).mockResolvedValue({
+      user: { id: "test-admin" },
+    } as any);
   });
 
   describe("saveSpecDossier", () => {
+    it("should reject the mutation when there is no session", async () => {
+      vi.mocked(auth.api.getSession).mockResolvedValueOnce(null as any);
+
+      const result = await saveSpecDossier({
+        make: "Toyota",
+        model: "Supra",
+        status: "Draft",
+        slug: "toyota-supra",
+      });
+
+      expect(result.success).toBe(false);
+      expect(result.message).toContain("Unauthorized");
+      expect(db.insert).not.toHaveBeenCalled();
+    });
+
     it("should fail if live status but slug is missing", async () => {
       const result = await saveSpecDossier({ status: "Active", slug: "" });
       expect(result.success).toBe(false);
