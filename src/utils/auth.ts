@@ -6,6 +6,11 @@ import * as schema from "@/db/schema";
 import { emailService } from "@/lib/email";
 
 export const auth = betterAuth({
+  // Required by Better-Auth whenever advanced.crossSubDomainCookies is enabled.
+  // Better-Auth only reads BETTER_AUTH_URL automatically; fall back to the
+  // public base URL that every environment already sets.
+  baseURL: process.env.BETTER_AUTH_URL ?? process.env.NEXT_PUBLIC_BASE_URL,
+
   database: drizzleAdapter(db, {
     provider: "pg",
     schema: {
@@ -19,7 +24,9 @@ export const auth = betterAuth({
   trustedOrigins: [
     "http://localhost:3000",
     "https://providenceauto.co.uk",
-    "https://*.providenceauto.co.uk",
+    "https://www.providenceauto.co.uk",
+    "https://dev.providenceauto.co.uk",
+    "https://www.dev.providenceauto.co.uk",
   ],
 
   // 1. Password Reset lives here
@@ -64,6 +71,18 @@ export const auth = betterAuth({
     },
   },
   basePath: "/api/v1/auth",
+  advanced: {
+    trustedProxyHeaders: true,
+    // Namespace cookies per environment so a session cookie set on one
+    // environment (e.g. production) is not sent to and rejected by another
+    // (e.g. dev) — they share the .providenceauto.co.uk root domain but use
+    // different databases/secrets. Set AUTH_COOKIE_PREFIX per environment
+    // (e.g. providence-dev, providence-staging, providence).
+    cookiePrefix: process.env.AUTH_COOKIE_PREFIX ?? "providence",
+    crossSubDomainCookies: {
+      enabled: true,
+    },
+  },
   user: {
     additionalFields: {
       role: { type: "string", defaultValue: "user" },
