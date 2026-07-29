@@ -156,6 +156,71 @@ export async function getGbpFxRates(): Promise<GbpFxRates> {
   }
 }
 
+// ─── Credit budgets (AI tokens + scraper spend) ──────────────────────────────
+
+// What the usage meters measure against. Google publishes no usage API for a
+// Gemini key, so the AI allowance is declared via GEMINI_TOKEN_BUDGET (set it to
+// whatever your AI Studio tier actually gives you). Apify does expose its own
+// live figures, so those are read rather than declared.
+export interface UsageBudget {
+  // Token allowance for the period. 0 = not configured — the meter then falls
+  // back to showing tokens used with no bar, rather than inventing a total.
+  aiTokenBudget: number;
+  // Apify account spend for the current monthly cycle. null when APIFY_TOKEN is
+  // missing or the limits endpoint is unreachable.
+  apify: {
+    usedUsd: number;
+    limitUsd: number;
+    cycleEndsAt: string | null; // ISO date the monthly usage resets
+  } | null;
+}
+
+// Read the Apify account's own usage + cap. This endpoint is free and does not
+// consume actor credits. See memory: apify-free-tier-cap — a crawl that "returns
+// nothing" is usually this cap being hit, so surfacing it up front pre-empts the
+// usual misdiagnosis.
+async function getApifyUsage(): Promise<UsageBudget["apify"]> {
+  const token = process.env.APIFY_TOKEN;
+  if (!token) return null;
+  try {
+    const res = await fetch(
+      `https://api.apify.com/v2/users/me/limits?token=${token}`,
+      { cache: "no-store" },
+    );
+    if (!res.ok) throw new Error(`Apify limits responded ${res.status}`);
+
+    const json = (await res.json()) as {
+      data?: {
+        limits?: { maxMonthlyUsageUsd?: number };
+        current?: { monthlyUsageUsd?: number };
+        monthlyUsageCycle?: { endAt?: string };
+      };
+    };
+    const limitUsd = json.data?.limits?.maxMonthlyUsageUsd;
+    const usedUsd = json.data?.current?.monthlyUsageUsd;
+    if (typeof limitUsd !== "number" || typeof usedUsd !== "number") {
+      return null;
+    }
+    return {
+      usedUsd,
+      limitUsd,
+      cycleEndsAt: json.data?.monthlyUsageCycle?.endAt ?? null,
+    };
+  } catch (error: unknown) {
+    console.error("Apify usage fetch failed:", error);
+    return null;
+  }
+}
+
+// Current allowances for the tool's two paid dependencies, for the usage meters.
+export async function getUsageBudget(): Promise<UsageBudget> {
+  const declared = Number.parseInt(process.env.GEMINI_TOKEN_BUDGET ?? "", 10);
+  return {
+    aiTokenBudget: Number.isFinite(declared) && declared > 0 ? declared : 0,
+    apify: await getApifyUsage(),
+  };
+}
+
 // ─── Auction-sheet extraction (Gemini multimodal) ────────────────────────────
 
 // Structured fields lifted from a Japanese auction sheet. Any field Gemini
