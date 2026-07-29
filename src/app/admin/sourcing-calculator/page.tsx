@@ -1,6 +1,6 @@
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
-import { getGbpFxRates } from "@/actions/sourcing-actions";
+import { getGbpFxRates, getUsageBudget } from "@/actions/sourcing-actions";
 import { auth } from "@/utils/auth";
 import LandedCostClient from "./LandedCostClient";
 import RecentAnalyses from "./RecentAnalyses";
@@ -17,7 +17,7 @@ export default async function SourcingCalculatorPage() {
   const session = await auth.api.getSession({ headers: await headers() });
   if (!session) redirect("/auth/sign-in");
 
-  const fx = await getGbpFxRates();
+  const [fx, usage] = await Promise.all([getGbpFxRates(), getUsageBudget()]);
 
   return (
     <div className="p-6 lg:p-10 space-y-8 max-w-[1100px] mx-auto">
@@ -31,7 +31,7 @@ export default async function SourcingCalculatorPage() {
         </p>
       </div>
 
-      <LandedCostClient fx={fx} />
+      <LandedCostClient fx={fx} usage={usage} />
 
       <RecentAnalyses />
     </div>
