@@ -17,9 +17,11 @@ import {
   analyzeMarket,
   extractAuctionSheet,
   type GbpFxRates,
+  getUsageBudget,
   getVerdict,
   type MarketAnalysis,
   saveSourcingAnalysis,
+  type UsageBudget,
   type Verdict,
 } from "@/actions/sourcing-actions";
 import { generateSourcingPdf } from "@/actions/sourcing-pdf-actions";
@@ -158,6 +160,66 @@ function BreakdownRow({
   );
 }
 
+// Stable identity for a listing. The matched set and the all-scraped set are
+// separate copies once they've crossed the server-action boundary, so membership
+// has to be compared by value, not by object reference.
+function listingKey(l: NormalizedListing): string {
+  return (
+    l.url ??
+    `${l.source}|${l.make}|${l.model}|${l.year}|${l.mileage}|${l.price}`
+  );
+}
+
+// A consumed-vs-allowance bar for one credit pool. Green while there's headroom,
+// amber past 75%, red past 90% — so a nearly-spent pool reads at a glance.
+function UsageMeter({
+  label,
+  used,
+  total,
+  format,
+  note,
+}: {
+  label: string;
+  used: number;
+  total: number;
+  format: (n: number) => string;
+  note?: string;
+}) {
+  const pct = total > 0 ? Math.min(100, (used / total) * 100) : 0;
+  const left = Math.max(0, total - used);
+  const bar =
+    pct >= 90 ? "bg-red-500" : pct >= 75 ? "bg-amber-500" : "bg-emerald-500";
+  return (
+    <div className="space-y-1">
+      <div className="flex flex-wrap items-baseline justify-between gap-x-2">
+        <span className="text-[11px] font-medium text-zinc-600">{label}</span>
+        <span className="text-[11px] tabular-nums text-zinc-500">
+          <span className="font-semibold text-zinc-800">{format(used)}</span>
+          {" used of "}
+          {format(total)}
+          <span className="text-zinc-400"> · {format(left)} left</span>
+        </span>
+      </div>
+      {/* A div rather than <progress>: the native element can't be styled to
+          match the rest of the panel consistently across browsers. */}
+      <div
+        role="progressbar"
+        aria-label={label}
+        aria-valuemin={0}
+        aria-valuemax={100}
+        aria-valuenow={Math.round(pct)}
+        className="h-1.5 w-full overflow-hidden rounded-full bg-zinc-200"
+      >
+        <div
+          className={`h-full rounded-full transition-all ${bar}`}
+          style={{ width: `${pct}%` }}
+        />
+      </div>
+      {note ? <p className="text-[10px] text-zinc-400">{note}</p> : null}
+    </div>
+  );
+}
+
 // Read a File as a bare base64 string (no data: prefix).
 function fileToBase64(file: File): Promise<string> {
   return new Promise((resolve, reject) => {
@@ -171,7 +233,13 @@ function fileToBase64(file: File): Promise<string> {
   });
 }
 
-export default function LandedCostClient({ fx }: { fx: GbpFxRates }) {
+export default function LandedCostClient({
+  fx,
+  usage: initialUsage,
+}: {
+  fx: GbpFxRates;
+  usage: UsageBudget;
+}) {
   // ── Vehicle (shared intake — also drives the future market search) ──────────
   const [make, setMake] = useState("");
   const [model, setModel] = useState("");
@@ -193,6 +261,18 @@ export default function LandedCostClient({ fx }: { fx: GbpFxRates }) {
   const [extractTokens, setExtractTokens] = useState(0);
   const [verdictTokens, setVerdictTokens] = useState(0);
   const [aiModel, setAiModel] = useState("");
+  // Allowances the meters measure against. Apify's figure is live, so it's
+  // re-read after each crawl; reading it costs nothing.
+  const [budget, setBudget] = useState<UsageBudget>(initialUsage);
+  const aiTokens = extractTokens + verdictTokens;
+
+  function refreshBudget() {
+    void getUsageBudget()
+      .then(setBudget)
+      .catch(() => {
+        /* meters keep the last known figures */
+      });
+  }
 
   async function handleSheetUpload(file: File | undefined) {
     if (!file) return;
@@ -421,12 +501,39 @@ export default function LandedCostClient({ fx }: { fx: GbpFxRates }) {
     setEditableListings((prev) => prev.filter((l) => l !== target));
   }
 
+  // Pull a scraped-but-unmatched listing into the comparison. Purely local — the
+  // car is already in memory from the crawl, so this spends no scraper credits.
+  function addListing(target: NormalizedListing) {
+    const key = listingKey(target);
+    setEditableListings((prev) =>
+      prev.some((l) => listingKey(l) === key) ? prev : [...prev, target],
+    );
+    toast.success("Added to the comparison", {
+      description:
+        "Figures updated instantly — re-run the verdict to refresh the narrative.",
+    });
+  }
+
+  // Which cars are already being compared, so the scraped list can show "Add"
+  // only for the ones that aren't.
+  const includedKeys = useMemo(
+    () => new Set(editableListings.map(listingKey)),
+    [editableListings],
+  );
+
   // Live margin, recomputed from the current listing set.
   const liveMargin = liveStats.median - result.totalLanded;
-  // True once the operator has removed one or more listings from the set.
-  const listingsEdited = market
-    ? editableListings.length !== market.listings.length
-    : false;
+
+  // The verdict narrative is written against a specific set of comparables.
+  // Signing the set lets us tell the operator when the prose has fallen behind
+  // an add/remove — length alone would miss an add that offsets a removal.
+  const [verdictSignature, setVerdictSignature] = useState<string | null>(null);
+  const listingsSignature = useMemo(
+    () => editableListings.map(listingKey).sort().join("~"),
+    [editableListings],
+  );
+  const verdictStale =
+    verdict != null && verdictSignature !== listingsSignature;
 
   async function downloadPdf() {
     if (!market || !verdict) return;
@@ -553,6 +660,7 @@ export default function LandedCostClient({ fx }: { fx: GbpFxRates }) {
     setMarketError(null);
     setMarket(null);
     setVerdict(null);
+    setVerdictSignature(null);
     setSaved(false);
     try {
       // Make + model gate the match (case-insensitive); trim is a preference;
@@ -591,6 +699,7 @@ export default function LandedCostClient({ fx }: { fx: GbpFxRates }) {
       toast.error("Crawl failed", { description: msg });
     } finally {
       setCrawling(false);
+      refreshBudget(); // the crawl is what moves the Apify meter
     }
   }
 
@@ -613,6 +722,8 @@ export default function LandedCostClient({ fx }: { fx: GbpFxRates }) {
       });
       if (v.success) {
         setVerdict(v.data);
+        // Remember which comparables this narrative was written against.
+        setVerdictSignature(listingsSignature);
         setVerdictTokens(v.tokens);
         setAiModel(v.model);
         toast.success("Verdict ready", {
@@ -1265,13 +1376,20 @@ export default function LandedCostClient({ fx }: { fx: GbpFxRates }) {
                   year) and re-run.
                 </p>
                 {market.allListings.length > 0 ? (
-                  <button
-                    type="button"
-                    onClick={() => setEditableListings(market.allListings)}
-                    className="mt-3 text-[12px] font-medium text-sky-700 hover:underline"
-                  >
-                    Show all {market.allListings.length} scraped listings anyway
-                  </button>
+                  <>
+                    <button
+                      type="button"
+                      onClick={() => setEditableListings(market.allListings)}
+                      className="mt-3 text-[12px] font-medium text-sky-700 hover:underline"
+                    >
+                      Compare all {market.allListings.length} scraped listings
+                      anyway
+                    </button>
+                    <p className="text-[11px] text-amber-700 mt-1">
+                      Or add them one at a time from the scraped list at the
+                      bottom of this card.
+                    </p>
+                  </>
                 ) : null}
               </div>
             ) : null}
@@ -1348,7 +1466,8 @@ export default function LandedCostClient({ fx }: { fx: GbpFxRates }) {
                   <div>
                     <p className="text-[11px] uppercase tracking-wide text-zinc-400 mb-2">
                       Listings analysed ({liveStats.count}) — remove any that
-                      don't fit; the figures update instantly
+                      don't fit, or add one from the scraped list below; the
+                      figures update instantly
                     </p>
                     <div className="space-y-3">
                       {listingsByBucket.map((bucket) => (
@@ -1481,12 +1600,22 @@ export default function LandedCostClient({ fx }: { fx: GbpFxRates }) {
                         Confidence: {verdict.confidence} · AI narrative over
                         deterministic figures — verify before committing.
                       </p>
-                      {listingsEdited ? (
-                        <p className="text-[11px] text-amber-700 mt-1">
-                          Figures above reflect your edited listing set; the
-                          written narrative is from the initial analysis. Re-run
-                          to refresh the narrative.
-                        </p>
+                      {verdictStale ? (
+                        <div className="mt-2 flex flex-wrap items-center gap-2 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2">
+                          <p className="text-[11px] text-amber-800">
+                            Your listing set changed. The figures above already
+                            reflect it; the written narrative is from the
+                            previous set.
+                          </p>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            disabled={verdicting}
+                            onClick={runVerdict}
+                          >
+                            {verdicting ? "Analysing…" : "Re-run verdict"}
+                          </Button>
+                        </div>
                       ) : null}
                       <div className="mt-3 flex items-center gap-3">
                         <Button
@@ -1516,7 +1645,9 @@ export default function LandedCostClient({ fx }: { fx: GbpFxRates }) {
               </>
             )}
 
-            {/* All scraped listings — read-only inspector, no extra credits */}
+            {/* All scraped listings — inspect, and pull any of them into the
+                comparison. Everything here is already in memory from the crawl,
+                so adding one spends no further credits. */}
             {market.allListings.length > 0 ? (
               <div className="border-t border-zinc-100 pt-3">
                 <button
@@ -1579,6 +1710,20 @@ export default function LandedCostClient({ fx }: { fx: GbpFxRates }) {
                                   View ↗
                                 </a>
                               ) : null}
+                              {includedKeys.has(listingKey(l)) ? (
+                                <span className="text-[11px] font-medium text-emerald-600 whitespace-nowrap">
+                                  In comparison ✓
+                                </span>
+                              ) : (
+                                <button
+                                  type="button"
+                                  onClick={() => addListing(l)}
+                                  title="Add this listing to the comparison"
+                                  className="rounded border border-sky-200 bg-sky-50 px-2 py-0.5 text-[11px] font-medium text-sky-700 hover:bg-sky-100 whitespace-nowrap"
+                                >
+                                  + Add
+                                </button>
+                              )}
                             </div>
                           </li>
                         );
@@ -1586,39 +1731,85 @@ export default function LandedCostClient({ fx }: { fx: GbpFxRates }) {
                   </ul>
                 ) : null}
                 <p className="text-[11px] text-zinc-400 mt-1">
-                  Everything scraped before the year/mileage filter — for
-                  reference only; doesn't affect the figures above.
+                  Everything scraped before the year/mileage filter. Adding one
+                  pulls it into the comparison and updates the figures instantly
+                  — it's already in memory, so no new crawl and no scraper
+                  credits.
                 </p>
               </div>
             ) : null}
-
-            {/* Usage this run — read from the API responses, no extra credits */}
-            <div className="rounded-lg bg-zinc-50 border border-zinc-100 p-3 text-[11px] text-zinc-500 flex flex-wrap gap-x-4 gap-y-1">
-              <span>
-                🤖 AI:{" "}
-                <span className="font-medium text-zinc-700">
-                  {(extractTokens + verdictTokens).toLocaleString()} tokens
-                </span>
-                {aiModel ? ` · ${aiModel}` : ""}
-                {extractTokens > 0
-                  ? ` (extract ${extractTokens.toLocaleString()} + verdict ${verdictTokens.toLocaleString()})`
-                  : ""}
-              </span>
-              <span>
-                🔎 Market:{" "}
-                <span className="font-medium text-zinc-700">
-                  {market.totalScraped.toLocaleString()} listings scraped
-                </span>{" "}
-                via {market.sources.join(", ")}
-              </span>
-              <span className="text-zinc-400">
-                Usage is read from the API responses — displaying it costs
-                nothing.
-              </span>
-            </div>
           </CardContent>
         </Card>
       ) : null}
+
+      {/* ── Credit usage ────────────────────────────────────────────────────
+          Always visible: the point of a remaining-balance meter is to see it
+          before you spend, not after. Every figure here is read from an API
+          response or a free limits endpoint — displaying it costs nothing. */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-base">Credit usage</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          {budget.aiTokenBudget > 0 ? (
+            <UsageMeter
+              label="🤖 Gemini AI tokens · this session"
+              used={aiTokens}
+              total={budget.aiTokenBudget}
+              format={(n) => n.toLocaleString()}
+              note={
+                extractTokens > 0 || verdictTokens > 0
+                  ? `Sheet extraction ${extractTokens.toLocaleString()} + verdict ${verdictTokens.toLocaleString()}${aiModel ? ` · ${aiModel}` : ""}`
+                  : "Nothing spent yet — the sheet upload and the verdict are the two AI calls."
+              }
+            />
+          ) : (
+            <div className="space-y-1">
+              <p className="text-[11px] text-zinc-600">
+                🤖 Gemini AI tokens · this session:{" "}
+                <span className="font-semibold text-zinc-800 tabular-nums">
+                  {aiTokens.toLocaleString()}
+                </span>
+                {aiModel ? ` · ${aiModel}` : ""}
+              </p>
+              <p className="text-[10px] text-zinc-400">
+                Set <code className="text-zinc-500">GEMINI_TOKEN_BUDGET</code>{" "}
+                to your AI Studio allowance to see this as a bar. Google exposes
+                no usage API for a key, so the total has to be declared.
+              </p>
+            </div>
+          )}
+
+          {budget.apify ? (
+            <UsageMeter
+              label="🔎 Apify scraper · this month"
+              used={budget.apify.usedUsd}
+              total={budget.apify.limitUsd}
+              format={(n) => `$${n.toFixed(2)}`}
+              note={
+                budget.apify.cycleEndsAt
+                  ? `Live from your Apify account · resets ${new Date(budget.apify.cycleEndsAt).toLocaleDateString("en-GB")}`
+                  : "Live from your Apify account"
+              }
+            />
+          ) : (
+            <p className="text-[11px] text-zinc-400">
+              🔎 Apify usage unavailable — check <code>APIFY_TOKEN</code> is set
+              on this environment.
+            </p>
+          )}
+
+          {market ? (
+            <p className="border-t border-zinc-100 pt-3 text-[11px] text-zinc-500">
+              This run:{" "}
+              <span className="font-medium text-zinc-700">
+                {market.totalScraped.toLocaleString()} listings scraped
+              </span>{" "}
+              via {market.sources.join(", ")}.
+            </p>
+          ) : null}
+        </CardContent>
+      </Card>
     </div>
   );
 }
