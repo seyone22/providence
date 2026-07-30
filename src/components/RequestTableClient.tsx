@@ -17,7 +17,7 @@ import {
   UserPlus,
 } from "lucide-react";
 import Link from "next/link";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import ContactPreferenceBadge from "@/components/ContactPreferenceBadge";
 import FollowUpTimer from "@/components/FollowUpTimer";
 import RequestActionModal from "@/components/RequestActionModal";
@@ -39,6 +39,17 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { pathnameToSource } from "@/lib/leadSource";
+import { type PageSize, paginate } from "@/lib/pagination";
+
+/**
+ * Page-size choices for the lead table. Every row mounts a full dropdown menu,
+ * so rendering the whole lead list at once is what made the admin panel lock up
+ * — the main thread stays busy hydrating rows and nothing on the page responds,
+ * the sidebar included. 50 is the default: the caller sorts newest-first, so
+ * page 1 is the 50 most recent leads.
+ */
+const PAGE_SIZE_OPTIONS: PageSize[] = [25, 50, 100, 200, "All"];
+const DEFAULT_PAGE_SIZE = 50;
 
 const PIPELINE_STAGES = [
   "New",
@@ -136,6 +147,33 @@ export default function RequestTableClient({
     request: null,
     targetStage: null,
   });
+
+  // Pagination
+  const [pageSize, setPageSize] = useState<PageSize>(DEFAULT_PAGE_SIZE);
+  const [page, setPage] = useState(1);
+
+  // Filtering upstream produces a new array, so any filter/sort change drops the
+  // user back to page 1 — otherwise a narrowed result set strands them on a page
+  // that no longer exists. Adjusting state during render is React's documented
+  // pattern for resetting on a prop change; an effect would commit one render of
+  // the wrong page first.
+  const [lastRequests, setLastRequests] = useState(processedRequests);
+  if (processedRequests !== lastRequests) {
+    setLastRequests(processedRequests);
+    setPage(1);
+  }
+
+  const {
+    rows: visibleRequests,
+    page: currentPage,
+    totalPages,
+    totalRows,
+    startIndex,
+    rowsPerPage,
+  } = useMemo(
+    () => paginate(processedRequests, pageSize, page),
+    [processedRequests, pageSize, page],
+  );
 
   // Filter & Sort States
   const [_searchQuery, _setSearchQuery] = useState("");
@@ -289,7 +327,7 @@ export default function RequestTableClient({
               </TableRow>
             </TableHeader>
             <TableBody>
-              {processedRequests.map((req: any) => {
+              {visibleRequests.map((req: any) => {
                 const nextStage = getNextStage(req.status || "New");
                 const prevStage = getPreviousStage(req.status || "New");
                 const currentSalesStatus = req.leadStatus || "Action required";
@@ -769,6 +807,72 @@ export default function RequestTableClient({
           </Table>
         )}
       </div>
+
+      {/* --- PAGINATION --- */}
+      {totalRows > 0 && (
+        <div className="flex flex-wrap items-center justify-between gap-3 px-6 pb-4">
+          <div className="flex items-center gap-3">
+            <p className="text-sm text-zinc-500 font-medium">
+              Showing{" "}
+              <span className="text-black font-semibold">
+                {startIndex + 1}–{Math.min(startIndex + rowsPerPage, totalRows)}
+              </span>{" "}
+              of <span className="text-black font-semibold">{totalRows}</span>{" "}
+              {totalRows === 1 ? "lead" : "leads"}
+            </p>
+
+            <label className="flex items-center gap-2 text-sm text-zinc-500 font-medium">
+              <span className="hidden sm:inline">Show</span>
+              <select
+                value={String(pageSize)}
+                onChange={(e) => {
+                  const next = e.target.value;
+                  setPageSize(next === "All" ? "All" : Number(next));
+                  setPage(1);
+                }}
+                className="pl-3 pr-8 py-2 text-sm bg-white border border-zinc-200 hover:border-zinc-300 rounded-xl text-zinc-600 font-semibold cursor-pointer outline-none transition-all appearance-none bg-[url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20width%3D%2220%22%20height%3D%2220%22%20viewBox%3D%220%200%2020%2020%22%20fill%3D%22none%22%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%3E%3Cpath%20d%3D%22M5%207.5L10%2012.5L15%207.5%22%20stroke%3D%22%2371717a%22%20stroke-width%3D%221.5%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22/%3E%3C/svg%3E')] bg-[length:1.25rem_1.25rem] bg-[right_0.5rem_center] bg-no-repeat"
+              >
+                {PAGE_SIZE_OPTIONS.map((opt) => (
+                  <option key={opt} value={String(opt)}>
+                    {opt}
+                  </option>
+                ))}
+              </select>
+            </label>
+          </div>
+
+          {totalPages > 1 && (
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={() => setPage((p) => Math.max(1, p - 1))}
+                disabled={currentPage === 1}
+                className="flex items-center gap-1.5 px-3 py-2 text-sm font-semibold bg-white border border-zinc-200 rounded-xl text-zinc-600 hover:border-zinc-300 transition-colors disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:border-zinc-200"
+              >
+                <ArrowLeft size={16} />
+                <span className="hidden sm:inline">Previous</span>
+              </button>
+
+              <span className="text-sm text-zinc-500 font-medium px-1">
+                Page{" "}
+                <span className="text-black font-semibold">{currentPage}</span>{" "}
+                of{" "}
+                <span className="text-black font-semibold">{totalPages}</span>
+              </span>
+
+              <button
+                type="button"
+                onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+                disabled={currentPage === totalPages}
+                className="flex items-center gap-1.5 px-3 py-2 text-sm font-semibold bg-white border border-zinc-200 rounded-xl text-zinc-600 hover:border-zinc-300 transition-colors disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:border-zinc-200"
+              >
+                <span className="hidden sm:inline">Next</span>
+                <ArrowRight size={16} />
+              </button>
+            </div>
+          )}
+        </div>
+      )}
 
       <RequestActionModal
         modal={modal}
