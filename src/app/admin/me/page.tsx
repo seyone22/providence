@@ -11,11 +11,19 @@ export default function OperationsOverviewDashboard() {
 
   useEffect(() => {
     async function fetchData() {
-      const res = await getDashboardData();
-      if (res.success) {
-        setDashboardData(res.data);
+      // `finally` is what keeps the spinner from becoming permanent: a rejected
+      // server action (expired session, redeploy, network blip) would otherwise
+      // skip setIsLoading(false) entirely.
+      try {
+        const res = await getDashboardData();
+        if (res.success) {
+          setDashboardData(res.data);
+        }
+      } catch (err) {
+        console.error("[admin/me] Failed to load dashboard data:", err);
+      } finally {
+        setIsLoading(false);
       }
-      setIsLoading(false);
     }
     fetchData();
   }, []);

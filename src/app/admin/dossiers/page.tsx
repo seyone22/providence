@@ -53,9 +53,17 @@ export default function InventoryPage() {
   // re-triggering the effect and re-fetching forever).
   const fetchDossiers = useCallback(async () => {
     setLoading(true);
-    const res = await getAllSpecDossiers();
-    if (res.success) setDossiers(res.data);
-    setLoading(false);
+    // `finally` is what keeps the spinner from becoming permanent: a rejected
+    // server action (expired session, redeploy, network blip) would otherwise
+    // skip setLoading(false) entirely.
+    try {
+      const res = await getAllSpecDossiers();
+      if (res.success) setDossiers(res.data);
+    } catch (err) {
+      console.error("[admin/dossiers] Failed to load dossiers:", err);
+    } finally {
+      setLoading(false);
+    }
   }, []);
 
   useEffect(() => {

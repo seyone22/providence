@@ -373,26 +373,35 @@ function SpecBuilderContent() {
     if (editId) {
       const loadDossier = async () => {
         setIsLoading(true);
-        const res = await getSpecDossierById(editId);
-        if (res.success && res.data) {
-          // --- ADD THESE INSIDE THE loadDossier useEffect SUCCESS BLOCK ---
-          setSpecData((_prev) => ({
-            ...res.data,
-            heroImageUrl: res.data.heroImageUrl || "",
-            slug: res.data.slug || "",
-            condition: res.data.condition || "New",
-            mileage: res.data.mileage || "",
-            customData: res.data.customData || [],
-            valuePoints: res.data.valuePoints || [],
-          }));
-          setPricing(res.data.pricing || []);
-          setFeatures(res.data.features || []);
-          setSearchTags(res.data.searchTags || []);
-          setExistingImages(res.data.images || []);
-        } else {
+        // `finally` is what keeps the spinner from becoming permanent: a
+        // rejected server action (expired session, redeploy, network blip)
+        // would otherwise skip setIsLoading(false) entirely.
+        try {
+          const res = await getSpecDossierById(editId);
+          if (res.success && res.data) {
+            // --- ADD THESE INSIDE THE loadDossier useEffect SUCCESS BLOCK ---
+            setSpecData((_prev) => ({
+              ...res.data,
+              heroImageUrl: res.data.heroImageUrl || "",
+              slug: res.data.slug || "",
+              condition: res.data.condition || "New",
+              mileage: res.data.mileage || "",
+              customData: res.data.customData || [],
+              valuePoints: res.data.valuePoints || [],
+            }));
+            setPricing(res.data.pricing || []);
+            setFeatures(res.data.features || []);
+            setSearchTags(res.data.searchTags || []);
+            setExistingImages(res.data.images || []);
+          } else {
+            alert("Dossier not found or error fetching.");
+          }
+        } catch (err) {
+          console.error("[admin/specs] Failed to load dossier:", err);
           alert("Dossier not found or error fetching.");
+        } finally {
+          setIsLoading(false);
         }
-        setIsLoading(false);
       };
       loadDossier();
     }
