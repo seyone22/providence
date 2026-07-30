@@ -4,8 +4,10 @@ import Link from "next/link";
 export default function Footer() {
   const currentYear = new Date().getFullYear();
 
+  // No z-index on the footer: it is the last element in normal flow, so raising
+  // it only lets it paint over `fixed` chrome (e.g. the admin sidebar).
   return (
-    <footer className="w-full border-t border-white/5 bg-black pt-16 pb-8 relative z-50">
+    <footer className="w-full border-t border-white/5 bg-black pt-16 pb-8 relative">
       <div className="max-w-7xl mx-auto px-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12 md:gap-8 mb-16">
         {/* Left Column: Logo & Brand */}
         <div className="flex flex-col justify-start">

@@ -211,8 +211,12 @@ export const japanImportCampaignConfig: LandingPageConfig = {
     title: "Japan's Fastest Movers,\nLanded at Your Door.",
     subtitle:
       "The hybrids, SUVs and workhorses the whole right-hand-drive world is buying — grade-verified at Japanese auction, then shipped, cleared and registered in your country for one honest landed price.",
-    backgroundImage:
-      "https://images.unsplash.com/photo-1603584173870-7f23fdae1b7a?q=80&w=3000&auto=format&fit=cover",
+    // Self-hosted (unlike the other campaigns' remote heroes) because it is a
+    // landscape re-crop of a portrait original: an R34 Skyline GT-R on
+    // Japanese plates parked under Mt Fuji, with a HiAce and kei cars behind
+    // it — the whole frame reads "sourced in Japan" rather than "generic
+    // supercar". Cropped to 3:2 so wide viewports barely trim it.
+    backgroundImage: "/import-cars/hero-skyline-fuji.jpg",
   },
   intro: {
     highlight: "You see the auction sheet before we spend a yen.",
