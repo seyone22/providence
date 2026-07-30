@@ -7,6 +7,7 @@ import {
   ChevronRight,
   FilePlus2,
   IdCard,
+  Instagram,
   LayoutDashboard,
   LogOut,
   Settings,
@@ -42,6 +43,7 @@ const navItems = [
     icon: Calculator,
   },
   { title: "Create Spec", url: "/admin/specs", icon: FilePlus2 },
+  { title: "Social Posts", url: "/admin/social-posts", icon: Instagram },
   { title: "Users", url: "/admin/users", icon: Users },
   { title: "Settings", url: "/admin/settings", icon: Settings },
 ];

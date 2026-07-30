@@ -20,7 +20,10 @@ export default async function AdminLayout({
     <SidebarProvider>
       <div className="flex min-h-screen w-full bg-zinc-50/50">
         <AdminSidebar />
-        <main className="flex-1 overflow-y-auto">
+        {/* `h-screen` bounds the scroll to <main>. Without it `overflow-y-auto`
+            is inert, the window scrolls instead, and page content rides up over
+            the `fixed` sidebar. */}
+        <main className="flex-1 h-screen overflow-y-auto">
           {/* Mobile Trigger */}
           <div className="md:hidden p-4 border-b bg-white">
             <SidebarTrigger />

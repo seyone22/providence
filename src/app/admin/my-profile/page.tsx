@@ -62,11 +62,20 @@ export default function MyProfileAdminPage() {
 
   useEffect(() => {
     (async () => {
-      const res = await getMyProfile();
-      if (res.success) setProfile(res.data);
-      else
-        setToast({ ok: false, msg: res.message || "Failed to load profile" });
-      setLoading(false);
+      // `finally` is what keeps the spinner from becoming permanent: a rejected
+      // server action (expired session, redeploy, network blip) would otherwise
+      // skip setLoading(false) entirely.
+      try {
+        const res = await getMyProfile();
+        if (res.success) setProfile(res.data);
+        else
+          setToast({ ok: false, msg: res.message || "Failed to load profile" });
+      } catch (err) {
+        console.error("[admin/my-profile] Failed to load profile:", err);
+        setToast({ ok: false, msg: "Failed to load profile" });
+      } finally {
+        setLoading(false);
+      }
     })();
   }, []);
 
@@ -738,10 +747,14 @@ function StatsPanel() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    getMyStats().then((r) => {
-      if (r.success) setStats(r.data);
-      setLoading(false);
-    });
+    getMyStats()
+      .then((r) => {
+        if (r.success) setStats(r.data);
+      })
+      .catch((err) => {
+        console.error("[admin/my-profile] Failed to load stats:", err);
+      })
+      .finally(() => setLoading(false));
   }, []);
 
   if (loading)
