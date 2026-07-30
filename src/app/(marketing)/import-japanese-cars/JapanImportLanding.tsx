@@ -71,6 +71,13 @@ const FAST_MOVERS: {
     image: "/import-cars/prado.jpg",
   },
   {
+    name: "Toyota Alphard",
+    make: "Toyota",
+    model: "Alphard",
+    blurb: "First-class travel for the family",
+    image: "/import-cars/alphard.jpg",
+  },
+  {
     name: "Honda Fit",
     make: "Honda",
     model: "Fit",
@@ -90,6 +97,13 @@ const FAST_MOVERS: {
     model: "Note e-POWER",
     blurb: "Electric drive, no plug needed",
     image: "/import-cars/note.jpg",
+  },
+  {
+    name: "Nissan GT-R",
+    make: "Nissan",
+    model: "GT-R",
+    blurb: "The legend, sourced at home",
+    image: "/import-cars/gtr.jpg",
   },
   {
     name: "Suzuki Swift",
@@ -529,7 +543,7 @@ export default function JapanImportLanding() {
 
           <Reveal y={20} duration={0.6} className="text-center mt-12">
             <p className="text-zinc-500 font-light">
-              After something else — a kei truck, an Alphard, a GR badge?{" "}
+              After something else — a kei truck, a Hiace, a GR badge?{" "}
               <a
                 href="#inquiry"
                 className="text-black font-medium underline decoration-1 underline-offset-4 hover:decoration-2"

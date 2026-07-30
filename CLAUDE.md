@@ -19,6 +19,18 @@ npx drizzle-kit studio     # Open Drizzle Studio to browse data
 
 `DATABASE_URL` (Railway-hosted Postgres) must be set for the app, migrations, and the build.
 
+## Environment Variables
+
+Copy `.env.example` to `.env.local` for local dev, and set the same keys on **each Railway service** (dev / staging / production) via the Railway dashboard → service → Variables (or `railway variables --set KEY=value`). A key that is present locally but missing on a Railway service is the usual cause of "works on my machine, broken on the live site".
+
+Required:
+- `DATABASE_URL` (+ `DATABASE_URL_STAGING`, `DATABASE_URL_PRODUCTION`) — Postgres connection strings.
+- `BETTER_AUTH_SECRET`, `NEXT_PUBLIC_BASE_URL` — auth.
+- `GEMINI_API_KEY` — **Sourcing & Profit Analyzer** (admin): Gemini auction-sheet extraction + buy/avoid verdict. Missing → the tool reports "GEMINI_API_KEY is not configured".
+- `APIFY_TOKEN` — **Sourcing & Profit Analyzer** (admin): AutoTrader + PistonHeads market data. Missing → "APIFY_TOKEN is not configured".
+
+Optional: `GEMINI_TOKEN_BUDGET` (the AI token allowance the sourcing tool's usage meter measures against — Google exposes no usage API for a key, so the total must be declared; unset just hides the bar. Apify's monthly spend and cap are read live from `/v2/users/me/limits`, so they need no equivalent), `RESEND_API_KEY` (email), `R2_*` (file storage), social-provider client IDs/secrets, and the Meta/Google ad-conversion keys. See `.env.example` for the full list.
+
 ## Architecture Overview
 
 **Providence Auto** is a B2B/B2C automotive import sourcing platform built on Next.js App Router with React Server Components.
