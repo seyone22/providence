@@ -14,6 +14,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { getTimerState, toTimestamp } from "@/lib/followUpTimer";
 
 interface FollowUpTimerProps {
   requestId: string;
@@ -39,16 +40,6 @@ function addDays(d: Date, days: number): Date {
 
 function formatDateInput(d: Date): string {
   return d.toISOString().slice(0, 10);
-}
-
-function getTimerState(followUpAt: Date, followUpSetAt: Date) {
-  const now = Date.now();
-  const end = followUpAt.getTime();
-  const start = followUpSetAt.getTime();
-  const total = end - start;
-  const remaining = end - now;
-  const ratio = total > 0 ? Math.max(0, remaining / total) : 0;
-  return { ratio, remaining, total, expired: remaining <= 0 };
 }
 
 function TimerRing({ ratio }: { ratio: number }) {
@@ -132,20 +123,42 @@ export default function FollowUpTimer({
   const [selectedPreset, setSelectedPreset] = useState<number | null>(null);
   const expiredRef = useRef(false);
 
-  const followUpAtDate = followUpAt ? new Date(followUpAt) : null;
-  const followUpSetAtDate = followUpSetAt ? new Date(followUpSetAt) : null;
-  const hasTimer = !!(followUpAtDate && followUpSetAtDate);
+  // Primitives, not Date objects — these feed the effect's dependency array.
+  const followUpAtMs = toTimestamp(followUpAt);
+  const followUpSetAtMs = toTimestamp(followUpSetAt);
+  const hasTimer = followUpAtMs !== null && followUpSetAtMs !== null;
+
+  // Display-only. Safe to rebuild each render because nothing depends on its
+  // identity.
+  const followUpAtDate = followUpAtMs !== null ? new Date(followUpAtMs) : null;
+
+  // `onExpired` lives in a ref so `handleExpiry` stays referentially stable even
+  // if a caller passes an inline arrow function. Without this it would be a new
+  // reference on every parent render and would re-arm the effect below.
+  const onExpiredRef = useRef(onExpired);
+  onExpiredRef.current = onExpired;
 
   const handleExpiry = useCallback(async () => {
     if (expiredRef.current) return;
     expiredRef.current = true;
     setExpired(true);
     await expireFollowUpTimer(requestId);
-    onExpired?.();
-  }, [requestId, onExpired]);
+    onExpiredRef.current?.();
+  }, [requestId]);
 
+  // Every dependency here must be primitive or referentially stable.
+  //
+  // This previously depended on `new Date(followUpAt)` / `new Date(followUpSetAt)`,
+  // which are fresh objects on every render. So the effect re-ran on every render,
+  // and it calls tick() immediately — which calls setRatio() with a value derived
+  // from Date.now(), a *different* number on nearly every call. New state → new
+  // render → new Date objects → effect re-runs → setRatio → … A row with an active
+  // follow-up spun at roughly the clock resolution, re-registering a setInterval
+  // each cycle. With 50 rows on the leads table that starved the main thread of
+  // input within seconds: link hovers still showed their target (the browser draws
+  // that without JS) but clicks never got processed, across the whole admin panel.
   useEffect(() => {
-    if (!hasTimer || !followUpAtDate || !followUpSetAtDate) {
+    if (followUpAtMs === null || followUpSetAtMs === null) {
       setRatio(null);
       setExpired(false);
       expiredRef.current = false;
@@ -153,7 +166,7 @@ export default function FollowUpTimer({
     }
 
     const tick = () => {
-      const state = getTimerState(followUpAtDate, followUpSetAtDate);
+      const state = getTimerState(followUpAtMs, followUpSetAtMs);
       setRatio(state.ratio);
       if (state.expired && !expiredRef.current) {
         handleExpiry();
@@ -163,7 +176,7 @@ export default function FollowUpTimer({
     tick();
     const iv = setInterval(tick, 60_000); // update every minute
     return () => clearInterval(iv);
-  }, [hasTimer, handleExpiry, followUpAtDate, followUpSetAtDate]);
+  }, [handleExpiry, followUpAtMs, followUpSetAtMs]);
 
   const handlePreset = (days: number, idx: number) => {
     setSelectedPreset(idx);
