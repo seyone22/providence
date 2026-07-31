@@ -5,6 +5,18 @@
 // by landing page") so the two never drift apart.
 
 /**
+ * Path of the Japanese left-hand-drive luxury landing page. Leads that come
+ * through this page are left-hand-drive enquiries: the lead table flags them
+ * with a red "LHD" badge and the dashboard has a toggle to show only these.
+ */
+export const LHD_LANDING_PATH = "/japanese-luxury-cars-lhd";
+
+/** True when a stored lead `source` came through the LHD landing page. */
+export function isLhdLead(source?: string): boolean {
+  return !!source && source.replace(/\/$/, "") === LHD_LANDING_PATH;
+}
+
+/**
  * Convert a stored lead `source` → human-readable display label. Handles both
  * the current format (raw pathname, e.g. "/team/abdallah") and the legacy
  * format (a readable label already, e.g. "Request Page") stored before the

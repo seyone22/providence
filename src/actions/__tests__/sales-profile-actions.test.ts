@@ -141,6 +141,35 @@ describe("sales-profile-actions", () => {
         expect(result.data?.userId).toBe("user-1");
       }
     });
+
+    // The Users screen saves the role as "Admin" while server code elsewhere
+    // checks "admin" — admins were locked out of their own profile page.
+    it("should allow an admin whose role is capitalised", async () => {
+      const { auth } = await import("@/utils/auth");
+      vi.mocked(auth.api.getSession).mockResolvedValueOnce({
+        user: { id: "admin-1", name: "Admin User", role: "Admin" },
+      } as any);
+
+      const mockProfile = {
+        id: "profile-2",
+        userId: "admin-1",
+        expertise: [],
+        sourcingCountries: [],
+        trackRecord: [],
+        testimonials: [],
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      };
+      vi.mocked(db.then).mockImplementationOnce((onFulfilled) =>
+        onFulfilled([mockProfile]),
+      );
+
+      const result = await getMyProfile();
+      expect(result.success).toBe(true);
+      if (result.success) {
+        expect(result.data?.userId).toBe("admin-1");
+      }
+    });
   });
 
   describe("updateMyProfile", () => {
