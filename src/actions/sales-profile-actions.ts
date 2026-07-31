@@ -50,9 +50,24 @@ async function requireSession() {
   return session;
 }
 
+/**
+ * Role strings are not written consistently across the app: the Users screen
+ * saves "Admin"/"Sales", server code elsewhere checks "admin", and Better-Auth
+ * defaults new users to "user". Compare case-insensitively so an admin isn't
+ * locked out of their own profile page purely by capitalisation.
+ */
+function normalizeRole(role?: string) {
+  return (role || "").trim().toLowerCase();
+}
+
+function isAdminRole(role?: string) {
+  return normalizeRole(role) === "admin";
+}
+
 /** Only Sales/admin users may own or edit a profile. */
 function canOwnProfile(role?: string) {
-  return role === "Sales" || role === "admin";
+  const r = normalizeRole(role);
+  return r === "sales" || r === "admin";
 }
 
 /** Strip a Mongoose doc to a plain, serialisable object for the client. */
@@ -161,7 +176,7 @@ export async function getMyProfile() {
     if (!canOwnProfile((session.user as any).role)) {
       return {
         success: false,
-        message: "Only sales members have a profile page.",
+        message: "Only sales members and admins have a profile page.",
       };
     }
 
@@ -272,7 +287,7 @@ export async function updateMyProfile(input: {
 
     // Owner scope: members edit only their own; admins may target another.
     const ownerId =
-      role === "admin" && input.targetUserId
+      isAdminRole(role) && input.targetUserId
         ? input.targetUserId
         : session.user.id;
 

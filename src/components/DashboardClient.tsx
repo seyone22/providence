@@ -6,6 +6,7 @@ import {
   ArchiveX,
   ArrowUpDown,
   Car,
+  CarFront,
   CheckCircle2,
   MessageSquareText,
   Search,
@@ -22,7 +23,7 @@ import {
   type ContactDueBucket,
   contactDueMatches,
 } from "@/lib/contactScheduling";
-import { pathnameToSource } from "@/lib/leadSource";
+import { isLhdLead, pathnameToSource } from "@/lib/leadSource";
 import RequestTableClient from "./RequestTableClient";
 import "react-day-picker/dist/style.css"; // Basic styles
 
@@ -68,6 +69,7 @@ export default function DashboardClient({
   const [sourceFilter, setSourceFilter] = useState("All");
   const [contactDueFilter, setContactDueFilter] = useState("All");
   const [myLeadsOnly, setMyLeadsOnly] = useState(false);
+  const [lhdOnly, setLhdOnly] = useState(false);
 
   const [showDatePicker, setShowDatePicker] = useState(false);
 
@@ -172,6 +174,10 @@ export default function DashboardClient({
           sourceFilter === "All" ||
           normalizeSource(req.source || "") === sourceFilter;
 
+        // "LHD" quick toggle — only leads that came through the Japanese
+        // left-hand-drive landing page (same rule as the table's LHD badge).
+        const matchesLhd = !lhdOnly || isLhdLead(req.source);
+
         const matchesContactDue =
           contactDueFilter === "All" ||
           contactDueMatches(
@@ -189,7 +195,8 @@ export default function DashboardClient({
           matchesDate &&
           matchesSource &&
           matchesContactDue &&
-          matchesMine
+          matchesMine &&
+          matchesLhd
         );
       })
       .sort((a: any, b: any) => {
@@ -208,6 +215,7 @@ export default function DashboardClient({
     sourceFilter,
     contactDueFilter,
     myLeadsOnly,
+    lhdOnly,
     currentUserId,
     sortBy,
     dateRange.from,
@@ -340,6 +348,23 @@ export default function DashboardClient({
             >
               <User size={16} />
               My Leads
+            </button>
+
+            {/* LHD quick toggle — leads from the left-hand-drive landing page,
+                the same ones badged "LHD" in the table below. */}
+            <button
+              type="button"
+              onClick={() => setLhdOnly((v) => !v)}
+              aria-pressed={lhdOnly}
+              title="Show only left-hand-drive leads"
+              className={`flex items-center gap-2 pl-3 pr-3.5 py-2 text-sm font-semibold rounded-xl border transition-all ${
+                lhdOnly
+                  ? "bg-red-600 border-red-600 text-white shadow-sm hover:bg-red-700"
+                  : "bg-white border-zinc-200 text-zinc-600 hover:border-zinc-300"
+              }`}
+            >
+              <CarFront size={16} />
+              LHD
             </button>
 
             {/* Dynamic Width Dropdowns */}
@@ -487,7 +512,8 @@ export default function DashboardClient({
               statusFilter !== "All" ||
               sourceFilter !== "All" ||
               contactDueFilter !== "All" ||
-              myLeadsOnly) && (
+              myLeadsOnly ||
+              lhdOnly) && (
               <button
                 onClick={() => {
                   setSearchQuery("");
@@ -499,6 +525,7 @@ export default function DashboardClient({
                   setSourceFilter("All");
                   setContactDueFilter("All");
                   setMyLeadsOnly(false);
+                  setLhdOnly(false);
                 }}
                 className="p-2 text-red-500 hover:bg-red-50 rounded-xl transition-colors border border-transparent hover:border-red-100"
                 title="Reset Filters"
