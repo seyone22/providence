@@ -38,7 +38,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { pathnameToSource } from "@/lib/leadSource";
+import { isLhdLead, pathnameToSource } from "@/lib/leadSource";
 import { type PageSize, paginate } from "@/lib/pagination";
 
 /**
@@ -106,16 +106,6 @@ function sourceToUrl(source: string): string {
 
 /** Convert a stored source value → human-readable display label. */
 const sourceToLabel = pathnameToSource;
-
-/**
- * Path of the Japanese left-hand-drive luxury landing page. Leads that come
- * through this page are flagged with a red "LHD" badge so the team immediately
- * knows to handle them as left-hand-drive enquiries.
- */
-const LHD_LANDING_PATH = "/japanese-luxury-cars-lhd";
-function isLhdLead(source?: string): boolean {
-  return !!source && source.replace(/\/$/, "") === LHD_LANDING_PATH;
-}
 
 // ADDED "sales_status" to the type definition
 type ActionModalState = {
