@@ -663,6 +663,7 @@ export default function JapanImportLanding() {
         <AnimatePresence>
           {showNotice && selectedModel && (
             <motion.div
+              key="prefill-notice"
               initial={{ opacity: 0, y: 8 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -4 }}
