@@ -208,9 +208,9 @@ export const japanImportCampaignConfig: LandingPageConfig = {
   },
   hero: {
     tagline: "Providence Auto · Japan Import Specialists",
-    title: "Japan's Fastest Movers,\nLanded at Your Door.",
+    title: "Japanese Cars, Auction-Direct.\nFull Landed Cost Before You Commit.",
     subtitle:
-      "The hybrids, SUVs and workhorses the whole right-hand-drive world is buying — grade-verified at Japanese auction, then shipped, cleared and registered in your country for one honest landed price.",
+      "We bid only on cars whose auction sheet checks out, then handle shipping, customs and registration in your country — one honest price, agreed before a yen is spent.",
     // Self-hosted (unlike the other campaigns' remote heroes) so the hero has
     // no third-party dependency: a photograph of an FJ62 Land Cruiser, the
     // model that built Toyota's reputation in exactly the import markets this

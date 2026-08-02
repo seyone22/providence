@@ -9,6 +9,7 @@ import {
   Globe2,
   MapPin,
   Play,
+  Plus,
   ShieldCheck,
   Star,
 } from "lucide-react";
@@ -299,22 +300,33 @@ export default function JapanImportLanding() {
     document.getElementById("inquiry")?.scrollIntoView({ behavior: "smooth" });
   };
 
+  // "Something else" card — the grid is a shortlist, not the catalogue, so this
+  // is the escape hatch for everyone whose car isn't on it. Drops the model
+  // selection so the form arrives blank; the destination stays, because that
+  // was chosen deliberately up in the hero and silently discarding it would be
+  // the surprising behaviour, not the helpful one.
+  const handleOpenBlankInquiry = () => {
+    setSelectedModel(null);
+    setShowNotice(false);
+    document.getElementById("inquiry")?.scrollIntoView({ behavior: "smooth" });
+  };
+
   return (
     <main className="min-h-screen bg-white text-black selection:bg-black/10 selection:text-black font-sans overflow-x-hidden">
       <MinimalHeader />
 
       {/* ── HERO ─────────────────────────────────────── */}
       <section className="relative min-h-screen flex flex-col justify-center items-start px-6 pt-24 pb-16 bg-white overflow-hidden">
-        <GradientMesh image={config.hero.backgroundImage} />
+        <GradientMesh image={config.hero.backgroundImage} overlay="spotlight" />
 
-        <div className="relative z-10 text-center max-w-5xl mx-auto flex flex-col items-center mt-0">
+        <div className="relative z-10 text-center max-w-6xl mx-auto flex flex-col items-center mt-0">
           <Reveal
             immediate
             as="p"
             y={20}
             delay={0.2}
             duration={0.8}
-            className="text-sm font-bold tracking-[0.4em] text-zinc-500 uppercase mb-8"
+            className="pa-text-scrim text-sm font-bold tracking-[0.4em] text-zinc-600 uppercase mb-8"
           >
             {config.hero.tagline}
           </Reveal>
@@ -325,7 +337,7 @@ export default function JapanImportLanding() {
             scale={0.95}
             delay={0.3}
             duration={1}
-            className="pa-headline-gradient text-4xl md:text-8xl lg:text-9xl font-bold tracking-tighter mb-6 leading-[1.1] drop-shadow-[0_0_15px_rgba(255,255,255,1)] whitespace-pre-line"
+            className="pa-headline-gradient text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold tracking-tighter mb-6 leading-[1.12] [filter:drop-shadow(0_0_10px_rgba(255,255,255,0.95))_drop-shadow(0_0_28px_rgba(255,255,255,0.85))] whitespace-pre-line"
           >
             {config.hero.title}
           </Reveal>
@@ -335,14 +347,14 @@ export default function JapanImportLanding() {
             y={20}
             delay={0.5}
             duration={0.8}
-            className="text-xl md:text-3xl text-zinc-600 font-medium tracking-tight mb-10 max-w-2xl drop-shadow-[0_0_10px_rgba(255,255,255,1)]"
+            className="pa-text-scrim text-xl md:text-2xl text-zinc-700 font-medium tracking-tight mb-10 max-w-2xl"
           >
             {config.hero.subtitle}
           </Reveal>
 
           {/* Country selector — drives the destination panel + form prefill */}
           <Reveal immediate y={20} delay={0.55} duration={0.8}>
-            <p className="text-xs font-bold tracking-[0.25em] text-zinc-500 uppercase mb-4">
+            <p className="pa-text-scrim text-xs font-bold tracking-[0.25em] text-zinc-600 uppercase mb-4">
               Where are we landing it?
             </p>
             <div className="flex flex-wrap justify-center gap-2 md:gap-3 max-w-3xl">
@@ -521,8 +533,11 @@ export default function JapanImportLanding() {
                     loading="lazy"
                     className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 ease-out"
                   />
-                  {/* Studio-grey fade behind the label (matches image background) */}
-                  <div className="absolute inset-0 bg-gradient-to-t from-zinc-100 via-zinc-100/70 to-transparent" />
+                  {/* Studio-grey fade behind the label (matches image
+                      background). Confined to the bottom two-fifths: spanning
+                      the full card washed the car itself out, which is the one
+                      thing the card is meant to show. */}
+                  <div className="absolute inset-x-0 bottom-0 h-2/5 bg-gradient-to-t from-zinc-100 via-zinc-100/85 to-transparent" />
                   <div className="absolute inset-x-0 bottom-0 p-4 flex items-end justify-between gap-2">
                     <span className="flex flex-col leading-tight">
                       <span className="text-black text-base md:text-lg font-bold tracking-tight">
@@ -539,6 +554,32 @@ export default function JapanImportLanding() {
                 </button>
               </Reveal>
             ))}
+
+            {/* Escape hatch for anything not on the shortlist. Deliberately
+                styled as an outline rather than a photo card so it reads as an
+                action, not a twelfth vehicle. */}
+            <Reveal
+              y={24}
+              delay={(FAST_MOVERS.length % 4) * 0.06}
+              duration={0.5}
+            >
+              <button
+                type="button"
+                onClick={handleOpenBlankInquiry}
+                aria-label="Enquire about a model that is not listed"
+                className="group relative w-full h-44 md:h-52 overflow-hidden rounded-[1.75rem] border border-dashed border-black/20 bg-zinc-50/60 hover:border-black/40 hover:bg-white hover:shadow-[0_24px_50px_rgba(0,0,0,0.12)] hover:-translate-y-1 transition-all duration-300 flex flex-col items-center justify-center text-center px-4"
+              >
+                <span className="w-11 h-11 rounded-full bg-black text-white flex items-center justify-center mb-3 group-hover:scale-110 transition-transform duration-300">
+                  <Plus size={20} />
+                </span>
+                <span className="text-black text-base md:text-lg font-bold tracking-tight">
+                  More
+                </span>
+                <span className="text-zinc-500 text-xs font-medium mt-0.5">
+                  Any make, any model — just ask
+                </span>
+              </button>
+            </Reveal>
           </div>
 
           <Reveal y={20} duration={0.6} className="text-center mt-12">
@@ -693,7 +734,14 @@ export default function JapanImportLanding() {
               </div>
             }
           >
-            <RequestForm prefill={prefill} />
+            {/* Keyed on the selection so switching models — or clearing it via
+                the "More" card — remounts the form at step 1 with the new
+                prefill instead of merging into whatever was already typed.
+                RequestForm's prefill effect early-returns on an undefined
+                prefill, so without this remount "More" could not blank a form
+                that a model card had already filled. Matches the sibling
+                campaign pages, which all key this form. */}
+            <RequestForm key={selectedModel?.name ?? "blank"} prefill={prefill} />
           </Suspense>
         </div>
 
