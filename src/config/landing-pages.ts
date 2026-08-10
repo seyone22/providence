@@ -191,7 +191,7 @@ export const lhdCampaignConfig: LandingPageConfig = {
           },
           {
             q: "Is my payment protected?",
-            a: "Yes. Funds are held securely until your vehicle is confirmed, inspected, and cleared for shipment, and every car is covered by comprehensive marine insurance door-to-door. Providence is an established UK-based sourcing and export company with a global office network.",
+            a: "Yes. Funds are held securely until your vehicle is confirmed, inspected, and cleared for shipment, and every car is covered by comprehensive marine insurance door-to-door. Providence is an established international sourcing and export group with physical offices in the UK, Japan, the UAE, India, Thailand, Australia, New Zealand and Sri Lanka.",
           },
         ],
       },
@@ -366,7 +366,7 @@ export const japanImportCampaignConfig: LandingPageConfig = {
           },
           {
             q: "Is my payment protected when buying a car from Japan?",
-            a: "Yes. Funds are held securely until your vehicle is confirmed, inspected and cleared for shipment, and every car is covered by comprehensive marine insurance door to door. Providence is an established UK-based sourcing and export company with a global office network — you always know exactly where your car and your money are.",
+            a: "Yes. Funds are held securely until your vehicle is confirmed, inspected and cleared for shipment, and every car is covered by comprehensive marine insurance door to door. Providence is an established international sourcing and export group with its own offices in Japan and seven other countries — including a team on the ground at the auction — so you always know exactly where your car and your money are.",
           },
           {
             q: "Will my car ship by RoRo or container?",

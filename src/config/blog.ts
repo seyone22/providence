@@ -1,22 +1,40 @@
 // ─────────────────────────────────────────────────────────────────────────────
-// Blog content registry — single source of truth for the "Import Cars to Ireland"
-// content cluster. Drives the blog index, per-post metadata, JSON-LD, internal
-// linking (related posts) and the sitemap.
+// Blog content registry — single source of truth for every published guide.
+// Drives the blog index, per-post metadata, JSON-LD, internal linking (related
+// posts) and the sitemap.
+//
+// Two groups feed BLOG_POSTS:
+//   • IRELAND_POSTS below — the original "Import Cars to Ireland" cluster.
+//   • COUNTRY_BLOG_POSTS from ./blog-countries — five posts per source country
+//     where we operate an office (see src/config/countries.ts).
 //
 // Post BODIES live in src/content/blog/<slug>.tsx and are mapped by slug in
 // src/content/blog/index.ts. This file holds only the metadata.
 //
-// All tax/cost figures referenced in the posts come from the "Ireland Car Import
-// Research" report (2026 Revenue VRT bands, NOx levy, VAT 23%, 0%/10% duty,
-// EU–Japan EPA). The report itself notes "verify all figures with Revenue.ie",
-// so tax/cost posts carry an indicative-figures disclaimer.
+// Ireland tax/cost figures come from the "Ireland Car Import Research" report
+// (2026 Revenue VRT bands, NOx levy, VAT 23%, 0%/10% duty, EU–Japan EPA). The
+// report itself notes "verify all figures with Revenue.ie", so tax/cost posts
+// carry an indicative-figures disclaimer — as do the source-country posts, whose
+// import regimes change frequently.
 // ─────────────────────────────────────────────────────────────────────────────
+
+import { COUNTRY_BLOG_POSTS } from "./blog-countries";
 
 export type BlogCluster =
   | "Cost & Cheapest"
   | "Tax & Rules"
   | "Source Country"
-  | "Guides";
+  | "Guides"
+  // Per-country clusters — one per office in src/config/countries.ts. Posts live
+  // in src/config/blog-countries.ts and are appended to BLOG_POSTS below.
+  | "Japan"
+  | "United Kingdom"
+  | "UAE"
+  | "India"
+  | "Thailand"
+  | "Australia"
+  | "New Zealand"
+  | "Sri Lanka";
 
 export type BlogFAQ = { q: string; a: string };
 
@@ -60,7 +78,8 @@ const AUTHOR = "Providence Auto";
 const PUBLISHED = "2026-06-26";
 const UPDATED = "2026-06-26";
 
-export const BLOG_POSTS: BlogPost[] = [
+// The Ireland import cluster — the original content hub.
+const IRELAND_POSTS: BlogPost[] = [
   // ── 1 · PILLAR / HUB ──────────────────────────────────────────────────────
   {
     slug: "importing-cars-to-ireland",
@@ -469,6 +488,11 @@ export const BLOG_POSTS: BlogPost[] = [
   },
 ];
 
+// Everything the blog renders: the Ireland hub plus the per-source-country
+// clusters. Order matters only for the ItemList schema; the index page groups
+// by cluster via CLUSTER_ORDER.
+export const BLOG_POSTS: BlogPost[] = [...IRELAND_POSTS, ...COUNTRY_BLOG_POSTS];
+
 // ── Roadmap — remaining cluster posts to build in later batches ──────────────
 // Cost & Cheapest:  (covered)
 // Tax & Rules:      customs-duty-and-vat-importing-car-ireland
@@ -500,6 +524,14 @@ export function getRelated(slug: string): BlogPost[] {
 
 export const CLUSTER_ORDER: BlogCluster[] = [
   "Guides",
+  "Japan",
+  "United Kingdom",
+  "UAE",
+  "India",
+  "Thailand",
+  "Australia",
+  "New Zealand",
+  "Sri Lanka",
   "Cost & Cheapest",
   "Tax & Rules",
   "Source Country",

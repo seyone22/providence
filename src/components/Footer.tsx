@@ -1,5 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
+import { COUNTRY_BASE_PATH, COUNTRY_PAGES } from "@/config/countries";
 
 export default function Footer() {
   const currentYear = new Date().getFullYear();
@@ -8,7 +9,7 @@ export default function Footer() {
   // it only lets it paint over `fixed` chrome (e.g. the admin sidebar).
   return (
     <footer className="w-full border-t border-white/5 bg-black pt-16 pb-8 relative">
-      <div className="max-w-7xl mx-auto px-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12 md:gap-8 mb-16">
+      <div className="max-w-7xl mx-auto px-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-12 md:gap-8 mb-16">
         {/* Left Column: Logo & Brand */}
         <div className="flex flex-col justify-start">
           <Link
@@ -35,7 +36,7 @@ export default function Footer() {
         {/* Middle Column: Contact Details */}
         <div className="flex flex-col gap-4">
           <h4 className="text-[10px] font-bold tracking-[0.2em] uppercase text-zinc-500">
-            Contact
+            Group Head Office
           </h4>
           <address className="flex flex-col gap-2 not-italic text-sm font-light text-zinc-400">
             <p>
@@ -105,6 +106,30 @@ export default function Footer() {
               Instagram
             </a>
           </div>
+        </div>
+
+        {/* Offices Column: the physical network, one link per source country */}
+        <div className="flex flex-col gap-4">
+          <h4 className="text-[10px] font-bold tracking-[0.2em] uppercase text-zinc-500">
+            Global Offices
+          </h4>
+          <nav className="flex flex-col gap-2.5 text-sm font-light text-zinc-400">
+            {COUNTRY_PAGES.map((country) => (
+              <Link
+                key={country.slug}
+                href={`${COUNTRY_BASE_PATH}/${country.slug}`}
+                className="hover:text-white transition-colors"
+              >
+                {country.shortName}
+              </Link>
+            ))}
+            <Link
+              href={COUNTRY_BASE_PATH}
+              className="text-zinc-300 hover:text-white transition-colors"
+            >
+              The whole network &rarr;
+            </Link>
+          </nav>
         </div>
 
         {/* Guides Column: internal links to the import content cluster */}
