@@ -27,7 +27,7 @@ import { japanImportCampaignConfig } from "@/config/landing-pages";
 // slug so the gallery stays scoped to this campaign's stock.
 const CAMPAIGN_TAG = "import-japanese-cars";
 
-// Japan's fastest-moving auction exports plus the European luxury its owners
+// Japan's fastest-moving auction exports plus the European metal its owners
 // keep in exceptional condition — every one sourced from Japanese auctions
 // (not built in Japan). `make` must match a value in the request form's
 // CAR_MAKES list so the prefill lands on a valid option; `model` prefills the
@@ -35,104 +35,199 @@ const CAMPAIGN_TAG = "import-japanese-cars";
 // Commons (CC-licensed) that have been cut out and re-composited onto a uniform
 // studio-grey (#f4f4f5 / zinc-100) background with a soft contact shadow, so
 // the whole grid reads as one cohesive studio set. Self-hosted under
-// /public/import-cars with any visible number plates blurred.
-const FAST_MOVERS: {
+// /public/import-cars with any visible number plates blurred. Every asset is
+// stored nose-right — four of the original photographs were mirrored in the
+// file rather than flipped in CSS, so a hover transform can never un-flip
+// them — and the cards render them in greyscale, which is what stops a grid of
+// thirteen paint colours reading as a jumble.
+type FastMover = {
   name: string;
   make: string;
   model: string;
   blurb: string;
   image: string;
-}[] = [
+};
+
+// The grid is split into jump-linked groups so a buyer who came for a van
+// isn't scrolling past nine hatchbacks to find one. `id` is the anchor target
+// used by the jump nav at the top of the models section.
+type ModelGroup = {
+  id: string;
+  label: string;
+  title: string;
+  blurb: string;
+  cars: FastMover[];
+};
+
+const MODEL_GROUPS: ModelGroup[] = [
   {
-    name: "Toyota Aqua",
-    make: "Toyota",
-    model: "Aqua",
-    blurb: "Japan's best-selling hybrid hatch",
-    image: "/import-cars/aqua.jpg",
+    id: "fast-movers",
+    label: "Fast Movers",
+    title: "The cars that never sit still.",
+    blurb:
+      "Japan's high-turnover hybrids and hatchbacks — the models that clear the auction halls every week and land below local forecourt prices almost everywhere we ship.",
+    cars: [
+      {
+        name: "Toyota Aqua",
+        make: "Toyota",
+        model: "Aqua",
+        blurb: "Japan's best-selling hybrid hatch",
+        image: "/import-cars/aqua.jpg",
+      },
+      {
+        name: "Toyota Prius",
+        make: "Toyota",
+        model: "Prius",
+        blurb: "The hybrid that started it all",
+        image: "/import-cars/prius.jpg",
+      },
+      {
+        name: "Honda Fit",
+        make: "Honda",
+        model: "Fit",
+        blurb: "Big inside, frugal everywhere",
+        image: "/import-cars/fit.jpg",
+      },
+      {
+        name: "Honda Vezel",
+        make: "Honda",
+        model: "Vezel",
+        blurb: "The compact hybrid crossover",
+        image: "/import-cars/vezel.jpg",
+      },
+      {
+        name: "Nissan Note e-POWER",
+        make: "Nissan",
+        model: "Note e-POWER",
+        blurb: "Electric drive, no plug needed",
+        image: "/import-cars/note.jpg",
+      },
+      {
+        name: "Suzuki Swift",
+        make: "Suzuki",
+        model: "Swift",
+        blurb: "The evergreen city fast-mover",
+        image: "/import-cars/swift.jpg",
+      },
+    ],
   },
   {
-    name: "Toyota Prius",
-    make: "Toyota",
-    model: "Prius",
-    blurb: "The hybrid that started it all",
-    image: "/import-cars/prius.jpg",
+    id: "suvs",
+    label: "SUVs & 4x4s",
+    title: "The 4x4s the rest of the world queues for.",
+    blurb:
+      "Japan buys Land Cruisers by the shipload and sells them young. From the Harrier to the 70 Series, this is the hardware that holds its value in every market we land in.",
+    cars: [
+      {
+        name: "Toyota Harrier",
+        make: "Toyota",
+        model: "Harrier",
+        blurb: "East Africa's favourite premium SUV",
+        image: "/import-cars/harrier.jpg",
+      },
+      {
+        name: "Land Cruiser Prado",
+        make: "Toyota",
+        model: "Land Cruiser Prado",
+        blurb: "Go-anywhere status, auction-priced",
+        image: "/import-cars/prado.jpg",
+      },
+      {
+        name: "Land Cruiser 200",
+        make: "Toyota",
+        model: "Land Cruiser 200",
+        blurb: "The V8 flagship that never dates",
+        image: "/import-cars/lc200.jpg",
+      },
+      {
+        name: "Land Cruiser 300",
+        make: "Toyota",
+        model: "Land Cruiser 300",
+        blurb: "The current king, years ahead of local supply",
+        image: "/import-cars/lc300.jpg",
+      },
+      {
+        name: "Lexus LX 600",
+        make: "Lexus",
+        model: "LX 600",
+        blurb: "Land Cruiser bones, first-class cabin",
+        image: "/import-cars/lx600.jpg",
+      },
+      {
+        name: "Land Cruiser 70 Series",
+        make: "Toyota",
+        model: "Land Cruiser 70 Series",
+        blurb: "The workhorse legend, back in production",
+        image: "/import-cars/lc70.jpg",
+      },
+      {
+        name: "Mercedes-Benz G-Class",
+        make: "Mercedes-Benz",
+        model: "G-Class",
+        blurb: "The G-Wagon, Japan-kept and low mileage",
+        image: "/import-cars/gwagon.jpg",
+      },
+    ],
   },
   {
-    name: "Toyota Harrier",
-    make: "Toyota",
-    model: "Harrier",
-    blurb: "East Africa's favourite premium SUV",
-    image: "/import-cars/harrier.jpg",
+    id: "vans",
+    label: "Vans & People Movers",
+    title: "Eight seats, sliding doors, Japanese miles.",
+    blurb:
+      "Japan's people movers are the school run, the airport run and the family business all at once — and they come out of auction with the mileage and condition to prove they were looked after.",
+    cars: [
+      {
+        name: "Toyota Alphard",
+        make: "Toyota",
+        model: "Alphard",
+        blurb: "First-class travel for the family",
+        image: "/import-cars/alphard.jpg",
+      },
+      {
+        name: "Toyota Noah",
+        make: "Toyota",
+        model: "Noah",
+        blurb: "The eight-seat hybrid that does everything",
+        image: "/import-cars/noah.jpg",
+      },
+      {
+        name: "Toyota Voxy",
+        make: "Toyota",
+        model: "Voxy",
+        blurb: "The Noah's sharper-suited twin",
+        image: "/import-cars/voxy.jpg",
+      },
+    ],
   },
   {
-    name: "Land Cruiser Prado",
-    make: "Toyota",
-    model: "Land Cruiser Prado",
-    blurb: "Go-anywhere status, auction-priced",
-    image: "/import-cars/prado.jpg",
-  },
-  {
-    name: "Toyota Alphard",
-    make: "Toyota",
-    model: "Alphard",
-    blurb: "First-class travel for the family",
-    image: "/import-cars/alphard.jpg",
-  },
-  {
-    name: "Honda Fit",
-    make: "Honda",
-    model: "Fit",
-    blurb: "Big inside, frugal everywhere",
-    image: "/import-cars/fit.jpg",
-  },
-  {
-    name: "Honda Vezel",
-    make: "Honda",
-    model: "Vezel",
-    blurb: "The compact hybrid crossover",
-    image: "/import-cars/vezel.jpg",
-  },
-  {
-    name: "Nissan Note e-POWER",
-    make: "Nissan",
-    model: "Note e-POWER",
-    blurb: "Electric drive, no plug needed",
-    image: "/import-cars/note.jpg",
-  },
-  {
-    name: "Nissan GT-R",
-    make: "Nissan",
-    model: "GT-R",
-    blurb: "The legend, sourced at home",
-    image: "/import-cars/gtr.jpg",
-  },
-  {
-    name: "Suzuki Swift",
-    make: "Suzuki",
-    model: "Swift",
-    blurb: "The evergreen city fast-mover",
-    image: "/import-cars/swift.jpg",
-  },
-  {
-    name: "Mercedes-Benz C-Class",
-    make: "Mercedes-Benz",
-    model: "C-Class",
-    blurb: "Executive luxury, Japan-kept low miles",
-    image: "/import-cars/mercedes.jpg",
-  },
-  {
-    name: "BMW 3 Series",
-    make: "BMW",
-    model: "3 Series",
-    blurb: "The driver's saloon, auction-fresh",
-    image: "/import-cars/bmw.jpg",
-  },
-  {
-    name: "Rolls-Royce Ghost",
-    make: "Rolls-Royce",
-    model: "Ghost",
-    blurb: "Ultra-luxury, sourced from Japan",
-    image: "/import-cars/rolls.jpg",
+    id: "luxury",
+    label: "Luxury & Performance",
+    title: "Low miles, high spec, Japanese ownership.",
+    blurb:
+      "Japan's shaken regime pushes premium cars out of first ownership early — which is how a European saloon or a homegrown legend reaches auction with mileage the rest of the world can't match.",
+    cars: [
+      {
+        name: "Mercedes-Benz C-Class",
+        make: "Mercedes-Benz",
+        model: "C-Class",
+        blurb: "Executive luxury, Japan-kept low miles",
+        image: "/import-cars/mercedes.jpg",
+      },
+      {
+        name: "BMW 3 Series",
+        make: "BMW",
+        model: "3 Series",
+        blurb: "The driver's saloon, auction-fresh",
+        image: "/import-cars/bmw.jpg",
+      },
+      {
+        name: "Nissan GT-R",
+        make: "Nissan",
+        model: "GT-R",
+        blurb: "The legend, sourced at home",
+        image: "/import-cars/gtr.jpg",
+      },
+    ],
   },
 ];
 
@@ -184,19 +279,21 @@ const DESTINATIONS: Destination[] = [
     readMoreHref: "/import-japanese-cars-to-ireland",
   },
   {
-    key: "sri-lanka",
-    label: "Sri Lanka",
-    formCountry: "Sri Lanka",
-    headline: "Imports are open again. Move before the queue does.",
-    body: "After years of suspension, Sri Lanka's doors are open — with strict rules on age and engine capacity that reward exactly what Japan does best: young, compact hybrids. We confirm your chosen car qualifies under the current regulations before you spend a cent, then manage shipping and clearance into Colombo end to end.",
+    key: "new-zealand",
+    label: "New Zealand",
+    formCountry: "New Zealand",
+    headline: "Japan's used market is New Zealand's used market.",
+    body: "More used cars reach New Zealand from Japan than from anywhere else, and the route is well worn: no customs duty on used vehicles, GST charged once on the landed value, a biosecurity clean before the ship, and entry certification before the plates go on. We buy to the standards the certifier will accept, arrange the steam clean in Japan, and land a car that's ready to comply.",
     facts: [
-      { icon: Gauge, label: "Only recent-year used cars qualify" },
-      { icon: ShieldCheck, label: "Eligibility confirmed before you pay" },
+      { icon: Gauge, label: "No customs duty on used cars" },
+      { icon: ShieldCheck, label: "GST + entry certification handled" },
       { icon: CalendarClock, label: "Typically 6–10 weeks door to door" },
-      { icon: Anchor, label: "Cleared through Colombo for you" },
+      { icon: Anchor, label: "MPI biosecurity clean arranged in Japan" },
     ],
-    popular: "Fast movers: Aqua, Vitz, Fit, WagonR, Prius",
-    readMoreHref: "/import-japanese-cars-to-sri-lanka",
+    popular: "Fast movers: Aqua, Prius, Fit, Swift, Land Cruiser Prado",
+    // No dedicated New Zealand guide page exists yet, so this stays null
+    // rather than pointing the CTA at a 404.
+    readMoreHref: null,
   },
   {
     key: "kenya",
@@ -267,9 +364,7 @@ export default function JapanImportLanding() {
   // Model card → make/model prefill. Both merge into one memoised prefill so
   // the form's sync effect applies changes without wiping typed fields.
   const [destination, setDestination] = useState<Destination | null>(null);
-  const [selectedModel, setSelectedModel] = useState<
-    (typeof FAST_MOVERS)[number] | null
-  >(null);
+  const [selectedModel, setSelectedModel] = useState<FastMover | null>(null);
   const [showNotice, setShowNotice] = useState(false);
 
   const prefill = useMemo(() => {
@@ -293,7 +388,7 @@ export default function JapanImportLanding() {
       ?.scrollIntoView({ behavior: "smooth", block: "nearest" });
   };
 
-  const handleModelSelect = (model: (typeof FAST_MOVERS)[number]) => {
+  const handleModelSelect = (model: FastMover) => {
     setSelectedModel(model);
     setShowNotice(true);
     setTimeout(() => setShowNotice(false), 7000);
@@ -497,7 +592,7 @@ export default function JapanImportLanding() {
           <Reveal
             y={30}
             duration={0.7}
-            className="text-center mb-14 md:mb-20 max-w-3xl mx-auto"
+            className="text-center mb-10 md:mb-14 max-w-3xl mx-auto"
           >
             <p className="text-xs font-bold tracking-[0.25em] text-zinc-400 uppercase mb-4">
               Select a model to begin
@@ -506,81 +601,123 @@ export default function JapanImportLanding() {
               The cars that never sit still.
             </h2>
             <p className="text-lg text-zinc-500 font-light">
-              From Japan's fastest-moving hybrids to the low-mileage European
-              luxury its owners keep in showroom condition — every one sourced
-              straight from Japanese auctions. Tap a model and we'll open your
-              inquiry with it pre-selected.
+              From Japan's fastest-moving hybrids to Land Cruisers, eight-seat
+              vans and the low-mileage European luxury its owners keep in
+              showroom condition — every one sourced straight from Japanese
+              auctions. Tap a model and we'll open your inquiry with it
+              pre-selected.
             </p>
           </Reveal>
 
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 md:gap-6">
-            {FAST_MOVERS.map((model, index) => (
-              <Reveal
-                key={model.name}
-                y={24}
-                delay={(index % 4) * 0.06}
-                duration={0.5}
+          {/* Jump nav — the grid is long enough that a van buyer shouldn't have
+              to scroll past every hatchback to reach the Noah. */}
+          <Reveal
+            y={16}
+            duration={0.5}
+            className="flex flex-wrap justify-center gap-2 md:gap-3 mb-14 md:mb-20"
+          >
+            {MODEL_GROUPS.map((group) => (
+              <a
+                key={group.id}
+                href={`#${group.id}`}
+                className="px-5 py-2.5 rounded-full text-sm font-bold border border-black/15 text-black bg-white hover:border-black/40 hover:-translate-y-0.5 transition-all duration-300"
               >
-                <button
-                  type="button"
-                  onClick={() => handleModelSelect(model)}
-                  aria-label={`Enquire about importing a ${model.name} from Japan`}
-                  className="group relative w-full h-44 md:h-52 overflow-hidden rounded-[1.75rem] border border-black/10 bg-zinc-100 hover:border-black/40 hover:shadow-[0_24px_50px_rgba(0,0,0,0.12)] hover:-translate-y-1 transition-all duration-300 text-left"
-                >
-                  <img
-                    src={model.image}
-                    alt={`${model.name} — Japanese import fast mover`}
-                    loading="lazy"
-                    className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 ease-out"
-                  />
-                  {/* Studio-grey fade behind the label (matches image
-                      background). Confined to the bottom two-fifths: spanning
-                      the full card washed the car itself out, which is the one
-                      thing the card is meant to show. */}
-                  <div className="absolute inset-x-0 bottom-0 h-2/5 bg-gradient-to-t from-zinc-100 via-zinc-100/85 to-transparent" />
-                  <div className="absolute inset-x-0 bottom-0 p-4 flex items-end justify-between gap-2">
-                    <span className="flex flex-col leading-tight">
-                      <span className="text-black text-base md:text-lg font-bold tracking-tight">
-                        {model.name}
-                      </span>
-                      <span className="text-zinc-500 text-xs font-medium">
-                        {model.blurb}
-                      </span>
-                    </span>
-                    <span className="shrink-0 w-8 h-8 rounded-full bg-black/5 border border-black/10 backdrop-blur-sm flex items-center justify-center opacity-0 -translate-x-1 group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-300">
-                      <ArrowRight size={15} className="text-black" />
-                    </span>
-                  </div>
-                </button>
-              </Reveal>
+                {group.label}
+              </a>
             ))}
+          </Reveal>
 
-            {/* Escape hatch for anything not on the shortlist. Deliberately
-                styled as an outline rather than a photo card so it reads as an
-                action, not a twelfth vehicle. */}
-            <Reveal
-              y={24}
-              delay={(FAST_MOVERS.length % 4) * 0.06}
-              duration={0.5}
+          {MODEL_GROUPS.map((group, groupIndex) => (
+            <div
+              key={group.id}
+              id={group.id}
+              className="scroll-mt-28 mb-16 md:mb-24 last:mb-0"
             >
-              <button
-                type="button"
-                onClick={handleOpenBlankInquiry}
-                aria-label="Enquire about a model that is not listed"
-                className="group relative w-full h-44 md:h-52 overflow-hidden rounded-[1.75rem] border border-dashed border-black/20 bg-zinc-50/60 hover:border-black/40 hover:bg-white hover:shadow-[0_24px_50px_rgba(0,0,0,0.12)] hover:-translate-y-1 transition-all duration-300 flex flex-col items-center justify-center text-center px-4"
-              >
-                <span className="w-11 h-11 rounded-full bg-black text-white flex items-center justify-center mb-3 group-hover:scale-110 transition-transform duration-300">
-                  <Plus size={20} />
-                </span>
-                <span className="text-black text-base md:text-lg font-bold tracking-tight">
-                  More
-                </span>
-                <span className="text-zinc-500 text-xs font-medium mt-0.5">
-                  Any make, any model — just ask
-                </span>
-              </button>
-            </Reveal>
-          </div>
+              <Reveal y={24} duration={0.6} className="mb-8 md:mb-10">
+                <p className="text-xs font-bold tracking-[0.25em] text-zinc-400 uppercase mb-3">
+                  {group.label}
+                </p>
+                <h3 className="text-2xl md:text-4xl font-bold tracking-tighter text-black mb-3">
+                  {group.title}
+                </h3>
+                <p className="text-base md:text-lg text-zinc-500 font-light max-w-3xl">
+                  {group.blurb}
+                </p>
+              </Reveal>
+
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 md:gap-6">
+                {group.cars.map((model, index) => (
+                  <Reveal
+                    key={model.name}
+                    y={24}
+                    delay={(index % 4) * 0.06}
+                    duration={0.5}
+                  >
+                    <button
+                      type="button"
+                      onClick={() => handleModelSelect(model)}
+                      aria-label={`Enquire about importing a ${model.name} from Japan`}
+                      className="group w-full h-full flex flex-col overflow-hidden rounded-[1.75rem] border border-black/10 bg-white hover:border-black/40 hover:shadow-[0_24px_50px_rgba(0,0,0,0.12)] hover:-translate-y-1 transition-all duration-300 text-left"
+                    >
+                      {/* Photo and label are separated rather than overlaid:
+                          the greyscale treatment leaves too little tonal room
+                          to float text over the car and keep both readable. */}
+                      <span className="block w-full aspect-[4/3] bg-zinc-100 overflow-hidden">
+                        <img
+                          src={model.image}
+                          alt={`${model.name} — Japanese import fast mover`}
+                          loading="lazy"
+                          className="w-full h-full object-cover grayscale"
+                        />
+                      </span>
+                      <span className="flex items-end justify-between gap-2 p-4 border-t border-black/5">
+                        <span className="flex flex-col leading-tight">
+                          <span className="text-black text-base md:text-lg font-bold tracking-tight">
+                            {model.name}
+                          </span>
+                          <span className="text-zinc-500 text-xs font-medium">
+                            {model.blurb}
+                          </span>
+                        </span>
+                        <span className="shrink-0 w-8 h-8 rounded-full bg-black/5 border border-black/10 flex items-center justify-center opacity-0 -translate-x-1 group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-300">
+                          <ArrowRight size={15} className="text-black" />
+                        </span>
+                      </span>
+                    </button>
+                  </Reveal>
+                ))}
+
+                {/* Escape hatch for anything not on the shortlist, parked at the
+                    end of the final group. Deliberately styled as an outline
+                    rather than a photo card so it reads as an action, not one
+                    more vehicle. */}
+                {groupIndex === MODEL_GROUPS.length - 1 && (
+                  <Reveal
+                    y={24}
+                    delay={(group.cars.length % 4) * 0.06}
+                    duration={0.5}
+                  >
+                    <button
+                      type="button"
+                      onClick={handleOpenBlankInquiry}
+                      aria-label="Enquire about a model that is not listed"
+                      className="group w-full h-full min-h-[16rem] overflow-hidden rounded-[1.75rem] border border-dashed border-black/20 bg-zinc-50/60 hover:border-black/40 hover:bg-white hover:shadow-[0_24px_50px_rgba(0,0,0,0.12)] hover:-translate-y-1 transition-all duration-300 flex flex-col items-center justify-center text-center px-4"
+                    >
+                      <span className="w-11 h-11 rounded-full bg-black text-white flex items-center justify-center mb-3 group-hover:scale-110 transition-transform duration-300">
+                        <Plus size={20} />
+                      </span>
+                      <span className="text-black text-base md:text-lg font-bold tracking-tight">
+                        More
+                      </span>
+                      <span className="text-zinc-500 text-xs font-medium mt-0.5">
+                        Any make, any model — just ask
+                      </span>
+                    </button>
+                  </Reveal>
+                )}
+              </div>
+            </div>
+          ))}
 
           <Reveal y={20} duration={0.6} className="text-center mt-12">
             <p className="text-zinc-500 font-light">
@@ -871,6 +1008,39 @@ export default function JapanImportLanding() {
               >
                 Start your inquiry
               </a>
+            </div>
+          </Reveal>
+
+          {/* ── PARTNERS / AFFILIATES ──────────────────
+              Same seven logos, sizing and grayscale-to-colour hover as the
+              home page's partner strip, so the two read as one brand. */}
+          <Reveal
+            y={30}
+            duration={1}
+            className="mt-24 md:mt-32 max-w-5xl mx-auto w-full text-center"
+          >
+            <p className="text-[10px] md:text-xs font-bold tracking-[0.25em] md:tracking-[0.3em] text-zinc-400 uppercase mb-8 md:mb-10">
+              Trusted by our global partners
+            </p>
+
+            <div className="flex flex-nowrap justify-center items-center gap-3 sm:gap-6 md:gap-10 lg:gap-16 w-full">
+              {[1, 2, 3, 4, 5, 6, 7].map((num, index) => (
+                <Reveal
+                  key={num}
+                  y={0}
+                  scale={0.95}
+                  delay={index * 0.1}
+                  duration={0.8}
+                  className="relative shrink h-6 w-12 sm:h-8 sm:w-16 md:h-12 md:w-24 lg:h-16 lg:w-32 opacity-40 grayscale hover:grayscale-0 hover:opacity-100 hover:scale-105 transition-all duration-500"
+                >
+                  <img
+                    src={`/affiliate/${num}.png`}
+                    alt={`Global Partner ${num}`}
+                    loading="lazy"
+                    className="absolute inset-0 w-full h-full object-contain"
+                  />
+                </Reveal>
+              ))}
             </div>
           </Reveal>
         </div>

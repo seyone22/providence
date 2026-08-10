@@ -204,7 +204,7 @@ export const japanImportCampaignConfig: LandingPageConfig = {
   meta: {
     title: "Import Japanese Cars — Fast Movers, Fully Landed | Providence Auto",
     description:
-      "Import Japan's fastest-moving cars — Toyota Aqua, Prius, Harrier, Honda Fit, Vezel and more — grade-verified at auction and landed in the UK, Ireland, Sri Lanka, Kenya, Tanzania, Uganda or any right-hand-drive country. Full landed cost quoted before you commit.",
+      "Import Japan's fastest-moving cars — Toyota Aqua, Prius, Harrier, Land Cruiser, Noah, Honda Fit and more — grade-verified at auction and landed in the UK, Ireland, New Zealand, Kenya, Tanzania, Uganda or any right-hand-drive country. Full landed cost quoted before you commit.",
   },
   hero: {
     tagline: "Providence Auto · Japan Import Specialists",
@@ -335,8 +335,8 @@ export const japanImportCampaignConfig: LandingPageConfig = {
             a: "Three charges apply: customs duty — 0% for Japan-built cars under the EU–Japan Economic Partnership Agreement — VAT at 23% on the landed value, and VRT based on CO2 emissions, which runs as low as 7–14% for efficient Japanese hybrids. Every import must be registered at NCTS within 30 days of arrival. We calculate, declare and pay all of it on your behalf, quoted in full before you commit.",
           },
           {
-            q: "Can I import a Japanese car to Sri Lanka now?",
-            a: "Yes — vehicle imports have reopened after the multi-year suspension, with strict conditions: only recently registered used cars qualify, and duties scale steeply with engine capacity, which is exactly why compact hybrids like the Toyota Aqua, Vitz and Honda Fit dominate the market. We confirm your chosen car qualifies under the current regulations before you commit a cent, and manage the shipping and clearance into Colombo.",
+            q: "What do I need to import a Japanese car to New Zealand?",
+            a: "New Zealand takes more used imports from Japan than from anywhere else, and the route is well worn. There is no customs duty on used cars; GST at 15% is charged once on the landed value. Every vehicle must arrive clean enough to clear MPI biosecurity — we arrange the steam clean in Japan — and then pass entry certification, where the car is checked against New Zealand's structural, frontal-impact and emissions requirements before it can be registered and plated. We source stock that meets those standards, include GST and compliance in your landed cost, and ship into Auckland, Tauranga, Wellington or Lyttelton.",
           },
           {
             q: "What is the age limit for importing a car to Kenya?",
@@ -352,13 +352,17 @@ export const japanImportCampaignConfig: LandingPageConfig = {
           },
           {
             q: "Do you deliver to other right-hand-drive countries?",
-            a: "Yes. Beyond the UK, Ireland, Sri Lanka, Kenya, Tanzania and Uganda, we ship to right-hand-drive markets worldwide — including the wider Caribbean, southern Africa, and the Pacific. Tell us your country in the inquiry form and we'll come back with the exact rules, timeline and full landed cost for your destination.",
+            a: "Yes. Beyond the UK, Ireland, New Zealand, Kenya, Tanzania and Uganda, we ship to right-hand-drive markets worldwide — including the wider Caribbean, southern Africa, and the Pacific. Tell us your country in the inquiry form and we'll come back with the exact rules, timeline and full landed cost for your destination.",
           },
         ],
       },
       {
-        category: "Shipping, Payment & Protection",
+        category: "Warranty, Shipping & Protection",
         items: [
+          {
+            q: "Does an imported car come with a warranty?",
+            a: "Yes — you get a local warranty, provided by our partner dealer in your own region rather than by an exporter on the other side of the world. Cover is whatever that dealer offers in your market, so if something needs attention after delivery you book it in with a garage you can drive to. We confirm in writing which partner is covering your car, what the warranty includes and how long it runs, as part of your landed-cost quote — before you commit.",
+          },
           {
             q: "Is my payment protected when buying a car from Japan?",
             a: "Yes. Funds are held securely until your vehicle is confirmed, inspected and cleared for shipment, and every car is covered by comprehensive marine insurance door to door. Providence is an established UK-based sourcing and export company with a global office network — you always know exactly where your car and your money are.",
