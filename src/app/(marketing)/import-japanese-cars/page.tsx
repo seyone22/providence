@@ -6,8 +6,8 @@ const SITE = "https://www.providenceauto.co.uk";
 const PATH = "/import-japanese-cars";
 const URL = `${SITE}${PATH}`;
 
-// Fast-moving models promoted on this page — kept in sync with the client
-// grid for the ItemList schema so AI search engines can enumerate our stock.
+// Models promoted on this page — kept in sync with the client grid for the
+// ItemList schema so AI search engines can enumerate our stock.
 const MODEL_NAMES = [
   "Toyota Aqua",
   "Toyota Prius",

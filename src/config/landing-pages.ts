@@ -202,15 +202,16 @@ export const lhdCampaignConfig: LandingPageConfig = {
 export const japanImportCampaignConfig: LandingPageConfig = {
   slug: "import-japanese-cars",
   meta: {
-    title: "Import Japanese Cars — Fast Movers, Fully Landed | Providence Auto",
+    title:
+      "Import Japanese Cars — Auction Sourced, Fully Landed | Providence Auto",
     description:
       "Import Japan's fastest-moving cars — Toyota Aqua, Prius, Harrier, Land Cruiser, Noah, Honda Fit and more — grade-verified at auction and landed in the UK, Ireland, New Zealand, Kenya, Tanzania, Uganda or any right-hand-drive country. Full landed cost quoted before you commit.",
   },
   hero: {
     tagline: "Providence Auto · Japan Import Specialists",
-    title: "Japanese Cars, Auction-Direct.\nFull Landed Cost Before You Commit.",
+    title: "We Buy Your Car at Japanese Auction\nand Deliver It to Your Door.",
     subtitle:
-      "We bid only on cars whose auction sheet checks out, then handle shipping, customs and registration in your country — one honest price, agreed before a yen is spent.",
+      "Providence Auto sources cars from Japan's wholesale auctions, then handles shipping, customs clearance and registration in your country. You see the auction sheet and a single all-in landed price before we bid, and that price is what you pay.",
     // Self-hosted (unlike the other campaigns' remote heroes) so the hero has
     // no third-party dependency: a photograph of an FJ62 Land Cruiser, the
     // model that built Toyota's reputation in exactly the import markets this
@@ -235,25 +236,25 @@ export const japanImportCampaignConfig: LandingPageConfig = {
       {
         icon: FileSearch,
         title: "Auction-Grade Verified",
-        desc: "Original auction sheet, translated and explained. Mileage cross-checked against Japan's export certificate and inspection history. If the car doesn't match its grade, we don't bid.",
+        desc: "We send you the original auction sheet with a full translation, so you can read the independent inspector's grade and panel-by-panel condition map for yourself. We cross-check the odometer against Japan's export certificate and inspection history, and if the car does not match its grade, we do not bid on it.",
         glowColor: "group-hover:bg-blue-500/15",
       },
       {
         icon: Compass,
         title: "Your Country's Rules, Handled",
-        desc: "Age limits, pre-export inspections, emissions rules, registration deadlines — every right-hand-drive market plays by different rules, and we've shipped through all of them. You pick the car; we make it compliant.",
+        desc: "Every right-hand-drive market applies its own age limits, pre-export inspections, emissions rules and registration deadlines, and we have shipped through all of them. You choose the car, and we make sure it complies before it leaves Japan.",
         glowColor: "group-hover:bg-emerald-500/15",
       },
       {
         icon: Landmark,
         title: "One Honest Landed Price",
-        desc: "Before you commit a penny, you get a single all-in quote — car, auction fees, freight, insurance, duty and every local tax for your destination. The price we quote is the price you pay.",
+        desc: "Before you commit anything, we give you one all-in quote covering the car, auction fees, freight, marine insurance, duty and every local tax that applies at your destination. The price we quote is the price you pay on arrival.",
         glowColor: "group-hover:bg-indigo-500/15",
       },
       {
         icon: Ship,
         title: "Door-to-Door Logistics",
-        desc: "RoRo or container from Japan's ports to yours, marine insurance the whole way, customs clearance and local registration managed for you — with live milestone updates from auction hall to driveway.",
+        desc: "We ship by RoRo or container from Japan's ports to yours, keep the car under marine insurance for the whole journey, and manage customs clearance and local registration at the other end. You get milestone updates from the auction hall to your driveway.",
         glowColor: "group-hover:bg-amber-500/15",
       },
     ],
