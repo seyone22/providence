@@ -348,7 +348,7 @@ const unitedKingdom: CountryPageConfig = {
     title: "The United Kingdom.\nWhere the paper trail is complete.",
     subtitle:
       "Britain builds the world's most desirable 4x4s and luxury saloons, and records the life of every car on the road in a public database. Our UK office buys against that record — not against a description.",
-    backgroundImage: UNSPLASH("1494976388531-d1058494cdd8"),
+    backgroundImage: UNSPLASH("1637859460045-ac3ae9ced99d"),
   },
   stats: [
     { value: "15+", label: "Years trading from our London base" },
@@ -561,7 +561,7 @@ const australia: CountryPageConfig = {
     title: "Australia.\nBuilt for the worst roads on earth.",
     subtitle:
       "Nothing tests a vehicle like the Australian outback, and nothing is specified for it like an Australian-delivery 4x4. Our team buys the utes, wagons and touring rigs that were built to survive it — and checks every one against a national provenance register first.",
-    backgroundImage: LOCAL("lc70"),
+    backgroundImage: UNSPLASH("1610064094665-57e727e29f8b"),
   },
   stats: [
     { value: "RHD", label: "Native right-hand drive, English documents" },
@@ -769,7 +769,7 @@ const newZealand: CountryPageConfig = {
     title: "New Zealand.\nJapan's best cars, already vetted twice.",
     subtitle:
       "New Zealand imports more used Japanese cars per head than anywhere on earth, and puts every one through entry certification before it can be registered. Buying here means buying a car that has already survived somebody else's inspection regime.",
-    backgroundImage: LOCAL("aqua"),
+    backgroundImage: UNSPLASH("1471444928139-48c5bf5173f8"),
   },
   stats: [
     { value: "2×", label: "Inspected — in Japan, then at NZ entry" },
@@ -977,7 +977,7 @@ const uae: CountryPageConfig = {
     title: "The UAE.\nThe world's re-export crossroads.",
     subtitle:
       "Dubai turns over more used vehicles for export than any city on earth, and does it at the intersection of Africa, Asia and Europe. Our UAE team buys the low-mileage luxury stock the market is famous for, and moves it through the free zone without friction.",
-    backgroundImage: LOCAL("gwagon"),
+    backgroundImage: UNSPLASH("1634823929885-b12342dfc408"),
   },
   stats: [
     { value: "LHD", label: "Left-hand drive, GCC specification" },
@@ -1398,7 +1398,7 @@ const thailand: CountryPageConfig = {
     title: "Thailand.\nWhere the world's pickups are built.",
     subtitle:
       "One in every few pickup trucks on earth was assembled in Thailand. Our team buys them where they are made — new export-specification double cabs and low-mileage used stock, both, with the accessory market that grew up around them.",
-    backgroundImage: LOCAL("prado"),
+    backgroundImage: UNSPLASH("1559416523-140ddc3d238c"),
   },
   stats: [
     { value: "Top 5", label: "Vehicle exporting nation worldwide" },
@@ -1605,7 +1605,7 @@ const sriLanka: CountryPageConfig = {
     title: "Sri Lanka.\nWhere the paperwork decides the price.",
     subtitle:
       "Sri Lanka has one of the most complex vehicle import regimes in the world, and rules that move. Our Colombo team runs South Asia operations for the group and handles every import into the island end to end — permits, valuation, duty and clearance included.",
-    backgroundImage: LOCAL("aqua"),
+    backgroundImage: UNSPLASH("1715526575128-88b04cb67556"),
   },
   stats: [
     { value: "CIF", label: "Duty is assessed on landed value, not invoice" },

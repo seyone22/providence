@@ -60,8 +60,9 @@ const japanPosts: BlogPost[] = [
       "japanese car auction agent",
     ],
     readingTimeMins: 11,
-    heroImage: LOCAL("hero-land-cruiser"),
-    heroAlt: "Toyota Land Cruiser of the type sold through Japanese auctions",
+    heroImage: UNSPLASH("1612704065655-fa070fe6c254"),
+    heroAlt:
+      "Cars on a Tokyo street, where the auction network feeds the market",
     related: [
       "japanese-auction-grades-explained",
       "cost-to-import-a-car-from-japan",
@@ -164,8 +165,8 @@ const japanPosts: BlogPost[] = [
       "japanese hybrid import",
     ],
     readingTimeMins: 12,
-    heroImage: LOCAL("harrier"),
-    heroAlt: "Toyota Harrier, one of the most imported cars from Japan",
+    heroImage: UNSPLASH("1689594016155-3f912af12e59"),
+    heroAlt: "Toyota AE86 Trueno at a Japanese car meet",
     related: [
       "cost-to-import-a-car-from-japan",
       "how-to-buy-a-car-at-japanese-auction",
@@ -375,9 +376,8 @@ const ukPosts: BlogPost[] = [
       "uk built car origin",
     ],
     readingTimeMins: 10,
-    heroImage: LOCAL("bmw"),
-    heroAlt:
-      "Premium saloon of the kind widely available in the UK used market",
+    heroImage: UNSPLASH("1549632891-a0bea6d0355b"),
+    heroAlt: "Range Rover on a forest track — a British-built export",
     related: [
       "how-to-import-a-car-from-the-uk",
       "cost-to-import-a-car-from-the-uk",
@@ -586,8 +586,8 @@ const uaePosts: BlogPost[] = [
       "buy a car in dubai for export",
     ],
     readingTimeMins: 11,
-    heroImage: LOCAL("gwagon"),
-    heroAlt: "Luxury SUV of the kind exported from the UAE",
+    heroImage: UNSPLASH("1571607388263-1044f9ea01dd"),
+    heroAlt: "Supercar on a Dubai desert road at sunset",
     related: [
       "gcc-spec-cars-explained",
       "best-cars-to-import-from-dubai",
@@ -637,8 +637,8 @@ const uaePosts: BlogPost[] = [
       "supercar import from uae",
     ],
     readingTimeMins: 10,
-    heroImage: LOCAL("lx600"),
-    heroAlt: "Lexus LX of the kind sourced from the UAE",
+    heroImage: UNSPLASH("1638835373951-3a67da7aaf8d"),
+    heroAlt: "Land Cruisers driving the dunes outside Dubai",
     related: [
       "how-to-import-a-car-from-the-uae",
       "gcc-spec-cars-explained",
@@ -688,8 +688,9 @@ const uaePosts: BlogPost[] = [
       "gcc vs japanese spec",
     ],
     readingTimeMins: 9,
-    heroImage: LOCAL("lc300"),
-    heroAlt: "GCC-specification Land Cruiser in a desert environment",
+    heroImage: UNSPLASH("1552519507-da3b142c6e3d"),
+    heroAlt:
+      "Car in desert country — the conditions GCC specification is built for",
     related: [
       "how-to-import-a-car-from-the-uae",
       "best-cars-to-import-from-dubai",
@@ -847,8 +848,8 @@ const indiaPosts: BlogPost[] = [
       "import india built car",
     ],
     readingTimeMins: 11,
-    heroImage: UNSPLASH("1663852408695-f57f4d75a536"),
-    heroAlt: "India-built car of the kind exported by Providence Auto",
+    heroImage: UNSPLASH("1709620435533-56483034bdd4"),
+    heroAlt: "SUV on the Indian coast — India-built stock heading for export",
     related: [
       "best-cars-to-import-from-india",
       "cost-to-import-a-car-from-india",
@@ -1108,8 +1109,8 @@ const thailandPosts: BlogPost[] = [
       "thailand vehicle exporter",
     ],
     readingTimeMins: 11,
-    heroImage: LOCAL("prado"),
-    heroAlt: "Toyota 4x4 of the kind built and exported from Thailand",
+    heroImage: UNSPLASH("1610647929723-a8922852cd44"),
+    heroAlt: "Double-cab pickup of the kind built in Thailand",
     related: [
       "best-pickups-to-import-from-thailand",
       "cost-to-import-a-car-from-thailand",
@@ -1159,8 +1160,8 @@ const thailandPosts: BlogPost[] = [
       "fortuner import",
     ],
     readingTimeMins: 11,
-    heroImage: LOCAL("lc200"),
-    heroAlt: "Double-cab pickup of the kind built in Thailand",
+    heroImage: UNSPLASH("1612057473117-3e16246121e6"),
+    heroAlt: "Double-cab pickup working off-road",
     related: [
       "how-to-import-a-car-from-thailand",
       "thailand-vs-japan-for-pickup-imports",
@@ -1375,8 +1376,8 @@ const australiaPosts: BlogPost[] = [
       "australia vehicle deregistration export",
     ],
     readingTimeMins: 11,
-    heroImage: LOCAL("lc70"),
-    heroAlt: "Land Cruiser 70 Series of the kind sourced from Australia",
+    heroImage: UNSPLASH("1686715018049-f73970aa97d3"),
+    heroAlt: "Dual-cab 4x4 in outback desert country",
     related: [
       "importing-a-ute-or-4x4-from-australia",
       "best-cars-to-import-from-australia",
@@ -1426,8 +1427,9 @@ const australiaPosts: BlogPost[] = [
       "australian 4x4 import",
     ],
     readingTimeMins: 10,
-    heroImage: LOCAL("prado"),
-    heroAlt: "Touring-specification 4x4 of the kind sourced from Australia",
+    heroImage: UNSPLASH("1717046633197-dc628db1dd4a"),
+    heroAlt:
+      "Touring-specification Land Cruiser of the kind sourced from Australia",
     related: [
       "how-to-import-a-car-from-australia",
       "importing-a-ute-or-4x4-from-australia",
@@ -1477,7 +1479,7 @@ const australiaPosts: BlogPost[] = [
       "landcruiser 79 export",
     ],
     readingTimeMins: 11,
-    heroImage: LOCAL("lc70"),
+    heroImage: UNSPLASH("1559416523-140ddc3d238c"),
     heroAlt: "Australian dual-cab ute with touring equipment fitted",
     related: [
       "best-cars-to-import-from-australia",
@@ -1637,8 +1639,8 @@ const newZealandPosts: BlogPost[] = [
       "buy a car in new zealand from abroad",
     ],
     readingTimeMins: 11,
-    heroImage: LOCAL("aqua"),
-    heroAlt: "Ex-Japan hybrid of the kind common in the New Zealand market",
+    heroImage: UNSPLASH("1503376780353-7e6692767b70"),
+    heroAlt: "Imported car on the road after entry certification",
     related: [
       "new-zealand-vs-japan-for-used-imports",
       "best-cars-to-import-from-new-zealand",
@@ -1688,8 +1690,8 @@ const newZealandPosts: BlogPost[] = [
       "nz new ute export",
     ],
     readingTimeMins: 10,
-    heroImage: LOCAL("note"),
-    heroAlt: "Compact hybrid of the kind widely available in New Zealand",
+    heroImage: UNSPLASH("1770319942638-a5989632f2ad"),
+    heroAlt: "Rows of used cars at a vehicle marshalling yard",
     related: [
       "how-to-import-a-car-from-new-zealand",
       "importing-a-used-ev-from-new-zealand",
@@ -1740,8 +1742,9 @@ const newZealandPosts: BlogPost[] = [
       "japan auction vs nz dealer",
     ],
     readingTimeMins: 10,
-    heroImage: LOCAL("prius"),
-    heroAlt: "Comparing Japanese and New Zealand sources for used imports",
+    heroImage: UNSPLASH("1746014029717-37e5d3d51c48"),
+    heroAlt:
+      "Cars on a Japanese coastal street — the origin of most New Zealand stock",
     related: [
       "how-to-import-a-car-from-new-zealand",
       "best-cars-to-import-from-new-zealand",
@@ -1845,8 +1848,8 @@ const newZealandPosts: BlogPost[] = [
       "chademo vs ccs import",
     ],
     readingTimeMins: 11,
-    heroImage: LOCAL("note"),
-    heroAlt: "Used electric car of the kind exported from New Zealand",
+    heroImage: UNSPLASH("1639302610362-4c86747e8680"),
+    heroAlt: "Used electric car plugged in to charge",
     related: [
       "best-cars-to-import-from-new-zealand",
       "how-to-import-a-car-from-new-zealand",
@@ -1901,8 +1904,8 @@ const sriLankaPosts: BlogPost[] = [
       "sri lanka car import 2026",
     ],
     readingTimeMins: 12,
-    heroImage: LOCAL("aqua"),
-    heroAlt: "Compact hybrid of the kind common on Sri Lankan roads",
+    heroImage: UNSPLASH("1709620435533-56483034bdd4"),
+    heroAlt: "SUV on a South Asian coastal road",
     related: [
       "sri-lanka-vehicle-import-taxes-explained",
       "best-cars-to-import-to-sri-lanka",
@@ -2004,8 +2007,8 @@ const sriLankaPosts: BlogPost[] = [
       "sri lanka suv import",
     ],
     readingTimeMins: 10,
-    heroImage: LOCAL("prius"),
-    heroAlt: "Hybrid hatchback of the kind widely imported to Sri Lanka",
+    heroImage: UNSPLASH("1692305610636-f5157dbe6008"),
+    heroAlt: "Compact hatchback of the kind widely imported to Sri Lanka",
     related: [
       "importing-a-car-to-sri-lanka",
       "sri-lanka-vehicle-import-taxes-explained",
@@ -2108,8 +2111,8 @@ const sriLankaPosts: BlogPost[] = [
       "sri lanka hybrid duty",
     ],
     readingTimeMins: 10,
-    heroImage: LOCAL("vezel"),
-    heroAlt: "Hybrid crossover of the kind imported to Sri Lanka",
+    heroImage: UNSPLASH("1671785253964-bdb43087ed99"),
+    heroAlt: "Electric car charging at a wall box",
     related: [
       "best-cars-to-import-to-sri-lanka",
       "sri-lanka-vehicle-import-taxes-explained",
