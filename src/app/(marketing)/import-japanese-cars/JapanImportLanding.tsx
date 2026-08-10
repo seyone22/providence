@@ -27,19 +27,21 @@ import { japanImportCampaignConfig } from "@/config/landing-pages";
 // slug so the gallery stays scoped to this campaign's stock.
 const CAMPAIGN_TAG = "import-japanese-cars";
 
-// Japan's fastest-moving auction exports plus the European metal its owners
-// keep in exceptional condition — every one sourced from Japanese auctions
-// (not built in Japan). `make` must match a value in the request form's
-// CAR_MAKES list so the prefill lands on a valid option; `model` prefills the
-// free-text/model field. Card images are model-correct photos from Wikimedia
-// Commons (CC-licensed) that have been cut out and re-composited onto a uniform
-// studio-grey (#f4f4f5 / zinc-100) background with a soft contact shadow, so
-// the whole grid reads as one cohesive studio set. Self-hosted under
+// The cars we buy most often at Japanese auction. Everything here is sourced
+// in Japan; not everything here was built there. `make` must match a value in
+// the request form's CAR_MAKES list so the prefill lands on a valid option;
+// `model` prefills the free-text/model field.
+//
+// Card images are model-correct photos from Wikimedia Commons (CC-licensed),
+// cut out and re-composited onto a uniform dark studio backdrop with a soft
+// contact shadow, so the whole grid reads as one set. Self-hosted under
 // /public/import-cars with any visible number plates blurred. Every asset is
-// stored nose-right — four of the original photographs were mirrored in the
+// stored nose-right — several of the source photographs were mirrored in the
 // file rather than flipped in CSS, so a hover transform can never un-flip
-// them — and the cards render them in greyscale, which is what stops a grid of
-// thirteen paint colours reading as a jumble.
+// them — and every asset is 4:3, matching the card, so nothing is ever cropped.
+// The dark backdrop is what lets the card carry the same black legibility
+// gradient as the India campaign page; over the old light studio floor that
+// gradient read as a smear.
 type FastMover = {
   name: string;
   make: string;
@@ -61,170 +63,189 @@ type ModelGroup = {
 
 const MODEL_GROUPS: ModelGroup[] = [
   {
-    id: "fast-movers",
-    label: "Fast Movers",
-    title: "The cars that never sit still.",
+    id: "hybrids-and-hatchbacks",
+    label: "Hybrids & Hatchbacks",
+    title: "Fuel-efficient hybrids and small hatchbacks.",
     blurb:
-      "Japan's high-turnover hybrids and hatchbacks — the models that clear the auction halls every week and land below local forecourt prices almost everywhere we ship.",
+      "These are the highest-volume cars we import, and for most private buyers they are the cheapest way to own a reliable car. Japanese owners trade them in early, so they reach auction with low verified mileage and a full inspection history, and their small engines and low emissions keep import duty and registration tax down in nearly every country we ship to.",
     cars: [
       {
         name: "Toyota Aqua",
         make: "Toyota",
         model: "Aqua",
-        blurb: "Japan's best-selling hybrid hatch",
+        blurb:
+          "Japan's best-selling compact hybrid, and the cheapest hybrid we import.",
         image: "/import-cars/aqua.jpg",
       },
       {
         name: "Toyota Prius",
         make: "Toyota",
         model: "Prius",
-        blurb: "The hybrid that started it all",
+        blurb:
+          "The car that established the hybrid, and still the most economical saloon we ship.",
         image: "/import-cars/prius.jpg",
       },
       {
         name: "Honda Fit",
         make: "Honda",
         model: "Fit",
-        blurb: "Big inside, frugal everywhere",
+        blurb:
+          "A compact hatchback with far more cabin and boot space than its footprint suggests.",
         image: "/import-cars/fit.jpg",
       },
       {
         name: "Honda Vezel",
         make: "Honda",
         model: "Vezel",
-        blurb: "The compact hybrid crossover",
+        blurb:
+          "Honda's compact hybrid crossover, sized for cities and priced below a Harrier.",
         image: "/import-cars/vezel.jpg",
       },
       {
         name: "Nissan Note e-POWER",
         make: "Nissan",
         model: "Note e-POWER",
-        blurb: "Electric drive, no plug needed",
+        blurb:
+          "The petrol engine only charges the battery, so it drives like an EV but never needs plugging in.",
         image: "/import-cars/note.jpg",
       },
       {
         name: "Suzuki Swift",
         make: "Suzuki",
         model: "Swift",
-        blurb: "The evergreen city fast-mover",
+        blurb:
+          "A light, mechanically simple city car that is cheap to run and easy to get parts for.",
         image: "/import-cars/swift.jpg",
       },
     ],
   },
   {
-    id: "suvs",
+    id: "suvs-and-4x4s",
     label: "SUVs & 4x4s",
-    title: "The 4x4s the rest of the world queues for.",
+    title: "Land Cruisers and premium SUVs.",
     blurb:
-      "Japan buys Land Cruisers by the shipload and sells them young. From the Harrier to the 70 Series, this is the hardware that holds its value in every market we land in.",
+      "Japan registers more Land Cruisers than almost any other market and sells them on while they are still young, which is why a Japanese-sourced 4x4 usually lands cheaper than the equivalent car bought locally. Every vehicle in this group is right-hand drive as standard, and you see its auction grade, condition map and our own inspection findings before we bid on it.",
     cars: [
       {
         name: "Toyota Harrier",
         make: "Toyota",
         model: "Harrier",
-        blurb: "East Africa's favourite premium SUV",
+        blurb:
+          "Toyota's premium SUV, and the single most requested import across East Africa.",
         image: "/import-cars/harrier.jpg",
       },
       {
         name: "Land Cruiser Prado",
         make: "Toyota",
         model: "Land Cruiser Prado",
-        blurb: "Go-anywhere status, auction-priced",
+        blurb:
+          "Genuine Land Cruiser capability in a smaller, cheaper and more economical body.",
         image: "/import-cars/prado.jpg",
       },
       {
         name: "Land Cruiser 200",
         make: "Toyota",
         model: "Land Cruiser 200",
-        blurb: "The V8 flagship that never dates",
+        blurb:
+          "The V8 Land Cruiser flagship, and the benchmark for long-distance reliability.",
         image: "/import-cars/lc200.jpg",
       },
       {
         name: "Land Cruiser 300",
         make: "Toyota",
         model: "Land Cruiser 300",
-        blurb: "The current king, years ahead of local supply",
+        blurb:
+          "The current Land Cruiser, available from Japan while local waiting lists are still years long.",
         image: "/import-cars/lc300.jpg",
       },
       {
         name: "Lexus LX 600",
         make: "Lexus",
         model: "LX 600",
-        blurb: "Land Cruiser bones, first-class cabin",
+        blurb:
+          "Land Cruiser 300 mechanicals underneath a Lexus cabin and finish.",
         image: "/import-cars/lx600.jpg",
       },
       {
         name: "Land Cruiser 70 Series",
         make: "Toyota",
         model: "Land Cruiser 70 Series",
-        blurb: "The workhorse legend, back in production",
+        blurb:
+          "The utilitarian Land Cruiser built for the hardest conditions, and back in production.",
         image: "/import-cars/lc70.jpg",
       },
       {
         name: "Mercedes-Benz G-Class",
         make: "Mercedes-Benz",
         model: "G-Class",
-        blurb: "The G-Wagon, Japan-kept and low mileage",
+        blurb:
+          "The G-Wagon, reaching auction with the low mileage typical of Japanese ownership.",
         image: "/import-cars/gwagon.jpg",
       },
     ],
   },
   {
-    id: "vans",
+    id: "vans-and-people-movers",
     label: "Vans & People Movers",
-    title: "Eight seats, sliding doors, Japanese miles.",
+    title: "Seven and eight-seat vans.",
     blurb:
-      "Japan's people movers are the school run, the airport run and the family business all at once — and they come out of auction with the mileage and condition to prove they were looked after.",
+      "Japanese people movers are built around sliding doors, a flat floor and a genuinely usable third row, which is why they are the default choice for large families and for private hire work in most of the markets we serve. Hybrid versions are widely available and keep both fuel bills and emissions-based import taxes low.",
     cars: [
       {
         name: "Toyota Alphard",
         make: "Toyota",
         model: "Alphard",
-        blurb: "First-class travel for the family",
+        blurb:
+          "Toyota's luxury people mover, with reclining business-class seats in the second row.",
         image: "/import-cars/alphard.jpg",
       },
       {
         name: "Toyota Noah",
         make: "Toyota",
         model: "Noah",
-        blurb: "The eight-seat hybrid that does everything",
+        blurb:
+          "An eight-seat van with sliding doors, offered as a hybrid with very low running costs.",
         image: "/import-cars/noah.jpg",
       },
       {
         name: "Toyota Voxy",
         make: "Toyota",
         model: "Voxy",
-        blurb: "The Noah's sharper-suited twin",
+        blurb:
+          "Mechanically the same van as the Noah, with sportier styling and trim.",
         image: "/import-cars/voxy.jpg",
       },
     ],
   },
   {
-    id: "luxury",
+    id: "luxury-and-performance",
     label: "Luxury & Performance",
-    title: "Low miles, high spec, Japanese ownership.",
+    title: "Premium saloons and performance cars.",
     blurb:
-      "Japan's shaken regime pushes premium cars out of first ownership early — which is how a European saloon or a homegrown legend reaches auction with mileage the rest of the world can't match.",
+      "Japan's shaken inspection regime makes older cars expensive to keep, so premium models leave first ownership early and arrive at auction with mileage you can verify against the country's own inspection records. That is how a European executive saloon or a Japanese performance car reaches you for less than the local equivalent costs.",
     cars: [
       {
         name: "Mercedes-Benz C-Class",
         make: "Mercedes-Benz",
         model: "C-Class",
-        blurb: "Executive luxury, Japan-kept low miles",
+        blurb:
+          "Executive saloon comfort, with the low mileage typical of Japanese ownership.",
         image: "/import-cars/mercedes.jpg",
       },
       {
         name: "BMW 3 Series",
         make: "BMW",
         model: "3 Series",
-        blurb: "The driver's saloon, auction-fresh",
+        blurb:
+          "BMW's compact executive saloon, bought at Japanese wholesale auction prices.",
         image: "/import-cars/bmw.jpg",
       },
       {
         name: "Nissan GT-R",
         make: "Nissan",
         model: "GT-R",
-        blurb: "The legend, sourced at home",
+        blurb:
+          "Nissan's flagship performance car, sourced in the country that builds it.",
         image: "/import-cars/gtr.jpg",
       },
     ],
@@ -252,7 +273,7 @@ const DESTINATIONS: Destination[] = [
     key: "uk",
     label: "United Kingdom",
     formCountry: "United Kingdom",
-    headline: "The home of the JDM import.",
+    headline: "The United Kingdom sets no age limit on imported cars.",
     body: "No age limit, no steering conversion, and a DVLA process we've run hundreds of times. From a daily-driver Aqua to a GR Yaris or an Alphard the family will fight over, your car is NOVA-notified within 14 days of arrival and registered for you — with duty and VAT locked into your quote before you commit.",
     facts: [
       { icon: Gauge, label: "No import age limit" },
@@ -260,14 +281,15 @@ const DESTINATIONS: Destination[] = [
       { icon: CalendarClock, label: "Typically 8–12 weeks door to door" },
       { icon: Anchor, label: "RoRo or container to UK ports" },
     ],
-    popular: "Fast movers: Aqua, Prius, Alphard, GR Yaris, Vezel",
+    popular:
+      "Most requested for the UK: Toyota Aqua, Prius and Alphard, the GR Yaris, and the Honda Vezel.",
     readMoreHref: "/import-japanese-cars-to-uk",
   },
   {
     key: "ireland",
     label: "Ireland",
     formCountry: "Ireland",
-    headline: "Zero customs duty. Hybrid-friendly VRT.",
+    headline: "Japan-built cars enter Ireland at zero customs duty.",
     body: "Japan-built cars enter Ireland at 0% customs duty under the EU–Japan agreement, and efficient Japanese hybrids sit in the lowest VRT bands — which is why they consistently land thousands below Irish forecourt prices even after VAT. We calculate your exact VRT before you commit and handle the NCTS registration entirely.",
     facts: [
       { icon: Gauge, label: "0% duty on Japan-built cars" },
@@ -275,14 +297,16 @@ const DESTINATIONS: Destination[] = [
       { icon: CalendarClock, label: "Typically 8–12 weeks door to door" },
       { icon: Anchor, label: "NCTS registration handled for you" },
     ],
-    popular: "Fast movers: Prius, Aqua, Fit Hybrid, Note e-POWER, Vezel",
+    popular:
+      "Most requested for Ireland: Toyota Prius and Aqua, the Honda Fit Hybrid and Vezel, and the Nissan Note e-POWER.",
     readMoreHref: "/import-japanese-cars-to-ireland",
   },
   {
     key: "new-zealand",
     label: "New Zealand",
     formCountry: "New Zealand",
-    headline: "Japan's used market is New Zealand's used market.",
+    headline:
+      "New Zealand imports more used cars from Japan than from anywhere else.",
     body: "More used cars reach New Zealand from Japan than from anywhere else, and the route is well worn: no customs duty on used vehicles, GST charged once on the landed value, a biosecurity clean before the ship, and entry certification before the plates go on. We buy to the standards the certifier will accept, arrange the steam clean in Japan, and land a car that's ready to comply.",
     facts: [
       { icon: Gauge, label: "No customs duty on used cars" },
@@ -290,7 +314,8 @@ const DESTINATIONS: Destination[] = [
       { icon: CalendarClock, label: "Typically 6–10 weeks door to door" },
       { icon: Anchor, label: "MPI biosecurity clean arranged in Japan" },
     ],
-    popular: "Fast movers: Aqua, Prius, Fit, Swift, Land Cruiser Prado",
+    popular:
+      "Most requested for New Zealand: Toyota Aqua and Prius, the Honda Fit, the Suzuki Swift, and the Land Cruiser Prado.",
     // No dedicated New Zealand guide page exists yet, so this stays null
     // rather than pointing the CTA at a 404.
     readMoreHref: null,
@@ -299,7 +324,8 @@ const DESTINATIONS: Destination[] = [
     key: "kenya",
     label: "Kenya",
     formCountry: "Kenya",
-    headline: "Under 8 years, inspected in Japan, cleared at Mombasa.",
+    headline:
+      "Kenya admits vehicles under eight years old, inspected before export.",
     body: "Kenya's rules are strict — under 8 years old, right-hand drive, mandatory pre-export roadworthiness inspection — and that's precisely why buying through us pays. We source age-compliant stock straight off the auction sheet, book the KEBS-compliance inspection in Japan, and land your car at Mombasa with every duty in the quote you approved.",
     facts: [
       { icon: Gauge, label: "8-year age rule — compliant stock only" },
@@ -307,14 +333,16 @@ const DESTINATIONS: Destination[] = [
       { icon: CalendarClock, label: "Typically 6–10 weeks door to door" },
       { icon: Anchor, label: "Cleared through Mombasa for you" },
     ],
-    popular: "Fast movers: Harrier, Fielder, Vitz, Prado, Probox",
+    popular:
+      "Most requested for Kenya: the Toyota Harrier, Fielder, Vitz, Probox and Land Cruiser Prado.",
     readMoreHref: "/import-japanese-cars-to-kenya",
   },
   {
     key: "tanzania",
     label: "Tanzania",
     formCountry: "Tanzania",
-    headline: "No age ban — just honest maths on older cars.",
+    headline:
+      "Tanzania has no age limit, but older cars carry extra excise duty.",
     body: "Tanzania welcomes a wider range of Japanese imports than its neighbours: there's no outright age limit, though cars over 10 years old carry extra excise — which we build into your landed quote so the number never moves. Pre-shipment inspection is arranged in Japan, and your car clears through Dar es Salaam with our team on it the whole way.",
     facts: [
       { icon: Gauge, label: "No age ban — excise built into quote" },
@@ -322,14 +350,16 @@ const DESTINATIONS: Destination[] = [
       { icon: CalendarClock, label: "Typically 6–10 weeks door to door" },
       { icon: Anchor, label: "Cleared through Dar es Salaam" },
     ],
-    popular: "Fast movers: IST, Harrier, Noah, Land Cruiser, Raum",
+    popular:
+      "Most requested for Tanzania: the Toyota IST, Harrier, Noah, Raum and Land Cruiser.",
     readMoreHref: "/import-japanese-cars-to-tanzania",
   },
   {
     key: "uganda",
     label: "Uganda",
     formCountry: "Uganda",
-    headline: "Landlocked is not a problem. It's our route.",
+    headline:
+      "Uganda is landlocked, so we clear at Mombasa and run overland to Kampala.",
     body: "Your car lands at Mombasa and travels overland to Kampala under a bonded transit we arrange — one quote, one team, no handoffs at the border. Uganda's 15-year age ban and environmental levy make a 5–9 year-old Japanese car the sweet spot, and we source exactly that, with URA taxes included in the single price you approve up front.",
     facts: [
       { icon: Gauge, label: "15-year rule — sweet spot sourced" },
@@ -337,14 +367,16 @@ const DESTINATIONS: Destination[] = [
       { icon: CalendarClock, label: "Typically 7–11 weeks door to door" },
       { icon: Anchor, label: "Bonded transit Mombasa → Kampala" },
     ],
-    popular: "Fast movers: Harrier, Premio, Wish, Hiace, Fielder",
+    popular:
+      "Most requested for Uganda: the Toyota Harrier, Premio, Wish, Hiace and Fielder.",
     readMoreHref: "/import-japanese-cars-to-uganda",
   },
   {
     key: "other",
     label: "Other",
     formCountry: null,
-    headline: "If it drives on the left, we deliver to it.",
+    headline:
+      "We ship to right-hand-drive markets beyond our six core countries.",
     body: "Beyond our six core markets we ship to right-hand-drive countries worldwide — across the Caribbean, southern Africa, and the Pacific. Every destination gets the same treatment: auction sheet before payment, your country's rules confirmed before you commit, and one all-in landed price. Tell us your country in the form and we'll come back with the exact rules, timeline and cost.",
     facts: [
       { icon: Globe2, label: "RHD markets worldwide" },
@@ -352,7 +384,8 @@ const DESTINATIONS: Destination[] = [
       { icon: CalendarClock, label: "Timeline quoted per destination" },
       { icon: Anchor, label: "RoRo & container routes globally" },
     ],
-    popular: "Tell us your destination — we'll map the route",
+    popular:
+      "Tell us your destination in the form and we will map the route and quote it in full.",
     readMoreHref: null,
   },
 ];
@@ -483,7 +516,7 @@ export default function JapanImportLanding() {
               className="group relative inline-flex items-center justify-center px-10 py-5 text-lg font-bold text-white bg-black rounded-full overflow-hidden transition-transform hover:scale-105 shadow-[0_10px_40px_rgba(0,0,0,0.1)]"
             >
               <span className="relative z-10 flex items-center gap-2">
-                Browse the Fast Movers
+                See the cars we import
                 <ArrowRight
                   size={18}
                   className="group-hover:translate-x-1 transition-transform"
@@ -569,13 +602,20 @@ export default function JapanImportLanding() {
               >
                 <Globe2 size={28} className="mx-auto mb-4 text-zinc-400" />
                 <h2 className="text-2xl md:text-4xl font-bold tracking-tighter text-black mb-3">
-                  Every right-hand-drive country. One process.
+                  We buy cars at Japanese auction and deliver them, fully
+                  cleared, to your country.
                 </h2>
-                <p className="text-lg text-zinc-500 font-light max-w-2xl mx-auto">
-                  Pick your country above and we'll show you exactly how the
-                  rules, taxes and timeline work for your destination — and
-                  pre-fill your inquiry so the quote comes back right first
-                  time.
+                <p className="text-lg text-zinc-500 font-light max-w-3xl mx-auto">
+                  Providence Auto bids on your behalf at Japan's wholesale
+                  vehicle auctions, where more than 100,000 independently graded
+                  cars are sold every week at prices no retail forecourt can
+                  match. You tell us the model and specification you want. We
+                  find it, send you the original auction sheet and our own
+                  inspection findings before we bid, and quote one landed price
+                  that already includes the car, shipping, marine insurance,
+                  duty, VAT or GST and local registration. Choose your
+                  destination above and we will show you exactly how the rules,
+                  taxes and timeline work for your country.
                 </p>
               </motion.div>
             )}
@@ -583,7 +623,7 @@ export default function JapanImportLanding() {
         </div>
       </section>
 
-      {/* ── FAST-MOVER MODEL CARDS ───────────────────── */}
+      {/* ── MODEL CARDS, BY CATEGORY ─────────────────── */}
       <section
         id="models"
         className="py-24 md:py-32 px-6 bg-white relative z-10 border-t border-black/5 scroll-mt-24"
@@ -598,14 +638,15 @@ export default function JapanImportLanding() {
               Select a model to begin
             </p>
             <h2 className="text-3xl md:text-5xl font-bold tracking-tighter text-black mb-5">
-              The cars that never sit still.
+              Choose the car you want us to source.
             </h2>
             <p className="text-lg text-zinc-500 font-light">
-              From Japan's fastest-moving hybrids to Land Cruisers, eight-seat
-              vans and the low-mileage European luxury its owners keep in
-              showroom condition — every one sourced straight from Japanese
-              auctions. Tap a model and we'll open your inquiry with it
-              pre-selected.
+              Every model below is one we buy regularly in Japan, which means we
+              already know what it should cost at auction, what condition to
+              expect at each grade, and how it will be taxed when it reaches
+              your country. Select one and we will open the inquiry form with
+              that car filled in. If what you want is not shown here, use the
+              card at the end of the grid and describe it to us instead.
             </p>
           </Reveal>
 
@@ -657,32 +698,32 @@ export default function JapanImportLanding() {
                       type="button"
                       onClick={() => handleModelSelect(model)}
                       aria-label={`Enquire about importing a ${model.name} from Japan`}
-                      className="group w-full h-full flex flex-col overflow-hidden rounded-[1.75rem] border border-black/10 bg-white hover:border-black/40 hover:shadow-[0_24px_50px_rgba(0,0,0,0.12)] hover:-translate-y-1 transition-all duration-300 text-left"
+                      className="group relative w-full aspect-[4/3] overflow-hidden rounded-[1.75rem] border border-black/10 bg-zinc-900 hover:border-black/40 hover:shadow-[0_24px_50px_rgba(0,0,0,0.18)] hover:-translate-y-1 transition-all duration-300 text-left"
                     >
-                      {/* Photo and label are separated rather than overlaid:
-                          the greyscale treatment leaves too little tonal room
-                          to float text over the car and keep both readable. */}
-                      <span className="block w-full aspect-[4/3] bg-zinc-100 overflow-hidden">
-                        <img
-                          src={model.image}
-                          alt={`${model.name} — Japanese import fast mover`}
-                          loading="lazy"
-                          className="w-full h-full object-cover grayscale"
-                        />
-                      </span>
-                      <span className="flex items-end justify-between gap-2 p-4 border-t border-black/5">
+                      {/* The card matches the aspect ratio of the source image,
+                          so object-cover never actually has anything to crop —
+                          the previous fixed-height card cut the wheels off. */}
+                      <img
+                        src={model.image}
+                        alt={`${model.name} sourced from Japanese auction by Providence Auto`}
+                        loading="lazy"
+                        className="absolute inset-0 w-full h-full object-cover opacity-90 group-hover:opacity-100 group-hover:scale-105 transition-all duration-500 ease-out"
+                      />
+                      {/* Legibility gradient behind the label */}
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/20 to-transparent" />
+                      <div className="absolute inset-x-0 bottom-0 p-4 flex items-end justify-between gap-2">
                         <span className="flex flex-col leading-tight">
-                          <span className="text-black text-base md:text-lg font-bold tracking-tight">
+                          <span className="text-white text-base md:text-lg font-bold tracking-tight drop-shadow-sm">
                             {model.name}
                           </span>
-                          <span className="text-zinc-500 text-xs font-medium">
+                          <span className="text-white/70 text-xs font-medium drop-shadow-sm">
                             {model.blurb}
                           </span>
                         </span>
-                        <span className="shrink-0 w-8 h-8 rounded-full bg-black/5 border border-black/10 flex items-center justify-center opacity-0 -translate-x-1 group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-300">
-                          <ArrowRight size={15} className="text-black" />
+                        <span className="shrink-0 w-8 h-8 rounded-full bg-white/10 border border-white/20 backdrop-blur-sm flex items-center justify-center opacity-0 -translate-x-1 group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-300">
+                          <ArrowRight size={15} className="text-white" />
                         </span>
-                      </span>
+                      </div>
                     </button>
                   </Reveal>
                 ))}
@@ -701,7 +742,7 @@ export default function JapanImportLanding() {
                       type="button"
                       onClick={handleOpenBlankInquiry}
                       aria-label="Enquire about a model that is not listed"
-                      className="group w-full h-full min-h-[16rem] overflow-hidden rounded-[1.75rem] border border-dashed border-black/20 bg-zinc-50/60 hover:border-black/40 hover:bg-white hover:shadow-[0_24px_50px_rgba(0,0,0,0.12)] hover:-translate-y-1 transition-all duration-300 flex flex-col items-center justify-center text-center px-4"
+                      className="group w-full aspect-[4/3] overflow-hidden rounded-[1.75rem] border border-dashed border-black/20 bg-zinc-50/60 hover:border-black/40 hover:bg-white hover:shadow-[0_24px_50px_rgba(0,0,0,0.12)] hover:-translate-y-1 transition-all duration-300 flex flex-col items-center justify-center text-center px-4"
                     >
                       <span className="w-11 h-11 rounded-full bg-black text-white flex items-center justify-center mb-3 group-hover:scale-110 transition-transform duration-300">
                         <Plus size={20} />
@@ -710,7 +751,7 @@ export default function JapanImportLanding() {
                         More
                       </span>
                       <span className="text-zinc-500 text-xs font-medium mt-0.5">
-                        Any make, any model — just ask
+                        Tell us any make or model
                       </span>
                     </button>
                   </Reveal>
@@ -720,15 +761,17 @@ export default function JapanImportLanding() {
           ))}
 
           <Reveal y={20} duration={0.6} className="text-center mt-12">
-            <p className="text-zinc-500 font-light">
-              After something else — a kei truck, a Hiace, a GR badge?{" "}
+            <p className="text-zinc-500 font-light max-w-3xl mx-auto">
+              This is a shortlist, not our catalogue. If you are after a kei
+              truck, a Toyota Hiace, a GR-badged model or anything else sold in
+              Japan,{" "}
               <a
                 href="#inquiry"
                 className="text-black font-medium underline decoration-1 underline-offset-4 hover:decoration-2"
               >
-                Tell us what you're after
+                describe it in the inquiry form
               </a>{" "}
-              — if Japan sells it, we'll find it at auction.
+              and we will find it at auction for you.
             </p>
           </Reveal>
         </div>
@@ -740,8 +783,8 @@ export default function JapanImportLanding() {
           <GalleryPreview
             tags={[CAMPAIGN_TAG]}
             eyebrow="In Stock"
-            title="Fresh From Japanese Auction"
-            subtitle="Grade-verified Japanese cars sourced at auction and ready to land in your country — each with its original auction sheet available on request."
+            title="Available Now From Japanese Auction"
+            subtitle="These are cars we have already sourced and graded in Japan, ready to ship to your country. The original auction sheet for any of them is available on request."
           />
         </div>
       </div>
@@ -829,11 +872,11 @@ export default function JapanImportLanding() {
             Tell us exactly what you want.
           </h2>
           <p className="text-xl md:text-2xl text-zinc-500 font-light max-w-2xl mx-auto">
-            Your car,{" "}
-            <span className="text-black font-medium">fresh from Japan</span> —
-            we'll hunt it at auction, verify the sheet, and come back with a
-            full landed-cost quote for{" "}
-            {destination?.formCountry ?? "your country"} before you commit.
+            Tell us the car you are after and we will find it{" "}
+            <span className="text-black font-medium">at Japanese auction</span>,
+            verify its auction sheet, and come back to you with a full
+            landed-cost quote for {destination?.formCountry ?? "your country"}{" "}
+            before you commit to anything.
           </p>
         </Reveal>
 
@@ -878,7 +921,10 @@ export default function JapanImportLanding() {
                 prefill, so without this remount "More" could not blank a form
                 that a model card had already filled. Matches the sibling
                 campaign pages, which all key this form. */}
-            <RequestForm key={selectedModel?.name ?? "blank"} prefill={prefill} />
+            <RequestForm
+              key={selectedModel?.name ?? "blank"}
+              prefill={prefill}
+            />
           </Suspense>
         </div>
 
