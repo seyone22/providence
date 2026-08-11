@@ -2,10 +2,14 @@
 
 import { AnimatePresence, motion } from "framer-motion";
 import {
+  Anchor,
   ArrowRight,
   BadgePercent,
   Boxes,
+  CalendarClock,
   Factory,
+  Gauge,
+  Globe2,
   Handshake,
   Play,
   Ruler,
@@ -16,6 +20,11 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { Suspense, useMemo, useState } from "react";
+import {
+  type Destination,
+  DestinationChips,
+  DestinationPanel,
+} from "@/components/DestinationPicker";
 import FAQSection from "@/components/faqSection";
 import GalleryPreview from "@/components/GalleryPreview";
 import GlobalPartnersStrip from "@/components/GlobalPartnersStrip";
@@ -117,25 +126,170 @@ const COST_FACTORS: { icon: any; title: string; desc: string }[] = [
   },
 ];
 
+// ── Destination content ──────────────────────────────────────────────────────
+// One entry per country button in the "Where are we landing it?" picker. The UI
+// is shared with the Japanese-import page (@/components/DestinationPicker); the
+// copy is written for an India-built car, so the origin-side claims differ — an
+// India-built car does not get the zero-duty EU entry a Japan-built one does,
+// and duty is quoted per model rather than off a rate card.
+//
+// Destination-side rules (age limits, inspection regimes, ports, registration
+// bodies) mirror the Japanese-import page, which is the site's existing source
+// of truth for them.
+const DESTINATIONS: Destination[] = [
+  {
+    key: "uk",
+    label: "United Kingdom",
+    formCountry: "United Kingdom",
+    headline:
+      "India builds right-hand drive as standard, so nothing needs converting.",
+    body: "India drives on the left, which means an India-built car arrives in the specification the DVLA already expects — no conversion, no engineering sign-off, no hit to resale. There is no age limit on UK imports. We source the exact model and trim through our Indian dealer network, notify NOVA within 14 days of arrival, and handle registration, with duty, VAT and freight all inside the single landed price you approve before we buy.",
+    facts: [
+      { icon: Gauge, label: "No import age limit" },
+      { icon: Wrench, label: "Factory right-hand drive" },
+      { icon: ShieldCheck, label: "NOVA + DVLA registration handled" },
+      { icon: Anchor, label: "Container or RoRo to UK ports" },
+    ],
+    popular:
+      "Most requested for the UK: compact hatchbacks and small SUVs from the India-built Suzuki, Hyundai, Kia and Tata ranges.",
+    readMoreHref: "/blog/how-to-import-a-car-from-india",
+    readMoreLabel: "How importing from India works",
+  },
+  {
+    key: "ireland",
+    label: "Ireland",
+    formCountry: "Ireland",
+    headline:
+      "Duty, VAT and VRT priced per car — before you commit to anything.",
+    body: "An India-built car does not enter Ireland on the zero-duty terms a Japan-built one enjoys, so we never work off a rate card: we confirm the tariff that applies to your exact model and country of build, calculate your VRT and VAT alongside it, and give you one landed figure before we buy. The saving is still substantial, because India builds the same cars for a fraction of what European plants do. NCTS registration is handled end to end.",
+    facts: [
+      { icon: Gauge, label: "Tariff confirmed for your exact model" },
+      { icon: ShieldCheck, label: "VRT calculated before you commit" },
+      { icon: Wrench, label: "Factory right-hand drive" },
+      { icon: Anchor, label: "NCTS registration handled for you" },
+    ],
+    popular:
+      "Most requested for Ireland: India-built superminis and compact SUVs — the models that sit in the lowest VRT bands.",
+    readMoreHref: "/blog/cost-to-import-a-car-from-india",
+    readMoreLabel: "What an India import actually costs",
+  },
+  {
+    key: "sri-lanka",
+    label: "Sri Lanka",
+    formCountry: "Sri Lanka",
+    headline: "Sri Lanka already runs on India-built cars.",
+    body: "Suzuki, Toyota, Hyundai and Tata models built in India have been on Sri Lankan roads for decades, so parts, mechanics and resale value are all established before your car even lands. Vehicle taxes are the dominant part of the landed cost here and the regime changes, so we confirm the rules in force for your exact model and engine size at the time we buy — never from an old rate sheet — and quote one all-in price to Colombo.",
+    facts: [
+      { icon: Wrench, label: "Factory right-hand drive" },
+      { icon: ShieldCheck, label: "Current tax regime confirmed per model" },
+      { icon: Boxes, label: "Parts and servicing already local" },
+      { icon: Anchor, label: "Shipped and cleared to Colombo" },
+    ],
+    popular:
+      "Most requested for Sri Lanka: the Suzuki Alto, WagonR and Swift, the Toyota Etios, and Hyundai's India-built small cars.",
+    readMoreHref: "/blog/importing-a-car-to-sri-lanka",
+  },
+  {
+    key: "kenya",
+    label: "Kenya",
+    formCountry: "Kenya",
+    headline:
+      "Kenya admits vehicles under eight years old, inspected before export.",
+    body: "Kenya's rules are strict — under 8 years old, right-hand drive, mandatory pre-export roadworthiness inspection. India-built cars satisfy the drive-side requirement by default, and we handle the rest: age-compliant stock sourced through our Indian dealer network, the pre-export inspection booked before the car ships, and delivery at Mombasa with every duty inside the quote you already approved.",
+    facts: [
+      { icon: Gauge, label: "8-year age rule — compliant stock only" },
+      { icon: Wrench, label: "Factory right-hand drive" },
+      { icon: ShieldCheck, label: "Pre-export inspection arranged in India" },
+      { icon: Anchor, label: "Cleared through Mombasa for you" },
+    ],
+    popular:
+      "Most requested for Kenya: India-built Suzuki and Toyota small cars, plus Mahindra and Tata pickups and 4x4s.",
+    readMoreHref: "/blog/india-car-export-documents-explained",
+    readMoreLabel: "The export paperwork explained",
+  },
+  {
+    key: "tanzania",
+    label: "Tanzania",
+    formCountry: "Tanzania",
+    headline:
+      "Tanzania has no age limit, but older cars carry extra excise duty.",
+    body: "Tanzania takes a wider range of imports than its neighbours: there is no outright age ban, though cars over 10 years old carry extra excise — which we build into your landed quote so the number never moves after you agree it. Pre-shipment inspection is arranged in India, and your car clears through Dar es Salaam with our team on it the whole way.",
+    facts: [
+      { icon: Gauge, label: "No age ban — excise built into quote" },
+      { icon: Wrench, label: "Factory right-hand drive" },
+      { icon: ShieldCheck, label: "Pre-shipment inspection arranged" },
+      { icon: Anchor, label: "Cleared through Dar es Salaam" },
+    ],
+    popular:
+      "Most requested for Tanzania: India-built Toyota and Suzuki hatchbacks, and Mahindra's tougher 4x4 range.",
+    readMoreHref: "/blog/india-car-export-documents-explained",
+    readMoreLabel: "The export paperwork explained",
+  },
+  {
+    key: "uganda",
+    label: "Uganda",
+    formCountry: "Uganda",
+    headline:
+      "Uganda is landlocked, so we clear at Mombasa and run overland to Kampala.",
+    body: "Your car lands at Mombasa and travels overland to Kampala under a bonded transit we arrange — one quote, one team, no handoffs at the border. Uganda's 15-year age ban and environmental levy make a newer India-built car the sensible buy, and that is exactly what our dealer network supplies, with URA taxes included in the single price you approve up front.",
+    facts: [
+      { icon: Gauge, label: "15-year rule — compliant stock sourced" },
+      { icon: ShieldCheck, label: "URA taxes in your up-front quote" },
+      { icon: Wrench, label: "Factory right-hand drive" },
+      { icon: Anchor, label: "Bonded transit Mombasa → Kampala" },
+    ],
+    popular:
+      "Most requested for Uganda: India-built Suzuki and Toyota small cars, and Mahindra pickups for work use.",
+    readMoreHref: "/blog/how-to-import-a-car-from-india",
+    readMoreLabel: "How importing from India works",
+  },
+  {
+    key: "other",
+    label: "Other",
+    formCountry: null,
+    headline: "We ship India-built cars to right-hand-drive markets worldwide.",
+    body: "Beyond our core markets we ship to right-hand-drive countries across Africa, South Asia, the Caribbean and the Pacific — and India builds for most of them already. Every destination gets the same treatment: the specification confirmed before we buy, your country's rules checked before you commit, and one all-in landed price. Tell us your country in the form and we will come back with the exact rules, route and cost.",
+    facts: [
+      { icon: Globe2, label: "RHD markets worldwide" },
+      { icon: ShieldCheck, label: "Local rules confirmed before you pay" },
+      { icon: CalendarClock, label: "Timeline quoted per destination" },
+      { icon: Anchor, label: "RoRo and container routes globally" },
+    ],
+    popular:
+      "Tell us your destination in the form and we will map the route and quote it in full.",
+    readMoreHref: null,
+  },
+];
+
 export default function IndianCarsLanding() {
   const config = indianCampaignConfig;
 
-  // Brand-card → form prefill. Kept minimal (make only) so the buyer still
-  // picks their exact model in the form. The memo means the form's prefill
-  // effect only fires when a different brand is actually chosen.
+  // Brand card → make prefill; country chip → destination panel + the form's
+  // countryOfImport prefill. Both merge into one memoised object so the form's
+  // sync effect applies changes without wiping fields the customer has typed.
   const [selectedMake, setSelectedMake] = useState("");
+  const [destination, setDestination] = useState<Destination | null>(null);
   const [showNotice, setShowNotice] = useState(false);
 
-  const prefill = useMemo(
-    () => (selectedMake ? { make: selectedMake } : undefined),
-    [selectedMake],
-  );
+  const prefill = useMemo(() => {
+    const p: { make?: string; countryOfImport?: string } = {};
+    if (selectedMake) p.make = selectedMake;
+    if (destination?.formCountry) p.countryOfImport = destination.formCountry;
+    return Object.keys(p).length > 0 ? p : undefined;
+  }, [selectedMake, destination]);
 
   const handleBrandSelect = (brand: (typeof BRANDS)[number]) => {
     setSelectedMake(brand.make);
     setShowNotice(true);
     setTimeout(() => setShowNotice(false), 7000);
     document.getElementById("inquiry")?.scrollIntoView({ behavior: "smooth" });
+  };
+
+  const handleDestinationSelect = (dest: Destination) => {
+    setDestination(dest);
+    document
+      .getElementById("destination")
+      ?.scrollIntoView({ behavior: "smooth", block: "nearest" });
   };
 
   return (
@@ -201,7 +355,23 @@ export default function IndianCarsLanding() {
             </span>
           </Reveal>
 
-          <Reveal immediate y={20} delay={0.6} duration={0.8}>
+          {/* Country selector — drives the destination panel + form prefill */}
+          <Reveal immediate y={20} delay={0.58} duration={0.8}>
+            <DestinationChips
+              destinations={DESTINATIONS}
+              selected={destination}
+              onSelect={handleDestinationSelect}
+              labelClassName="text-xs font-bold tracking-[0.25em] text-zinc-500 uppercase mb-4 drop-shadow-[0_0_10px_rgba(255,255,255,1)]"
+            />
+          </Reveal>
+
+          <Reveal
+            immediate
+            y={20}
+            delay={0.65}
+            duration={0.8}
+            className="mt-10"
+          >
             <a
               href="#brands"
               className="group relative inline-flex items-center justify-center px-10 py-5 text-lg font-bold text-white bg-black rounded-full overflow-hidden transition-transform hover:scale-105 shadow-[0_10px_40px_rgba(0,0,0,0.1)]"
@@ -217,6 +387,13 @@ export default function IndianCarsLanding() {
           </Reveal>
         </div>
       </section>
+
+      {/* ── DESTINATION PANEL ────────────────────────── */}
+      <DestinationPanel
+        destination={destination}
+        emptyHeadline="We buy India-built cars at source and deliver them, fully cleared, to your country."
+        emptyBody="Providence Auto buys direct from India's dealer and export network — the same plants that build for Suzuki, Hyundai, Kia, Toyota, Tata and Mahindra — at prices no forecourt in your country can match. You tell us the model and specification you want. We source it, inspect it before it ships, and quote one landed price that already includes the car, freight, marine insurance, duty and every local tax that applies at your destination. Choose your destination above and we will show you exactly how the rules, taxes and route work for your country."
+      />
 
       {/* ── BRAND CARDS ──────────────────────────────── */}
       <section
