@@ -166,8 +166,8 @@ const IRELAND_POSTS: BlogPost[] = [
     updatedDate: UPDATED,
     readingTimeMins: 10,
     heroImage:
-      "https://images.unsplash.com/photo-1549924231-f129b911e442?q=80&w=2400&auto=format&fit=crop",
-    heroAlt: "Compact hybrid hatchback — a cheap car to import to Ireland",
+      "https://images.unsplash.com/photo-1523394397008-7c076b65a890?q=80&w=2400&auto=format&fit=crop",
+    heroAlt: "Compact hatchback — a cheap car to import to Ireland",
     related: [
       "cheapest-way-to-import-a-car-to-ireland",
       "cost-of-importing-a-car-to-ireland",
