@@ -522,6 +522,131 @@ export function getRelated(slug: string): BlogPost[] {
     .filter((p): p is BlogPost => Boolean(p));
 }
 
+// ── Suggested reading ────────────────────────────────────────────────────────
+// Used by the post-inquiry touchpoints (the form's success screen and the
+// confirmation email) to keep a fresh lead reading instead of bouncing. Chosen
+// by the destination country they picked on the form, because that is the only
+// thing we reliably know about them at that moment.
+
+/**
+ * Fallback set for destinations we have no cluster for — the pillar guide plus
+ * the two questions every first-time importer asks (what does it cost, and
+ * where should I buy from).
+ */
+const DEFAULT_SUGGESTED_SLUGS = [
+  "importing-cars-to-ireland",
+  "cost-to-import-a-car-from-japan",
+  "best-cars-to-import-from-japan",
+  "how-to-buy-a-car-at-japanese-auction",
+];
+
+/**
+ * Destination country (as spelled in the inquiry form's country list) → the
+ * guides most useful to someone importing there. Keys are normalised through
+ * `normaliseCountry` below, so casing and punctuation don't matter.
+ */
+const SUGGESTED_BY_DESTINATION: Record<string, string[]> = {
+  ireland: [
+    "importing-cars-to-ireland",
+    "cost-of-importing-a-car-to-ireland",
+    "vrt-explained-ireland",
+    "cheapest-cars-to-import-to-ireland",
+    "import-car-from-japan-or-uk-to-ireland",
+  ],
+  northernireland: [
+    "importing-cars-to-ireland",
+    "import-car-from-japan-or-uk-to-ireland",
+    "cost-to-import-a-car-from-the-uk",
+    "uk-car-history-checks-explained",
+  ],
+  srilanka: [
+    "importing-a-car-to-sri-lanka",
+    "sri-lanka-vehicle-import-taxes-explained",
+    "best-cars-to-import-to-sri-lanka",
+    "importing-hybrids-and-evs-to-sri-lanka",
+    "sri-lanka-car-import-documents-explained",
+  ],
+  // Importing *into* the UK — most of our UK-bound volume comes off the
+  // Japanese auction floor, so lead with that, then the Dubai alternative.
+  unitedkingdom: [
+    "how-to-buy-a-car-at-japanese-auction",
+    "cost-to-import-a-car-from-japan",
+    "japanese-auction-grades-explained",
+    "how-to-import-a-car-from-the-uae",
+  ],
+  india: [
+    "how-to-import-a-car-from-india",
+    "cost-to-import-a-car-from-india",
+    "best-cars-to-import-from-india",
+    "india-car-export-documents-explained",
+  ],
+  unitedarabemirates: [
+    "how-to-import-a-car-from-the-uae",
+    "cost-to-import-a-car-from-the-uae",
+    "gcc-spec-cars-explained",
+    "best-cars-to-import-from-dubai",
+  ],
+  australia: [
+    "how-to-import-a-car-from-australia",
+    "cost-to-import-a-car-from-australia",
+    "importing-a-ute-or-4x4-from-australia",
+    "best-cars-to-import-from-australia",
+  ],
+  newzealand: [
+    "how-to-import-a-car-from-new-zealand",
+    "cost-to-import-a-car-from-new-zealand",
+    "new-zealand-vs-japan-for-used-imports",
+    "importing-a-used-ev-from-new-zealand",
+  ],
+  thailand: [
+    "how-to-import-a-car-from-thailand",
+    "cost-to-import-a-car-from-thailand",
+    "best-pickups-to-import-from-thailand",
+    "thailand-vs-japan-for-pickup-imports",
+  ],
+  japan: [
+    "how-to-buy-a-car-at-japanese-auction",
+    "japanese-auction-grades-explained",
+    "cost-to-import-a-car-from-japan",
+    "japan-car-export-documents-explained",
+  ],
+};
+
+/** Lowercase and strip everything but letters, so "Sri Lanka" → "srilanka". */
+function normaliseCountry(country: string): string {
+  return (country || "").toLowerCase().replace(/[^a-z]/g, "");
+}
+
+/**
+ * Pick a handful of guides to put in front of a lead. Prefers the destination
+ * country's cluster, then tops up from the default set so the caller always
+ * gets `limit` posts back (deduped, and never more than we actually publish).
+ */
+export function getSuggestedPosts(options?: {
+  /** Destination country as captured on the inquiry form (`countryOfImport`). */
+  destinationCountry?: string;
+  limit?: number;
+}): BlogPost[] {
+  const limit = options?.limit ?? 3;
+  const keyed =
+    SUGGESTED_BY_DESTINATION[
+      normaliseCountry(options?.destinationCountry || "")
+    ] || [];
+
+  const seen = new Set<string>();
+  const picked: BlogPost[] = [];
+
+  for (const slug of [...keyed, ...DEFAULT_SUGGESTED_SLUGS]) {
+    if (picked.length >= limit) break;
+    if (!slug || seen.has(slug)) continue;
+    seen.add(slug);
+    const post = getPost(slug);
+    if (post) picked.push(post);
+  }
+
+  return picked;
+}
+
 export const CLUSTER_ORDER: BlogCluster[] = [
   "Guides",
   "Japan",

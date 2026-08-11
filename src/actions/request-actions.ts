@@ -3,6 +3,7 @@
 
 import crypto from "node:crypto";
 import { and, asc, desc, eq, inArray, ne } from "drizzle-orm";
+import { BLOG_BASE_PATH, getSuggestedPosts } from "@/config/blog";
 import { db, requests, users } from "@/db";
 import {
   computePreferredContactAt,
@@ -379,6 +380,7 @@ export async function submitContactPreferences(input: {
         contactTimeWindow: input.contactTimeWindow,
         contactTimezoneLabel:
           input.contactTimezoneLabel || input.contactTimezone,
+        destinationCountry: request.countryOfImport || undefined,
       }),
       emailService.sendStaffAlert(
         agent.email,
@@ -402,7 +404,25 @@ export async function submitContactPreferences(input: {
       ),
     ]);
 
-    return { success: true, message: "Preferences saved" };
+    // 5. Hand the success screen a few guides for their destination country so
+    //    the form doesn't dead-end. Mapped here rather than imported into the
+    //    form, which would drag the whole blog registry into the client bundle.
+    const suggestedGuides = getSuggestedPosts({
+      destinationCountry: request.countryOfImport || undefined,
+      limit: 3,
+    }).map((p) => ({
+      title: p.title,
+      excerpt: p.excerpt,
+      href: `${BLOG_BASE_PATH}/${p.slug}`,
+      readingTimeMins: p.readingTimeMins,
+    }));
+
+    return {
+      success: true,
+      message: "Preferences saved",
+      suggestedGuides,
+      destinationCountry: request.countryOfImport || "",
+    };
   } catch (error) {
     const err = error as Error;
     console.error("Contact Preferences Error:", err);
