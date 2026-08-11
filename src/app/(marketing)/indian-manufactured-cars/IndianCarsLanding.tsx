@@ -18,6 +18,7 @@ import Link from "next/link";
 import { Suspense, useMemo, useState } from "react";
 import FAQSection from "@/components/faqSection";
 import GalleryPreview from "@/components/GalleryPreview";
+import GlobalPartnersStrip from "@/components/GlobalPartnersStrip";
 import GradientMesh from "@/components/GradientMesh";
 import MinimalHeader from "@/components/MinimalHeader";
 import { Reveal } from "@/components/Reveal";
@@ -33,60 +34,57 @@ const BLOG_SLUG = "why-are-indian-manufactured-cars-cheaper";
 
 // India-built brands offered on this page. `make` must match a value in the
 // request form's CAR_MAKES list so the prefill lands on a valid option (Tata
-// and Mahindra were added there for this page). `image` is a representative
-// shot of that brand's best-known India-built model (Unsplash license — free
-// for commercial use, no attribution) served through the shared IMG helper.
-const IMG = (id: string) =>
-  `https://images.unsplash.com/photo-${id}?w=900&q=75&auto=format&fit=crop`;
-
-const BRANDS: { name: string; make: string; model: string; image: string }[] = [
+// and Mahindra were added there for this page). `logo` is the brand's own
+// mark rather than a vehicle photo — this page sells the badge, not one
+// model — and `desc` is a one-line positioning line, not a specific model.
+const BRANDS: { name: string; make: string; desc: string; logo: string }[] = [
   {
     name: "Suzuki",
     make: "Suzuki",
-    model: "Swift",
-    image: IMG("1663852397535-18292e115327"),
+    desc: "India's best-selling small-car maker",
+    logo: "/car_logo/suzuki logo.svg",
   },
   {
     name: "Toyota",
     make: "Toyota",
-    model: "Fortuner",
-    image: IMG("1742697167580-af91e3ead35e"),
+    desc: "Global reliability, built at Indian scale",
+    logo: "/car_logo/Toyota.png",
   },
   {
     name: "Kia",
     make: "Kia",
-    model: "Seltos",
-    image: IMG("1659406189166-7c17fe5df12a"),
+    desc: "Design-led SUVs, exported worldwide",
+    logo: "/car_logo/kia logo.svg",
   },
   {
     name: "Nissan",
     make: "Nissan",
-    model: "Magnite",
-    image: IMG("1761593280913-2d33f93f65d7"),
+    desc: "Compact SUVs engineered for export",
+    logo: "/car_logo/nissan logo.svg",
   },
   {
     name: "Hyundai",
     make: "Hyundai",
-    model: "Creta",
-    image: IMG("1748214547184-d994bfe53322"),
+    desc: "India's largest vehicle exporter",
+    logo: "/car_logo/hyundai logo.svg",
   },
   {
     name: "Honda",
     make: "Honda",
-    model: "City",
-    image: IMG("1609676671207-d021525a635d"),
+    desc: "Efficient, dependable, built to last",
+    logo: "/car_logo/honda logo.svg",
   },
   {
     name: "Mahindra",
     make: "Mahindra",
-    model: "Thar",
-    image: IMG("1710225358761-4f5891df657d"),
+    desc: "Tough, purpose-built 4x4s",
+    logo: "/car_logo/mahindra logo.svg",
   },
   {
     name: "Tata",
     make: "Tata",
-    model: "Nexon",
-    image: IMG("1685019718640-6e562edc365e"),
+    desc: "Five-star safety, homegrown engineering",
+    logo: "/car_logo/tata logo.svg",
   },
 ];
 
@@ -255,29 +253,27 @@ export default function IndianCarsLanding() {
                   type="button"
                   onClick={() => handleBrandSelect(brand)}
                   aria-label={`Enquire about an India-built ${brand.name}`}
-                  className="group relative w-full h-44 md:h-52 overflow-hidden rounded-[1.75rem] border border-black/10 bg-zinc-900 hover:border-black/40 hover:shadow-[0_24px_50px_rgba(0,0,0,0.18)] hover:-translate-y-1 transition-all duration-300 text-left"
+                  className="group relative flex w-full h-44 md:h-52 flex-col items-center justify-center overflow-hidden rounded-[1.75rem] border border-black/10 bg-white p-5 hover:border-black/25 hover:shadow-[0_24px_50px_rgba(0,0,0,0.08)] hover:-translate-y-1 transition-all duration-300 text-center md:p-6"
                 >
-                  <img
-                    src={brand.image}
-                    alt={`${brand.name} ${brand.model} — India-built car`}
-                    loading="lazy"
-                    className="absolute inset-0 w-full h-full object-cover opacity-90 group-hover:opacity-100 group-hover:scale-105 transition-all duration-500 ease-out"
-                  />
-                  {/* Legibility gradient behind the label */}
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/20 to-transparent" />
-                  <div className="absolute inset-x-0 bottom-0 p-4 flex items-end justify-between gap-2">
-                    <span className="flex flex-col leading-tight">
-                      <span className="text-white text-base md:text-lg font-bold tracking-tight drop-shadow-sm">
-                        {brand.name}
-                      </span>
-                      <span className="text-white/70 text-xs font-medium drop-shadow-sm">
-                        {brand.model}
-                      </span>
+                  <div className="flex flex-1 w-full items-center justify-center">
+                    <img
+                      src={brand.logo}
+                      alt={`${brand.name} logo`}
+                      loading="lazy"
+                      className="max-h-12 md:max-h-14 max-w-[70%] object-contain transition-transform duration-500 ease-out group-hover:scale-105"
+                    />
+                  </div>
+                  <div className="mt-3 w-full">
+                    <span className="block text-black text-base md:text-lg font-bold tracking-tight">
+                      {brand.name}
                     </span>
-                    <span className="shrink-0 w-8 h-8 rounded-full bg-white/15 border border-white/30 backdrop-blur-sm flex items-center justify-center opacity-0 -translate-x-1 group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-300">
-                      <ArrowRight size={15} className="text-white" />
+                    <span className="mt-1 block text-zinc-500 text-xs font-medium">
+                      {brand.desc}
                     </span>
                   </div>
+                  <span className="absolute top-4 right-4 w-8 h-8 rounded-full bg-black/[0.04] border border-black/10 flex items-center justify-center opacity-0 -translate-y-1 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-300">
+                    <ArrowRight size={15} className="text-black" />
+                  </span>
                 </button>
               </Reveal>
             ))}
@@ -658,6 +654,11 @@ export default function IndianCarsLanding() {
             </div>
           </Reveal>
         </div>
+      </section>
+
+      {/* ── PARTNERS / AFFILIATES ────────────────────── */}
+      <section className="py-24 md:py-32 px-6 bg-white">
+        <GlobalPartnersStrip className="mt-0" />
       </section>
 
       <style jsx global>{`

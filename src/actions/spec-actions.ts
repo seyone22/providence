@@ -424,3 +424,56 @@ export async function getSpecDossiersByTags(tags: string[]) {
     };
   }
 }
+
+/**
+ * GET GALLERY PREVIEW CARS
+ * Lean read for the horizontally-scrolling preview strips (home page, campaign
+ * landings) — these only ever render a handful of cards, so this selects just
+ * the columns a card needs, filters and limits in SQL, and skips the heavy
+ * JSONB fields (customData/valuePoints/notes/features/etc.) that
+ * getAllSpecDossiers/getSpecDossiersByTags return for admin and detail views.
+ * That was the source of the strip's slow first paint: those two actions
+ * pulled every column for every dossier (getAllSpecDossiers didn't even
+ * filter by status in SQL — it fetched everything and filtered client-side)
+ * before the component discarded all but 12 of them.
+ */
+export async function getGalleryPreviewCars(tags?: string[], limit = 12) {
+  const actionName = "[getGalleryPreviewCars]";
+  try {
+    const conditions = [eq(specDossiers.status, "Active")];
+    if (tags && tags.length > 0) {
+      const normalizedTags = tags.map((t) => t.toLowerCase());
+      conditions.push(
+        sql`${specDossiers.searchTags} && ${normalizedTags}::text[]`,
+      );
+    }
+
+    const dossiers = await db.query.specDossiers.findMany({
+      columns: {
+        id: true,
+        make: true,
+        model: true,
+        year: true,
+        slug: true,
+        heroImageUrl: true,
+        images: true,
+        pricing: true,
+      },
+      where: and(...conditions),
+      orderBy: desc(specDossiers.createdAt),
+      limit,
+    });
+
+    return {
+      success: true,
+      data: dossiers.map((d) => ({ ...d, _id: d.id })),
+    };
+  } catch (error) {
+    console.error(`${actionName} Error:`, error);
+    return {
+      success: false,
+      message: "Error fetching preview cars.",
+      data: [],
+    };
+  }
+}

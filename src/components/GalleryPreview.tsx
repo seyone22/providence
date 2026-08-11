@@ -3,10 +3,7 @@
 import { ArrowRight, ImageOff, Images } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import {
-  getAllSpecDossiers,
-  getSpecDossiersByTags,
-} from "@/actions/spec-actions";
+import { getGalleryPreviewCars } from "@/actions/spec-actions";
 import { Reveal } from "@/components/Reveal";
 import {
   formatLeadPrice,
@@ -50,27 +47,15 @@ export default function GalleryPreview({
   const [cars, setCars] = useState<PreviewCar[]>([]);
   const [loading, setLoading] = useState(true);
 
-  // Serialise the tags so the effect only re-runs when the values change,
-  // not on every render (a fresh array literal has a new identity each time).
-  const _tagKey = tags ? tags.join(",") : "";
-
   useEffect(() => {
     let active = true;
-    // Tag-filtered pages use the dedicated action (which already scopes to
-    // Active dossiers); the untagged home preview pulls the whole catalogue
-    // and filters client-side.
-    const request =
-      tags && tags.length > 0
-        ? getSpecDossiersByTags(tags)
-        : getAllSpecDossiers();
-
-    request
+    // Lean, purpose-built read: filters to Active and caps at 12 in SQL, and
+    // only selects the columns a preview card renders — see
+    // getGalleryPreviewCars for why that matters.
+    getGalleryPreviewCars(tags, 12)
       .then((res) => {
         if (!active) return;
-        const data = (res.success ? res.data : []) as PreviewCar[];
-        // Pool cap only — how many are *visible* is driven by viewport
-        // width via the responsive card widths + horizontal scroll.
-        setCars(data.filter((c) => c.status === "Active").slice(0, 12));
+        setCars(res.success ? (res.data as PreviewCar[]) : []);
         setLoading(false);
       })
       .catch(() => {
@@ -115,8 +100,13 @@ export default function GalleryPreview({
         </div>
       </Reveal>
 
-      {/* Horizontally scrollable strip */}
-      <div className="flex gap-5 overflow-x-auto pb-6 -mx-4 px-4 sm:-mx-6 sm:px-6 snap-x snap-mandatory hide-scrollbar">
+      {/* Horizontally scrollable strip. snap-proximity (not snap-mandatory)
+          because mandatory snapping fights free-scrolling trackpad/wheel
+          gestures — the strip visibly stutters as it forces a hard stop at
+          every card. Proximity still aligns cards once you stop near one.
+          overscroll-x-contain stops the gesture from bubbling into page
+          scroll once the strip hits its end. */}
+      <div className="flex gap-5 overflow-x-auto overscroll-x-contain pb-6 -mx-4 px-4 sm:-mx-6 sm:px-6 snap-x snap-proximity hide-scrollbar">
         {loading
           ? ["s1", "s2", "s3", "s4"].map((sk) => (
               <div

@@ -12,6 +12,7 @@ import {
 import { Suspense, useMemo, useState } from "react";
 import FAQSection from "@/components/faqSection";
 import GalleryPreview from "@/components/GalleryPreview";
+import GlobalPartnersStrip from "@/components/GlobalPartnersStrip";
 import GradientMesh from "@/components/GradientMesh";
 import MinimalHeader from "@/components/MinimalHeader";
 import { Reveal } from "@/components/Reveal";
@@ -75,21 +76,16 @@ const BRANDS: { name: string; make: string; image: string }[] = [
     make: "Mercedes-Benz",
     image: IMG("1623013438264-d176fb91ee99"),
   },
-  { name: "BMW", make: "BMW", image: IMG("1616591938558-fb03d845567b") },
-  { name: "Audi", make: "Audi", image: IMG("1561924563-d9ad0f32b23f") },
   {
     name: "Maserati",
     make: "Maserati",
     image: IMG("1593055368921-0c6b357303ef"),
   },
-  { name: "Lexus", make: "Lexus", image: IMG("1669691101370-9ee9ee0782dc") },
   {
-    name: "Genesis",
-    make: "Genesis",
-    image: IMG("1709085582795-4aca78fd76a2"),
+    name: "Cadillac",
+    make: "Cadillac",
+    image: IMG("1735620731955-b047a7122892"),
   },
-  { name: "Lucid", make: "Lucid", image: IMG("1666846865276-a997a6ada2c3") },
-  { name: "Lotus", make: "Lotus", image: IMG("1710161710139-753660a07ed6") },
 ];
 
 export default function LhdLuxuryLanding() {
@@ -525,6 +521,11 @@ export default function LhdLuxuryLanding() {
             </div>
           </Reveal>
         </div>
+      </section>
+
+      {/* ── PARTNERS / AFFILIATES ────────────────────── */}
+      <section className="py-24 md:py-32 px-6 bg-white">
+        <GlobalPartnersStrip className="mt-0" />
       </section>
 
       <style jsx global>{`

@@ -9,11 +9,11 @@ export default function Footer() {
   // it only lets it paint over `fixed` chrome (e.g. the admin sidebar).
   return (
     <footer className="w-full border-t border-white/5 bg-black pt-16 pb-8 relative">
-      <div className="max-w-7xl mx-auto px-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-12 md:gap-8 mb-16">
-        {/* Left Column: Logo & Brand */}
-        <div className="flex flex-col justify-start">
+      <div className="max-w-7xl mx-auto px-6 grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-6 gap-x-8 gap-y-12 mb-16">
+        {/* Brand */}
+        <div className="flex flex-col justify-start col-span-2 sm:col-span-1">
           <Link
-            href="/public"
+            href="/"
             className="inline-flex items-center gap-3 opacity-80 hover:opacity-100 transition-opacity"
           >
             <div>
@@ -31,9 +31,139 @@ export default function Footer() {
               AUTO
             </div>
           </Link>
+          <p className="mt-4 text-sm font-light text-zinc-500 max-w-[22ch]">
+            A global vehicle sourcing group with our own people in eight
+            countries.
+          </p>
         </div>
 
-        {/* Middle Column: Contact Details */}
+        {/* Company: the marketing paths in and the account entry points */}
+        <div className="flex flex-col gap-4">
+          <h4 className="text-[10px] font-bold tracking-[0.2em] uppercase text-zinc-500">
+            Company
+          </h4>
+          <nav className="flex flex-col gap-2.5 text-sm font-light text-zinc-400">
+            <Link href="/b2c" className="hover:text-white transition-colors">
+              For Direct Buyers
+            </Link>
+            <Link href="/b2b" className="hover:text-white transition-colors">
+              For Dealerships
+            </Link>
+            <Link href="/saas" className="hover:text-white transition-colors">
+              Dealer Platform
+            </Link>
+            <Link href="/signup" className="hover:text-white transition-colors">
+              Partner Sign Up
+            </Link>
+            <Link
+              href="/request"
+              className="hover:text-white transition-colors"
+            >
+              Request a Car
+            </Link>
+          </nav>
+        </div>
+
+        {/* Campaigns: the dedicated landing pages, otherwise unreachable from nav */}
+        <div className="flex flex-col gap-4">
+          <h4 className="text-[10px] font-bold tracking-[0.2em] uppercase text-zinc-500">
+            Campaigns
+          </h4>
+          <nav className="flex flex-col gap-2.5 text-sm font-light text-zinc-400">
+            <Link
+              href="/import-japanese-cars"
+              className="hover:text-white transition-colors"
+            >
+              Import Japanese Cars
+            </Link>
+            <Link
+              href="/japanese-luxury-cars-lhd"
+              className="hover:text-white transition-colors"
+            >
+              LHD Japanese Luxury
+            </Link>
+            <Link
+              href="/indian-manufactured-cars"
+              className="hover:text-white transition-colors"
+            >
+              Indian-Manufactured Cars
+            </Link>
+            <Link
+              href="/import-japanese-cars-to-ireland"
+              className="hover:text-white transition-colors"
+            >
+              Japan to Ireland
+            </Link>
+            <Link
+              href="/b2c/gallery"
+              className="hover:text-white transition-colors"
+            >
+              Gallery
+            </Link>
+          </nav>
+        </div>
+
+        {/* Offices Column: the physical network, one link per source country */}
+        <div className="flex flex-col gap-4">
+          <h4 className="text-[10px] font-bold tracking-[0.2em] uppercase text-zinc-500">
+            Global Offices
+          </h4>
+          <nav className="flex flex-col gap-2.5 text-sm font-light text-zinc-400">
+            {COUNTRY_PAGES.map((country) => (
+              <Link
+                key={country.slug}
+                href={`${COUNTRY_BASE_PATH}/${country.slug}`}
+                className="hover:text-white transition-colors"
+              >
+                {country.shortName}
+              </Link>
+            ))}
+            <Link
+              href={COUNTRY_BASE_PATH}
+              className="text-zinc-300 hover:text-white transition-colors"
+            >
+              The whole network &rarr;
+            </Link>
+          </nav>
+        </div>
+
+        {/* Guides Column: internal links to the import content cluster */}
+        <div className="flex flex-col gap-4">
+          <h4 className="text-[10px] font-bold tracking-[0.2em] uppercase text-zinc-500">
+            Import Guides
+          </h4>
+          <nav className="flex flex-col gap-2.5 text-sm font-light text-zinc-400">
+            <Link href="/blog" className="hover:text-white transition-colors">
+              All import guides
+            </Link>
+            <Link
+              href="/blog/cheapest-cars-to-import-to-ireland"
+              className="hover:text-white transition-colors"
+            >
+              Cheapest cars to import to Ireland
+            </Link>
+            <Link
+              href="/blog/cost-of-importing-a-car-to-ireland"
+              className="hover:text-white transition-colors"
+            >
+              Cost of importing a car to Ireland
+            </Link>
+            <Link
+              href="/blog/vrt-explained-ireland"
+              className="hover:text-white transition-colors"
+            >
+              VRT explained
+            </Link>
+            <Link
+              href="/ireland-cost-calculator"
+              className="hover:text-white transition-colors"
+            >
+              Import cost calculator
+            </Link>
+          </nav>
+        </div>
+
+        {/* Contact: head office details + social */}
         <div className="flex flex-col gap-4">
           <h4 className="text-[10px] font-bold tracking-[0.2em] uppercase text-zinc-500">
             Group Head Office
@@ -57,15 +187,8 @@ export default function Footer() {
               info@providenceauto.uk.com
             </a>
           </address>
-        </div>
 
-        {/* Right Column: Connect */}
-        <div className="flex flex-col gap-4">
-          <h4 className="text-[10px] font-bold tracking-[0.2em] uppercase text-zinc-500">
-            Connect
-          </h4>
-
-          <div className="flex flex-col gap-3">
+          <div className="flex flex-col gap-3 mt-2">
             {/* WhatsApp */}
             <a
               href="https://wa.me/442080043000"
@@ -107,90 +230,29 @@ export default function Footer() {
             </a>
           </div>
         </div>
-
-        {/* Offices Column: the physical network, one link per source country */}
-        <div className="flex flex-col gap-4">
-          <h4 className="text-[10px] font-bold tracking-[0.2em] uppercase text-zinc-500">
-            Global Offices
-          </h4>
-          <nav className="flex flex-col gap-2.5 text-sm font-light text-zinc-400">
-            {COUNTRY_PAGES.map((country) => (
-              <Link
-                key={country.slug}
-                href={`${COUNTRY_BASE_PATH}/${country.slug}`}
-                className="hover:text-white transition-colors"
-              >
-                {country.shortName}
-              </Link>
-            ))}
-            <Link
-              href={COUNTRY_BASE_PATH}
-              className="text-zinc-300 hover:text-white transition-colors"
-            >
-              The whole network &rarr;
-            </Link>
-          </nav>
-        </div>
-
-        {/* Guides Column: internal links to the import content cluster */}
-        <div className="flex flex-col gap-4">
-          <h4 className="text-[10px] font-bold tracking-[0.2em] uppercase text-zinc-500">
-            Import Guides
-          </h4>
-          <nav className="flex flex-col gap-2.5 text-sm font-light text-zinc-400">
-            <Link
-              href="/b2c/gallery"
-              className="hover:text-white transition-colors"
-            >
-              Gallery
-            </Link>
-            <Link href="/blog" className="hover:text-white transition-colors">
-              All import guides
-            </Link>
-            <Link
-              href="/blog/cheapest-cars-to-import-to-ireland"
-              className="hover:text-white transition-colors"
-            >
-              Cheapest cars to import to Ireland
-            </Link>
-            <Link
-              href="/blog/cost-of-importing-a-car-to-ireland"
-              className="hover:text-white transition-colors"
-            >
-              Cost of importing a car to Ireland
-            </Link>
-            <Link
-              href="/blog/vrt-explained-ireland"
-              className="hover:text-white transition-colors"
-            >
-              VRT explained
-            </Link>
-            <Link
-              href="/ireland-cost-calculator"
-              className="hover:text-white transition-colors"
-            >
-              Import cost calculator
-            </Link>
-          </nav>
-        </div>
       </div>
 
-      {/* Bottom Bar: Copyright & Credits */}
-      <div className="max-w-7xl mx-auto px-6 border-t border-white/10 pt-6 flex flex-col md:flex-row justify-between items-center gap-4 text-xs font-light text-zinc-500 tracking-wide">
-        {/* Copyright */}
-        <div>&copy; {currentYear} Providence Auto. All rights reserved.</div>
+      {/* Bottom Bar: Legal line, Copyright & Credits */}
+      <div className="max-w-7xl mx-auto px-6 border-t border-white/10 pt-6">
+        <p className="text-center md:text-left text-[11px] font-light text-zinc-600 mb-4">
+          Providence Auto is the trading name of Providence Trading Limited.
+        </p>
+        <div className="flex flex-col md:flex-row justify-between items-center gap-4 text-xs font-light text-zinc-500 tracking-wide">
+          {/* Copyright */}
+          <div>&copy; {currentYear} Providence Auto. All rights reserved.</div>
 
-        {/* Built By Credit */}
-        <div>
-          Built by{" "}
-          <a
-            href="https://github.com/seyone22"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="text-zinc-300 hover:text-white transition-colors underline decoration-white/20 hover:decoration-white/60 underline-offset-4"
-          >
-            Seyone Gunasingham
-          </a>
+          {/* Built By Credit */}
+          <div>
+            Built by{" "}
+            <a
+              href="https://github.com/seyone22"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-zinc-300 hover:text-white transition-colors underline decoration-white/20 hover:decoration-white/60 underline-offset-4"
+            >
+              Seyone Gunasingham
+            </a>
+          </div>
         </div>
       </div>
     </footer>
