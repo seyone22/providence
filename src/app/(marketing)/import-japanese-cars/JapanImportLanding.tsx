@@ -7,14 +7,17 @@ import {
   CalendarClock,
   Gauge,
   Globe2,
-  MapPin,
   Play,
   Plus,
   ShieldCheck,
   Star,
 } from "lucide-react";
-import Link from "next/link";
 import { Suspense, useMemo, useState } from "react";
+import {
+  type Destination,
+  DestinationChips,
+  DestinationPanel,
+} from "@/components/DestinationPicker";
 import FAQSection from "@/components/faqSection";
 import GalleryPreview from "@/components/GalleryPreview";
 import GlobalPartnersStrip from "@/components/GlobalPartnersStrip";
@@ -254,21 +257,11 @@ const MODEL_GROUPS: ModelGroup[] = [
 ];
 
 // ── Destination content ──────────────────────────────────────────────────────
-// One entry per country button. `formCountry` must match a `n` value in the
-// request form's COUNTRIES list so the countryOfImport prefill selects a valid
-// option (and auto-syncs the phone country code). `readMoreHref` points at the
-// dedicated per-country guide — Ireland's is live; the rest are planned pages.
-type Destination = {
-  key: string;
-  label: string;
-  formCountry: string | null;
-  headline: string;
-  body: string;
-  facts: { icon: any; label: string }[];
-  popular: string;
-  readMoreHref: string | null;
-};
-
+// One entry per country button. The UI lives in @/components/DestinationPicker
+// (shared with the India page); only the copy is page-specific, because the
+// duty and origin rules below are written for a Japan-built car.
+// `readMoreHref` points at the dedicated per-country guide — Ireland's is live;
+// the rest are planned pages.
 const DESTINATIONS: Destination[] = [
   {
     key: "uk",
@@ -483,26 +476,11 @@ export default function JapanImportLanding() {
 
           {/* Country selector — drives the destination panel + form prefill */}
           <Reveal immediate y={20} delay={0.55} duration={0.8}>
-            <p className="pa-text-scrim text-xs font-bold tracking-[0.25em] text-zinc-600 uppercase mb-4">
-              Where are we landing it?
-            </p>
-            <div className="flex flex-wrap justify-center gap-2 md:gap-3 max-w-3xl">
-              {DESTINATIONS.map((dest) => (
-                <button
-                  key={dest.key}
-                  type="button"
-                  aria-pressed={destination?.key === dest.key}
-                  onClick={() => handleDestinationSelect(dest)}
-                  className={`px-5 py-2.5 rounded-full text-sm font-bold border transition-all duration-300 backdrop-blur-sm ${
-                    destination?.key === dest.key
-                      ? "bg-black text-white border-black shadow-[0_10px_30px_rgba(0,0,0,0.2)]"
-                      : "bg-white/80 text-black border-black/15 hover:border-black/40 hover:-translate-y-0.5"
-                  }`}
-                >
-                  {dest.label}
-                </button>
-              ))}
-            </div>
+            <DestinationChips
+              destinations={DESTINATIONS}
+              selected={destination}
+              onSelect={handleDestinationSelect}
+            />
           </Reveal>
 
           <Reveal
@@ -529,100 +507,11 @@ export default function JapanImportLanding() {
       </section>
 
       {/* ── DESTINATION PANEL ────────────────────────── */}
-      <section
-        id="destination"
-        className="px-6 bg-white relative z-10 border-t border-black/5 scroll-mt-24"
-      >
-        <div className="max-w-[1100px] mx-auto py-16 md:py-20">
-          <AnimatePresence mode="wait">
-            {destination ? (
-              <motion.div
-                key={destination.key}
-                initial={{ opacity: 0, y: 16 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -8 }}
-                transition={{ duration: 0.35 }}
-                className="rounded-[2.5rem] border border-black/8 bg-white shadow-[0_20px_50px_rgba(0,0,0,0.06)] p-8 md:p-12"
-              >
-                <div className="flex items-center gap-2 mb-4 text-zinc-500">
-                  <MapPin size={16} className="text-black" />
-                  <span className="text-xs font-bold tracking-[0.25em] uppercase">
-                    Importing to {destination.label}
-                  </span>
-                </div>
-                <h2 className="text-3xl md:text-5xl font-bold tracking-tighter text-black mb-5">
-                  {destination.headline}
-                </h2>
-                <p className="text-lg text-zinc-500 font-light leading-relaxed mb-8 max-w-3xl">
-                  {destination.body}
-                </p>
-
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-8">
-                  {destination.facts.map((fact) => (
-                    <div
-                      key={fact.label}
-                      className="flex items-center gap-3 px-5 py-3.5 rounded-2xl bg-zinc-50 border border-black/5 text-sm font-medium text-zinc-700"
-                    >
-                      <fact.icon size={17} className="text-black shrink-0" />
-                      {fact.label}
-                    </div>
-                  ))}
-                </div>
-
-                <p className="text-sm font-medium text-zinc-400 mb-8">
-                  {destination.popular}
-                </p>
-
-                <div className="flex flex-wrap items-center gap-4">
-                  <a
-                    href="#inquiry"
-                    className="inline-flex items-center gap-2 px-8 py-4 rounded-full bg-black text-white font-bold hover:scale-105 transition-transform"
-                  >
-                    Start your {destination.label} inquiry
-                    <ArrowRight size={17} />
-                  </a>
-                  {destination.readMoreHref && (
-                    <Link
-                      href={destination.readMoreHref}
-                      className="inline-flex items-center gap-2 px-8 py-4 rounded-full border border-black/20 font-medium hover:bg-black hover:text-white transition-colors duration-300"
-                    >
-                      Read more about importing a car to {destination.label}
-                      <ArrowRight size={17} />
-                    </Link>
-                  )}
-                </div>
-              </motion.div>
-            ) : (
-              <motion.div
-                key="unselected"
-                initial={{ opacity: 0, y: 16 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -8 }}
-                transition={{ duration: 0.35 }}
-                className="rounded-[2.5rem] border border-dashed border-black/15 bg-zinc-50/60 p-10 md:p-14 text-center"
-              >
-                <Globe2 size={28} className="mx-auto mb-4 text-zinc-400" />
-                <h2 className="text-2xl md:text-4xl font-bold tracking-tighter text-black mb-3">
-                  We buy cars at Japanese auction and deliver them, fully
-                  cleared, to your country.
-                </h2>
-                <p className="text-lg text-zinc-500 font-light max-w-3xl mx-auto">
-                  Providence Auto bids on your behalf at Japan's wholesale
-                  vehicle auctions, where more than 100,000 independently graded
-                  cars are sold every week at prices no retail forecourt can
-                  match. You tell us the model and specification you want. We
-                  find it, send you the original auction sheet and our own
-                  inspection findings before we bid, and quote one landed price
-                  that already includes the car, shipping, marine insurance,
-                  duty, VAT or GST and local registration. Choose your
-                  destination above and we will show you exactly how the rules,
-                  taxes and timeline work for your country.
-                </p>
-              </motion.div>
-            )}
-          </AnimatePresence>
-        </div>
-      </section>
+      <DestinationPanel
+        destination={destination}
+        emptyHeadline="We buy cars at Japanese auction and deliver them, fully cleared, to your country."
+        emptyBody="Providence Auto bids on your behalf at Japan's wholesale vehicle auctions, where more than 100,000 independently graded cars are sold every week at prices no retail forecourt can match. You tell us the model and specification you want. We find it, send you the original auction sheet and our own inspection findings before we bid, and quote one landed price that already includes the car, shipping, marine insurance, duty, VAT or GST and local registration. Choose your destination above and we will show you exactly how the rules, taxes and timeline work for your country."
+      />
 
       {/* ── MODEL CARDS, BY CATEGORY ─────────────────── */}
       <section
@@ -852,7 +741,7 @@ export default function JapanImportLanding() {
           >
             <img
               src={config.valueProps.containerImage}
-              alt="Providence Auto global logistics for Japanese car imports"
+              alt="A Mercedes-Benz G-Class loaded onto a transporter — Providence Auto global logistics for Japanese car imports"
               className="w-full h-full object-cover"
             />
           </Reveal>

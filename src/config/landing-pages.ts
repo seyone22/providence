@@ -85,7 +85,7 @@ export const lhdCampaignConfig: LandingPageConfig = {
   },
   valueProps: {
     title: "Why Import From Providence Auto",
-    containerImage: "/gallery_image.jpg",
+    containerImage: "/import-cars/japan-car-truck.jpeg",
     features: [
       {
         icon: FileSearch,
@@ -231,7 +231,7 @@ export const japanImportCampaignConfig: LandingPageConfig = {
   },
   valueProps: {
     title: "Why Import From Providence Auto",
-    containerImage: "/gallery_image.jpg",
+    containerImage: "/import-cars/japan-car-truck.jpeg",
     features: [
       {
         icon: FileSearch,

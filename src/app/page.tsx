@@ -8,6 +8,7 @@ import GlobalPartnersStrip from "@/components/GlobalPartnersStrip";
 import GradientMesh from "@/components/GradientMesh";
 import MinimalHeader from "@/components/MinimalHeader";
 import { appleEase, Reveal } from "@/components/Reveal";
+import WhatsAppCTA from "@/components/WhatsAppCTA";
 
 const brandLogos = [
   { src: "audi logo.png", alt: "Audi Logo" },
@@ -464,6 +465,9 @@ export default function Home() {
 
             {/* PARTNERS/AFFILIATES SECTION */}
             <GlobalPartnersStrip />
+
+            {/* GENERAL ENQUIRIES — WhatsApp */}
+            <WhatsAppCTA />
           </div>
         </section>
       </div>

@@ -335,7 +335,7 @@ export default function LhdLuxuryLanding() {
           >
             <img
               src={config.valueProps.containerImage}
-              alt="Providence Auto global logistics for left-hand drive luxury imports"
+              alt="A Mercedes-Benz G-Class loaded onto a transporter — Providence Auto global logistics for left-hand drive luxury imports"
               className="w-full h-full object-cover"
             />
           </Reveal>
