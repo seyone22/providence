@@ -2,12 +2,13 @@
 
 import { motion } from "framer-motion";
 import { ArrowRight, Building, Globe, Ship, User } from "lucide-react";
-import Image from "next/image";
 import Link from "next/link";
 import GalleryPreview from "@/components/GalleryPreview";
+import GlobalPartnersStrip from "@/components/GlobalPartnersStrip";
 import GradientMesh from "@/components/GradientMesh";
 import MinimalHeader from "@/components/MinimalHeader";
 import { appleEase, Reveal } from "@/components/Reveal";
+import WhatsAppCTA from "@/components/WhatsAppCTA";
 
 const brandLogos = [
   { src: "audi logo.png", alt: "Audi Logo" },
@@ -231,10 +232,25 @@ export default function Home() {
                   largest borderless showroom. Whether you are a car enthusiast
                   looking for your dream car or a dealership wanting to scale
                   up, we provide the exact vehicle you desire. We source
-                  vehicles from the most tax-efficient markets on earth and
-                  deliver them right to your country with zero logistical
+                  vehicles from the most tax-efficient markets on earth — with
+                  our own offices and operations teams in{" "}
+                  <span className="text-black font-medium">
+                    the UK, Japan, the UAE, India, Thailand, Australia, New
+                    Zealand and Sri Lanka
+                  </span>{" "}
+                  — and deliver them right to your country with zero logistical
                   friction.
                 </p>
+                <Link
+                  href="/source-cars-from"
+                  className="group mt-8 inline-flex items-center gap-2 text-base sm:text-lg font-medium text-black underline decoration-1 underline-offset-4 hover:decoration-2"
+                >
+                  Meet the eight offices behind every car
+                  <ArrowRight
+                    size={18}
+                    className="group-hover:translate-x-1 transition-transform"
+                  />
+                </Link>
               </Reveal>
             </section>
 
@@ -320,7 +336,7 @@ export default function Home() {
                     icon: (
                       <Globe className="text-sky-500 h-7 w-7 md:h-8 md:w-8 group-hover:text-white transition-colors duration-500" />
                     ),
-                    desc: "We search 40+ global markets to find your exact spec at the most tax-efficient price. Currency, supply, and timing all factored in. You approve the quote. We handle everything from there.",
+                    desc: "We search 40+ global markets to find your exact spec at the most tax-efficient price, buying through our own offices in eight of them. Currency, supply, and timing all factored in. You approve the quote. We handle everything from there.",
                   },
                   {
                     step: "",
@@ -448,35 +464,10 @@ export default function Home() {
             <GalleryPreview />
 
             {/* PARTNERS/AFFILIATES SECTION */}
-            <Reveal
-              y={30}
-              duration={1}
-              className="mt-24 md:mt-32 max-w-5xl mx-auto w-full text-center"
-            >
-              <p className="text-[10px] md:text-xs font-bold tracking-[0.25em] md:tracking-[0.3em] text-zinc-400 uppercase mb-8 md:mb-10 drop-shadow-sm">
-                Trusted by our global partners
-              </p>
+            <GlobalPartnersStrip />
 
-              <div className="flex flex-nowrap justify-center items-center gap-3 sm:gap-6 md:gap-10 lg:gap-16 w-full">
-                {[1, 2, 3, 4, 5, 6, 7].map((num, index) => (
-                  <Reveal
-                    key={num}
-                    y={0}
-                    scale={0.95}
-                    delay={index * 0.1}
-                    duration={0.8}
-                    className="relative shrink h-6 w-12 sm:h-8 sm:w-16 md:h-12 md:w-24 lg:h-16 lg:w-32 opacity-40 grayscale hover:grayscale-0 hover:opacity-100 hover:scale-105 transition-all duration-500 cursor-pointer"
-                  >
-                    <Image
-                      src={`/affiliate/${num}.png`}
-                      alt={`Global Partner ${num}`}
-                      fill
-                      className="object-contain"
-                    />
-                  </Reveal>
-                ))}
-              </div>
-            </Reveal>
+            {/* GENERAL ENQUIRIES — WhatsApp */}
+            <WhatsAppCTA />
           </div>
         </section>
       </div>

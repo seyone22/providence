@@ -8,6 +8,8 @@ import {
   Section,
   Text,
 } from "@react-email/components";
+import { GENERAL_WHATSAPP_NUMBER, whatsappLink } from "@/config/contact";
+import { BlogSuggestionsSection, type EmailBlogPost } from "./blog-suggestions";
 import EmailLayout from "./layout";
 
 interface CustomerConfirmationEmailProps {
@@ -16,6 +18,12 @@ interface CustomerConfirmationEmailProps {
   model: string;
   requestId: string;
   staffName: string;
+  /** The assigned rep's profile picture; falls back to the Providence logo. */
+  staffImage?: string | null;
+  /** Guides picked for this lead's destination country. Optional — omit to hide. */
+  suggestedPosts?: EmailBlogPost[];
+  /** Where the car is going — used to frame the suggested reading. */
+  destinationCountry?: string;
 }
 
 export const CustomerConfirmationEmail = ({
@@ -24,6 +32,9 @@ export const CustomerConfirmationEmail = ({
   model,
   requestId,
   staffName,
+  staffImage,
+  suggestedPosts = [],
+  destinationCountry,
 }: CustomerConfirmationEmailProps) => {
   // Tracking URL still uses the requestId, but the text is different
   const trackingUrl = `${process.env.NEXT_PUBLIC_BASE_URL}/track/${requestId}`;
@@ -32,6 +43,7 @@ export const CustomerConfirmationEmail = ({
     <EmailLayout
       preview={`We've received your inquiry for the ${make} ${model}.`} // Updated preview
       heading="We've Received Your Inquiry!" // Updated heading to match image
+      profile={{ name: staffName, image: staffImage }}
     >
       <Container style={mainBodyStyle}>
         <Text style={textStyle}>Hello {userName},</Text>
@@ -87,6 +99,15 @@ export const CustomerConfirmationEmail = ({
           <br />
           The Providence Auto Team
         </Text>
+
+        <BlogSuggestionsSection
+          posts={suggestedPosts}
+          intro={
+            destinationCountry
+              ? `While you wait, these guides cover most of what comes up when importing into ${destinationCountry} — costs, taxes and the paperwork that actually matters.`
+              : "While you wait, these guides cover most of what comes up when importing — costs, taxes and the paperwork that actually matters."
+          }
+        />
       </Container>
 
       {/* Added entire footer section to match the detailed footer in the image */}
@@ -114,6 +135,17 @@ export const CustomerConfirmationEmail = ({
           </Text>
           <Text style={footerDetailTextStyle}>
             Company Number: +44 208 004 3000
+          </Text>
+          <Text style={footerDetailTextStyle}>
+            WhatsApp:{" "}
+            <Link
+              href={whatsappLink(
+                "Hi Providence Auto, I'd like to ask about importing a car.",
+              )}
+              style={footerLinkStyle}
+            >
+              {GENERAL_WHATSAPP_NUMBER}
+            </Link>
           </Text>
           <Text style={footerCopyrightTextStyle}>© Providence Auto.</Text>
         </Container>

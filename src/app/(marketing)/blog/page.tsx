@@ -14,20 +14,21 @@ import {
 const SITE = "https://www.providenceauto.co.uk";
 const PATH = "/blog";
 const TITLE =
-  "Importing a Car to Ireland: Guides on Cost, Tax & the Cheapest Cars";
+  "Car Import Guides — Japan, the UK, the UAE, India, Thailand & More";
 const DESCRIPTION =
-  "Practical guides to importing a car to Ireland in 2026 — what it costs, the cheapest cars and the cheapest way to import, VRT explained, and whether to buy from Japan or the UK.";
+  "Practical guides to importing a car from every country we source in — how each market works, what the paperwork proves, what it really costs to land, and the questions dealers and direct buyers ask us most.";
 
 export const metadata: Metadata = {
   title: { absolute: TITLE },
   description: DESCRIPTION,
   keywords: [
+    "car import guides",
+    "how to import a car from japan",
+    "how to import a car from the uk",
+    "import a car from dubai",
+    "cost to import a car",
+    "car export documents explained",
     "import cars to ireland",
-    "importing a car to ireland",
-    "cheapest cars to import to ireland",
-    "cheapest way to import a car to ireland",
-    "cost of importing a car to ireland",
-    "vrt ireland",
   ],
   alternates: { canonical: PATH },
   openGraph: {
@@ -109,7 +110,7 @@ export default function BlogIndexPage() {
             duration={0.8}
             className="text-4xl md:text-6xl font-bold tracking-tighter leading-[1.1] mb-6"
           >
-            Importing a car to Ireland,
+            Importing a car,
             <br className="hidden md:block" /> explained properly.
           </Reveal>
           <Reveal
@@ -119,8 +120,9 @@ export default function BlogIndexPage() {
             duration={0.6}
             className="text-xl text-zinc-500 font-light max-w-2xl mx-auto"
           >
-            Clear, up-to-date guides on what it costs, the cheapest cars and the
-            cheapest way to import, and how the taxes actually work in 2026.
+            Clear, current guides to every country we source from — how each
+            market actually works, what the documents prove, what a car really
+            costs to land, and where buyers get caught out.
           </Reveal>
         </section>
 

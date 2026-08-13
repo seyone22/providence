@@ -18,13 +18,8 @@ const BRAND_NAMES = [
   "Bugatti",
   "Porsche",
   "Mercedes-Benz",
-  "BMW",
-  "Audi",
   "Maserati",
-  "Lexus",
-  "Genesis",
-  "Lucid",
-  "Lotus",
+  "Cadillac",
 ];
 
 export const metadata: Metadata = {

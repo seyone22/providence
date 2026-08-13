@@ -24,13 +24,14 @@ export const metadata: Metadata = {
     template: "%s | Providence Auto",
   },
   description:
-    "Source any car from 40+ global markets with Providence Auto. We provide tax-efficient, premium pre-owned vehicles delivered with zero logistical friction.",
+    "Source any car from 40+ global markets with Providence Auto. Physical offices and operations teams in the UK, Japan, the UAE, India, Thailand, Australia, New Zealand and Sri Lanka — tax-efficient vehicles delivered with zero logistical friction.",
   keywords: [
     "Global car sourcing",
     "direct car import service",
     "tax-efficient vehicle procurement",
     "borderless car showroom",
-    "luxury car exporter London",
+    "international car exporter",
+    "car sourcing offices worldwide",
     "buy cars from overseas",
     "7-seater family SUVs",
     "luxury executive sedans",
@@ -52,7 +53,7 @@ export const metadata: Metadata = {
     siteName: "Providence Auto",
     title: "World’s Largest Borderless Showroom | Global Car Sourcing",
     description:
-      "Save on luxury SUVs, sedans, and performance cars by cutting out the middleman. Direct delivery to your port.",
+      "Eight countries, our own people in every one. Save on luxury SUVs, sedans, and performance cars by cutting out the middleman. Direct delivery to your port.",
     images: [
       {
         url: "/og-image.jpg",
@@ -81,6 +82,22 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   // Structured Data for SEO/AEO
+  //
+  // The office list is duplicated from src/config/countries.ts on purpose: this
+  // is the ROOT layout, so every page pays for whatever it imports, and the
+  // country config pulls in lucide icon references it does not need here. Keep
+  // the two in sync when an office is added or its country changes.
+  const offices = [
+    { name: "United Kingdom", region: "Europe", slug: "united-kingdom" },
+    { name: "Japan", region: "East Asia", slug: "japan" },
+    { name: "United Arab Emirates", region: "Middle East", slug: "uae" },
+    { name: "India", region: "South Asia", slug: "india" },
+    { name: "Thailand", region: "South-East Asia", slug: "thailand" },
+    { name: "Australia", region: "Oceania", slug: "australia" },
+    { name: "New Zealand", region: "Oceania", slug: "new-zealand" },
+    { name: "Sri Lanka", region: "South Asia", slug: "sri-lanka" },
+  ];
+
   const organizationSchema = {
     "@context": "https://schema.org",
     "@type": "AutoDealer",
@@ -88,7 +105,7 @@ export default function RootLayout({
     url: "https://www.providenceauto.co.uk/",
     logo: "https://www.providenceauto.co.uk/logo.png",
     description:
-      "Global borderless showroom sourcing premium vehicles from 40+ markets.",
+      "International vehicle sourcing and export group with physical offices in the UK, Japan, the UAE, India, Thailand, Australia, New Zealand and Sri Lanka, sourcing premium vehicles from 40+ markets.",
     address: {
       "@type": "PostalAddress",
       streetAddress: "468 Church Lane, Kingsbury",
@@ -97,6 +114,13 @@ export default function RootLayout({
       addressCountry: "UK",
     },
     telephone: "+44 208 004 3000",
+    areaServed: "Worldwide",
+    subOrganization: offices.map((office) => ({
+      "@type": "LocalBusiness",
+      name: `Providence Auto ${office.name}`,
+      url: `https://www.providenceauto.co.uk/source-cars-from/${office.slug}`,
+      areaServed: office.region,
+    })),
     hasOfferCatalog: {
       "@type": "OfferCatalog",
       name: "Global Car Sourcing",

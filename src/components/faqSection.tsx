@@ -19,7 +19,7 @@ const FAQ_DATA = [
       },
       {
         q: "What if the car isn't what was described?",
-        a: "Every vehicle undergoes a full independent inspection before leaving the source country. You receive the report, photos, and condition grading beforehand. If it doesn't match the spec, we don't ship it.",
+        a: "Every vehicle undergoes a full independent inspection before leaving the source country — carried out by our own team in that country, not by a broker on another continent. You receive the report, photos, and condition grading beforehand. If it doesn't match the spec, we don't ship it.",
       },
       {
         q: "What happens if the car is damaged during shipping?",
@@ -27,11 +27,15 @@ const FAQ_DATA = [
       },
       {
         q: "Is Providence Auto a registered and licensed business?",
-        a: "Yes. We are a fully registered UK-based vehicle sourcing and export company with over 15 years of trading history, operating under all applicable international trade and export regulations.",
+        a: "Yes. We are a registered vehicle sourcing and export group with over 15 years of trading history and physical offices across Europe, Asia, the Middle East and Oceania, operating under all applicable international trade and export regulations in every market where we buy and sell.",
       },
       {
         q: "Can I visit your office or speak to someone in person?",
-        a: "Absolutely. We have physical offices in London, Australia, UAE, Japan, and Sri Lanka. You're welcome to visit, or we can jump on a video call so you can put a face to the name. We're real people, not a faceless website.",
+        a: "Absolutely. We have physical offices and operations teams in the UK, Japan, the UAE, India, Thailand, Australia, New Zealand and Sri Lanka — and we're opening more as our volumes grow. You're welcome to visit any of them, or we can jump on a video call so you can put a face to the name. We're real people, not a faceless website.",
+      },
+      {
+        q: "Which countries do you source vehicles from?",
+        a: "We buy directly in the eight countries where we have our own offices — the UK, Japan, the UAE, India, Thailand, Australia, New Zealand and Sri Lanka — and we source from many more markets besides. For any given specification we compare the total landed cost across every country that can supply it, then buy where it lands cheapest for you.",
       },
     ],
   },
