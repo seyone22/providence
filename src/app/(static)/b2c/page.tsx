@@ -90,9 +90,9 @@ export default function B2CLanding() {
             Never compromise again.
           </h2>
           <p className="text-xl text-zinc-500 max-w-2xl mx-auto font-light">
-            We are industry experts. We know exactly where to source your
-            desired vehicle for the cheapest price, with the exact
-            specifications you demand.
+            We are industry experts with our own people in eight source
+            countries. We know exactly where to find your desired vehicle for
+            the cheapest price, with the exact specifications you demand.
           </p>
         </Reveal>
 
@@ -113,13 +113,13 @@ export default function B2CLanding() {
             {
               icon: Ship,
               title: "White-Glove Logistics",
-              desc: "From the showroom floor in Germany to your driveway. We handle every single form, marine insurance policy, and freight mile for you. Zero friction.",
+              desc: "From an auction hall in Japan or a dealer forecourt in Dubai to your driveway. Our own teams in eight countries handle every form, marine insurance policy and freight mile for you. Zero friction.",
               glowColor: "group-hover:bg-indigo-500/15",
             },
             {
               icon: ShieldCheck,
               title: "15 Years of Heritage",
-              desc: "We aren't a startup guessing how to ship cars. We have over a decade of established infrastructure, delivering the most reliable service in the industry.",
+              desc: "We aren't a startup guessing how to ship cars. Over a decade of established infrastructure and physical offices in the UK, Japan, the UAE, India, Thailand, Australia, New Zealand and Sri Lanka — with more opening as we grow.",
               glowColor: "group-hover:bg-amber-500/15",
             },
           ].map((feature, index) => (

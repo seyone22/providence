@@ -3,16 +3,17 @@ import {
   Column,
   Container,
   Head,
-  Heading,
   Hr,
   Html,
-  Img,
   Link,
   Preview,
   Row,
   Section,
   Text,
 } from "@react-email/components";
+import { GENERAL_WHATSAPP_NUMBER, whatsappLink } from "@/config/contact";
+import { BlogSuggestionsSection, type EmailBlogPost } from "./blog-suggestions";
+import { EmailAvatar, EmailBrandHeader } from "./brand";
 
 interface ContactScheduledEmailProps {
   userName: string;
@@ -29,6 +30,10 @@ interface ContactScheduledEmailProps {
   contactDays: string[];
   contactTimeWindow: string;
   contactTimezoneLabel: string;
+  /** Guides picked for this lead's destination country. Optional — omit to hide. */
+  suggestedPosts?: EmailBlogPost[];
+  /** Where the car is going — used to frame the suggested reading. */
+  destinationCountry?: string;
 }
 
 export const ContactScheduledEmail = ({
@@ -41,6 +46,8 @@ export const ContactScheduledEmail = ({
   contactDays,
   contactTimeWindow,
   contactTimezoneLabel,
+  suggestedPosts = [],
+  destinationCountry,
 }: ContactScheduledEmailProps) => {
   const trackingUrl = `${process.env.NEXT_PUBLIC_BASE_URL}/track/${requestId}`;
   const firstName = userName?.split(" ")[0] || "there";
@@ -53,11 +60,21 @@ export const ContactScheduledEmail = ({
       ? contactMethods.join(" & ")
       : "—";
 
-  // wa.me requires bare international digits (no +, spaces or dashes).
-  const waDigits = (agent.whatsappNumber || "").replace(/\D/g, "");
-  const whatsappUrl = waDigits
-    ? `https://wa.me/${waDigits}?text=${encodeURIComponent(`Hi ${agent.name.split(" ")[0]}, I'm following up on my inquiry for the ${make} ${model}.`)}`
-    : "";
+  // Route the chat to the rep's own WhatsApp when they have one on their
+  // profile; otherwise fall back to the general enquiries line so the button
+  // is never dropped.
+  const hasAgentWhatsapp = Boolean(agent.whatsappNumber?.trim());
+  const whatsappUrl = whatsappLink(
+    hasAgentWhatsapp
+      ? `Hi ${agent.name.split(" ")[0]}, I'm following up on my inquiry for the ${make} ${model}.`
+      : `Hi Providence Auto, I'm following up on my inquiry for the ${make} ${model}.`,
+    hasAgentWhatsapp
+      ? (agent.whatsappNumber as string)
+      : GENERAL_WHATSAPP_NUMBER,
+  );
+  const whatsappLabel = hasAgentWhatsapp
+    ? "Talk to me on WhatsApp"
+    : "Message us on WhatsApp";
   // Rep's personal Providence inbox — comes straight to them.
   const emailUrl = `mailto:${agent.email}?subject=${encodeURIComponent(`My ${make} ${model} inquiry`)}`;
 
@@ -67,25 +84,14 @@ export const ContactScheduledEmail = ({
       <Preview>{`${agent.name} will reach out via ${methodsLabel} — here's the plan for your ${make} ${model}.`}</Preview>
       <Body style={mainStyle}>
         <Container style={containerStyle}>
-          <Heading style={brandStyle}>
-            Providence <span style={{ color: "#0ea5e9" }}>Auto</span>
-          </Heading>
+          <EmailBrandHeader />
 
-          {/* Agent header */}
+          {/* Agent header — their profile photo, or the Providence mark if
+              they haven't uploaded one. */}
           <Section style={{ marginBottom: "8px" }}>
             <Row>
               <Column style={{ width: "64px", verticalAlign: "middle" }}>
-                <Img
-                  src={agent.image}
-                  alt={agent.name}
-                  width="56"
-                  height="56"
-                  style={{
-                    borderRadius: "999px",
-                    objectFit: "cover",
-                    border: "2px solid #e6f3fa",
-                  }}
-                />
+                <EmailAvatar src={agent.image} alt={agent.name} size={56} />
               </Column>
               <Column style={{ verticalAlign: "middle", paddingLeft: "12px" }}>
                 <Text style={agentNameStyle}>{agent.name}</Text>
@@ -146,7 +152,7 @@ export const ContactScheduledEmail = ({
               <Row>
                 <Column style={btnCol}>
                   <Link href={whatsappUrl} style={whatsappButtonStyle}>
-                    Talk to me on WhatsApp
+                    {whatsappLabel}
                   </Link>
                 </Column>
               </Row>
@@ -175,9 +181,28 @@ export const ContactScheduledEmail = ({
             Providence Auto
           </Text>
 
+          <BlogSuggestionsSection
+            posts={suggestedPosts}
+            heading="While you wait — worth reading"
+            intro={
+              destinationCountry
+                ? `Before we speak, these guides cover most of what comes up when importing into ${destinationCountry} — costs, taxes and the paperwork that actually matters.`
+                : "Before we speak, these guides cover most of what comes up when importing — costs, taxes and the paperwork that actually matters."
+            }
+          />
+
           <Hr style={hrStyle} />
           <Text style={footerTextStyle}>
-            © {new Date().getFullYear()} Providence Auto. 468 Church Lane,
+            General enquiries on WhatsApp:{" "}
+            <Link
+              href={whatsappLink(
+                "Hi Providence Auto, I'd like to ask about importing a car.",
+              )}
+              style={footerLinkStyle}
+            >
+              {GENERAL_WHATSAPP_NUMBER}
+            </Link>
+            <br />© {new Date().getFullYear()} Providence Auto. 468 Church Lane,
             Kingsbury, London, NW9 8UA.
           </Text>
         </Container>
@@ -203,14 +228,6 @@ const containerStyle = {
   border: "1px solid #e2e8f0",
   maxWidth: "600px",
   boxShadow: "0 1px 3px 0 rgba(0, 0, 0, 0.05)",
-};
-const brandStyle = {
-  fontSize: "24px",
-  fontWeight: "800",
-  color: "#0f172a",
-  marginBottom: "24px",
-  marginTop: "0",
-  letterSpacing: "-0.025em",
 };
 const agentNameStyle = {
   fontSize: "16px",
@@ -285,4 +302,9 @@ const footerTextStyle = {
   fontSize: "12px",
   color: "#94a3b8",
   lineHeight: "1.6",
+};
+const footerLinkStyle = {
+  color: "#64748b",
+  fontWeight: "600",
+  textDecoration: "none",
 };

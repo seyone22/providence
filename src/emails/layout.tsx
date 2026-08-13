@@ -1,24 +1,39 @@
 import {
   Body,
+  Column,
   Container,
   Head,
   Heading,
   Hr,
   Html,
   Preview,
+  Row,
+  Section,
   Text,
 } from "@react-email/components";
 import type * as React from "react";
+import { EmailAvatar, EmailBrandHeader } from "./brand";
 
 interface EmailLayoutProps {
   preview: string;
   heading?: string;
+  /**
+   * When set, the email leads with this person's profile picture and name
+   * instead of a bare brand lockup. Falls back to the Providence Auto logo if
+   * they have no photo on their profile.
+   */
+  profile?: {
+    name: string;
+    image?: string | null;
+    role?: string;
+  };
   children: React.ReactNode;
 }
 
 export const EmailLayout = ({
   preview,
   heading,
+  profile,
   children,
 }: EmailLayoutProps) => {
   return (
@@ -27,9 +42,29 @@ export const EmailLayout = ({
       <Preview>{preview}</Preview>
       <Body style={mainStyle}>
         <Container style={containerStyle}>
-          <Heading style={brandStyle}>
-            Providence <span style={{ color: "#0ea5e9" }}>Auto</span>
-          </Heading>
+          <EmailBrandHeader marginBottom={profile ? "20px" : "24px"} />
+
+          {profile && (
+            <Section style={{ marginBottom: "20px" }}>
+              <Row>
+                <Column style={{ width: "64px", verticalAlign: "middle" }}>
+                  <EmailAvatar
+                    src={profile.image}
+                    alt={profile.name}
+                    size={56}
+                  />
+                </Column>
+                <Column
+                  style={{ verticalAlign: "middle", paddingLeft: "12px" }}
+                >
+                  <Text style={profileNameStyle}>{profile.name}</Text>
+                  <Text style={profileRoleStyle}>
+                    {profile.role || "Your dedicated sourcing specialist"}
+                  </Text>
+                </Column>
+              </Row>
+            </Section>
+          )}
 
           {heading && (
             <Heading as="h2" style={subHeadingStyle}>
@@ -72,13 +107,17 @@ const containerStyle = {
   boxShadow: "0 1px 3px 0 rgba(0, 0, 0, 0.05)", // Subtle drop-shadow for premium feel
 };
 
-const brandStyle = {
-  fontSize: "24px",
-  fontWeight: "800", // Bolder profile
-  color: "#0f172a", // Deep navy/slate for typography contrast
-  marginBottom: "24px",
-  marginTop: "0",
-  letterSpacing: "-0.025em",
+const profileNameStyle = {
+  fontSize: "16px",
+  fontWeight: "700",
+  color: "#0f172a",
+  margin: "0",
+};
+
+const profileRoleStyle = {
+  fontSize: "13px",
+  color: "#64748b",
+  margin: "2px 0 0 0",
 };
 
 const subHeadingStyle = {

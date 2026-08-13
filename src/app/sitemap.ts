@@ -3,6 +3,7 @@ import { listPublishedProfileSlugs } from "@/actions/sales-profile-actions";
 // Import your DB logic or Action
 import { getAllSpecDossiers } from "@/actions/spec-actions";
 import { BLOG_BASE_PATH, BLOG_POSTS } from "@/config/blog";
+import { COUNTRY_BASE_PATH, COUNTRY_PAGES } from "@/config/countries";
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const baseUrl = "https://www.providenceauto.co.uk";
@@ -19,11 +20,20 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     "/indian-manufactured-cars",
     "/ireland-cost-calculator",
     BLOG_BASE_PATH,
+    COUNTRY_BASE_PATH,
   ].map((route) => ({
     url: `${baseUrl}${route}`,
     lastModified: new Date(),
     changeFrequency: "daily" as const,
     priority: 1,
+  }));
+
+  // 1a. Source-country landing pages (one per physical office)
+  const countryRoutes = COUNTRY_PAGES.map((country) => ({
+    url: `${baseUrl}${COUNTRY_BASE_PATH}/${country.slug}`,
+    lastModified: new Date(),
+    changeFrequency: "weekly" as const,
+    priority: 0.9,
   }));
 
   // 1b. Blog posts (import-to-Ireland content cluster)
@@ -52,5 +62,11 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     priority: 0.7,
   }));
 
-  return [...staticRoutes, ...blogRoutes, ...carRoutes, ...profileRoutes];
+  return [
+    ...staticRoutes,
+    ...countryRoutes,
+    ...blogRoutes,
+    ...carRoutes,
+    ...profileRoutes,
+  ];
 }

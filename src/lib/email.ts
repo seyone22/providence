@@ -1,7 +1,9 @@
 import type { ReactElement } from "react";
 import { Resend } from "resend";
+import { getSuggestedPosts } from "@/config/blog";
 import AdminInvitationEmail from "@/emails/admin-invitation";
 import AuthActionEmail from "@/emails/auth-action";
+import { toEmailBlogPosts } from "@/emails/blog-suggestions";
 import CalculatorBreakdownEmail from "@/emails/calculator-breakdown";
 import ContactScheduledEmail from "@/emails/contact-scheduled";
 import CustomerConfirmationEmail from "@/emails/customer-confirmation";
@@ -100,12 +102,22 @@ export const emailService = {
       model: string;
       requestId: string;
       staffName: string;
+      staffImage?: string | null;
+      destinationCountry?: string;
     },
   ) => {
     await sendEmail({
       to,
       subject: `Inquiry Received: ${data.make} ${data.model}`,
-      component: CustomerConfirmationEmail(data),
+      component: CustomerConfirmationEmail({
+        ...data,
+        suggestedPosts: toEmailBlogPosts(
+          getSuggestedPosts({
+            destinationCountry: data.destinationCountry,
+            limit: 3,
+          }),
+        ),
+      }),
     });
   },
 
@@ -158,6 +170,8 @@ export const emailService = {
       contactDays: string[];
       contactTimeWindow: string;
       contactTimezoneLabel: string;
+      /** Destination country — picks which guides go in the email. */
+      destinationCountry?: string;
     },
   ) => {
     await sendEmail({
@@ -165,7 +179,15 @@ export const emailService = {
       subject: `You're all set, ${data.userName.split(" ")[0]} — here's how we'll be in touch`,
       from: agentFrom(data.agent?.name),
       replyTo: data.agent?.email,
-      component: ContactScheduledEmail(data),
+      component: ContactScheduledEmail({
+        ...data,
+        suggestedPosts: toEmailBlogPosts(
+          getSuggestedPosts({
+            destinationCountry: data.destinationCountry,
+            limit: 3,
+          }),
+        ),
+      }),
     });
   },
 
