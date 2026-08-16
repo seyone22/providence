@@ -1,4 +1,3 @@
-import { ArrowRight } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import {
@@ -6,11 +5,10 @@ import {
   GENERAL_WHATSAPP_NUMBER,
 } from "@/config/contact";
 import { COUNTRY_BASE_PATH, COUNTRY_PAGES } from "@/config/countries";
-import { getLeadStory, NEWS_BASE_PATH } from "@/config/news";
+import { NEWS_BASE_PATH } from "@/config/news";
 
 export default function Footer() {
   const currentYear = new Date().getFullYear();
-  const leadStory = getLeadStory();
 
   // No z-index on the footer: it is the last element in normal flow, so raising
   // it only lets it paint over `fixed` chrome (e.g. the admin sidebar).
@@ -238,36 +236,6 @@ export default function Footer() {
           </div>
         </div>
       </div>
-
-      {/* Featured story: the current lead from /latest-news, given its own strip
-          so the newest editorial piece is reachable from every page. */}
-      {leadStory && (
-        <div className="max-w-7xl mx-auto px-6 mb-12">
-          <Link
-            href={`${NEWS_BASE_PATH}/${leadStory.slug}`}
-            className="group flex flex-col gap-4 rounded-2xl border border-white/10 bg-white/[0.03] px-6 py-6 transition-colors hover:border-sky-400/30 hover:bg-white/[0.06] sm:flex-row sm:items-center sm:justify-between sm:gap-8"
-          >
-            <div className="min-w-0">
-              <p className="text-[10px] font-bold tracking-[0.2em] uppercase text-sky-400 mb-2">
-                Featured &middot; {leadStory.category}
-              </p>
-              <p className="text-base font-semibold tracking-tight text-white">
-                {leadStory.title}
-              </p>
-              <p className="mt-1.5 text-sm font-light text-zinc-500 max-w-2xl">
-                {leadStory.excerpt}
-              </p>
-            </div>
-            <span className="inline-flex shrink-0 items-center gap-2 text-sm font-semibold text-sky-400">
-              Read the story
-              <ArrowRight
-                size={15}
-                className="group-hover:translate-x-1 transition-transform"
-              />
-            </span>
-          </Link>
-        </div>
-      )}
 
       {/* Bottom Bar: Legal line, Copyright & Credits */}
       <div className="max-w-7xl mx-auto px-6 border-t border-white/10 pt-6">

@@ -91,12 +91,14 @@ export const NEWS_ARTICLES: NewsArticle[] = [
     publishDate: "2026-08-17",
     updatedDate: "2026-08-17",
     readingTimeMins: 9,
+    // The actual subject car, photographed at the sale. CC BY-SA 4.0, so the
+    // attribution in heroCaption is a licence condition, not a nicety.
     heroImage:
-      "https://images.unsplash.com/photo-1571607388263-1044f9ea01dd?q=80&w=2400&auto=format&fit=crop",
+      "https://upload.wikimedia.org/wikipedia/commons/4/49/Ferrari_Luce.jpg",
     heroAlt:
-      "A modern supercar photographed at dusk, illustrating the Ferrari Luce auction story",
+      "Ferrari Luce chassis 0 on display at the RM Sotheby's Monterey auction, finished in one-off Madreperla Semi-Gloss paint",
     heroCaption:
-      "Illustrative image. The car described in this article — Ferrari Luce chassis 0, finished in one-off Madreperla Semi-Gloss — is not pictured.",
+      "Ferrari Luce chassis 0 at RM Sotheby's Monterey, 15 August 2026. Photo by Lcaa9, licensed under CC BY-SA 4.0 via Wikimedia Commons.",
     toc: [
       { id: "what-happened", label: "What actually happened" },
       { id: "the-price", label: "The price, in context" },
