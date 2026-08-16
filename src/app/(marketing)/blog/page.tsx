@@ -10,6 +10,7 @@ import {
   getPost,
   getPostsByCluster,
 } from "@/config/blog";
+import { getLeadStory, NEWS_BASE_PATH } from "@/config/news";
 
 const SITE = "https://www.providenceauto.co.uk";
 const PATH = "/blog";
@@ -50,6 +51,7 @@ export const metadata: Metadata = {
 export default function BlogIndexPage() {
   const pillar = getPost("importing-cars-to-ireland");
   const groups = getPostsByCluster();
+  const lead = getLeadStory();
 
   const breadcrumbSchema = {
     "@context": "https://schema.org",
@@ -219,6 +221,37 @@ export default function BlogIndexPage() {
             );
           })}
         </section>
+
+        {/* ── LATEST NEWS CROSS-LINK ───────────────── */}
+        {lead && (
+          <section className="px-6 max-w-5xl mx-auto pb-4">
+            <Reveal y={20} duration={0.6}>
+              <Link
+                href={`${NEWS_BASE_PATH}/${lead.slug}`}
+                className="group flex flex-col sm:flex-row sm:items-center justify-between gap-4 rounded-[1.75rem] border border-black/8 bg-zinc-50 px-7 py-6 transition-colors hover:border-sky-500/25"
+              >
+                <div>
+                  <p className="text-xs font-bold tracking-[0.2em] uppercase text-sky-600 mb-1.5">
+                    Latest news · {lead.category}
+                  </p>
+                  <p className="text-lg font-bold tracking-tight text-black">
+                    {lead.title}
+                  </p>
+                  <p className="mt-1 text-sm text-zinc-500 font-light">
+                    {lead.excerpt}
+                  </p>
+                </div>
+                <span className="inline-flex shrink-0 items-center gap-2 text-sm font-bold text-sky-600">
+                  Read the story
+                  <ArrowRight
+                    size={15}
+                    className="group-hover:translate-x-1 transition-transform"
+                  />
+                </span>
+              </Link>
+            </Reveal>
+          </section>
+        )}
 
         {/* ── CTA ──────────────────────────────────── */}
         <div className="px-6 pb-20 max-w-3xl mx-auto">
