@@ -4,6 +4,7 @@ import { listPublishedProfileSlugs } from "@/actions/sales-profile-actions";
 import { getAllSpecDossiers } from "@/actions/spec-actions";
 import { BLOG_BASE_PATH, BLOG_POSTS } from "@/config/blog";
 import { COUNTRY_BASE_PATH, COUNTRY_PAGES } from "@/config/countries";
+import { NEWS_ARTICLES, NEWS_BASE_PATH } from "@/config/news";
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const baseUrl = "https://www.providenceauto.co.uk";
@@ -20,6 +21,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     "/indian-manufactured-cars",
     "/ireland-cost-calculator",
     BLOG_BASE_PATH,
+    NEWS_BASE_PATH,
     COUNTRY_BASE_PATH,
   ].map((route) => ({
     url: `${baseUrl}${route}`,
@@ -41,6 +43,14 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     url: `${baseUrl}${BLOG_BASE_PATH}/${post.slug}`,
     lastModified: new Date(post.updatedDate),
     changeFrequency: "weekly" as const,
+    priority: 0.8,
+  }));
+
+  // 1c. Latest News articles — dated reporting, so they change less than guides
+  const newsRoutes = NEWS_ARTICLES.map((article) => ({
+    url: `${baseUrl}${NEWS_BASE_PATH}/${article.slug}`,
+    lastModified: new Date(article.updatedDate),
+    changeFrequency: "monthly" as const,
     priority: 0.8,
   }));
 
@@ -66,6 +76,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     ...staticRoutes,
     ...countryRoutes,
     ...blogRoutes,
+    ...newsRoutes,
     ...carRoutes,
     ...profileRoutes,
   ];

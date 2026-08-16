@@ -5,6 +5,7 @@ import {
   GENERAL_WHATSAPP_NUMBER,
 } from "@/config/contact";
 import { COUNTRY_BASE_PATH, COUNTRY_PAGES } from "@/config/countries";
+import { NEWS_BASE_PATH } from "@/config/news";
 
 export default function Footer() {
   const currentYear = new Date().getFullYear();
@@ -131,12 +132,18 @@ export default function Footer() {
           </nav>
         </div>
 
-        {/* Guides Column: internal links to the import content cluster */}
+        {/* Guides & News: internal links to the editorial content clusters */}
         <div className="flex flex-col gap-4">
           <h4 className="text-[10px] font-bold tracking-[0.2em] uppercase text-zinc-500">
-            Import Guides
+            Guides &amp; News
           </h4>
           <nav className="flex flex-col gap-2.5 text-sm font-light text-zinc-400">
+            <Link
+              href={NEWS_BASE_PATH}
+              className="hover:text-white transition-colors"
+            >
+              Latest news
+            </Link>
             <Link href="/blog" className="hover:text-white transition-colors">
               All import guides
             </Link>
@@ -145,12 +152,6 @@ export default function Footer() {
               className="hover:text-white transition-colors"
             >
               Cheapest cars to import to Ireland
-            </Link>
-            <Link
-              href="/blog/cost-of-importing-a-car-to-ireland"
-              className="hover:text-white transition-colors"
-            >
-              Cost of importing a car to Ireland
             </Link>
             <Link
               href="/blog/vrt-explained-ireland"
