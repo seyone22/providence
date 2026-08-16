@@ -7,6 +7,15 @@ import {
 import { COUNTRY_BASE_PATH, COUNTRY_PAGES } from "@/config/countries";
 import { NEWS_BASE_PATH } from "@/config/news";
 
+// The footer office list is deliberately not the raw registry: Sri Lanka is
+// hidden from the column (its /source-cars-from/sri-lanka page still exists and
+// is still reachable via "The whole network"), and the rest are listed A–Z.
+const FOOTER_OFFICE_HIDDEN_SLUGS = new Set(["sri-lanka"]);
+
+const FOOTER_OFFICES = COUNTRY_PAGES.filter(
+  (country) => !FOOTER_OFFICE_HIDDEN_SLUGS.has(country.slug),
+).sort((a, b) => a.shortName.localeCompare(b.shortName));
+
 export default function Footer() {
   const currentYear = new Date().getFullYear();
 
@@ -114,7 +123,7 @@ export default function Footer() {
             Global Offices
           </h4>
           <nav className="flex flex-col gap-2.5 text-sm font-light text-zinc-400">
-            {COUNTRY_PAGES.map((country) => (
+            {FOOTER_OFFICES.map((country) => (
               <Link
                 key={country.slug}
                 href={`${COUNTRY_BASE_PATH}/${country.slug}`}
