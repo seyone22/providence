@@ -17,6 +17,7 @@ import {
 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { DayPicker } from "react-day-picker";
+import ExportLeadsButton from "@/components/ExportLeadsButton";
 import LeadDistributionChart from "@/components/LeadDistributionChart";
 import {
   CONTACT_DUE_OPTIONS,
@@ -627,6 +628,9 @@ export default function DashboardClient({
           <h3 className="font-bold text-lg">
             Active Pipeline ({filteredRequests.length})
           </h3>
+          {/* Exports the filtered set, not the raw list — the filter bar above
+              is the query builder for the spreadsheet. */}
+          <ExportLeadsButton rows={filteredRequests} />
         </div>
         <div className="p-2">
           <RequestTableClient
