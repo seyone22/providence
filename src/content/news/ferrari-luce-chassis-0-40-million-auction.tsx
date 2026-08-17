@@ -12,67 +12,225 @@ import {
   Table,
   UL,
 } from "@/components/blog/prose";
+import {
+  ConfirmedLedger,
+  ProfileCard,
+  PullQuote,
+  Timeline,
+} from "@/components/news/newsProse";
 
 export default function FerrariLuceChassis040MillionAuction() {
   return (
     <>
       <Lead>
-        On Saturday 15 August 2026, the most publicly ridiculed Ferrari of the
-        decade became the most expensive new car ever sold at public auction.
-        Chassis 0 of the Ferrari Luce &mdash; Maranello&rsquo;s first
-        series-production electric car &mdash; hammered at{" "}
-        <Strong>$40,000,000</Strong> at RM Sotheby&rsquo;s Monterey sale,
-        against a pre-sale estimate of &ldquo;in excess of $1.1 million&rdquo;.
+        For about twenty-four hours, the most expensive new car ever sold at
+        public auction belonged to nobody. &ldquo;An anonymous bidder&rdquo;,
+        the room was told, and the internet did what the internet does. Then the
+        name surfaced &mdash; and it turned out the man who had just paid{" "}
+        <Strong>$40,000,000</Strong> for the Ferrari the world spent three
+        months mocking was the same man who paid $26 million for a Ferrari at
+        the same auction, in the same week, one year earlier.
       </Lead>
 
       <KeyTakeaways
         items={[
           <>
-            <Strong>$40,000,000</Strong> hammer price, with the buyer&rsquo;s
-            premium waived &mdash; every dollar goes to The Ferrari Foundation,
-            a 501(c)(3) educational charity.
+            The buyer of Ferrari Luce chassis 0 has been named as{" "}
+            <Strong>Dr Herbert &ldquo;Herbie&rdquo; Wertheim</Strong> &mdash;
+            optometrist, inventor, and one of the most successful private
+            investors in the United States.
           </>,
           <>
-            That is roughly <Strong>36&times; the pre-sale estimate</Strong> and
-            about <Strong>62&times; the Luce&rsquo;s list price</Strong> of
-            &euro;550,000 / &pound;440,000.
+            He is <Strong>also the buyer of the one-off Daytona SP3</Strong>{" "}
+            &ldquo;chassis 599+1&rdquo; that made $26m at Monterey in 2025. Two
+            Ferrari charity lots, two years, <Strong>$66 million</Strong>.
           </>,
           <>
-            It beats the $26m paid for the final Ferrari Daytona SP3 in 2025 to
-            become the <Strong>most expensive new car ever auctioned</Strong>,
-            and is almost certainly the most expensive EV ever sold.
+            <Strong>$40,000,000</Strong> hammer, buyer&rsquo;s premium waived
+            &mdash; every dollar to The Ferrari Foundation, a 501(c)(3)
+            educational charity. That is ~36&times; the estimate and ~62&times;
+            list.
           </>,
           <>
-            <Strong>The buyer has not been named.</Strong> The sale is recorded
-            as anonymous; the names circulating in enthusiast media are
-            unconfirmed by anyone party to the transaction.
+            It is the most expensive <Strong>new</Strong> car ever auctioned and
+            almost certainly the most expensive EV &mdash; but it was not even
+            the top sale of its own week.
           </>,
           <>
-            This is <Strong>not a market price</Strong>. It is a charity result
-            for a first-of-programme chassis, and it tells you very little about
-            what a normal Luce is worth.
+            This is <Strong>not a market price</Strong>. Chassis 47 is not worth
+            $40m, and nothing about this result re-rates the Luce.
           </>,
         ]}
       />
 
-      <H2 id="what-happened">What actually happened</H2>
+      <H2 id="the-reveal">The reveal</H2>
 
       <P>
-        The car was lot 345 at The Monterey Auction 2026, offered by RM
-        Sotheby&rsquo;s on the Saturday evening session during Monterey Car
-        Week. It is chassis <Strong>ZFF21BUA8T0338000</Strong>, designated
-        &ldquo;Chassis 0&rdquo; &mdash; the first production example of the
-        entire Luce programme, donated by Ferrari and configured through the
-        factory&rsquo;s Tailor Made department specifically for this sale.
+        When the hammer fell on the Saturday evening of 15 August 2026, RM
+        Sotheby&rsquo;s recorded the sale of lot 345 to an anonymous bidder.
+        That is standard. What is not standard is a $40 million anonymous
+        bidder, and by Sunday the vacuum had filled with names &mdash; a
+        Ferrari-collecting watch tycoon, a technology chief executive, a
+        philanthropist widow, and a theory that Ferrari had simply bid against
+        itself.
       </P>
 
       <P>
-        RM Sotheby&rsquo;s waived its buyer&rsquo;s premium on the lot, so the
-        full $40 million passes to <Strong>The Ferrari Foundation</Strong>, the
-        marque&rsquo;s 501(c)(3) public charity, earmarked for educational
-        initiatives. Delivery to the winning bidder is scheduled for the first
-        quarter of 2027.
+        The answer, published by duPont Registry on 16 August, was none of the
+        above. The buyer is <Strong>Dr Herbert A. Wertheim</Strong>, 87, known
+        to friends as &ldquo;Dr Herbie&rdquo;, a Florida optometrist and
+        inventor who is recognisable across Monterey Car Week for one reason
+        before any other: he wears a bright red fedora.
       </P>
+
+      <Callout title="One rumour was right" tone="sky">
+        <p>
+          Among the guesses circulating on the Sunday was that chassis 0 had
+          gone to the same collector who took the one-off Daytona SP3 at
+          Monterey in 2025. We declined to print it at the time because nobody
+          party to the sale had said so. It was, as it turns out, correct
+          &mdash; Wertheim bought both.
+        </p>
+      </Callout>
+
+      <H2 id="who-he-is">Who Herbert Wertheim is</H2>
+
+      <P>
+        He is not a car-industry figure, and that is rather the point. Wertheim
+        made his money twice over: first by inventing something small and
+        essential, then by holding shares in other people&rsquo;s companies for
+        longer than almost anyone else was willing to.
+      </P>
+
+      <ProfileCard
+        name="Dr Herbert A. Wertheim"
+        subtitle="Optometrist, inventor, investor, philanthropist — born Philadelphia, 23 May 1939"
+        facts={[
+          { label: "Age", value: "87" },
+          { label: "Estimated wealth", value: "≈ $4.6–5 billion" },
+          { label: "Founded", value: "Brain Power Inc., 1970" },
+          { label: "Key holding", value: "Heico — largest individual holder" },
+          {
+            label: "Given to education",
+            value: "$100m+ to Florida universities",
+          },
+          { label: "Ferrari charity lots", value: "2 — $66m combined" },
+        ]}
+      >
+        <p>
+          Wertheim served in the US Navy, where he studied physics and
+          chemistry, and in 1969 developed the ultraviolet-filtering tint that
+          made plastic eyeglass lenses genuinely protective. He founded Brain
+          Power Incorporated in 1970 to commercialise it. Sources differ on the
+          size of his patent portfolio &mdash; Wikipedia records nine ophthalmic
+          patents, while duPont Registry credits him with more than a hundred
+          across optical technology &mdash; but the commercial outcome is not in
+          dispute.
+        </p>
+        <p>
+          The larger fortune came from what he did with the proceeds. Wertheim
+          has invested since 1970 with an almost obstinate patience, and is the
+          largest individual shareholder in the aerospace component manufacturer
+          Heico; a roughly $5 million position taken in 1992 is now reported to
+          be worth over $800 million. His name is on colleges of medicine,
+          engineering, optometry, nursing, public health and business at Florida
+          International University, the University of Florida, UC San Diego, UC
+          Berkeley and Florida State.
+        </p>
+      </ProfileCard>
+
+      <P>
+        That last detail is the one that makes this purchase legible. The $40
+        million did not buy a car so much as it moved $40 million into an
+        educational endowment, with a car attached. Wertheim has spent four
+        decades doing exactly that, usually without a Ferrari involved.
+      </P>
+
+      <PullQuote cite="The economics of a no-premium charity lot">
+        The bid is a donation that happens to come with bodywork.
+      </PullQuote>
+
+      <H2 id="the-night">How the night unfolded</H2>
+
+      <P>
+        The result did not come out of nowhere. It came at the end of a
+        fifteen-week arc in which the Luce went from public humiliation to
+        sold-out order book.
+      </P>
+
+      <Timeline
+        items={[
+          {
+            time: "May 2026",
+            title: "The reveal, and the backlash",
+            body: (
+              <>
+                Ferrari unveils the Luce in Rome. Purists attack the design,
+                former chairman Luca Cordero di Montezemolo publicly argues the
+                prancing horse should be removed from it, and Ferrari shares
+                fall around 8% in a day.
+              </>
+            ),
+          },
+          {
+            time: "July 2026",
+            title: "The order book closes",
+            body: (
+              <>
+                Ferrari clears its entire 2026 allocation &mdash; roughly 500
+                cars &mdash; within about eight weeks of the reveal. The
+                &ldquo;nobody wants it&rdquo; story is commercially dead before
+                the auction is held.
+              </>
+            ),
+          },
+          {
+            time: "Sat 15 Aug 2026",
+            title: "Lot 345 crosses the block",
+            body: (
+              <>
+                Chassis ZFF21BUA8T0338000 is offered at The Monterey Auction
+                with no reserve, no buyer&rsquo;s premium and an estimate of
+                &ldquo;in excess of $1.1 million&rdquo;. It hammers at
+                $40,000,000.
+              </>
+            ),
+          },
+          {
+            time: "Sun 16 Aug 2026",
+            title: "The name emerges",
+            body: (
+              <>
+                duPont Registry identifies the buyer as Dr Herbert Wertheim,
+                linking him to the $26m Daytona SP3 he bought at the same sale
+                in 2025.
+              </>
+            ),
+          },
+          {
+            time: "Monterey week 2026",
+            title: "Beaten in its own week",
+            body: (
+              <>
+                Carroll Shelby&rsquo;s former Cobra Daytona Coupe CSX2300 makes
+                $42,905,000 at Gooding Christie&rsquo;s &mdash; the most
+                expensive American car ever auctioned, and the week&rsquo;s top
+                result.
+              </>
+            ),
+          },
+          {
+            time: "Q1 2027",
+            title: "Delivery",
+            body: (
+              <>
+                The car returns to Maranello for preparation. Wertheim does not
+                take possession until the first quarter of 2027.
+              </>
+            ),
+          },
+        ]}
+      />
 
       <H3>The specification nobody else can order</H3>
 
@@ -134,14 +292,15 @@ export default function FerrariLuceChassis040MillionAuction() {
         caption="Multiples are approximate and use published launch pricing; currency conversions move the exact figures."
       />
 
-      <H2 id="records">How it compares to every record that matters</H2>
+      <H2 id="records">The records it did and didn&rsquo;t break</H2>
 
       <P>
         The headline &ldquo;most expensive Ferrari ever&rdquo; is wrong, and
         worth correcting. Chassis 0 set a specific record &mdash; the most ever
         paid at public auction for a <Strong>new</Strong> car &mdash; and it did
         not come close to the marque or all-time records, both of which belong
-        to historic racing machinery.
+        to historic racing machinery. It was not even the highest price of its
+        own week.
       </P>
 
       <Table
@@ -160,6 +319,12 @@ export default function FerrariLuceChassis040MillionAuction() {
             "Ferrari marque record",
           ],
           [
+            "1964 Shelby Cobra Daytona Coupe (CSX2300)",
+            "2026",
+            "$42,905,000",
+            "Most expensive American car ever auctioned",
+          ],
+          [
             "2026 Ferrari Luce “Chassis 0”",
             "2026",
             "$40,000,000",
@@ -169,27 +334,11 @@ export default function FerrariLuceChassis040MillionAuction() {
             "2025 Ferrari Daytona SP3 (chassis 599+1)",
             "2025",
             "$26,000,000",
-            "Previous new-car record — also a Ferrari Foundation charity lot",
-          ],
-          [
-            "2017 Ferrari LaFerrari Aperta",
-            "2017",
-            "$10,000,000",
-            "Earlier benchmark for a new-Ferrari charity sale",
+            "Previous new-car record — also bought by Wertheim",
           ],
         ]}
         caption="Public auction results only. Private treaty sales are excluded because they are rarely verifiable."
       />
-
-      <Callout title="The pattern is not new" tone="sky">
-        <p>
-          Ferrari has run this playbook before, at the same auction house, in
-          the same week of the year, for the same charity. The Daytona SP3
-          chassis 599+1 made $26m at Monterey in 2025 against a $2.2m list
-          price. Chassis 0 did not invent the format &mdash; it escalated it by
-          about 54%.
-        </p>
-      </Callout>
 
       <H2 id="why-so-high">Why it went so high</H2>
 
@@ -235,13 +384,10 @@ export default function FerrariLuceChassis040MillionAuction() {
       <H3>4. The controversy raised the price rather than lowering it</H3>
 
       <P>
-        The Luce was mauled on reveal in Rome in May 2026. Purists attacked the
-        design, former chairman Luca Cordero di Montezemolo publicly argued the
-        prancing horse should be removed from it, and Ferrari&rsquo;s shares
-        fell around 8% in a day. Notoriety is not the enemy of collectability
-        &mdash; it is often the engine of it. Chassis 0 is the physical centre
-        of the most argued-about product decision Ferrari has made in a
-        generation.
+        Notoriety is not the enemy of collectability &mdash; it is often the
+        engine of it. Chassis 0 is the physical centre of the most argued-about
+        product decision Ferrari has made in a generation. In thirty years, that
+        argument is the story the car tells; the paint is incidental.
       </P>
 
       <H3>5. The commercial evidence had already turned</H3>
@@ -264,54 +410,52 @@ export default function FerrariLuceChassis040MillionAuction() {
         who refuse to lose in public.
       </P>
 
-      <H2 id="who-bought-it">Who bought it</H2>
-
-      <Callout title="The honest answer" tone="amber">
-        <p>
-          <Strong>Nobody outside the transaction knows.</Strong> RM
-          Sotheby&rsquo;s recorded the sale to an anonymous bidder, and neither
-          the auction house nor Ferrari has identified the buyer. As of
-          publication no party to the sale has confirmed a name.
-        </p>
-      </Callout>
+      <H2 id="the-pattern">The $66 million pattern</H2>
 
       <P>
-        Several names have circulated in enthusiast media and comment threads
-        since the hammer fell &mdash; including a suggestion that the buyer is
-        the same collector who took the Daytona SP3 at Monterey in 2025. We are
-        not repeating those names as fact, because none of them is sourced to
-        anyone with knowledge of the sale. Speculating publicly about a private
-        individual&rsquo;s $40m purchase on the basis of a comment thread is not
-        reporting.
+        The Wertheim reveal turns a freak result into something more
+        interesting: a repeat. In August 2025 he paid{" "}
+        <Strong>$26 million</Strong> for a one-off Daytona SP3, chassis
+        &ldquo;599+1&rdquo;, finished in two-tone carbon fibre and Giallo
+        Modena, at the same auction house, in the same week of the year, for the
+        same foundation. In August 2026 he paid <Strong>$40 million</Strong> for
+        chassis 0.
       </P>
 
-      <H3>What is actually known</H3>
-
-      <UL>
-        <CheckLI>
-          The sale was transacted through RM Sotheby&rsquo;s at The Monterey
-          Auction 2026 and is recorded at $40,000,000.
-        </CheckLI>
-        <CheckLI>
-          The buyer&rsquo;s premium was waived and the proceeds are directed to
-          The Ferrari Foundation.
-        </CheckLI>
-        <CheckLI>
-          Delivery of the car is scheduled for <Strong>Q1 2027</Strong>, so the
-          buyer is not yet in possession of it.
-        </CheckLI>
-        <CheckLI>
-          The buyer is, necessarily, someone able to commit eight figures to a
-          charity lot in a public room &mdash; which in practice means an
-          established Ferrari client rather than a new entrant. Maranello does
-          not hand its first chassis to a stranger.
-        </CheckLI>
-      </UL>
+      <Table
+        head={["Year", "Car", "Price", "List price", "Multiple"]}
+        rows={[
+          [
+            "2025",
+            "Ferrari Daytona SP3, chassis 599+1",
+            "$26,000,000",
+            "≈ $2.2m",
+            "≈ 12×",
+          ],
+          [
+            "2026",
+            "Ferrari Luce, chassis 0",
+            "$40,000,000",
+            "≈ $640,000",
+            "≈ 62×",
+          ],
+        ]}
+        caption="Both lots were no-premium charity consignments benefiting The Ferrari Foundation."
+      />
 
       <P>
-        If a name is confirmed by RM Sotheby&rsquo;s, Ferrari or the buyer, we
-        will update this article.
+        Two data points is not a trend, but it is a pattern with a clear
+        internal logic. Ferrari has built an annual mechanism: donate the
+        significant chassis, waive the premium, let the room compete for the
+        privilege of funding the foundation. Wertheim has become its most
+        reliable counterparty &mdash; a man whose lifetime habit is writing very
+        large cheques to educational institutions, meeting an auction format
+        purpose-built to receive them.
       </P>
+
+      <PullQuote cite="What $66 million in two years actually bought">
+        Not two cars. One relationship, two receipts.
+      </PullQuote>
 
       <H2 id="not-a-market-price">What this result is not</H2>
 
@@ -319,6 +463,39 @@ export default function FerrariLuceChassis040MillionAuction() {
         It is worth being blunt, because a headline like this one distorts
         expectations quickly.
       </P>
+
+      <ConfirmedLedger
+        confirmed={[
+          <>
+            The sale was transacted at <Strong>$40,000,000</Strong> through RM
+            Sotheby&rsquo;s at The Monterey Auction 2026.
+          </>,
+          <>
+            The buyer&rsquo;s premium was waived; proceeds go to{" "}
+            <Strong>The Ferrari Foundation</Strong>, a 501(c)(3).
+          </>,
+          <>
+            The buyer has been reported as <Strong>Dr Herbert Wertheim</Strong>,
+            who also bought the 2025 Daytona SP3 charity lot.
+          </>,
+          <>
+            Delivery is scheduled for <Strong>Q1 2027</Strong> &mdash; he is not
+            yet in possession of the car.
+          </>,
+        ]}
+        unconfirmed={[
+          <>
+            Ferrari and RM Sotheby&rsquo;s have not issued their own statements
+            naming the buyer; the identification rests on trade reporting.
+          </>,
+          "No underbidder has been identified, so how close the contest actually was remains unknown.",
+          "Whether the car will be displayed publicly, kept privately or lent to a museum has not been stated.",
+          <>
+            What, if anything, the purchase secures in future Ferrari allocation
+            terms &mdash; universally assumed, never documented.
+          </>,
+        ]}
+      />
 
       <UL>
         <CheckLI>

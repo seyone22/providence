@@ -9,7 +9,11 @@ import MinimalHeader from "@/components/MinimalHeader";
 import { Reveal } from "@/components/Reveal";
 import { BLOG_BASE_PATH, getPost } from "@/config/blog";
 import type { NewsArticle } from "@/config/news";
-import { NEWS_BASE_PATH } from "@/config/news";
+import {
+  getCategoryMetaByLabel,
+  NEWS_BASE_PATH,
+  NEWS_CATEGORY_BASE_PATH,
+} from "@/config/news";
 import NewsSources from "./NewsSources";
 
 function formatDate(iso: string) {
@@ -35,6 +39,9 @@ export default function NewsShell({
     .map((slug) => getPost(slug))
     .filter((p): p is NonNullable<typeof p> => Boolean(p));
 
+  const categoryMeta = getCategoryMetaByLabel(article.category);
+  const wasUpdated = article.updatedDate > article.publishDate;
+
   return (
     <main className="min-h-screen bg-white text-black font-sans overflow-x-hidden">
       <MinimalHeader />
@@ -45,7 +52,15 @@ export default function NewsShell({
           <Breadcrumbs
             items={[
               { label: "Home", href: "/" },
-              { label: "Latest News", href: NEWS_BASE_PATH },
+              { label: "Automotive News", href: NEWS_BASE_PATH },
+              ...(categoryMeta
+                ? [
+                    {
+                      label: categoryMeta.chip,
+                      href: `${NEWS_CATEGORY_BASE_PATH}/${categoryMeta.slug}`,
+                    },
+                  ]
+                : []),
               { label: article.title },
             ]}
           />
@@ -57,9 +72,18 @@ export default function NewsShell({
           duration={0.6}
           className="flex flex-wrap items-center gap-x-3 gap-y-1 mb-4"
         >
-          <span className="text-xs font-bold tracking-[0.2em] uppercase text-sky-600">
-            {article.category}
-          </span>
+          {categoryMeta ? (
+            <Link
+              href={`${NEWS_CATEGORY_BASE_PATH}/${categoryMeta.slug}`}
+              className="text-xs font-bold tracking-[0.2em] uppercase text-sky-600 hover:underline underline-offset-4"
+            >
+              {article.category}
+            </Link>
+          ) : (
+            <span className="text-xs font-bold tracking-[0.2em] uppercase text-sky-600">
+              {article.category}
+            </span>
+          )}
           <span className="text-zinc-300">·</span>
           <span className="text-xs font-bold tracking-[0.2em] uppercase text-zinc-400">
             {article.dateline}
@@ -88,6 +112,17 @@ export default function NewsShell({
           <time dateTime={article.publishDate}>
             {formatDate(article.publishDate)}
           </time>
+          {wasUpdated && (
+            <>
+              <span className="text-zinc-300">·</span>
+              <span className="text-zinc-500">
+                Updated{" "}
+                <time dateTime={article.updatedDate}>
+                  {formatDate(article.updatedDate)}
+                </time>
+              </span>
+            </>
+          )}
           <span className="text-zinc-300">·</span>
           <span className="inline-flex items-center gap-1">
             <Clock size={13} className="text-zinc-400" />
