@@ -153,16 +153,21 @@ export default function TeamProfileClient({
                     {profile.languages.join(" · ")}
                   </span>
                 )}
-                {profile.sourcingCountries &&
-                  profile.sourcingCountries.length > 0 && (
-                    <span className="inline-flex items-center gap-1 rounded-full bg-black/5 px-4 py-2 text-lg leading-none">
-                      {profile.sourcingCountries.map((c, i) => (
-                        <span key={i} title={c.country}>
-                          {c.flag}
-                        </span>
-                      ))}
-                    </span>
-                  )}
+                {/* One pill per market. A single pill of bare flags read as an
+                    unlabelled blob — each country gets its own named box. */}
+                {profile.sourcingCountries?.map((c) => (
+                  <span
+                    key={c.country}
+                    className="inline-flex items-center gap-1.5 rounded-full bg-black/5 px-4 py-2 text-sm font-semibold"
+                  >
+                    {c.flag ? (
+                      <span className="text-base leading-none">{c.flag}</span>
+                    ) : (
+                      <MapPin size={14} className="text-sky-500" />
+                    )}
+                    {c.country}
+                  </span>
+                ))}
               </Reveal>
 
               <Reveal
@@ -193,8 +198,8 @@ export default function TeamProfileClient({
                 </a>
               </Reveal>
               <p className="text-xs text-zinc-400 mt-5">
-                Backed by Providence Auto — UK-registered vehicle sourcing &amp;
-                export.
+                Backed by Providence Auto — a global vehicle sourcing &amp;
+                export group with our own offices in eight countries.
               </p>
             </div>
 
@@ -486,9 +491,7 @@ export default function TeamProfileClient({
         <footer className="border-t border-black/5 py-10 px-4">
           <div className="max-w-6xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4 text-sm text-zinc-500">
             <p className="font-semibold text-zinc-900">Providence Auto</p>
-            <p className="font-light">
-              UK-registered vehicle sourcing &amp; export.
-            </p>
+            <p className="font-light">Global vehicle sourcing &amp; export.</p>
             <Link
               href="/"
               className="inline-flex items-center gap-1.5 font-semibold text-zinc-900 hover:text-sky-500 transition-colors"

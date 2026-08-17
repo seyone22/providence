@@ -223,6 +223,9 @@ export async function saveSpecDossier(payload: any) {
     revalidatePath("/admin/dossiers");
     revalidatePath("/admin/specs");
     revalidatePath("/b2c/gallery");
+    // A new or renamed vehicle changes the URL set, so the sitemap has to be
+    // rebuilt rather than served from its hourly ISR cache.
+    revalidatePath("/sitemap.xml");
 
     return {
       success: true,
@@ -355,6 +358,10 @@ export async function updateDossierStatus(id: string, status: string) {
       .where(eq(specDossiers.id, id));
 
     revalidatePath("/admin/dossiers");
+    // Status is what makes a dossier public, so it both adds and removes a
+    // sitemap URL — and the gallery listing changes with it.
+    revalidatePath("/b2c/gallery");
+    revalidatePath("/sitemap.xml");
     return { success: true, message: `Status updated to ${status}` };
   } catch (_error) {
     return { success: false, message: "Failed to update status." };
@@ -378,6 +385,8 @@ export async function deleteSpecDossier(id: string) {
 
     revalidatePath("/admin/dossiers");
     revalidatePath("/admin/specs");
+    revalidatePath("/b2c/gallery");
+    revalidatePath("/sitemap.xml");
 
     return { success: true, message: "Template deleted successfully." };
   } catch (error) {

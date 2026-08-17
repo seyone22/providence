@@ -10,6 +10,7 @@ import {
   X,
 } from "lucide-react";
 import { useMemo, useState } from "react";
+import ExportLeadsButton from "@/components/ExportLeadsButton";
 import RequestTableClient from "@/components/RequestTableClient";
 
 const _PIPELINE_STAGES = [
@@ -261,10 +262,14 @@ export default function ArchiveDashboardClient({
 
       {/* Table Shell Injecting Existing Components */}
       <div className="bg-white border border-zinc-200/60 shadow-sm rounded-[2.5rem] overflow-hidden">
-        <div className="px-8 py-6 border-b border-zinc-100">
+        <div className="px-8 py-6 border-b border-zinc-100 flex justify-between items-center">
           <h3 className="font-bold text-lg">
             Archived Records Index ({filteredRequests.length})
           </h3>
+          <ExportLeadsButton
+            rows={filteredRequests}
+            filenamePrefix="providence-archived-leads"
+          />
         </div>
         <div className="p-2">
           <RequestTableClient
