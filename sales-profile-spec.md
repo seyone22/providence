@@ -22,9 +22,9 @@ Abdallah launch content.
 ### 2.1 Hero — "the handshake"
 - Large portrait photo (left/overlap), Providence Auto badge ("Providence Auto · Personal Sourcing Consultant")
 - Name + headline + one-line tagline
-- Quick-fact chips: years of experience · languages · sourcing countries (flag row)
+- Quick-fact chips: years of experience · languages · one chip per sourcing country (flag + country name, never a single combined flag block)
 - Two CTAs: **"Message me on WhatsApp"** (wa.me deep link) and **"Start an inquiry"** (smooth-scroll to form)
-- Small trust line: "Backed by Providence Auto — UK-registered vehicle sourcing & export"
+- Small trust line: "Backed by Providence Auto — a global vehicle sourcing & export group with our own offices in eight countries"
 
 ### 2.2 About / "Who you're dealing with"
 - 2–3 paragraph personal bio (personality-forward, first person)

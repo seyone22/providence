@@ -394,6 +394,12 @@ export async function updateMyProfile(input: {
 
     revalidatePath(`/team/${slug}`);
     revalidatePath("/admin/my-profile");
+    // The team index and the sitemap both list published profiles, and both
+    // publishing and a slug change alter that list.
+    revalidatePath("/team");
+    revalidatePath("/sitemap.xml");
+    // A renamed profile leaves its old URL behind in both caches.
+    if (slug !== existing.slug) revalidatePath(`/team/${existing.slug}`);
 
     const mappedUpdated = mapSalesProfile(updated);
 
@@ -432,6 +438,50 @@ export async function listPublishedProfileSlugs() {
     return plain(mappedProfiles) as { slug: string; updatedAt: string }[];
   } catch (error) {
     console.error("[listPublishedProfileSlugs] Error:", error);
+    return [];
+  }
+}
+
+/**
+ * PUBLIC — every published profile, in the shape the /team index needs. Ordered
+ * by experience so the most senior consultants lead the grid, then by name so
+ * the order is stable between renders.
+ */
+export async function listPublishedProfiles() {
+  try {
+    const profiles = await db
+      .select({
+        slug: salesProfiles.slug,
+        displayName: salesProfiles.displayName,
+        headline: salesProfiles.headline,
+        tagline: salesProfiles.tagline,
+        photoUrl: salesProfiles.photoUrl,
+        yearsExperience: salesProfiles.yearsExperience,
+        languages: salesProfiles.languages,
+        sourcingCountries: salesProfiles.sourcingCountries,
+      })
+      .from(salesProfiles)
+      .where(eq(salesProfiles.isPublished, true));
+
+    const mapped = profiles
+      .map((p) => ({
+        ...p,
+        languages: p.languages || [],
+        sourcingCountries: (p.sourcingCountries || []) as {
+          country: string;
+          flag: string;
+          note: string;
+        }[],
+      }))
+      .sort(
+        (a, b) =>
+          (b.yearsExperience || 0) - (a.yearsExperience || 0) ||
+          (a.displayName || "").localeCompare(b.displayName || ""),
+      );
+
+    return plain(mapped);
+  } catch (error) {
+    console.error("[listPublishedProfiles] Error:", error);
     return [];
   }
 }
