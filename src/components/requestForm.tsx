@@ -23,6 +23,9 @@ import {
   submitCarRequest,
   submitContactPreferences,
 } from "@/actions/request-actions";
+import SuggestedGuides, {
+  type SuggestedGuide,
+} from "@/components/SuggestedGuides";
 import {
   CONTACT_METHODS,
   computePreferredContactAt,
@@ -683,6 +686,9 @@ export default function RequestForm({
   const [assignedAgent, setAssignedAgent] = useState<
     AgentData | null | undefined
   >(null);
+  // Guides for the destination country, returned by submitContactPreferences
+  // and shown on the success screen so the lead has somewhere to go next.
+  const [suggestedGuides, setSuggestedGuides] = useState<SuggestedGuide[]>([]);
 
   const [availableModels, setAvailableModels] = useState<string[]>([]);
   const [isLoadingModels, setIsLoadingModels] = useState(false);
@@ -1067,6 +1073,7 @@ export default function RequestForm({
       });
 
       if (response.success) {
+        setSuggestedGuides(response.suggestedGuides || []);
         setIsSuccess(true);
       } else {
         setErrors({ submit: response.message });
@@ -1195,6 +1202,7 @@ export default function RequestForm({
                 setFormData(initialFormState);
                 setSubmittedRequestId("");
                 setAssignedAgent(null);
+                setSuggestedGuides([]);
                 setErrors({});
               }}
               className="text-[#4da8da] font-bold hover:text-[#3d92c2] transition-colors underline decoration-2 underline-offset-4 text-base"
@@ -1202,6 +1210,11 @@ export default function RequestForm({
               New Inquiry
             </button>
           </div>
+
+          <SuggestedGuides
+            guides={suggestedGuides}
+            destinationCountry={formData.countryOfImport}
+          />
         </motion.div>
       ) : (
         <div className="p-5 sm:p-8 md:p-14 min-h-[520px] flex flex-col">

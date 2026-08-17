@@ -173,7 +173,39 @@ html {
   opacity: 1;
 }
 
-/* Gradient-accent headline — clips a sky→violet→pink gradient to text */
+/* ── Hero photo legibility (GradientMesh overlay="spotlight") ───────────────
+   The alternative to bleaching a whole hero photo: buy contrast only where the
+   copy sits. An elliptical white scrim sits under the text column and falls off
+   to fully transparent well before the frame edge, so the photo's edges and
+   lower third keep their colour and the subject stays readable. Centred at 42%
+   height to track the copy block, which sits slightly above centre once the
+   tagline and CTA row are laid out. */
+.pa-hero-spotlight {
+  background: radial-gradient(
+    62% 52% at 50% 42%,
+    rgba(255, 255, 255, 0.94) 0%,
+    rgba(255, 255, 255, 0.86) 30%,
+    rgba(255, 255, 255, 0.55) 55%,
+    rgba(255, 255, 255, 0.18) 75%,
+    rgba(255, 255, 255, 0) 100%
+  );
+}
+
+/* Text sitting directly on a photo. The scrim above handles most of the
+   contrast; this covers the rest — a tight white halo that reads as a glow
+   rather than a box, so it works over both the pale sky and the darker subject
+   without introducing a visible panel edge. */
+.pa-text-scrim {
+  text-shadow:
+    0 0 12px rgba(255, 255, 255, 0.95),
+    0 0 32px rgba(255, 255, 255, 0.8),
+    0 1px 2px rgba(255, 255, 255, 0.9);
+}
+
+/* Gradient-accent headline — clips a sky→violet→pink gradient to text.
+   NB: `color: transparent` means text-shadow would paint over the clipped
+   gradient, so headlines using this class take their halo from a drop-shadow
+   filter (which follows the glyph alpha) instead of .pa-text-scrim. */
 .pa-headline-gradient {
   background-image: linear-gradient(
     100deg,

@@ -10,24 +10,26 @@ import {
   getPost,
   getPostsByCluster,
 } from "@/config/blog";
+import { getLeadStory, NEWS_BASE_PATH } from "@/config/news";
 
 const SITE = "https://www.providenceauto.co.uk";
 const PATH = "/blog";
 const TITLE =
-  "Importing a Car to Ireland: Guides on Cost, Tax & the Cheapest Cars";
+  "Car Import Guides — Japan, the UK, the UAE, India, Thailand & More";
 const DESCRIPTION =
-  "Practical guides to importing a car to Ireland in 2026 — what it costs, the cheapest cars and the cheapest way to import, VRT explained, and whether to buy from Japan or the UK.";
+  "Practical guides to importing a car from every country we source in — how each market works, what the paperwork proves, what it really costs to land, and the questions dealers and direct buyers ask us most.";
 
 export const metadata: Metadata = {
   title: { absolute: TITLE },
   description: DESCRIPTION,
   keywords: [
+    "car import guides",
+    "how to import a car from japan",
+    "how to import a car from the uk",
+    "import a car from dubai",
+    "cost to import a car",
+    "car export documents explained",
     "import cars to ireland",
-    "importing a car to ireland",
-    "cheapest cars to import to ireland",
-    "cheapest way to import a car to ireland",
-    "cost of importing a car to ireland",
-    "vrt ireland",
   ],
   alternates: { canonical: PATH },
   openGraph: {
@@ -49,6 +51,7 @@ export const metadata: Metadata = {
 export default function BlogIndexPage() {
   const pillar = getPost("importing-cars-to-ireland");
   const groups = getPostsByCluster();
+  const lead = getLeadStory();
 
   const breadcrumbSchema = {
     "@context": "https://schema.org",
@@ -109,7 +112,7 @@ export default function BlogIndexPage() {
             duration={0.8}
             className="text-4xl md:text-6xl font-bold tracking-tighter leading-[1.1] mb-6"
           >
-            Importing a car to Ireland,
+            Importing a car,
             <br className="hidden md:block" /> explained properly.
           </Reveal>
           <Reveal
@@ -119,8 +122,9 @@ export default function BlogIndexPage() {
             duration={0.6}
             className="text-xl text-zinc-500 font-light max-w-2xl mx-auto"
           >
-            Clear, up-to-date guides on what it costs, the cheapest cars and the
-            cheapest way to import, and how the taxes actually work in 2026.
+            Clear, current guides to every country we source from — how each
+            market actually works, what the documents prove, what a car really
+            costs to land, and where buyers get caught out.
           </Reveal>
         </section>
 
@@ -217,6 +221,37 @@ export default function BlogIndexPage() {
             );
           })}
         </section>
+
+        {/* ── LATEST NEWS CROSS-LINK ───────────────── */}
+        {lead && (
+          <section className="px-6 max-w-5xl mx-auto pb-4">
+            <Reveal y={20} duration={0.6}>
+              <Link
+                href={`${NEWS_BASE_PATH}/${lead.slug}`}
+                className="group flex flex-col sm:flex-row sm:items-center justify-between gap-4 rounded-[1.75rem] border border-black/8 bg-zinc-50 px-7 py-6 transition-colors hover:border-sky-500/25"
+              >
+                <div>
+                  <p className="text-xs font-bold tracking-[0.2em] uppercase text-sky-600 mb-1.5">
+                    Latest news · {lead.category}
+                  </p>
+                  <p className="text-lg font-bold tracking-tight text-black">
+                    {lead.title}
+                  </p>
+                  <p className="mt-1 text-sm text-zinc-500 font-light">
+                    {lead.excerpt}
+                  </p>
+                </div>
+                <span className="inline-flex shrink-0 items-center gap-2 text-sm font-bold text-sky-600">
+                  Read the story
+                  <ArrowRight
+                    size={15}
+                    className="group-hover:translate-x-1 transition-transform"
+                  />
+                </span>
+              </Link>
+            </Reveal>
+          </section>
+        )}
 
         {/* ── CTA ──────────────────────────────────── */}
         <div className="px-6 pb-20 max-w-3xl mx-auto">

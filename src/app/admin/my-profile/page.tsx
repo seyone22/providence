@@ -134,7 +134,8 @@ export default function MyProfileAdminPage() {
         <AlertCircle className="mx-auto text-zinc-300 mb-4" size={40} />
         <h1 className="text-xl font-bold">No profile available</h1>
         <p className="text-zinc-500 mt-2">
-          {toast?.msg || "Only sales members can manage a profile page."}
+          {toast?.msg ||
+            "Only sales members and admins can manage a profile page."}
         </p>
       </div>
     );

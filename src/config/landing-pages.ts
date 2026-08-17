@@ -85,7 +85,7 @@ export const lhdCampaignConfig: LandingPageConfig = {
   },
   valueProps: {
     title: "Why Import From Providence Auto",
-    containerImage: "/gallery_image.jpg",
+    containerImage: "/import-cars/japan-car-truck.jpeg",
     features: [
       {
         icon: FileSearch,
@@ -191,7 +191,7 @@ export const lhdCampaignConfig: LandingPageConfig = {
           },
           {
             q: "Is my payment protected?",
-            a: "Yes. Funds are held securely until your vehicle is confirmed, inspected, and cleared for shipment, and every car is covered by comprehensive marine insurance door-to-door. Providence is an established UK-based sourcing and export company with a global office network.",
+            a: "Yes. Funds are held securely until your vehicle is confirmed, inspected, and cleared for shipment, and every car is covered by comprehensive marine insurance door-to-door. Providence is an established international sourcing and export group with physical offices in the UK, Japan, the UAE, India, Thailand, Australia, New Zealand and Sri Lanka.",
           },
         ],
       },
@@ -202,21 +202,28 @@ export const lhdCampaignConfig: LandingPageConfig = {
 export const japanImportCampaignConfig: LandingPageConfig = {
   slug: "import-japanese-cars",
   meta: {
-    title: "Import Japanese Cars — Fast Movers, Fully Landed | Providence Auto",
+    title:
+      "Import Japanese Cars — Auction Sourced, Fully Landed | Providence Auto",
     description:
-      "Import Japan's fastest-moving cars — Toyota Aqua, Prius, Harrier, Honda Fit, Vezel and more — grade-verified at auction and landed in the UK, Ireland, Sri Lanka, Kenya, Tanzania, Uganda or any right-hand-drive country. Full landed cost quoted before you commit.",
+      "Import Japan's fastest-moving cars — Toyota Aqua, Prius, Harrier, Land Cruiser, Noah, Honda Fit and more — grade-verified at auction and landed in the UK, Ireland, New Zealand, Kenya, Tanzania, Uganda or any right-hand-drive country. Full landed cost quoted before you commit.",
   },
   hero: {
     tagline: "Providence Auto · Japan Import Specialists",
-    title: "Japan's Fastest Movers,\nLanded at Your Door.",
+    title: "We Buy Your Car at Japanese Auction\nand Deliver It to Your Door.",
     subtitle:
-      "The hybrids, SUVs and workhorses the whole right-hand-drive world is buying — grade-verified at Japanese auction, then shipped, cleared and registered in your country for one honest landed price.",
-    // Self-hosted (unlike the other campaigns' remote heroes) because it is a
-    // landscape re-crop of a portrait original: an R34 Skyline GT-R on
-    // Japanese plates parked under Mt Fuji, with a HiAce and kei cars behind
-    // it — the whole frame reads "sourced in Japan" rather than "generic
-    // supercar". Cropped to 3:2 so wide viewports barely trim it.
-    backgroundImage: "/import-cars/hero-skyline-fuji.jpg",
+      "Providence Auto sources cars from Japan's wholesale auctions, then handles shipping, customs clearance and registration in your country. You see the auction sheet and a single all-in landed price before we bid, and that price is what you pay.",
+    // Self-hosted (unlike the other campaigns' remote heroes) so the hero has
+    // no third-party dependency: a photograph of an FJ62 Land Cruiser, the
+    // model that built Toyota's reputation in exactly the import markets this
+    // page sells into. GradientMesh buries the hero under white washes, so the
+    // frame has to survive that — the "TOYOTA" grille badge stays legible
+    // where a modern colour-coded one would disappear, and the car is centred
+    // so `object-cover` still lands on it at tall mobile aspect ratios. Also
+    // deliberately plateless: any readable foreign registration would fight
+    // the right-hand-drive-import story. Re-cropped to 3:2 to match the
+    // container and keep side-trim minimal on wide viewports.
+    // Photo: Nikolas Noonan / Unsplash (unsplash.com/photos/JuEtWryZhag).
+    backgroundImage: "/import-cars/hero-land-cruiser.jpg",
   },
   intro: {
     highlight: "You see the auction sheet before we spend a yen.",
@@ -224,30 +231,30 @@ export const japanImportCampaignConfig: LandingPageConfig = {
   },
   valueProps: {
     title: "Why Import From Providence Auto",
-    containerImage: "/gallery_image.jpg",
+    containerImage: "/import-cars/japan-car-truck.jpeg",
     features: [
       {
         icon: FileSearch,
         title: "Auction-Grade Verified",
-        desc: "Original auction sheet, translated and explained. Mileage cross-checked against Japan's export certificate and inspection history. If the car doesn't match its grade, we don't bid.",
+        desc: "We send you the original auction sheet with a full translation, so you can read the independent inspector's grade and panel-by-panel condition map for yourself. We cross-check the odometer against Japan's export certificate and inspection history, and if the car does not match its grade, we do not bid on it.",
         glowColor: "group-hover:bg-blue-500/15",
       },
       {
         icon: Compass,
         title: "Your Country's Rules, Handled",
-        desc: "Age limits, pre-export inspections, emissions rules, registration deadlines — every right-hand-drive market plays by different rules, and we've shipped through all of them. You pick the car; we make it compliant.",
+        desc: "Every right-hand-drive market applies its own age limits, pre-export inspections, emissions rules and registration deadlines, and we have shipped through all of them. You choose the car, and we make sure it complies before it leaves Japan.",
         glowColor: "group-hover:bg-emerald-500/15",
       },
       {
         icon: Landmark,
         title: "One Honest Landed Price",
-        desc: "Before you commit a penny, you get a single all-in quote — car, auction fees, freight, insurance, duty and every local tax for your destination. The price we quote is the price you pay.",
+        desc: "Before you commit anything, we give you one all-in quote covering the car, auction fees, freight, marine insurance, duty and every local tax that applies at your destination. The price we quote is the price you pay on arrival.",
         glowColor: "group-hover:bg-indigo-500/15",
       },
       {
         icon: Ship,
         title: "Door-to-Door Logistics",
-        desc: "RoRo or container from Japan's ports to yours, marine insurance the whole way, customs clearance and local registration managed for you — with live milestone updates from auction hall to driveway.",
+        desc: "We ship by RoRo or container from Japan's ports to yours, keep the car under marine insurance for the whole journey, and manage customs clearance and local registration at the other end. You get milestone updates from the auction hall to your driveway.",
         glowColor: "group-hover:bg-amber-500/15",
       },
     ],
@@ -329,8 +336,8 @@ export const japanImportCampaignConfig: LandingPageConfig = {
             a: "Three charges apply: customs duty — 0% for Japan-built cars under the EU–Japan Economic Partnership Agreement — VAT at 23% on the landed value, and VRT based on CO2 emissions, which runs as low as 7–14% for efficient Japanese hybrids. Every import must be registered at NCTS within 30 days of arrival. We calculate, declare and pay all of it on your behalf, quoted in full before you commit.",
           },
           {
-            q: "Can I import a Japanese car to Sri Lanka now?",
-            a: "Yes — vehicle imports have reopened after the multi-year suspension, with strict conditions: only recently registered used cars qualify, and duties scale steeply with engine capacity, which is exactly why compact hybrids like the Toyota Aqua, Vitz and Honda Fit dominate the market. We confirm your chosen car qualifies under the current regulations before you commit a cent, and manage the shipping and clearance into Colombo.",
+            q: "What do I need to import a Japanese car to New Zealand?",
+            a: "New Zealand takes more used imports from Japan than from anywhere else, and the route is well worn. There is no customs duty on used cars; GST at 15% is charged once on the landed value. Every vehicle must arrive clean enough to clear MPI biosecurity — we arrange the steam clean in Japan — and then pass entry certification, where the car is checked against New Zealand's structural, frontal-impact and emissions requirements before it can be registered and plated. We source stock that meets those standards, include GST and compliance in your landed cost, and ship into Auckland, Tauranga, Wellington or Lyttelton.",
           },
           {
             q: "What is the age limit for importing a car to Kenya?",
@@ -346,16 +353,20 @@ export const japanImportCampaignConfig: LandingPageConfig = {
           },
           {
             q: "Do you deliver to other right-hand-drive countries?",
-            a: "Yes. Beyond the UK, Ireland, Sri Lanka, Kenya, Tanzania and Uganda, we ship to right-hand-drive markets worldwide — including the wider Caribbean, southern Africa, and the Pacific. Tell us your country in the inquiry form and we'll come back with the exact rules, timeline and full landed cost for your destination.",
+            a: "Yes. Beyond the UK, Ireland, New Zealand, Kenya, Tanzania and Uganda, we ship to right-hand-drive markets worldwide — including the wider Caribbean, southern Africa, and the Pacific. Tell us your country in the inquiry form and we'll come back with the exact rules, timeline and full landed cost for your destination.",
           },
         ],
       },
       {
-        category: "Shipping, Payment & Protection",
+        category: "Warranty, Shipping & Protection",
         items: [
           {
+            q: "Does an imported car come with a warranty?",
+            a: "Yes — you get a local warranty, provided by our partner dealer in your own region rather than by an exporter on the other side of the world. Cover is whatever that dealer offers in your market, so if something needs attention after delivery you book it in with a garage you can drive to. We confirm in writing which partner is covering your car, what the warranty includes and how long it runs, as part of your landed-cost quote — before you commit.",
+          },
+          {
             q: "Is my payment protected when buying a car from Japan?",
-            a: "Yes. Funds are held securely until your vehicle is confirmed, inspected and cleared for shipment, and every car is covered by comprehensive marine insurance door to door. Providence is an established UK-based sourcing and export company with a global office network — you always know exactly where your car and your money are.",
+            a: "Yes. Funds are held securely until your vehicle is confirmed, inspected and cleared for shipment, and every car is covered by comprehensive marine insurance door to door. Providence is an established international sourcing and export group with its own offices in Japan and seven other countries — including a team on the ground at the auction — so you always know exactly where your car and your money are.",
           },
           {
             q: "Will my car ship by RoRo or container?",

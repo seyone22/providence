@@ -6,13 +6,21 @@ const SITE = "https://www.providenceauto.co.uk";
 const PATH = "/import-japanese-cars";
 const URL = `${SITE}${PATH}`;
 
-// Fast-moving models promoted on this page — kept in sync with the client
-// grid for the ItemList schema so AI search engines can enumerate our stock.
+// Models promoted on this page — kept in sync with the client grid for the
+// ItemList schema so AI search engines can enumerate our stock.
 const MODEL_NAMES = [
   "Toyota Aqua",
   "Toyota Prius",
   "Toyota Harrier",
   "Toyota Land Cruiser Prado",
+  "Toyota Land Cruiser 200",
+  "Toyota Land Cruiser 300",
+  "Toyota Land Cruiser 70 Series",
+  "Toyota Alphard",
+  "Toyota Noah",
+  "Toyota Voxy",
+  "Lexus LX 600",
+  "Mercedes-Benz G-Class",
   "Honda Fit",
   "Honda Vezel",
   "Nissan Note e-POWER",
@@ -24,7 +32,7 @@ const MODEL_NAMES = [
 const DESTINATION_COUNTRIES = [
   "United Kingdom",
   "Ireland",
-  "Sri Lanka",
+  "New Zealand",
   "Kenya",
   "Tanzania",
   "Uganda",
@@ -42,11 +50,13 @@ export const metadata: Metadata = {
     "import cars from japan to uk",
     "import cars from japan to ireland",
     "import cars from japan to kenya",
-    "import cars from japan to sri lanka",
+    "import cars from japan to new zealand",
     "import cars from japan to tanzania",
     "import cars from japan to uganda",
     "toyota aqua import",
     "toyota harrier import",
+    "toyota land cruiser import",
+    "toyota noah voxy import",
     "japan auction sheet verification",
   ],
   alternates: { canonical: PATH },
