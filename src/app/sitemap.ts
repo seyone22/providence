@@ -4,7 +4,12 @@ import { listPublishedProfileSlugs } from "@/actions/sales-profile-actions";
 import { getAllSpecDossiers } from "@/actions/spec-actions";
 import { BLOG_BASE_PATH, BLOG_POSTS } from "@/config/blog";
 import { COUNTRY_BASE_PATH, COUNTRY_PAGES } from "@/config/countries";
-import { NEWS_ARTICLES, NEWS_BASE_PATH } from "@/config/news";
+import {
+  getPopulatedCategories,
+  NEWS_ARTICLES,
+  NEWS_BASE_PATH,
+  NEWS_CATEGORY_BASE_PATH,
+} from "@/config/news";
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const baseUrl = "https://www.providenceauto.co.uk";
@@ -46,11 +51,29 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     priority: 0.8,
   }));
 
-  // 1c. Latest News articles — dated reporting, so they change less than guides
-  const newsRoutes = NEWS_ARTICLES.map((article) => ({
-    url: `${baseUrl}${NEWS_BASE_PATH}/${article.slug}`,
-    lastModified: new Date(article.updatedDate),
-    changeFrequency: "monthly" as const,
+  // 1c. Latest News articles. Recency is the whole ranking proposition for a
+  // news section, so a story still inside its first week is advertised as
+  // hourly/0.9 to pull crawlers back; after that it settles to the slower
+  // cadence appropriate to dated reporting that no longer changes.
+  const now = Date.now();
+  const WEEK_MS = 7 * 24 * 60 * 60 * 1000;
+  const newsRoutes = NEWS_ARTICLES.map((article) => {
+    const published = new Date(article.publishDate).getTime();
+    const isFresh = Number.isFinite(published) && now - published < WEEK_MS;
+    return {
+      url: `${baseUrl}${NEWS_BASE_PATH}/${article.slug}`,
+      lastModified: new Date(article.updatedDate),
+      changeFrequency: isFresh ? ("hourly" as const) : ("monthly" as const),
+      priority: isFresh ? 0.9 : 0.7,
+    };
+  });
+
+  // 1d. News category archives — the pages that actually target the head terms
+  // ("car industry news", "new car releases").
+  const newsCategoryRoutes = getPopulatedCategories().map((category) => ({
+    url: `${baseUrl}${NEWS_CATEGORY_BASE_PATH}/${category.slug}`,
+    lastModified: new Date(),
+    changeFrequency: "daily" as const,
     priority: 0.8,
   }));
 
@@ -77,6 +100,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     ...countryRoutes,
     ...blogRoutes,
     ...newsRoutes,
+    ...newsCategoryRoutes,
     ...carRoutes,
     ...profileRoutes,
   ];

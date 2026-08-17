@@ -72,6 +72,23 @@ Plus the Better-Auth tables (`users`, `sessions`, `accounts`, `verifications`). 
 
 `.github/workflows/ci.yml` enforces a `dev → staging → production` branch pipeline on PRs and runs lint (non-blocking), `tsc --noEmit`, and a dry `next build` (with mock env vars) as required checks.
 
+### Editorial: blog vs news
+
+Two separate content systems, deliberately not merged:
+
+- **`/blog`** — evergreen how-to guides in keyword clusters. Registry `src/config/blog.ts`, bodies `src/content/blog/`, schema `BlogPosting`. Gets updated, does not age.
+- **`/latest-news`** — dated automotive reporting: new-model releases, industry moves, auction results, market data, and the tax/policy changes that move landed cost. Registry `src/config/news.ts`, bodies `src/content/news/`, schema `NewsArticle`. Ages, and is fed to Google News.
+
+Adding a news article touches **three** files — `src/config/news.ts`, `src/content/news/<slug>.tsx`, and the `NEWS_BODIES` map in `src/content/news/index.ts`. Missing the third 404s the page.
+
+News-only prose components (`PullQuote`, `Timeline`, `ProfileCard`, `ConfirmedLedger`) live in `src/components/news/newsProse.tsx`; the shared kit stays in `src/components/blog/prose.tsx`.
+
+Feeds and discovery, all automatic: `/news-sitemap.xml` (Google News, 48-hour window), `/latest-news/rss.xml`, and `/latest-news/category/[category]` archives generated from `NEWS_CATEGORIES` (categories with no articles 404 by design).
+
+**Before writing any news article, read `news-editorial-playbook.md` at the repo root.** It defines the target market (all RHD destinations, plus LHD for luxury only), the two reader segments, the relevance gate, the seven landed-cost lenses, the "Landed Desk" voice, the SEO/AEO spec and the mandatory fact-checking protocol. The repeatable weekly run — 20 publish-ready stories — is the `news-desk` skill (`/news-desk`).
+
+Three standing editorial rules: **never invent a tax, duty or registration-tax figure** — cite the revenue authority, date the check and add `<Disclaimer />`; **never forecast a currency** — name the pair, date the level, and say which side of the trade it lands on (a weak *source* currency makes the car cheaper; a weak *destination* currency makes everything dearer); and **a missing number is not a failure, a wrong number is.**
+
 ### Route Structure
 
 ```
@@ -84,6 +101,13 @@ Plus the Better-Auth tables (`users`, `sessions`, `accounts`, `verifications`). 
 /track/[id]                Request tracking by ID
 /dealer-dashboard          Dealer interface
 /ireland-cost-calculator   Landed cost calculator tool
+/blog, /blog/[slug]        Evergreen import guides
+/latest-news               Automotive news index
+/latest-news/[slug]        News article
+/latest-news/category/*    News category archives
+/latest-news/rss.xml       RSS feed
+/news-sitemap.xml          Google News sitemap
+/source-cars-from/*        Source-country network pages
 /admin/*                   Protected admin dashboard
 /api/v1/*                  REST API routes
 ```
