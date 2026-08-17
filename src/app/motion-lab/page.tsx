@@ -4,7 +4,10 @@ import DotGlobe, {
   GLOBE_PALETTE_LIGHT,
 } from "@/components/DotGlobe";
 import GradientMesh from "@/components/GradientMesh";
+import LandedCostBar from "@/components/LandedCostBar";
+import OdometerCounter from "@/components/OdometerCounter";
 import RadialBurst from "@/components/RadialBurst";
+import VoyageTrack from "@/components/VoyageTrack";
 import { GLOBE_PLACES, GLOBE_ROUTES } from "@/config/globe";
 
 /**
@@ -53,13 +56,20 @@ export default function MotionLabPage() {
         <h1 className="mt-4 text-4xl font-semibold tracking-tight">
           Motion lab
         </h1>
-        <p className="mt-4 mb-20 max-w-2xl leading-relaxed text-zinc-600">
-          Canvas visuals for marketing pages. All three run one{" "}
+        <p className="mt-4 mb-4 max-w-2xl leading-relaxed text-zinc-600">
+          Animated visuals for marketing pages. The two canvas pieces run one{" "}
           <code className="rounded bg-zinc-100 px-1.5 py-0.5 text-sm">
             requestAnimationFrame
           </code>{" "}
-          loop, pause when scrolled out of view, and fall back to a single
-          static frame under <em>prefers-reduced-motion</em>.
+          loop each and pause when scrolled out of view; the rest play once on
+          entry. All of them settle to their finished state under{" "}
+          <em>prefers-reduced-motion</em>.
+        </p>
+        <p className="mb-20 max-w-2xl text-sm leading-relaxed text-zinc-500">
+          The data-bearing ones render <em>finished</em> on the server and
+          rewind on the client before the first paint, so a crawler or a visitor
+          without JavaScript gets the real figures rather than an empty bar
+          reading £0.
         </p>
 
         <Panel
@@ -107,6 +117,60 @@ export default function MotionLabPage() {
                 backdrop={false}
               />
             </div>
+          </div>
+        </Panel>
+
+        <Panel
+          title="Voyage track"
+          note="The globe's arc reveal flattened into a section band: the sea lane strokes on from the origin port, a vessel rides the leading end, and each stage pip lights as it is passed. The route is a Bézier evaluated in code rather than measured off the DOM, so the marker position is computable without a laid-out document. Pass real statusHistory to drive it from a request."
+        >
+          <div className="rounded-3xl border border-zinc-200 p-6">
+            <VoyageTrack />
+          </div>
+          <div className="mt-6 grid gap-6 md:grid-cols-2">
+            <div className="rounded-3xl border border-zinc-200 p-4">
+              <p className="mb-2 text-xs text-zinc-400">Held at 35% — at sea</p>
+              <VoyageTrack progress={0.35} />
+            </div>
+            <div className="rounded-3xl border border-zinc-200 p-4">
+              <p className="mb-2 text-xs text-zinc-400">
+                Held at 90% — cleared
+              </p>
+              <VoyageTrack progress={0.9} />
+            </div>
+          </div>
+        </Panel>
+
+        <Panel
+          title="Landed cost build-up"
+          note="The argument that the auction price is only part of what a car costs to land. Every figure is computed by the same HMRC-derived engine as the admin sourcing tool (lib/uk-landed-cost.ts) — no rate is written down here, so this cannot drift from the real calculator."
+        >
+          <div className="rounded-3xl border border-zinc-200 p-8">
+            <LandedCostBar />
+          </div>
+        </Panel>
+
+        <Panel
+          title="Odometer"
+          note="A count-up as the instrument the number would actually come from. Columns are geared to each other rather than animated independently — the units drum spins while the higher ones sit still and flick over, as a real drum does. The three figures below are placeholders chosen to show different digit counts; replace them with real ones before this goes on a public page."
+        >
+          <div className="grid gap-8 rounded-3xl border border-zinc-200 p-8 sm:grid-cols-3">
+            <OdometerCounter
+              value={4812}
+              label="Cars landed"
+              className="text-4xl"
+            />
+            <OdometerCounter
+              value={24}
+              label="Markets served"
+              className="text-4xl"
+            />
+            <OdometerCounter
+              value={128400}
+              prefix="£"
+              label="Duty saved via CEPA"
+              className="text-4xl"
+            />
           </div>
         </Panel>
 
