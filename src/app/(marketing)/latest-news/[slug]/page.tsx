@@ -1,7 +1,13 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import NewsShell from "@/components/news/NewsShell";
-import { getAllNewsSlugs, getNewsArticle, NEWS_BASE_PATH } from "@/config/news";
+import {
+  getAllNewsSlugs,
+  getCategoryMetaByLabel,
+  getNewsArticle,
+  NEWS_BASE_PATH,
+  NEWS_CATEGORY_BASE_PATH,
+} from "@/config/news";
 import { getNewsBody } from "@/content/news";
 
 const SITE = "https://www.providenceauto.co.uk";
@@ -72,24 +78,52 @@ export default async function NewsArticlePage({
   const path = `${NEWS_BASE_PATH}/${article.slug}`;
   const url = `${SITE}${path}`;
 
+  const categoryMeta = getCategoryMetaByLabel(article.category);
+  const heroImageUrl = article.heroImage.startsWith("http")
+    ? article.heroImage
+    : `${SITE}${article.heroImage}`;
+
   // NewsArticle rather than BlogPosting — this is dated reporting, and the
   // citations are surfaced so crawlers and AI search can follow the claims.
+  //
+  // The extra properties below are what news surfaces specifically look for:
+  // isAccessibleForFree (no paywall to negotiate), inLanguage, a publisher with
+  // a real logo, speakable regions, and a datePublished carrying a timezone so
+  // "how fresh is this" is answerable to the hour rather than the day.
   const articleSchema = {
     "@context": "https://schema.org",
     "@type": "NewsArticle",
+    "@id": `${url}#article`,
     headline: article.h1,
+    alternativeHeadline: article.title,
     description: article.description,
-    image: article.heroImage,
-    datePublished: article.publishDate,
-    dateModified: article.updatedDate,
+    image: [heroImageUrl],
+    thumbnailUrl: heroImageUrl,
+    datePublished: `${article.publishDate}T08:00:00+01:00`,
+    dateModified: `${article.updatedDate}T08:00:00+01:00`,
     articleSection: article.category,
+    inLanguage: "en-IE",
+    isAccessibleForFree: true,
+    wordCount: article.readingTimeMins * 200,
     author: { "@type": "Organization", name: article.author, url: `${SITE}/` },
     publisher: {
       "@type": "Organization",
       name: "Providence Auto",
+      url: `${SITE}/`,
       logo: { "@type": "ImageObject", url: `${SITE}/logo.png` },
     },
     mainEntityOfPage: { "@type": "WebPage", "@id": url },
+    isPartOf: categoryMeta
+      ? {
+          "@type": "CollectionPage",
+          "@id": `${SITE}${NEWS_CATEGORY_BASE_PATH}/${categoryMeta.slug}`,
+          name: categoryMeta.h1,
+        }
+      : undefined,
+    speakable: {
+      "@type": "SpeakableSpecification",
+      cssSelector: ["h1", "article p"],
+    },
     keywords: article.keywords.join(", "),
     citation: article.sources.map((s) => ({
       "@type": "CreativeWork",
@@ -108,10 +142,25 @@ export default async function NewsArticlePage({
       {
         "@type": "ListItem",
         position: 2,
-        name: "Latest News",
+        name: "Automotive News",
         item: `${SITE}${NEWS_BASE_PATH}`,
       },
-      { "@type": "ListItem", position: 3, name: article.title, item: url },
+      ...(categoryMeta
+        ? [
+            {
+              "@type": "ListItem",
+              position: 3,
+              name: categoryMeta.h1,
+              item: `${SITE}${NEWS_CATEGORY_BASE_PATH}/${categoryMeta.slug}`,
+            },
+          ]
+        : []),
+      {
+        "@type": "ListItem",
+        position: categoryMeta ? 4 : 3,
+        name: article.title,
+        item: url,
+      },
     ],
   };
 

@@ -3,27 +3,48 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import BlogCTA from "@/components/blog/BlogCTA";
 import MinimalHeader from "@/components/MinimalHeader";
+import NewsCard from "@/components/news/NewsCard";
 import { Reveal } from "@/components/Reveal";
 import { BLOG_BASE_PATH } from "@/config/blog";
-import { getNewsArticles, NEWS_BASE_PATH } from "@/config/news";
+import {
+  getLatestPublishDate,
+  getNewsArticles,
+  getPopulatedCategories,
+  NEWS_BASE_PATH,
+  NEWS_CATEGORY_BASE_PATH,
+} from "@/config/news";
 
 const SITE = "https://www.providenceauto.co.uk";
+
+// The registry is a static module, so the lead story is resolvable at build
+// time — which lets the OG/Twitter card carry a real image instead of nothing.
+const LEAD = getNewsArticles()[0];
+
 const TITLE =
-  "Latest News — Car Auctions, Import Markets & Industry Analysis | Providence Auto";
+  "Automotive News — New Car Releases, Industry & Market Analysis | Providence Auto";
 const DESCRIPTION =
-  "News and analysis from the people who buy cars at auction for a living — record sales, market moves, import rule changes and what they actually mean for dealers and private buyers.";
+  "Automotive news covering new car releases, manufacturer and industry moves, auction records, market data and the tax and policy changes that move what a car actually costs — sourced, dated and checked.";
 
 export const metadata: Metadata = {
   title: { absolute: TITLE },
   description: DESCRIPTION,
   keywords: [
+    "automotive news",
+    "car industry news",
+    "new car releases 2026",
+    "car market news",
     "car auction news",
-    "car import news",
-    "vehicle market analysis",
-    "record car auction prices",
-    "car import rule changes",
+    "car tax and policy news",
+    "latest car news",
   ],
-  alternates: { canonical: NEWS_BASE_PATH },
+  alternates: {
+    canonical: NEWS_BASE_PATH,
+    types: {
+      "application/rss+xml": [
+        { url: `${SITE}${NEWS_BASE_PATH}/rss.xml`, title: TITLE },
+      ],
+    },
+  },
   openGraph: {
     type: "website",
     locale: "en_IE",
@@ -31,13 +52,25 @@ export const metadata: Metadata = {
     siteName: "Providence Auto",
     title: TITLE,
     description: DESCRIPTION,
+    ...(LEAD ? { images: [{ url: LEAD.heroImage, alt: LEAD.heroAlt }] } : {}),
   },
   twitter: {
     card: "summary_large_image",
     title: TITLE,
     description: DESCRIPTION,
+    ...(LEAD ? { images: [LEAD.heroImage] } : {}),
   },
-  robots: { index: true, follow: true },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      "max-snippet": -1,
+      "max-image-preview": "large",
+      "max-video-preview": -1,
+    },
+  },
 };
 
 function formatDate(iso: string) {
@@ -51,6 +84,8 @@ function formatDate(iso: string) {
 export default function LatestNewsIndexPage() {
   const articles = getNewsArticles();
   const [lead, ...rest] = articles;
+  const categories = getPopulatedCategories();
+  const latestDate = getLatestPublishDate();
 
   const breadcrumbSchema = {
     "@context": "https://schema.org",
@@ -60,21 +95,42 @@ export default function LatestNewsIndexPage() {
       {
         "@type": "ListItem",
         position: 2,
-        name: "Latest News",
+        name: "Automotive News",
         item: `${SITE}${NEWS_BASE_PATH}`,
       },
     ],
   };
 
-  const itemListSchema = {
+  // CollectionPage rather than a bare ItemList: it tells crawlers this is a
+  // regularly-updated hub with a publisher behind it, which is what news
+  // surfaces look for before they will consider a section for recency ranking.
+  const collectionSchema = {
     "@context": "https://schema.org",
-    "@type": "ItemList",
-    itemListElement: articles.map((a, i) => ({
-      "@type": "ListItem",
-      position: i + 1,
-      name: a.title,
-      url: `${SITE}${NEWS_BASE_PATH}/${a.slug}`,
-    })),
+    "@type": "CollectionPage",
+    "@id": `${SITE}${NEWS_BASE_PATH}`,
+    name: "Automotive News",
+    headline: "Automotive News — Releases, Industry, Market and Policy",
+    description: DESCRIPTION,
+    url: `${SITE}${NEWS_BASE_PATH}`,
+    inLanguage: "en-IE",
+    isPartOf: { "@type": "WebSite", name: "Providence Auto", url: `${SITE}/` },
+    publisher: {
+      "@type": "Organization",
+      name: "Providence Auto",
+      url: `${SITE}/`,
+      logo: { "@type": "ImageObject", url: `${SITE}/logo.png` },
+    },
+    ...(latestDate ? { dateModified: latestDate } : {}),
+    mainEntity: {
+      "@type": "ItemList",
+      numberOfItems: articles.length,
+      itemListElement: articles.map((a, i) => ({
+        "@type": "ListItem",
+        position: i + 1,
+        url: `${SITE}${NEWS_BASE_PATH}/${a.slug}`,
+        name: a.title,
+      })),
+    },
   };
 
   return (
@@ -87,14 +143,13 @@ export default function LatestNewsIndexPage() {
       <script
         type="application/ld+json"
         // biome-ignore lint/security/noDangerouslySetInnerHtml: JSON-LD must be inlined as a script tag for crawlers
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(itemListSchema) }}
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(collectionSchema) }}
       />
-
       <main className="min-h-screen bg-white text-black font-sans overflow-x-hidden">
         <MinimalHeader />
 
         {/* ── HERO ─────────────────────────────────── */}
-        <section className="px-6 pt-36 md:pt-40 pb-12 max-w-5xl mx-auto text-center">
+        <section className="px-6 pt-36 md:pt-40 pb-10 max-w-5xl mx-auto text-center">
           <Reveal
             as="p"
             immediate
@@ -102,7 +157,7 @@ export default function LatestNewsIndexPage() {
             duration={0.6}
             className="text-sm font-bold tracking-[0.3em] text-zinc-400 uppercase mb-5"
           >
-            Latest News
+            Automotive News
           </Reveal>
           <Reveal
             as="h1"
@@ -111,7 +166,7 @@ export default function LatestNewsIndexPage() {
             duration={0.8}
             className="text-4xl md:text-6xl font-bold tracking-tighter leading-[1.1] mb-6"
           >
-            The market,
+            The industry,
             <br className="hidden md:block" /> read properly.
           </Reveal>
           <Reveal
@@ -121,11 +176,49 @@ export default function LatestNewsIndexPage() {
             duration={0.6}
             className="text-xl text-zinc-500 font-light max-w-2xl mx-auto"
           >
-            Record sales, market moves and import rule changes &mdash; covered
-            by people who bid at auction every week, with the numbers checked
-            and the sources shown.
+            New model launches, manufacturer moves, auction records, market data
+            and the tax changes that decide what a car really costs &mdash;
+            covered by people who buy cars for a living, with the numbers
+            checked and the sources shown.
           </Reveal>
+          {latestDate && (
+            <Reveal
+              as="p"
+              immediate
+              y={12}
+              delay={0.2}
+              duration={0.5}
+              className="mt-6 text-xs font-medium tracking-wide text-zinc-400"
+            >
+              Last updated{" "}
+              <time dateTime={latestDate}>{formatDate(latestDate)}</time>
+            </Reveal>
+          )}
         </section>
+
+        {/* ── CATEGORY NAV ─────────────────────────── */}
+        {categories.length > 0 && (
+          <nav
+            aria-label="News categories"
+            className="px-6 max-w-5xl mx-auto mb-12"
+          >
+            <Reveal
+              y={16}
+              duration={0.5}
+              className="flex flex-wrap justify-center gap-2.5"
+            >
+              {categories.map((c) => (
+                <Link
+                  key={c.slug}
+                  href={`${NEWS_CATEGORY_BASE_PATH}/${c.slug}`}
+                  className="rounded-full border border-black/10 bg-white px-4 py-2 text-sm font-medium text-zinc-600 transition-colors hover:border-sky-500/40 hover:text-sky-600"
+                >
+                  {c.chip}
+                </Link>
+              ))}
+            </Reveal>
+          </nav>
+        )}
 
         {/* ── LEAD STORY ───────────────────────────── */}
         {lead && (
@@ -139,11 +232,17 @@ export default function LatestNewsIndexPage() {
                 <img
                   src={lead.heroImage}
                   alt={lead.heroAlt}
+                  width={1200}
+                  height={675}
+                  fetchPriority="high"
                   className="h-56 md:h-full w-full object-cover"
                 />
                 <div className="p-8 md:p-10 flex flex-col justify-center">
                   <p className="text-xs font-bold tracking-[0.2em] uppercase text-sky-600 mb-3">
-                    {lead.category} · {formatDate(lead.publishDate)}
+                    {lead.category} &middot;{" "}
+                    <time dateTime={lead.publishDate}>
+                      {formatDate(lead.publishDate)}
+                    </time>
                   </p>
                   <h2 className="text-2xl md:text-3xl font-bold tracking-tight text-black group-hover:text-sky-600 transition-colors mb-3">
                     {lead.title}
@@ -179,38 +278,50 @@ export default function LatestNewsIndexPage() {
             </Reveal>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
               {rest.map((article, i) => (
+                <NewsCard key={article.slug} article={article} index={i} />
+              ))}
+            </div>
+          </section>
+        )}
+
+        {/* ── BROWSE BY CATEGORY ───────────────────── */}
+        {categories.length > 0 && (
+          <section className="px-6 max-w-5xl mx-auto pb-12">
+            <Reveal
+              y={20}
+              duration={0.5}
+              className="flex items-center gap-4 mb-6"
+            >
+              <p className="text-xs font-bold tracking-[0.3em] text-zinc-400 uppercase shrink-0">
+                Browse by topic
+              </p>
+              <div className="flex-1 h-px bg-black/5" />
+            </Reveal>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              {categories.map((c, i) => (
                 <Reveal
                   as="div"
-                  key={article.slug}
+                  key={c.slug}
                   y={20}
                   delay={i * 0.05}
                   duration={0.5}
                 >
                   <Link
-                    href={`${NEWS_BASE_PATH}/${article.slug}`}
-                    className="group flex h-full flex-col overflow-hidden rounded-[1.5rem] border border-black/5 bg-white shadow-[0_10px_30px_rgba(0,0,0,0.03)] transition-all duration-300 hover:border-sky-500/20 hover:shadow-[0_20px_40px_rgba(0,0,0,0.07)]"
+                    href={`${NEWS_CATEGORY_BASE_PATH}/${c.slug}`}
+                    className="group flex h-full items-start justify-between gap-4 rounded-[1.5rem] border border-black/8 bg-zinc-50 px-6 py-5 transition-colors hover:border-sky-500/25"
                   >
-                    {/* biome-ignore lint/performance/noImgElement: remote hero image, intentional <img> per site convention */}
-                    <img
-                      src={article.heroImage}
-                      alt={article.heroAlt}
-                      className="h-40 w-full object-cover"
-                    />
-                    <div className="p-6 flex flex-1 flex-col">
-                      <p className="text-xs font-bold tracking-[0.2em] uppercase text-zinc-400 mb-2">
-                        {article.category} · {formatDate(article.publishDate)}
+                    <div>
+                      <p className="text-base font-bold tracking-tight text-black group-hover:text-sky-600 transition-colors mb-1">
+                        {c.h1}
                       </p>
-                      <h3 className="text-lg font-bold text-black group-hover:text-sky-600 transition-colors mb-2">
-                        {article.title}
-                      </h3>
-                      <p className="text-sm text-zinc-500 font-light leading-relaxed flex-1">
-                        {article.excerpt}
+                      <p className="text-sm text-zinc-500 font-light leading-relaxed">
+                        {c.blurb}
                       </p>
-                      <span className="mt-4 inline-flex items-center gap-1.5 text-xs text-zinc-400 font-medium">
-                        <Clock size={12} />
-                        {article.readingTimeMins} min read
-                      </span>
                     </div>
+                    <ArrowRight
+                      size={16}
+                      className="mt-1 shrink-0 text-zinc-400 group-hover:translate-x-1 group-hover:text-sky-600 transition-all"
+                    />
                   </Link>
                 </Reveal>
               ))}
@@ -242,6 +353,21 @@ export default function LatestNewsIndexPage() {
               </span>
             </Link>
           </Reveal>
+        </section>
+
+        {/* ── FEED LINK ────────────────────────────── */}
+        <section className="px-6 max-w-5xl mx-auto pb-8 text-center">
+          <p className="text-xs text-zinc-400 font-light">
+            <Clock size={11} className="inline mr-1.5 -mt-0.5" />
+            Updated as stories break.{" "}
+            <a
+              href={`${NEWS_BASE_PATH}/rss.xml`}
+              className="underline decoration-zinc-300 hover:decoration-zinc-500"
+            >
+              Subscribe via RSS
+            </a>
+            .
+          </p>
         </section>
 
         {/* ── CTA ──────────────────────────────────── */}
