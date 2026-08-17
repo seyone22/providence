@@ -63,6 +63,14 @@ export type NewsArticle = {
   sources: NewsSource[];
   /** Slugs of related blog guides for internal linking. */
   relatedGuides: string[];
+  /**
+   * Slugs of spec-dossier car pages this story announces — a launch piece
+   * often covers several debuts, so this is a list rather than a single slug.
+   * The link is two-way: the car page carries the article's slug in its
+   * `newsSlug` column, and the article renders a "cars in this story" block.
+   * Slugs that don't resolve to a live dossier are skipped rather than 404ing.
+   */
+  linkedVehicleSlugs?: string[];
   /** Pin to the top of the index regardless of date. */
   isFeatured?: boolean;
 };
@@ -541,6 +549,18 @@ export const NEWS_ARTICLES: NewsArticle[] = [
       "cost-to-import-a-car-from-the-uk",
       "gcc-spec-cars-explained",
     ],
+    // Car pages for the series-production reveals from this story — the ones a
+    // customer can realistically be allocated, as opposed to the one-offs
+    // (Destrier, Celestiq Night Test, DB12 S Tribute) which are already spoken
+    // for. A slug listed here that has no live dossier yet is simply skipped,
+    // so these can be authored ahead of the pages being built.
+    linkedVehicleSlugs: [
+      "lamborghini-revuelto-sv",
+      "lamborghini-revuelto-miura-60-homage",
+      "hennessey-blackbird",
+      "bentley-continental-supersports",
+      "bentley-bentayga-x",
+    ],
   },
 
   // ── Policy & Tax ──────────────────────────────────────────────────────────
@@ -940,6 +960,28 @@ export function getNewsByCategory(label: NewsCategory): NewsArticle[] {
 export function getPopulatedCategories(): NewsCategoryMeta[] {
   const used = new Set(NEWS_ARTICLES.map((a) => a.category));
   return NEWS_CATEGORIES.filter((c) => used.has(c.label));
+}
+
+/**
+ * New-model announcements, newest first — the Releases category. Powers the
+ * "Upcoming cars & new model releases" section on the news index.
+ */
+export function getReleaseArticles(limit?: number): NewsArticle[] {
+  const releases = getNewsArticlesByDate().filter(
+    (a) => a.category === "Releases",
+  );
+  return typeof limit === "number" ? releases.slice(0, limit) : releases;
+}
+
+/**
+ * The announcement a given car page belongs to, if its `newsSlug` resolves.
+ * Kept here so the car page doesn't have to know the registry's shape.
+ */
+export function getArticleForVehicle(
+  newsSlug?: string,
+): NewsArticle | undefined {
+  if (!newsSlug) return undefined;
+  return getNewsArticle(newsSlug);
 }
 
 /** Most recent publish date across the section — drives the index freshness stamp. */

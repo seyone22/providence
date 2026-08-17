@@ -1,7 +1,7 @@
 "use server";
 
 import crypto from "node:crypto";
-import { and, desc, eq, ne, sql } from "drizzle-orm";
+import { and, desc, eq, inArray, ne, or, sql } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { headers } from "next/headers";
 import { db, specDossiers } from "@/db";
@@ -147,6 +147,8 @@ export async function saveSpecDossier(payload: any) {
       "steering",
       "emissions",
       "pricing",
+      "exteriorColors",
+      "interiorColors",
       "upholstery",
       "infotainment",
       "features",
@@ -158,6 +160,9 @@ export async function saveSpecDossier(payload: any) {
       "slug",
       "notes",
       "status",
+      "isUpcoming",
+      "expectedAvailability",
+      "newsSlug",
     ];
     for (const key of allowedKeys) {
       if (resolvedPayload[key] !== undefined) {
@@ -202,6 +207,8 @@ export async function saveSpecDossier(payload: any) {
           steering: dataToSave.steering ?? "RHD",
           emissions: dataToSave.emissions ?? "",
           pricing: dataToSave.pricing ?? [],
+          exteriorColors: dataToSave.exteriorColors ?? [],
+          interiorColors: dataToSave.interiorColors ?? [],
           upholstery: dataToSave.upholstery ?? "",
           infotainment: dataToSave.infotainment ?? "",
           features: dataToSave.features ?? [],
@@ -213,6 +220,9 @@ export async function saveSpecDossier(payload: any) {
           slug: dataToSave.slug ?? "",
           notes: dataToSave.notes ?? "",
           status: dataToSave.status ?? "Draft",
+          isUpcoming: dataToSave.isUpcoming ?? false,
+          expectedAvailability: dataToSave.expectedAvailability ?? "",
+          newsSlug: dataToSave.newsSlug ?? "",
           createdAt: new Date(),
           updatedAt: new Date(),
         })
@@ -223,6 +233,9 @@ export async function saveSpecDossier(payload: any) {
     revalidatePath("/admin/dossiers");
     revalidatePath("/admin/specs");
     revalidatePath("/b2c/gallery");
+    // The news index carries the upcoming-cars rail, so flipping a dossier's
+    // coming-soon flag has to invalidate it too.
+    revalidatePath("/latest-news");
     // A new or renamed vehicle changes the URL set, so the sitemap has to be
     // rebuilt rather than served from its hourly ISR cache.
     revalidatePath("/sitemap.xml");
@@ -361,6 +374,7 @@ export async function updateDossierStatus(id: string, status: string) {
     // Status is what makes a dossier public, so it both adds and removes a
     // sitemap URL — and the gallery listing changes with it.
     revalidatePath("/b2c/gallery");
+    revalidatePath("/latest-news");
     revalidatePath("/sitemap.xml");
     return { success: true, message: `Status updated to ${status}` };
   } catch (_error) {
@@ -467,6 +481,8 @@ export async function getGalleryPreviewCars(tags?: string[], limit = 12) {
         heroImageUrl: true,
         images: true,
         pricing: true,
+        isUpcoming: true,
+        expectedAvailability: true,
       },
       where: and(...conditions),
       orderBy: desc(specDossiers.createdAt),
@@ -482,6 +498,113 @@ export async function getGalleryPreviewCars(tags?: string[], limit = 12) {
     return {
       success: false,
       message: "Error fetching preview cars.",
+      data: [],
+    };
+  }
+}
+
+/**
+ * GET CARS FOR A NEWS ARTICLE
+ *
+ * Unions the two directions the link can be authored from:
+ *  - the dossier's `newsSlug`, set by the admin toggle (the usual path, and
+ *    the one that needs no code change to add a car to a story), and
+ *  - the article's `linkedVehicleSlugs`, set in the news registry when an
+ *    editor wants to name cars explicitly.
+ *
+ * Only Active dossiers are returned, so a draft car page can't be linked into
+ * a published story. Slugs that don't resolve are simply absent — a story
+ * naming a car we haven't built a page for yet must not break the article.
+ */
+export async function getCarsForNewsArticle(
+  articleSlug: string,
+  linkedVehicleSlugs: string[] = [],
+) {
+  const actionName = "[getCarsForNewsArticle]";
+  try {
+    const columns = {
+      id: true,
+      make: true,
+      model: true,
+      year: true,
+      trim: true,
+      slug: true,
+      heroImageUrl: true,
+      images: true,
+      pricing: true,
+      expectedAvailability: true,
+      newsSlug: true,
+      isUpcoming: true,
+    } as const;
+
+    const matchers = [
+      // Cars pointed at this article from the admin builder.
+      ...(articleSlug ? [eq(specDossiers.newsSlug, articleSlug)] : []),
+      // Cars named by the article itself.
+      ...(linkedVehicleSlugs.length > 0
+        ? [inArray(specDossiers.slug, linkedVehicleSlugs)]
+        : []),
+    ];
+
+    if (matchers.length === 0) return { success: true, data: [] };
+
+    const dossiers = await db.query.specDossiers.findMany({
+      columns,
+      where: and(eq(specDossiers.status, "Active"), or(...matchers)),
+      orderBy: desc(specDossiers.createdAt),
+    });
+
+    return {
+      success: true,
+      data: dossiers.map((d) => ({ ...d, _id: d.id })),
+    };
+  } catch (error) {
+    console.error(`${actionName} Error:`, error);
+    return { success: false, message: "Error fetching linked cars.", data: [] };
+  }
+}
+
+/**
+ * GET UPCOMING CARS
+ * Active dossiers flagged as coming soon, newest first. Powers the "Upcoming
+ * cars & new model releases" rail on /latest-news and the coming-soon strip on
+ * the gallery, so it selects only the columns a card needs — including the
+ * `newsSlug` that links each car back to its launch announcement.
+ */
+export async function getUpcomingCars(limit = 12) {
+  const actionName = "[getUpcomingCars]";
+  try {
+    const dossiers = await db.query.specDossiers.findMany({
+      columns: {
+        id: true,
+        make: true,
+        model: true,
+        year: true,
+        trim: true,
+        slug: true,
+        heroImageUrl: true,
+        images: true,
+        pricing: true,
+        expectedAvailability: true,
+        newsSlug: true,
+      },
+      where: and(
+        eq(specDossiers.status, "Active"),
+        eq(specDossiers.isUpcoming, true),
+      ),
+      orderBy: desc(specDossiers.createdAt),
+      limit,
+    });
+
+    return {
+      success: true,
+      data: dossiers.map((d) => ({ ...d, _id: d.id })),
+    };
+  } catch (error) {
+    console.error(`${actionName} Error:`, error);
+    return {
+      success: false,
+      message: "Error fetching upcoming cars.",
       data: [],
     };
   }

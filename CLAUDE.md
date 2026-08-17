@@ -53,8 +53,8 @@ Optional: `GEMINI_TOKEN_BUDGET` (the AI token allowance the sourcing tool's usag
 ### Data Layer
 
 Drizzle tables are defined in `src/db/schema.ts`. Import the `db` client and tables from `@/db` and query with drizzle-orm operators (`eq`, `and`, `desc`, `inArray`, …). Application tables:
-- **requests** — Car purchase requests from customers (lead tracking, assignment, shipping, docs, payments, UTM/click attribution)
-- **specDossiers** — Vehicle inventory with multi-country `pricing` matrix and media (JSONB/array columns)
+- **requests** — Car purchase requests from customers (lead tracking, assignment, shipping, docs, payments, UTM/click attribution). `isUpcomingVehicle` flags a pre-order lead; `exteriorColor`/`interiorColor` hold the customer's colour choice as a display label.
+- **specDossiers** — Vehicle inventory with multi-country `pricing` matrix and media (JSONB/array columns). Also carries the `exteriorColors`/`interiorColors` palettes and the upcoming-car fields (`isUpcoming`, `expectedAvailability`, `newsSlug`).
 - **socialPosts** — Instagram embed posts per page (home/b2c/b2b), ordered via a `page_order_idx`
 - **salesProfiles** — Per-agent public sales landing-page profiles
 - **sourcingAnalyses** — Saved landed-cost / market analyses from the sourcing tool
@@ -67,6 +67,15 @@ Plus the Better-Auth tables (`users`, `sessions`, `accounts`, `verifications`). 
 
 - `scripts/migrate-mongo-to-pg.js` — one-off backfill copying documents from the old MongoDB into Postgres.
 - `scripts/migrate.mjs` — runs the generated `drizzle/` SQL migrations against `DATABASE_URL` (SSL configured for the Railway pool).
+- `scripts/create-car-page.mjs` — upserts a spec dossier (a public car page) from a JSON brief, uploading any local images to R2. Supports `--dry-run` and `--publish`; upserts by slug so re-running an edited brief updates the same page. Driven by the `car-landing-page` skill (`/car-landing-page`).
+
+### Vehicles: colours and upcoming models
+
+Car pages are **database rows, not files** — they can't be added by committing code. Create them in `/admin/specs` or via `scripts/create-car-page.mjs`.
+
+- **Colours** — `exteriorColors` / `interiorColors` on a dossier are arrays of `{ name, hex, hex2?, isDualTone?, secondaryName? }`. Shared helpers live in `src/lib/vehicle-colors.ts` (`parseColors`, `colorLabel`, `swatchStyle`); use them rather than reading the jsonb directly. A dossier's palette becomes the colour picker on that car's inquiry form, and the customer's choice is written onto the lead as a display label ("Emotional Red / Black roof"). No palette → the form falls back to a free-text colour field.
+- **Upcoming cars** — `isUpcoming` on a dossier is orthogonal to `status`: the car is still Active with a real public page, it just sells a pre-order. It adds a Coming Soon badge, reframes the inquiry section, lists the car in the upcoming rail on `/latest-news`, and flags every lead off the page with `isUpcomingVehicle` (shown as an *Upcoming Car* badge in the admin leads table).
+- **Car ↔ news linking** is two-way and either side can author it: a dossier's `newsSlug`, or an article's `linkedVehicleSlugs` in `src/config/news.ts`. `getCarsForNewsArticle` unions both and only returns Active dossiers, so unresolved slugs are skipped rather than breaking the article.
 
 ### CI/CD
 

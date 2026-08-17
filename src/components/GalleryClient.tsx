@@ -3,6 +3,7 @@
 import {
   ArrowUpDown,
   Calendar,
+  CalendarClock,
   Cog,
   Filter,
   Fuel,
@@ -42,6 +43,8 @@ type Dossier = {
   searchTags: string[];
   status: string;
   createdAt?: string;
+  isUpcoming?: boolean;
+  expectedAvailability?: string;
 };
 
 type SortKey = "newest" | "price-asc" | "price-desc";
@@ -270,10 +273,19 @@ export default function GalleryClient({ dossiers }: { dossiers: Dossier[] }) {
                       );
                     })()}
 
-                    {isNewArrival(car) && (
-                      <div className="absolute top-4 left-4 flex items-center gap-1.5 bg-black/85 text-white text-[10px] font-bold uppercase tracking-wider px-3 py-1.5 rounded-full backdrop-blur-sm">
-                        <Sparkles size={12} /> New Arrival
+                    {/* Coming Soon wins over New Arrival: an upcoming car is
+                        always newly created, and showing both reads as a
+                        contradiction ("arrived" vs "not out yet"). */}
+                    {car.isUpcoming ? (
+                      <div className="absolute top-4 left-4 flex items-center gap-1.5 bg-sky-600/95 text-white text-[10px] font-bold uppercase tracking-wider px-3 py-1.5 rounded-full backdrop-blur-sm">
+                        <CalendarClock size={12} /> Coming Soon
                       </div>
+                    ) : (
+                      isNewArrival(car) && (
+                        <div className="absolute top-4 left-4 flex items-center gap-1.5 bg-black/85 text-white text-[10px] font-bold uppercase tracking-wider px-3 py-1.5 rounded-full backdrop-blur-sm">
+                          <Sparkles size={12} /> New Arrival
+                        </div>
+                      )
                     )}
 
                     {formatLeadPrice(car) && (
@@ -292,6 +304,12 @@ export default function GalleryClient({ dossiers }: { dossiers: Dossier[] }) {
                       <p className="text-zinc-500 font-light line-clamp-1">
                         {car.trim || "Standard Specification"}
                       </p>
+                      {car.isUpcoming && car.expectedAvailability && (
+                        <p className="mt-2 inline-flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wider text-sky-600">
+                          <CalendarClock size={12} />
+                          {car.expectedAvailability}
+                        </p>
+                      )}
                     </div>
 
                     {/* Specs Grid (Updated to match blueprint schema) */}
