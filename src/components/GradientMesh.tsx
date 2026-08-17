@@ -14,6 +14,8 @@
  * white gradient across the entire photo. Legible anywhere, but it bleaches the
  * subject, so it only suits photos used as abstract texture.
  *
+ * - `animated` (default false): swaps the painted mesh for four drifting blobs.
+ *
  * `"spotlight"` — for heroes where the photo is content rather than texture.
  * Instead of bleaching the whole frame it buys contrast only where the copy
  * actually sits: a soft radial scrim centred on the text column, a much lighter
@@ -23,15 +25,65 @@
  * the radial scrim handles the bulk of the contrast and the text shadow covers
  * the places where a busy photo pokes through.
  */
+/**
+ * The four colour stops of `.pa-mesh`, restated as movable blobs.
+ *
+ * Positions are deliberately outside the box on at least one edge — a blob whose
+ * whole circle is visible reads as a circle, however heavily it is blurred. The
+ * durations are mutually prime-ish so the four never resynchronise into an
+ * obvious loop.
+ */
+const MESH_BLOBS = [
+  {
+    colour: "rgba(56, 189, 248, 0.45)",
+    left: "-10%",
+    top: "-15%",
+    size: "60%",
+    animation: "pa-drift-a",
+    duration: "19s",
+    delay: "0s",
+  },
+  {
+    colour: "rgba(139, 92, 246, 0.4)",
+    left: "55%",
+    top: "-20%",
+    size: "65%",
+    animation: "pa-drift-b",
+    duration: "23s",
+    delay: "-4s",
+  },
+  {
+    colour: "rgba(236, 72, 153, 0.3)",
+    left: "40%",
+    top: "50%",
+    size: "70%",
+    animation: "pa-drift-c",
+    duration: "27s",
+    delay: "-9s",
+  },
+  {
+    colour: "rgba(45, 212, 191, 0.34)",
+    left: "-5%",
+    top: "45%",
+    size: "58%",
+    animation: "pa-drift-d",
+    duration: "31s",
+    delay: "-14s",
+  },
+] as const;
+
 export default function GradientMesh({
   fade = true,
   image,
   overlay = "wash",
+  animated = false,
   className = "",
 }: {
   fade?: boolean;
   image?: string;
   overlay?: "wash" | "spotlight";
+  /** Drifting blobs instead of the static painted mesh. */
+  animated?: boolean;
   className?: string;
 }) {
   const spotlight = overlay === "spotlight";
@@ -66,9 +118,31 @@ export default function GradientMesh({
           )}
         </>
       )}
-      <div
-        className={`pa-mesh absolute inset-0 ${image ? (spotlight ? "opacity-30" : "opacity-75") : ""}`}
-      />
+      {animated ? (
+        <div
+          className={`absolute inset-0 ${image ? (spotlight ? "opacity-30" : "opacity-75") : ""}`}
+        >
+          {MESH_BLOBS.map((blob) => (
+            <div
+              key={blob.animation}
+              className="pa-mesh-blob"
+              style={{
+                background: blob.colour,
+                left: blob.left,
+                top: blob.top,
+                width: blob.size,
+                height: blob.size,
+                animation: `${blob.animation} ${blob.duration} ease-in-out infinite`,
+                animationDelay: blob.delay,
+              }}
+            />
+          ))}
+        </div>
+      ) : (
+        <div
+          className={`pa-mesh absolute inset-0 ${image ? (spotlight ? "opacity-30" : "opacity-75") : ""}`}
+        />
+      )}
       {fade && (
         <div className="absolute inset-x-0 bottom-0 h-40 bg-gradient-to-b from-transparent to-white" />
       )}

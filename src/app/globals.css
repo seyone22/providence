@@ -157,6 +157,81 @@ html {
   filter: saturate(1.1);
 }
 
+/* Animated variant of the mesh (GradientMesh `animated`). The static .pa-mesh
+   bakes four radial gradients into one painted layer, which cannot be moved
+   without repainting it every frame. Splitting them into four blurred blobs lets
+   each one drift on its own transform — compositor-only work, so it costs
+   nothing per frame no matter how large the hero is.
+
+   The blur is what makes four hard circles read as one soft mesh; keep it well
+   above the blob radius. The global prefers-reduced-motion block at the bottom
+   of this file neutralises these animations, so no separate guard is needed. */
+.pa-mesh-blob {
+  position: absolute;
+  border-radius: 9999px;
+  filter: blur(72px);
+  will-change: transform;
+  opacity: 0.85;
+}
+@keyframes pa-drift-a {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+  50% {
+    transform: translate3d(14%, 10%, 0) scale(1.18);
+  }
+}
+@keyframes pa-drift-b {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0) scale(1.1);
+  }
+  50% {
+    transform: translate3d(-16%, 12%, 0) scale(0.92);
+  }
+}
+@keyframes pa-drift-c {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0) scale(0.95);
+  }
+  50% {
+    transform: translate3d(10%, -14%, 0) scale(1.15);
+  }
+}
+@keyframes pa-drift-d {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0) scale(1.05);
+  }
+  50% {
+    transform: translate3d(-12%, -9%, 0) scale(0.9);
+  }
+}
+
+/* Warm wash behind <RadialBurst />. Sits under the canvas, so the rays read as
+   light coming through it rather than as lines drawn on top of a flat colour. */
+.pa-burst-backdrop {
+  background:
+    radial-gradient(
+      70% 60% at 50% 100%,
+      rgba(236, 72, 153, 0.28),
+      transparent 70%
+    ),
+    radial-gradient(
+      60% 50% at 20% 90%,
+      rgba(139, 92, 246, 0.24),
+      transparent 70%
+    ),
+    linear-gradient(
+      180deg,
+      rgba(255, 255, 255, 0) 0%,
+      rgba(253, 230, 138, 0.35) 55%,
+      rgba(251, 207, 232, 0.5) 100%
+    );
+}
+
 /* ── Appear animation (one shared reveal for every object) ──────────────────
    The revealed state is DECLARATIVE (opacity:1) so it can never get stuck
    invisible — the motion itself is played by the Web Animations API in the
