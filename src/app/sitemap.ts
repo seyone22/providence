@@ -11,6 +11,18 @@ import {
   NEWS_CATEGORY_BASE_PATH,
 } from "@/config/news";
 
+/**
+ * Without this the sitemap is prerendered once at build time and a vehicle or
+ * team profile added afterwards never appears in it until the next deploy.
+ * With ISR it refreshes hourly on its own, and — more importantly — the server
+ * actions that create/publish/delete those records call
+ * `revalidatePath("/sitemap.xml")` so the change lands on the next request.
+ */
+export const revalidate = 3600;
+
+/** Dossier statuses that render publicly; anything else redirects to "/". */
+const LIVE_DOSSIER_STATUSES = new Set(["Active", "Published"]);
+
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const baseUrl = "https://www.providenceauto.co.uk";
 
@@ -25,6 +37,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     "/import-japanese-cars-to-ireland",
     "/indian-manufactured-cars",
     "/ireland-cost-calculator",
+    "/team",
     BLOG_BASE_PATH,
     NEWS_BASE_PATH,
     COUNTRY_BASE_PATH,
@@ -77,14 +90,20 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     priority: 0.8,
   }));
 
-  // 2. Dynamic Routes (fetching your Car Dossiers)
-  const dossiers = (await getAllSpecDossiers()).data; // Fetch only "Active" status
-  const carRoutes = dossiers.map((car: any) => ({
-    url: `${baseUrl}/b2c/gallery/${car._id}`,
-    lastModified: car.updatedAt || new Date(),
-    changeFrequency: "weekly" as const,
-    priority: 0.8,
-  }));
+  // 2. Dynamic Routes (fetching your Car Dossiers). Only live dossiers: a
+  // Draft/Archived one redirects logged-out visitors to "/", so listing it here
+  // hands Google a redirect. The URL is built from the slug with the id as the
+  // fallback, matching every internal link (gallery, previews, team profiles) —
+  // emitting the id form here instead would split the signal across two URLs.
+  const dossiers = (await getAllSpecDossiers()).data;
+  const carRoutes = dossiers
+    .filter((car: any) => LIVE_DOSSIER_STATUSES.has(car.status))
+    .map((car: any) => ({
+      url: `${baseUrl}/b2c/gallery/${car.slug || car._id}`,
+      lastModified: car.updatedAt ? new Date(car.updatedAt) : new Date(),
+      changeFrequency: "weekly" as const,
+      priority: 0.8,
+    }));
 
   // 3. Sales-member profile pages (/team/[slug]) — published only.
   const profiles = await listPublishedProfileSlugs();
