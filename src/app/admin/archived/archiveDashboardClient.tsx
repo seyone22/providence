@@ -10,6 +10,7 @@ import {
   X,
 } from "lucide-react";
 import { useMemo, useState } from "react";
+import ExportLeadsButton from "@/components/ExportLeadsButton";
 import RequestTableClient from "@/components/RequestTableClient";
 
 const _PIPELINE_STAGES = [
@@ -98,6 +99,17 @@ export default function ArchiveDashboardClient({
     carFilter,
     sortBy,
   ]);
+
+  // Lead ids for the spreadsheet export — "all" here means all *archived*
+  // leads, never the active pipeline, since that is all this page holds.
+  const visibleIds = useMemo(
+    () => filteredRequests.map((r: any) => String(r._id || r.id)),
+    [filteredRequests],
+  );
+  const allIds = useMemo(
+    () => requests.map((r: any) => String(r._id || r.id)),
+    [requests],
+  );
 
   // Contextual metric cards optimized for analyzing historic performance data
   const stats = [
@@ -261,10 +273,15 @@ export default function ArchiveDashboardClient({
 
       {/* Table Shell Injecting Existing Components */}
       <div className="bg-white border border-zinc-200/60 shadow-sm rounded-[2.5rem] overflow-hidden">
-        <div className="px-8 py-6 border-b border-zinc-100">
+        <div className="px-8 py-6 border-b border-zinc-100 flex justify-between items-center">
           <h3 className="font-bold text-lg">
             Archived Records Index ({filteredRequests.length})
           </h3>
+          <ExportLeadsButton
+            visibleIds={visibleIds}
+            allIds={allIds}
+            label="Export archive"
+          />
         </div>
         <div className="p-2">
           <RequestTableClient

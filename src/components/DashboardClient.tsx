@@ -17,6 +17,7 @@ import {
 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { DayPicker } from "react-day-picker";
+import ExportLeadsButton from "@/components/ExportLeadsButton";
 import LeadDistributionChart from "@/components/LeadDistributionChart";
 import {
   CONTACT_DUE_OPTIONS,
@@ -222,6 +223,17 @@ export default function DashboardClient({
     dateRange.to,
     normalizeSource,
   ]);
+
+  // Lead ids for the spreadsheet export — the visible (filtered) set and the
+  // full set, so the export can be scoped to either.
+  const visibleIds = useMemo(
+    () => filteredRequests.map((r: any) => String(r._id || r.id)),
+    [filteredRequests],
+  );
+  const allIds = useMemo(
+    () => requests.map((r: any) => String(r._id || r.id)),
+    [requests],
+  );
 
   // Top Level Stats calculated from FILTERED data
   const stats = [
@@ -627,6 +639,7 @@ export default function DashboardClient({
           <h3 className="font-bold text-lg">
             Active Pipeline ({filteredRequests.length})
           </h3>
+          <ExportLeadsButton visibleIds={visibleIds} allIds={allIds} />
         </div>
         <div className="p-2">
           <RequestTableClient
