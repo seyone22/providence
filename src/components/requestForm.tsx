@@ -664,18 +664,20 @@ function ColorChoiceField({
   const optionLabels = options.map(colorLabel);
   const isCustom = value.length > 0 && !optionLabels.includes(value);
   const [showCustom, setShowCustom] = useState(isCustom);
+  // An id can't contain whitespace, so derive one from the label.
+  const fieldId = `color-${label.toLowerCase().replace(/[^a-z0-9]+/g, "-")}`;
 
   if (options.length === 0) {
     return (
       <div className="relative">
         <label
-          htmlFor={`color-${label}`}
+          htmlFor={fieldId}
           className="text-[10px] font-bold text-[#4da8da] uppercase tracking-wider block mb-2"
         >
           {label} (optional)
         </label>
         <input
-          id={`color-${label}`}
+          id={fieldId}
           value={value}
           onChange={(e) => onChange(e.target.value)}
           placeholder={placeholder}
@@ -726,11 +728,12 @@ function ColorChoiceField({
           type="button"
           aria-pressed={showCustom}
           onClick={() => {
-            const next = !showCustom;
-            setShowCustom(next);
-            // Leaving "Other" drops the typed value so a stale free-text
-            // colour can't be submitted alongside no visible selection.
-            if (!next) onChange("");
+            setShowCustom(!showCustom);
+            // Clear in BOTH directions. Entering "Other" must drop a
+            // previously-picked swatch, or the empty text box and the
+            // unhighlighted swatches would both suggest "nothing selected"
+            // while the swatch's label is still what gets submitted.
+            onChange("");
           }}
           className={`rounded-full border px-4 py-2.5 text-sm font-medium transition-all ${
             showCustom

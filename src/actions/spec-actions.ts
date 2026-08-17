@@ -400,6 +400,9 @@ export async function deleteSpecDossier(id: string) {
     revalidatePath("/admin/dossiers");
     revalidatePath("/admin/specs");
     revalidatePath("/b2c/gallery");
+    // Deleting an upcoming car has to clear it from the news rail too,
+    // otherwise the card lingers there and links to a 404.
+    revalidatePath("/latest-news");
     revalidatePath("/sitemap.xml");
 
     return { success: true, message: "Template deleted successfully." };
