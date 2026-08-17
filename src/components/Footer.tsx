@@ -66,6 +66,9 @@ export default function Footer() {
             <Link href="/saas" className="hover:text-white transition-colors">
               Dealer Platform
             </Link>
+            <Link href="/team" className="hover:text-white transition-colors">
+              Our Team
+            </Link>
             <Link href="/signup" className="hover:text-white transition-colors">
               Partner Sign Up
             </Link>
