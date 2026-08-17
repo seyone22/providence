@@ -305,10 +305,17 @@ export default function DotGlobe({
 
       const orient = (v: Vec3) => rotateX(rotateY(v, spin), tilt);
 
-      // Arcs. Each lane draws only the live trail, not the whole path, so the
-      // globe reads as traffic rather than as a wireframe.
-      const SEGMENTS = 18;
-      const TRAIL = 0.28;
+      // Arcs. Each lane draws out from its source country and lands on its
+      // destination, then the completed route fades before the next run — the
+      // same reveal Stripe animates with setDrawRange. Drawing a fixed-length
+      // dash sliding along the path instead would read as anonymous traffic; the
+      // point of this globe is that cars leave *here* and arrive *there*, so the
+      // line has to stay anchored at the source while it grows.
+      const SEGMENTS = 30;
+      // Share of each lane's cycle spent drawing. The remainder holds the
+      // completed arc briefly and fades it out, so the destination is legible
+      // before the route disappears.
+      const DRAW_SHARE = 0.6;
       // How far above the surface an arc bows at its midpoint, as a fraction of
       // the radius. Much past 0.25 and long routes read as loops floating free of
       // the globe rather than as flight paths over it.
@@ -332,33 +339,62 @@ export default function DotGlobe({
       };
 
       for (const lane of lanes) {
-        const head = (((elapsed / lane.duration + lane.phase) % 1) + 1) % 1;
+        const cycle = (((elapsed / lane.duration + lane.phase) % 1) + 1) % 1;
+        const drawing = cycle < DRAW_SHARE;
+        // While drawing, the far end advances from the source to the
+        // destination; afterwards the whole route is held and faded out.
+        const head = drawing ? cycle / DRAW_SHARE : 1;
+        const routeAlpha = drawing
+          ? 1
+          : 1 - (cycle - DRAW_SHARE) / (1 - DRAW_SHARE);
+
         ctx.lineCap = "round";
-        for (let s = 0; s < SEGMENTS; s += 1) {
-          const t0 = Math.max(0, head - TRAIL * (1 - s / SEGMENTS));
-          const t1 = Math.min(1, head - TRAIL * (1 - (s + 1) / SEGMENTS));
-          if (t1 <= 0) continue;
+        ctx.strokeStyle = lane.colour;
+        ctx.lineWidth = 1.4;
+
+        // Segment count scales with the drawn length so resolution stays even
+        // rather than getting coarser as the arc grows.
+        const steps = Math.max(1, Math.ceil(SEGMENTS * head));
+        for (let s = 0; s < steps; s += 1) {
+          const t0 = (s / steps) * head;
+          const t1 = ((s + 1) / steps) * head;
           const a0 = sampleArc(lane, t0);
           const a1 = sampleArc(lane, t1);
-          const fade = Math.min(a0.fade, a1.fade);
-          if (fade <= 0) continue;
-          ctx.globalAlpha = fade * (s / SEGMENTS) ** 1.5;
-          ctx.strokeStyle = lane.colour;
-          ctx.lineWidth = 1.4;
+          const fade = Math.min(a0.fade, a1.fade) * routeAlpha;
+          if (fade <= 0.01) continue;
+          ctx.globalAlpha = fade;
           ctx.beginPath();
           ctx.moveTo(a0.point.x, a0.point.y);
           ctx.lineTo(a1.point.x, a1.point.y);
           ctx.stroke();
         }
 
-        // The shipment itself.
-        const tip = sampleArc(lane, head);
-        if (tip.fade > 0) {
-          ctx.globalAlpha = tip.fade;
-          ctx.fillStyle = lane.colour;
-          ctx.beginPath();
-          ctx.arc(tip.point.x, tip.point.y, 2.1, 0, Math.PI * 2);
-          ctx.fill();
+        // The shipment, riding the leading end of the line as it extends.
+        if (drawing) {
+          const tip = sampleArc(lane, head);
+          if (tip.fade > 0) {
+            ctx.globalAlpha = tip.fade;
+            ctx.fillStyle = lane.colour;
+            ctx.beginPath();
+            ctx.arc(tip.point.x, tip.point.y, 2.4, 0, Math.PI * 2);
+            ctx.fill();
+          }
+        } else {
+          // Arrival flare on the destination, strongest the moment it lands.
+          const end = sampleArc(lane, 1);
+          if (end.fade > 0) {
+            ctx.globalAlpha = end.fade * routeAlpha;
+            ctx.fillStyle = lane.colour;
+            ctx.beginPath();
+            ctx.arc(
+              end.point.x,
+              end.point.y,
+              2.4 + (1 - routeAlpha) * 5,
+              0,
+              Math.PI * 2,
+            );
+            ctx.fill();
+          }
         }
         ctx.globalAlpha = 1;
       }

@@ -19,6 +19,19 @@ describe("globe registry", () => {
     }
   });
 
+  it("draws every arc outward from a country we actually source or ship from", () => {
+    // The arcs animate from `from` to `to`, so direction is meaningful: a route
+    // originating at a pure delivery market would animate cars leaving a place
+    // we only deliver to.
+    for (const route of GLOBE_ROUTES) {
+      const origin = GLOBE_PLACES_BY_ID.get(route.from);
+      expect(
+        origin?.role,
+        `route ${route.from} -> ${route.to} starts at a destination`,
+      ).not.toBe("destination");
+    }
+  });
+
   it("has no route that starts and ends in the same place", () => {
     for (const route of GLOBE_ROUTES) {
       expect(route.from).not.toBe(route.to);
