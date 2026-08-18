@@ -459,21 +459,25 @@ export default function GalleryDetailClient({ car }: { car: Dossier }) {
                   )}
                 </div>
 
-                {[
-                  { label: "Exterior", colors: exteriorColors },
-                  { label: "Interior", colors: interiorColors },
-                ]
-                  .filter((group) => group.colors.length > 0)
-                  .map((group) => (
-                    <ColorGroup
-                      key={group.label}
-                      label={group.label}
-                      colors={group.colors}
-                      linkedImage={linkedImage}
-                      activeImage={activeImage}
-                      onPick={showColorImage}
-                    />
-                  ))}
+                {/* Exterior and interior sit side by side from sm up, so the
+                    card's full width is used and the block stays short. */}
+                <div className="grid gap-x-8 gap-y-5 sm:grid-cols-2">
+                  {[
+                    { label: "Exterior", colors: exteriorColors },
+                    { label: "Interior", colors: interiorColors },
+                  ]
+                    .filter((group) => group.colors.length > 0)
+                    .map((group) => (
+                      <ColorGroup
+                        key={group.label}
+                        label={group.label}
+                        colors={group.colors}
+                        linkedImage={linkedImage}
+                        activeImage={activeImage}
+                        onPick={showColorImage}
+                      />
+                    ))}
+                </div>
 
                 <p className="mt-4 text-[11px] text-zinc-400 font-light leading-relaxed">
                   Swatches are an approximation of the factory paint, not a
@@ -583,32 +587,36 @@ export default function GalleryDetailClient({ car }: { car: Dossier }) {
                 />
               </div>
             )}
-
-            {features.length > 0 && (
-              <div>
-                <h3 className="text-xs font-bold tracking-[0.2em] text-zinc-500 uppercase mb-4">
-                  Included Features
-                </h3>
-                <div className="flex flex-wrap gap-2">
-                  {visibleFeatures.map((feature, idx) => (
-                    <span
-                      key={idx}
-                      className="px-3.5 py-1.5 bg-zinc-100/80 text-zinc-800 text-[11px] font-bold uppercase tracking-wider rounded-lg border border-black/5"
-                    >
-                      {feature}
-                    </span>
-                  ))}
-                </div>
-                <MoreButton
-                  expanded={featuresOpen}
-                  hiddenCount={features.length - LIMITS.features}
-                  noun="feature"
-                  onClick={() => setFeaturesOpen((v) => !v)}
-                />
-              </div>
-            )}
           </div>
         </div>
+
+        {/* Feature chips carry long sentences ("First-class rear compartment
+            with two individual executive seats"), so in a half-width column
+            they stack one per line. Given the full row they flow several to a
+            line and the block collapses to a couple of rows. */}
+        {features.length > 0 && (
+          <div className="mt-10 lg:mt-12">
+            <h3 className="text-xs font-bold tracking-[0.2em] text-zinc-500 uppercase mb-4">
+              Included Features
+            </h3>
+            <div className="flex flex-wrap gap-2">
+              {visibleFeatures.map((feature, idx) => (
+                <span
+                  key={idx}
+                  className="px-3.5 py-1.5 bg-zinc-100/80 text-zinc-800 text-[11px] font-bold uppercase tracking-wider rounded-lg border border-black/5"
+                >
+                  {feature}
+                </span>
+              ))}
+            </div>
+            <MoreButton
+              expanded={featuresOpen}
+              hiddenCount={features.length - LIMITS.features}
+              noun="feature"
+              onClick={() => setFeaturesOpen((v) => !v)}
+            />
+          </div>
+        )}
       </section>
 
       {/* Inquiry Section */}
@@ -674,39 +682,55 @@ function ColorGroup({
       <p className="text-[10px] font-bold tracking-[0.25em] text-zinc-400 uppercase mb-3">
         {label}
       </p>
-      <ul className="flex flex-wrap gap-x-4 gap-y-3">
+      <ul className="flex flex-wrap gap-x-3 gap-y-3">
         {visible.map((color) => {
           const idx = linkedImage(color);
           const isLinked = idx !== undefined;
           const isShowing = isLinked && idx === activeImage;
 
+          // Only the finish's own name goes under the swatch. Appending the
+          // second tone ("Maybach Two-Tone / Obsidian black over velvet
+          // brown") runs to four lines in a column this narrow, so the second
+          // tone becomes a marker and the full label lives on hover.
+          const fullLabel = colorLabel(color);
+
           const swatch = (
             <>
               <span
-                className={`h-10 w-10 rounded-full border shadow-[0_3px_10px_rgba(0,0,0,0.08)] transition-transform ${isShowing ? "border-black ring-2 ring-black ring-offset-2" : "border-black/10"} ${isLinked ? "group-hover:scale-105" : ""}`}
+                className={`h-9 w-9 rounded-full border shadow-[0_3px_10px_rgba(0,0,0,0.08)] transition-transform ${isShowing ? "border-black ring-2 ring-black ring-offset-2" : "border-black/10"} ${isLinked ? "group-hover:scale-105" : ""}`}
                 style={swatchStyle(color)}
                 aria-hidden="true"
               />
-              <span className="text-[11px] font-medium text-zinc-600 leading-tight max-w-[7rem]">
-                {colorLabel(color)}
+              <span className="text-[11px] font-medium text-zinc-600 leading-tight line-clamp-2">
+                {color.name}
               </span>
+              {color.isDualTone && (
+                <span className="-mt-1 text-[9px] font-bold uppercase tracking-wider text-zinc-400">
+                  Two-tone
+                </span>
+              )}
             </>
           );
 
           return (
-            <li key={`${color.name}-${color.hex}`}>
+            <li key={`${color.name}-${color.hex}`} className="w-20">
               {isLinked && onPick ? (
                 <button
                   type="button"
                   onClick={() => onPick(color)}
                   aria-pressed={isShowing}
-                  title={`Show the ${color.name} photograph`}
-                  className="group flex flex-col items-start gap-2 text-left cursor-pointer"
+                  title={`${fullLabel} — show this photograph`}
+                  className="group flex w-full flex-col items-start gap-1.5 text-left cursor-pointer"
                 >
                   {swatch}
                 </button>
               ) : (
-                <div className="flex flex-col items-start gap-2">{swatch}</div>
+                <div
+                  title={fullLabel}
+                  className="flex w-full flex-col items-start gap-1.5"
+                >
+                  {swatch}
+                </div>
               )}
             </li>
           );
