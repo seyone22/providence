@@ -22,6 +22,16 @@ export type VehicleColor = {
    * generic label when omitted.
    */
   secondaryName?: string;
+  /**
+   * Index into the dossier's `images` array of the photograph showing the car
+   * in this finish, so picking a swatch on the car page swaps the gallery to
+   * the matching shot.
+   *
+   * Undefined means "no photograph of this finish" — which is the normal case
+   * for most of a factory palette, and the swatch stays non-interactive rather
+   * than showing a car in the wrong colour.
+   */
+  imageIndex?: number;
 };
 
 export const DEFAULT_COLOR_HEX = "#1a1a1a";
@@ -76,6 +86,14 @@ export function parseColors(value: unknown): VehicleColor[] {
       hex2: normalizeHex(typeof c.hex2 === "string" ? c.hex2 : undefined),
       isDualTone: c.isDualTone === true,
       secondaryName: typeof c.secondaryName === "string" ? c.secondaryName : "",
+      // Only a non-negative integer is a usable index; anything else (null,
+      // "", a stray string from a hand-edited row) means "not linked".
+      imageIndex:
+        typeof c.imageIndex === "number" &&
+        Number.isInteger(c.imageIndex) &&
+        c.imageIndex >= 0
+          ? c.imageIndex
+          : undefined,
     }))
     .filter((c) => c.name.trim().length > 0);
 }
