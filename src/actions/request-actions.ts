@@ -24,6 +24,13 @@ export async function submitCarRequest(data: {
   yearTo?: number | string;
   mileage?: string;
   specs?: string;
+  // Colour choices, already rendered to a display label by the form
+  // (e.g. "Sonic Grey Pearl / Black roof").
+  exteriorColor?: string;
+  interiorColor?: string;
+  // True when the inquiry came off a dossier flagged as coming soon, so the
+  // pipeline can separate pre-orders from cars we can quote today.
+  isUpcomingVehicle?: boolean;
   name: string;
   email: string;
   countryCode: string;
@@ -57,6 +64,9 @@ export async function submitCarRequest(data: {
           yearTo: data.yearTo ? Number(data.yearTo) : null,
           mileage: data.mileage || null,
           specs: data.specs || null,
+          exteriorColor: data.exteriorColor || null,
+          interiorColor: data.interiorColor || null,
+          isUpcomingVehicle: data.isUpcomingVehicle === true,
           name: data.name,
           email: data.email,
           countryCode: data.countryCode,
@@ -211,6 +221,9 @@ export async function submitCarRequest(data: {
         yearTo: requestData.yearTo ? Number(requestData.yearTo) : null,
         mileage: requestData.mileage || null,
         specs: requestData.specs || null,
+        exteriorColor: requestData.exteriorColor || null,
+        interiorColor: requestData.interiorColor || null,
+        isUpcomingVehicle: requestData.isUpcomingVehicle === true,
         name: requestData.name,
         email: requestData.email,
         countryCode: requestData.countryCode,

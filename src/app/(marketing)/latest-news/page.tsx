@@ -1,20 +1,30 @@
-import { ArrowRight, Clock } from "lucide-react";
+import { ArrowRight, CalendarClock, Clock } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
+import { getUpcomingCars } from "@/actions/spec-actions";
 import BlogCTA from "@/components/blog/BlogCTA";
 import MinimalHeader from "@/components/MinimalHeader";
 import NewsCard from "@/components/news/NewsCard";
+import UpcomingCarCard, {
+  type UpcomingCar,
+} from "@/components/news/UpcomingCarCard";
 import { Reveal } from "@/components/Reveal";
 import { BLOG_BASE_PATH } from "@/config/blog";
 import {
   getLatestPublishDate,
   getNewsArticles,
   getPopulatedCategories,
+  getReleaseArticles,
   NEWS_BASE_PATH,
   NEWS_CATEGORY_BASE_PATH,
 } from "@/config/news";
 
 const SITE = "https://www.providenceauto.co.uk";
+
+// The upcoming-cars rail reads live dossiers, so the page can't be fully
+// static. Five minutes is well inside the cadence at which a coming-soon car
+// gets added, and saveSpecDossier revalidates this path explicitly anyway.
+export const revalidate = 300;
 
 // The registry is a static module, so the lead story is resolvable at build
 // time — which lets the OG/Twitter card carry a real image instead of nothing.
@@ -81,11 +91,23 @@ function formatDate(iso: string) {
   }).format(new Date(iso));
 }
 
-export default function LatestNewsIndexPage() {
+export default async function LatestNewsIndexPage() {
   const articles = getNewsArticles();
   const [lead, ...rest] = articles;
   const categories = getPopulatedCategories();
   const latestDate = getLatestPublishDate();
+
+  // Upcoming cars come from the dossier table (they're real, orderable
+  // products with their own pages); the release stories come from the static
+  // news registry. The section shows both, because a reader arriving on
+  // "new model releases" wants the announcement and the car.
+  const upcomingResponse = await getUpcomingCars(6);
+  const upcomingCars = (
+    upcomingResponse.success ? upcomingResponse.data : []
+  ) as UpcomingCar[];
+  const releaseArticles = getReleaseArticles(3);
+  const hasUpcomingSection =
+    upcomingCars.length > 0 || releaseArticles.length > 0;
 
   const breadcrumbSchema = {
     "@context": "https://schema.org",
@@ -260,6 +282,80 @@ export default function LatestNewsIndexPage() {
                 </div>
               </Link>
             </Reveal>
+          </section>
+        )}
+
+        {/* ── UPCOMING CARS & NEW MODEL RELEASES ───── */}
+        {hasUpcomingSection && (
+          <section
+            id="upcoming-cars"
+            className="px-6 max-w-6xl mx-auto mb-16 scroll-mt-28"
+          >
+            <Reveal y={20} duration={0.5} className="mb-8">
+              <div className="flex items-center gap-4 mb-4">
+                <p className="flex shrink-0 items-center gap-2 text-xs font-bold tracking-[0.3em] text-sky-600 uppercase">
+                  <CalendarClock size={14} /> Upcoming cars
+                </p>
+                <div className="flex-1 h-px bg-black/5" />
+              </div>
+              <h2 className="text-2xl md:text-3xl font-bold tracking-tighter text-black mb-2">
+                Upcoming cars &amp; new model releases
+              </h2>
+              <p className="text-zinc-500 font-light leading-relaxed max-w-2xl">
+                Models that have been announced but aren&rsquo;t on sale yet.
+                Register interest now and we&rsquo;ll come back with a landed
+                cost for your country as soon as specification and pricing are
+                confirmed.
+              </p>
+            </Reveal>
+
+            {upcomingCars.length > 0 && (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+                {upcomingCars.map((car, i) => (
+                  <UpcomingCarCard key={car._id} car={car} index={i} />
+                ))}
+              </div>
+            )}
+
+            {/* The announcements themselves. Shown even when no dossier has
+                been built yet, so the section is never empty on a week where
+                only the reporting exists. */}
+            {releaseArticles.length > 0 && (
+              <div className="mt-10">
+                <Reveal
+                  y={16}
+                  duration={0.5}
+                  className="flex items-center gap-4 mb-5"
+                >
+                  <p className="text-xs font-bold tracking-[0.3em] text-zinc-400 uppercase shrink-0">
+                    Latest launch reporting
+                  </p>
+                  <div className="flex-1 h-px bg-black/5" />
+                </Reveal>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+                  {releaseArticles.map((article, i) => (
+                    <NewsCard key={article.slug} article={article} index={i} />
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Only linked when the archive actually has articles — an empty
+                category archive 404s by design. */}
+            {releaseArticles.length > 0 && (
+              <Reveal y={16} duration={0.5} className="mt-8">
+                <Link
+                  href={`${NEWS_CATEGORY_BASE_PATH}/releases`}
+                  className="group inline-flex items-center gap-2 text-sm font-bold text-sky-600 hover:text-sky-700 transition-colors"
+                >
+                  All new car releases
+                  <ArrowRight
+                    size={15}
+                    className="group-hover:translate-x-1 transition-transform"
+                  />
+                </Link>
+              </Reveal>
+            )}
           </section>
         )}
 
