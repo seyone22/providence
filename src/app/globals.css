@@ -157,6 +157,116 @@ html {
   filter: saturate(1.1);
 }
 
+/* Animated variant of the mesh (GradientMesh `animated`). The static .pa-mesh
+   bakes four radial gradients into one painted layer, which cannot be moved
+   without repainting it every frame. Splitting them into four blurred blobs lets
+   each one drift on its own transform — compositor-only work, so it costs
+   nothing per frame no matter how large the hero is.
+
+   The blur is what makes four hard circles read as one soft mesh. It also sets
+   the floor on how far a blob has to travel to be seen at all: blur smears the
+   edge over ~2x its radius, so any movement smaller than that is invisible. The
+   first cut of this used a 72px blur with ~46px of travel over 9.5s and looked
+   completely static despite the animation running correctly. Motion here has to
+   be large (a third to a half of the blob's own size) and reasonably quick, or
+   there is no point animating at all.
+
+   Each blob walks a three-stop circuit rather than easing between two points —
+   a two-stop keyframe just breathes in and out along one axis, which reads as a
+   pulse rather than as drift. Opacity moves too, so the mesh changes colour
+   balance as well as position.
+
+   The global prefers-reduced-motion block at the bottom of this file neutralises
+   these animations, so no separate guard is needed. */
+.pa-mesh-blob {
+  position: absolute;
+  border-radius: 9999px;
+  filter: blur(56px);
+  will-change: transform, opacity;
+}
+@keyframes pa-drift-a {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0) scale(1);
+    opacity: 0.85;
+  }
+  33% {
+    transform: translate3d(42%, 26%, 0) scale(1.32);
+    opacity: 1;
+  }
+  66% {
+    transform: translate3d(16%, 48%, 0) scale(0.82);
+    opacity: 0.6;
+  }
+}
+@keyframes pa-drift-b {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0) scale(1.05);
+    opacity: 0.75;
+  }
+  33% {
+    transform: translate3d(-38%, 30%, 0) scale(0.78);
+    opacity: 1;
+  }
+  66% {
+    transform: translate3d(-52%, -14%, 0) scale(1.25);
+    opacity: 0.65;
+  }
+}
+@keyframes pa-drift-c {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0) scale(0.9);
+    opacity: 0.7;
+  }
+  33% {
+    transform: translate3d(30%, -40%, 0) scale(1.28);
+    opacity: 0.95;
+  }
+  66% {
+    transform: translate3d(-24%, -18%, 0) scale(0.85);
+    opacity: 1;
+  }
+}
+@keyframes pa-drift-d {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0) scale(1.1);
+    opacity: 0.8;
+  }
+  33% {
+    transform: translate3d(-30%, -34%, 0) scale(0.8);
+    opacity: 0.6;
+  }
+  66% {
+    transform: translate3d(34%, -20%, 0) scale(1.3);
+    opacity: 1;
+  }
+}
+
+/* Warm wash behind <RadialBurst />. Sits under the canvas, so the rays read as
+   light coming through it rather than as lines drawn on top of a flat colour. */
+.pa-burst-backdrop {
+  background:
+    radial-gradient(
+      70% 60% at 50% 100%,
+      rgba(236, 72, 153, 0.28),
+      transparent 70%
+    ),
+    radial-gradient(
+      60% 50% at 20% 90%,
+      rgba(139, 92, 246, 0.24),
+      transparent 70%
+    ),
+    linear-gradient(
+      180deg,
+      rgba(255, 255, 255, 0) 0%,
+      rgba(253, 230, 138, 0.35) 55%,
+      rgba(251, 207, 232, 0.5) 100%
+    );
+}
+
 /* ── Appear animation (one shared reveal for every object) ──────────────────
    The revealed state is DECLARATIVE (opacity:1) so it can never get stuck
    invisible — the motion itself is played by the Web Animations API in the

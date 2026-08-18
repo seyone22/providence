@@ -5,6 +5,7 @@ import {
   ArrowLeft,
   ArrowRight,
   Box,
+  CalendarClock,
   DollarSign,
   ExternalLink,
   Eye,
@@ -387,6 +388,13 @@ export default function RequestTableClient({
                             LHD
                           </span>
                         )}
+                        {/* Pre-order rather than a car we can quote today —
+                            the agent needs to see this before they call. */}
+                        {req.isUpcomingVehicle && (
+                          <span className="inline-flex items-center gap-1 px-1.5 py-0.5 bg-sky-600 text-white rounded text-[10px] font-bold tracking-wide">
+                            <CalendarClock size={9} /> Upcoming Car
+                          </span>
+                        )}
                         {req.condition === "Used" ? (
                           <>
                             <span className="px-1.5 py-0.5 bg-zinc-100 border border-black/5 rounded text-[10px] text-zinc-600 font-medium">
@@ -403,6 +411,29 @@ export default function RequestTableClient({
                           </span>
                         )}
                       </div>
+
+                      {/* Colour choices, when the customer made one. */}
+                      {(req.exteriorColor || req.interiorColor) && (
+                        <div className="mt-2 space-y-0.5">
+                          {req.exteriorColor && (
+                            <div className="text-[10px] text-zinc-500">
+                              <span className="font-bold uppercase tracking-wide text-zinc-400">
+                                Ext:
+                              </span>{" "}
+                              {req.exteriorColor}
+                            </div>
+                          )}
+                          {req.interiorColor && (
+                            <div className="text-[10px] text-zinc-500">
+                              <span className="font-bold uppercase tracking-wide text-zinc-400">
+                                Int:
+                              </span>{" "}
+                              {req.interiorColor}
+                            </div>
+                          )}
+                        </div>
+                      )}
+
                       {req.source && (
                         <div className="mt-2">
                           <a

@@ -2,6 +2,7 @@
 
 import {
   Armchair,
+  CalendarClock,
   ExternalLink,
   Eye,
   Globe,
@@ -9,6 +10,9 @@ import {
   Info,
   Link2,
   Loader2,
+  Newspaper,
+  Palette,
+  Plus,
   Printer,
   Save,
   Settings2,
@@ -39,6 +43,13 @@ import { Textarea } from "@/components/ui/textarea";
 import { getPresignedUrls } from "@/lib/file-actions";
 import { CAR_MAKES, getLogoFilename } from "@/lib/logo-utils";
 import { galleryPathForDossier, isLiveStatus } from "@/lib/vehicle";
+import {
+  colorLabel,
+  emptyColor,
+  parseColors,
+  swatchStyle,
+  type VehicleColor,
+} from "@/lib/vehicle-colors";
 
 // Full Country List for the Datalist
 const COUNTRIES = [
@@ -285,6 +296,11 @@ interface SpecDataType {
   emissions: string;
   steering: string;
   status: string;
+  /** Marks the model as coming soon rather than available to order today. */
+  isUpcoming: boolean;
+  expectedAvailability: string;
+  /** Slug of the /latest-news announcement this model launched in. */
+  newsSlug: string;
   customData: CustomDataEntry[];
   valuePoints: ValuePointEntry[];
 }
@@ -312,9 +328,162 @@ const initialSpecData: SpecDataType = {
   emissions: "",
   steering: "RHD",
   status: "Draft",
+  isUpcoming: false,
+  expectedAvailability: "",
+  newsSlug: "",
   customData: [],
   valuePoints: [],
 };
+
+/**
+ * One palette editor — used twice, for exterior paint and interior trim.
+ * Rows are edited in place: name, primary swatch, and (when two-tone) a
+ * secondary swatch plus its own name so the lead reads "Sonic Grey / Black
+ * roof" rather than an ambiguous "two-tone".
+ */
+function ColorPaletteEditor({
+  title,
+  description,
+  colors,
+  onChange,
+  onAdd,
+  onRemove,
+  namePlaceholder,
+  secondaryPlaceholder,
+}: {
+  title: string;
+  description: string;
+  colors: VehicleColor[];
+  onChange: (index: number, patch: Partial<VehicleColor>) => void;
+  onAdd: () => void;
+  onRemove: (index: number) => void;
+  namePlaceholder: string;
+  secondaryPlaceholder: string;
+}) {
+  return (
+    <div className="space-y-4">
+      <div>
+        <Label className="font-bold text-lg">{title}</Label>
+        <p className="text-sm text-zinc-500 mt-1">{description}</p>
+      </div>
+
+      <div className="p-6 bg-zinc-50 rounded-[2.5rem] border border-zinc-200 space-y-4">
+        {colors.length === 0 && (
+          <p className="text-zinc-500 text-sm italic px-1">
+            No colours added yet. Customers will see a free-text colour field on
+            the inquiry form instead.
+          </p>
+        )}
+
+        {colors.map((color, index) => (
+          <div
+            // biome-ignore lint/suspicious/noArrayIndexKey: rows are positional and freely reorderable by add/remove; no stable id exists
+            key={index}
+            className="bg-white rounded-[1.75rem] border border-black/5 p-5 space-y-4"
+          >
+            <div className="flex items-start gap-4">
+              {/* Live preview of exactly what the customer will see. */}
+              <div
+                className="h-12 w-12 shrink-0 rounded-full border border-black/10 shadow-inner"
+                style={swatchStyle(color)}
+                aria-hidden="true"
+              />
+
+              <div className="flex-1 grid sm:grid-cols-[1fr_auto] gap-3 items-start">
+                <Input
+                  value={color.name}
+                  onChange={(e) => onChange(index, { name: e.target.value })}
+                  placeholder={namePlaceholder}
+                  className="h-11 rounded-xl bg-zinc-50 border-transparent focus:bg-white transition-all"
+                />
+                <input
+                  type="color"
+                  aria-label={`${title} primary swatch`}
+                  value={color.hex}
+                  onChange={(e) => onChange(index, { hex: e.target.value })}
+                  className="h-11 w-16 rounded-xl border border-zinc-200 bg-white p-1 cursor-pointer"
+                />
+              </div>
+
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon"
+                onClick={() => onRemove(index)}
+                aria-label={`Remove ${color.name || "colour"}`}
+                className="shrink-0 text-zinc-400 hover:text-red-600 hover:bg-red-50 rounded-xl"
+              >
+                <Trash2 size={16} />
+              </Button>
+            </div>
+
+            <div className="pl-16 space-y-3">
+              <button
+                type="button"
+                onClick={() =>
+                  onChange(index, { isDualTone: !color.isDualTone })
+                }
+                aria-pressed={color.isDualTone === true}
+                className="inline-flex items-center gap-2.5 text-xs font-bold text-zinc-600 hover:text-black transition-colors"
+              >
+                <span
+                  className={`h-4 w-7 shrink-0 rounded-full p-0.5 transition-colors ${
+                    color.isDualTone ? "bg-sky-500" : "bg-zinc-300"
+                  }`}
+                >
+                  <span
+                    className={`block h-3 w-3 rounded-full bg-white transition-transform ${
+                      color.isDualTone ? "translate-x-3" : "translate-x-0"
+                    }`}
+                  />
+                </span>
+                Dual tone
+              </button>
+
+              {color.isDualTone && (
+                <div className="grid sm:grid-cols-[1fr_auto] gap-3 items-start">
+                  <Input
+                    value={color.secondaryName || ""}
+                    onChange={(e) =>
+                      onChange(index, { secondaryName: e.target.value })
+                    }
+                    placeholder={secondaryPlaceholder}
+                    className="h-11 rounded-xl bg-zinc-50 border-transparent focus:bg-white transition-all"
+                  />
+                  <input
+                    type="color"
+                    aria-label={`${title} secondary swatch`}
+                    value={color.hex2 || "#f5f5f5"}
+                    onChange={(e) => onChange(index, { hex2: e.target.value })}
+                    className="h-11 w-16 rounded-xl border border-zinc-200 bg-white p-1 cursor-pointer"
+                  />
+                </div>
+              )}
+
+              {color.name.trim() && (
+                <p className="text-[11px] text-zinc-400 font-medium">
+                  Shows as{" "}
+                  <span className="text-zinc-600 font-bold">
+                    {colorLabel(color)}
+                  </span>
+                </p>
+              )}
+            </div>
+          </div>
+        ))}
+
+        <Button
+          type="button"
+          variant="outline"
+          onClick={onAdd}
+          className="w-full h-12 rounded-xl border-dashed border-zinc-300 text-zinc-600 hover:text-black hover:border-zinc-400 bg-white"
+        >
+          <Plus size={16} className="mr-2" /> Add colour
+        </Button>
+      </div>
+    </div>
+  );
+}
 
 function SpecBuilderContent() {
   const searchParams = useSearchParams();
@@ -350,6 +519,12 @@ function SpecBuilderContent() {
 
   const [newValueTitle, setNewValueTitle] = useState("");
   const [newValueDesc, setNewValueDesc] = useState("");
+
+  // Colour palettes. Edited in place (rather than the add-then-commit pattern
+  // used for pricing) because a colour is three coupled fields — name, swatch,
+  // second swatch — and admins invariably tweak the hex after naming it.
+  const [exteriorColors, setExteriorColors] = useState<VehicleColor[]>([]);
+  const [interiorColors, setInteriorColors] = useState<VehicleColor[]>([]);
 
   // Image Management State
   const [existingImages, setExistingImages] = useState<string[]>([]);
@@ -388,11 +563,16 @@ function SpecBuilderContent() {
               mileage: res.data.mileage || "",
               customData: res.data.customData || [],
               valuePoints: res.data.valuePoints || [],
+              isUpcoming: res.data.isUpcoming === true,
+              expectedAvailability: res.data.expectedAvailability || "",
+              newsSlug: res.data.newsSlug || "",
             }));
             setPricing(res.data.pricing || []);
             setFeatures(res.data.features || []);
             setSearchTags(res.data.searchTags || []);
             setExistingImages(res.data.images || []);
+            setExteriorColors(parseColors(res.data.exteriorColors));
+            setInteriorColors(parseColors(res.data.interiorColors));
           } else {
             alert("Dossier not found or error fetching.");
           }
@@ -492,7 +672,7 @@ function SpecBuilderContent() {
 
   const handleInputChange = (
     field: keyof typeof initialSpecData,
-    value: string,
+    value: string | boolean,
   ) => {
     setIsDirty(true);
 
@@ -500,6 +680,35 @@ function SpecBuilderContent() {
       ...prev,
       [field]: value,
     }));
+  };
+
+  // --- Colour palette helpers -------------------------------------------
+  // Both palettes share one set of handlers, parameterised by which setter to
+  // drive, so the exterior and interior editors can't drift apart.
+  const updateColor = (
+    setter: React.Dispatch<React.SetStateAction<VehicleColor[]>>,
+    index: number,
+    patch: Partial<VehicleColor>,
+  ) => {
+    setIsDirty(true);
+    setter((prev) =>
+      prev.map((c, i) => (i === index ? { ...c, ...patch } : c)),
+    );
+  };
+
+  const addColor = (
+    setter: React.Dispatch<React.SetStateAction<VehicleColor[]>>,
+  ) => {
+    setIsDirty(true);
+    setter((prev) => [...prev, emptyColor()]);
+  };
+
+  const removeColor = (
+    setter: React.Dispatch<React.SetStateAction<VehicleColor[]>>,
+    index: number,
+  ) => {
+    setIsDirty(true);
+    setter((prev) => prev.filter((_, i) => i !== index));
   };
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -600,6 +809,11 @@ function SpecBuilderContent() {
         ? specData.heroImageUrl
         : finalImageUrls[0] || "";
 
+      // Drop half-filled colour rows (an admin clicked "add" then moved on) so
+      // an unnamed swatch never renders on the public page or a lead.
+      const namedColors = (colors: VehicleColor[]) =>
+        colors.filter((c) => c.name.trim().length > 0);
+
       const payload: any = {
         ...specData,
         heroImageUrl: resolvedHero,
@@ -607,6 +821,8 @@ function SpecBuilderContent() {
         searchTags,
         images: finalImageUrls,
         pricing,
+        exteriorColors: namedColors(exteriorColors),
+        interiorColors: namedColors(interiorColors),
       };
       let result = await saveSpecDossier(payload);
 
@@ -831,6 +1047,113 @@ function SpecBuilderContent() {
                   Drafts cannot be assigned to concrete vehicles.
                 </p>
               </div>
+            </div>
+
+            {/* --- Upcoming / Coming Soon ------------------------------- */}
+            {/* Orthogonal to status: an upcoming car is still Active and still
+                has a public page — it just sells a pre-order, and every lead
+                off it is flagged for the pipeline. */}
+            <div className="pt-6 border-t border-black/5 space-y-4">
+              <Label className="font-bold flex items-center gap-2 text-zinc-700">
+                <CalendarClock size={18} className="text-zinc-400" /> Release
+                Status
+              </Label>
+
+              <button
+                type="button"
+                onClick={() =>
+                  handleInputChange("isUpcoming", !specData.isUpcoming)
+                }
+                aria-pressed={specData.isUpcoming}
+                className={`w-full flex items-start gap-3 p-4 rounded-2xl border text-left transition-colors ${
+                  specData.isUpcoming
+                    ? "bg-sky-50 border-sky-200"
+                    : "bg-zinc-50 border-transparent hover:border-zinc-200"
+                }`}
+              >
+                <span
+                  className={`mt-0.5 h-5 w-9 shrink-0 rounded-full p-0.5 transition-colors ${
+                    specData.isUpcoming ? "bg-sky-500" : "bg-zinc-300"
+                  }`}
+                >
+                  <span
+                    className={`block h-4 w-4 rounded-full bg-white transition-transform ${
+                      specData.isUpcoming ? "translate-x-4" : "translate-x-0"
+                    }`}
+                  />
+                </span>
+                <span>
+                  <span className="block text-sm font-bold text-zinc-800">
+                    Mark as an upcoming car / coming soon
+                  </span>
+                  <span className="block text-[11px] text-zinc-500 leading-snug mt-0.5">
+                    Adds a &ldquo;Coming Soon&rdquo; badge to the gallery and
+                    car page, lists it on Latest News, and tags every inquiry
+                    from this page as an upcoming-car lead.
+                  </span>
+                </span>
+              </button>
+
+              {specData.isUpcoming && (
+                <div className="space-y-4 pl-1">
+                  <div className="space-y-1">
+                    <Label className="text-xs font-bold text-zinc-600">
+                      Expected availability
+                    </Label>
+                    <Input
+                      placeholder="e.g. Q3 2026, or Deliveries from March 2027"
+                      value={specData.expectedAvailability}
+                      onChange={(e) =>
+                        handleInputChange(
+                          "expectedAvailability",
+                          e.target.value,
+                        )
+                      }
+                      className="h-11 rounded-xl bg-zinc-50 border-transparent focus:bg-white transition-all"
+                    />
+                    <p className="text-[10px] text-zinc-400 pl-1 font-medium">
+                      Shown verbatim on the car page. Leave blank if the date
+                      isn&rsquo;t confirmed &mdash; don&rsquo;t guess.
+                    </p>
+                  </div>
+
+                  <div className="space-y-1">
+                    <Label className="text-xs font-bold text-zinc-600 flex items-center gap-1.5">
+                      <Newspaper size={13} className="text-zinc-400" />
+                      Announcement article slug
+                    </Label>
+                    <Input
+                      placeholder="e.g. monterey-car-week-2026-new-car-debuts"
+                      value={specData.newsSlug}
+                      onChange={(e) =>
+                        handleInputChange(
+                          "newsSlug",
+                          e.target.value
+                            .toLowerCase()
+                            .replace(/\s+/g, "-")
+                            .replace(/[^a-z0-9-_]/g, ""),
+                        )
+                      }
+                      className="h-11 rounded-xl bg-zinc-50 border-transparent focus:bg-white transition-all font-mono text-xs"
+                    />
+                    {specData.newsSlug ? (
+                      <a
+                        href={`/latest-news/${specData.newsSlug}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-[11px] text-sky-600 hover:text-sky-700 font-mono break-all inline-flex items-start gap-1 pl-1"
+                      >
+                        {`/latest-news/${specData.newsSlug}`}
+                        <ExternalLink size={11} className="shrink-0 mt-0.5" />
+                      </a>
+                    ) : (
+                      <p className="text-[10px] text-zinc-400 pl-1 font-medium">
+                        Links this car to its launch story, both ways.
+                      </p>
+                    )}
+                  </div>
+                </div>
+              )}
             </div>
 
             {/* --- ADD THIS SLUG INPUT BOX DIRECTLY UNDER THE NOTES AREA CONTAINER --- */}
@@ -1215,6 +1538,45 @@ function SpecBuilderContent() {
                   className="rounded-xl h-12 bg-zinc-50"
                 />
               </div>
+            </div>
+
+            {/* --- Colour palettes ------------------------------------- */}
+            <div className="space-y-8 mb-10 pt-8 border-t border-black/5">
+              <div className="flex items-center gap-3">
+                <Palette size={20} className="text-zinc-400" />
+                <h4 className="text-lg font-bold">Colours &amp; Finishes</h4>
+              </div>
+              <p className="text-sm text-zinc-500 -mt-4">
+                Whatever you list here becomes the colour picker on this
+                car&rsquo;s inquiry form, and the customer&rsquo;s choice is
+                written onto the lead.
+              </p>
+
+              <ColorPaletteEditor
+                title="Exterior colours"
+                description="Paint options offered for this model. Use dual tone for a contrast roof or two-tone body."
+                colors={exteriorColors}
+                onChange={(i, patch) =>
+                  updateColor(setExteriorColors, i, patch)
+                }
+                onAdd={() => addColor(setExteriorColors)}
+                onRemove={(i) => removeColor(setExteriorColors, i)}
+                namePlaceholder="e.g. Sonic Grey Pearl"
+                secondaryPlaceholder="Second tone, e.g. Black roof"
+              />
+
+              <ColorPaletteEditor
+                title="Interior colours"
+                description="Cabin trim options. Use dual tone for two-tone upholstery or a contrast stitch."
+                colors={interiorColors}
+                onChange={(i, patch) =>
+                  updateColor(setInteriorColors, i, patch)
+                }
+                onAdd={() => addColor(setInteriorColors)}
+                onRemove={(i) => removeColor(setInteriorColors, i)}
+                namePlaceholder="e.g. Black Semi-Aniline Leather"
+                secondaryPlaceholder="Second tone, e.g. Saddle Tan inserts"
+              />
             </div>
 
             {/* Physical Features Array */}

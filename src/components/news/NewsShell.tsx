@@ -15,6 +15,7 @@ import {
   NEWS_CATEGORY_BASE_PATH,
 } from "@/config/news";
 import NewsSources from "./NewsSources";
+import UpcomingCarCard, { type UpcomingCar } from "./UpcomingCarCard";
 
 function formatDate(iso: string) {
   return new Intl.DateTimeFormat("en-IE", {
@@ -31,9 +32,14 @@ function formatDate(iso: string) {
 export default function NewsShell({
   article,
   children,
+  linkedCars = [],
 }: {
   article: NewsArticle;
   children: ReactNode;
+  // Car pages for the models this story announces. Fetched by the route (a
+  // server component with DB access) rather than here, so the shell stays a
+  // pure presentational component.
+  linkedCars?: UpcomingCar[];
 }) {
   const relatedGuides = article.relatedGuides
     .map((slug) => getPost(slug))
@@ -170,6 +176,29 @@ export default function NewsShell({
           categories: [{ category: "FAQ", items: article.faqs }],
         }}
       />
+
+      {/* ── CARS IN THIS STORY ─────────────────────────── */}
+      {linkedCars.length > 0 && (
+        <section className="px-6 pt-16 max-w-6xl mx-auto">
+          <Reveal y={20} duration={0.6} className="mb-8">
+            <h2 className="text-2xl md:text-3xl font-bold tracking-tighter text-black mb-2">
+              {linkedCars.length === 1
+                ? "The car in this story"
+                : "The cars in this story"}
+            </h2>
+            <p className="text-zinc-500 font-light leading-relaxed max-w-2xl">
+              Full specification, colour options and a landed cost for your
+              country &mdash; register interest and we&rsquo;ll confirm pricing
+              as soon as it&rsquo;s announced.
+            </p>
+          </Reveal>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+            {linkedCars.map((car, i) => (
+              <UpcomingCarCard key={car._id} car={car} index={i} />
+            ))}
+          </div>
+        </section>
+      )}
 
       {/* ── RELATED GUIDES + CTA ───────────────────────── */}
       <div className="px-6 pb-20 max-w-3xl mx-auto">
