@@ -1,6 +1,6 @@
 "use client";
 
-import { ArrowRight, ImageOff, Images } from "lucide-react";
+import { ArrowRight, CalendarClock, ImageOff, Images } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { getGalleryPreviewCars } from "@/actions/spec-actions";
@@ -21,6 +21,7 @@ type PreviewCar = {
   heroImageUrl?: string;
   status?: string;
   pricing?: PriceEntry[];
+  isUpcoming?: boolean;
 };
 
 type GalleryPreviewProps = {
@@ -138,6 +139,14 @@ export default function GalleryPreview({
                     ) : (
                       <div className="w-full h-full flex items-center justify-center text-zinc-300">
                         <ImageOff size={28} />
+                      </div>
+                    )}
+                    {/* Without this, an upcoming car reads as in-stock in the
+                        strip — a "From £X" badge on a car nobody can order
+                        yet is the misleading combination. */}
+                    {car.isUpcoming && (
+                      <div className="absolute top-3 left-3 inline-flex items-center gap-1.5 bg-sky-600/95 text-white text-[10px] font-bold uppercase tracking-wider px-2.5 py-1.5 rounded-full backdrop-blur-sm">
+                        <CalendarClock size={11} /> Coming Soon
                       </div>
                     )}
                     {price && (

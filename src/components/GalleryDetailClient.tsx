@@ -1,14 +1,25 @@
 "use client";
 
-import { ArrowLeft, FileText, Globe, Loader2, Mail, Zap } from "lucide-react";
+import {
+  ArrowLeft,
+  ArrowRight,
+  CalendarClock,
+  FileText,
+  Globe,
+  Loader2,
+  Mail,
+  Palette,
+  Zap,
+} from "lucide-react";
 import Link from "next/link";
-import { useRef, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import { generateDossierPdfAction } from "@/actions/pdf-actions";
 import FAQSection from "@/components/faqSection";
 import MinimalHeader from "@/components/MinimalHeader";
 import { Reveal } from "@/components/Reveal";
 import RequestForm, { mileageToPrefillRange } from "@/components/requestForm";
 import { getLogoFilename } from "@/lib/logo-utils";
+import { colorLabel, parseColors, swatchStyle } from "@/lib/vehicle-colors";
 
 // Updated Type to include Pricing Matrix
 type PriceEntry = {
@@ -58,6 +69,13 @@ type Dossier = {
   // --- ADD THESE TWO NEW FIELDS HERE ---
   customData?: CustomDataEntry[];
   valuePoints?: ValuePointEntry[];
+  // Upcoming / coming-soon models
+  isUpcoming?: boolean;
+  expectedAvailability?: string;
+  newsSlug?: string;
+  // Colour palettes (raw jsonb — run through parseColors before use)
+  exteriorColors?: unknown;
+  interiorColors?: unknown;
 };
 
 export default function GalleryDetailClient({ car }: { car: Dossier }) {
@@ -75,17 +93,45 @@ export default function GalleryDetailClient({ car }: { car: Dossier }) {
     ? parseInt(String(car.mileage).replace(/[^\d]/g, ""), 10)
     : NaN;
 
-  const prefillData = {
-    make: car.make,
-    vehicle_model: car.model,
-    condition: isUsed ? "Used" : "New",
-    // For a used car with a known odometer reading, prefill the form's
-    // mileage range to bracket that figure.
-    ...(isUsed && Number.isFinite(mileageNum)
-      ? mileageToPrefillRange(mileageNum)
-      : {}),
-    specs: `Inquiry for ${car.year} ${car.make} ${car.model} (${car.trim}). Features: ${car.features?.join(", ")}`,
-  };
+  const exteriorColors = useMemo(
+    () => parseColors(car.exteriorColors),
+    [car.exteriorColors],
+  );
+  const interiorColors = useMemo(
+    () => parseColors(car.interiorColors),
+    [car.interiorColors],
+  );
+
+  // Memoised because RequestForm re-applies `prefill` whenever its identity
+  // changes: without this, clicking a gallery thumbnail (which re-renders this
+  // component) would rebuild the object and wipe whatever the customer had
+  // already typed into the inquiry form.
+  const prefillData = useMemo(
+    () => ({
+      make: car.make,
+      vehicle_model: car.model,
+      condition: isUsed ? "Used" : "New",
+      // For a used car with a known odometer reading, prefill the form's
+      // mileage range to bracket that figure.
+      ...(isUsed && Number.isFinite(mileageNum)
+        ? mileageToPrefillRange(mileageNum)
+        : {}),
+      // A coming-soon dossier produces a pre-order lead, not a live quote —
+      // flagged here so the pipeline can tell the two apart.
+      isUpcomingVehicle: car.isUpcoming === true,
+      specs: `Inquiry for ${car.year} ${car.make} ${car.model} (${car.trim}). Features: ${car.features?.join(", ")}`,
+    }),
+    [
+      car.make,
+      car.model,
+      car.year,
+      car.trim,
+      car.features,
+      car.isUpcoming,
+      isUsed,
+      mileageNum,
+    ],
+  );
 
   // UPDATE: Set default image based on hero selection
   const displayImages =
@@ -161,11 +207,49 @@ export default function GalleryDetailClient({ car }: { car: Dossier }) {
               </div>
             )}
 
+            {car.isUpcoming && (
+              <div className="mb-5 inline-flex items-center gap-2 self-start rounded-full bg-sky-600 px-4 py-2 text-[11px] font-bold uppercase tracking-[0.15em] text-white">
+                <CalendarClock size={14} /> Coming Soon
+              </div>
+            )}
+
             <h1 className="text-5xl md:text-7xl lg:text-[5.5rem] font-bold tracking-tighter leading-[0.9] mb-4 uppercase">
               {car.make} <br />
               <span className="text-zinc-400">{car.model}</span> <br />
               {car.year}
             </h1>
+
+            {/* Pre-order framing: state plainly that this car isn't here yet,
+                and link to the announcement it was launched in. */}
+            {car.isUpcoming && (
+              <div className="mt-2 rounded-[1.5rem] border border-sky-200 bg-sky-50/60 p-6">
+                <p className="text-sm text-zinc-600 font-light leading-relaxed">
+                  This model has been announced but is not yet available to buy.
+                  Register your interest now and we&rsquo;ll come back to you
+                  with a landed cost for your country the moment specification
+                  and pricing are confirmed.
+                </p>
+                {car.expectedAvailability && (
+                  <p className="mt-4 flex items-center gap-2 text-sm font-bold text-sky-700">
+                    <CalendarClock size={15} className="shrink-0" />
+                    Expected: {car.expectedAvailability}
+                  </p>
+                )}
+                {car.newsSlug && (
+                  <Link
+                    href={`/latest-news/${car.newsSlug}`}
+                    className="group mt-4 inline-flex items-center gap-2 text-sm font-bold text-sky-600 hover:text-sky-700 transition-colors"
+                  >
+                    Read the announcement
+                    <ArrowRight
+                      size={15}
+                      className="group-hover:translate-x-1 transition-transform"
+                    />
+                  </Link>
+                )}
+              </div>
+            )}
+
             <div className="h-px w-full bg-black/10 my-8" />
             <div className="prose prose-lg text-zinc-600 font-light leading-relaxed">
               {car.notes ? (
@@ -410,6 +494,69 @@ export default function GalleryDetailClient({ car }: { car: Dossier }) {
         </div>
       </section>
 
+      {/* Colours & Finishes — only rendered when the dossier actually carries
+          a palette, so older records don't show an empty shell. */}
+      {(exteriorColors.length > 0 || interiorColors.length > 0) && (
+        <section className="mt-32 lg:mt-48 px-6 max-w-[1400px] mx-auto">
+          <Reveal y={30} duration={0.8}>
+            <div className="flex items-center gap-4 mb-12">
+              <Palette size={28} className="text-zinc-300" />
+              <h2 className="text-4xl md:text-5xl font-bold tracking-tighter uppercase leading-none">
+                Colours &amp; Finishes
+              </h2>
+            </div>
+          </Reveal>
+
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-16">
+            {[
+              { label: "Exterior", colors: exteriorColors },
+              { label: "Interior", colors: interiorColors },
+            ]
+              .filter((group) => group.colors.length > 0)
+              .map((group, groupIndex) => (
+                <Reveal
+                  key={group.label}
+                  y={30}
+                  delay={groupIndex * 0.1}
+                  duration={0.8}
+                >
+                  <p className="text-xs font-bold tracking-[0.3em] text-zinc-400 uppercase mb-8">
+                    {group.label}
+                  </p>
+                  <ul className="grid grid-cols-2 sm:grid-cols-3 gap-x-6 gap-y-8">
+                    {group.colors.map((color) => (
+                      <li
+                        key={`${color.name}-${color.hex}`}
+                        className="flex flex-col gap-3"
+                      >
+                        <span
+                          className="h-16 w-16 rounded-full border border-black/10 shadow-[0_6px_16px_rgba(0,0,0,0.08)]"
+                          style={swatchStyle(color)}
+                          aria-hidden="true"
+                        />
+                        <span className="text-sm font-medium text-zinc-700 leading-snug">
+                          {colorLabel(color)}
+                        </span>
+                        {color.isDualTone && (
+                          <span className="-mt-2 text-[10px] font-bold uppercase tracking-wider text-zinc-400">
+                            Dual tone
+                          </span>
+                        )}
+                      </li>
+                    ))}
+                  </ul>
+                </Reveal>
+              ))}
+          </div>
+
+          <p className="mt-12 text-sm text-zinc-400 font-light">
+            Availability varies by market and build slot. Choose your
+            combination below and we&rsquo;ll confirm it against the factory
+            options list for your destination.
+          </p>
+        </section>
+      )}
+
       {/* Inquiry Section */}
       <section
         ref={inquiryRef}
@@ -418,15 +565,30 @@ export default function GalleryDetailClient({ car }: { car: Dossier }) {
         <div className="max-w-[1400px] mx-auto grid grid-cols-1 lg:grid-cols-12 gap-16">
           <div className="lg:col-span-4">
             <h2 className="text-4xl md:text-6xl font-bold tracking-tighter uppercase leading-[0.8] mb-6">
-              Start Your <br /> <span className="text-[#4da8da]">Purchase</span>
+              {car.isUpcoming ? (
+                <>
+                  Register <br />{" "}
+                  <span className="text-[#4da8da]">Interest</span>
+                </>
+              ) : (
+                <>
+                  Start Your <br />{" "}
+                  <span className="text-[#4da8da]">Purchase</span>
+                </>
+              )}
             </h2>
             <p className="text-zinc-500 text-lg font-light leading-relaxed">
-              Our team will verify the availability of this {car.model} and
-              provide a landed cost estimate for your destination country.
+              {car.isUpcoming
+                ? `We'll hold your specification for this ${car.model} and come back with a landed cost for your country as soon as it's confirmed for release.`
+                : `Our team will verify the availability of this ${car.model} and provide a landed cost estimate for your destination country.`}
             </p>
           </div>
           <div className="lg:col-span-8">
-            <RequestForm prefill={prefillData} />
+            <RequestForm
+              prefill={prefillData}
+              exteriorColorOptions={exteriorColors}
+              interiorColorOptions={interiorColors}
+            />
           </div>
         </div>
       </section>

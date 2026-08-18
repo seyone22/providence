@@ -35,6 +35,11 @@ import {
   TIMEZONE_OPTIONS,
   timezoneForCountry,
 } from "@/lib/contactScheduling";
+import {
+  colorLabel,
+  swatchStyle,
+  type VehicleColor,
+} from "@/lib/vehicle-colors";
 
 const CONTACT_METHOD_ICONS: Record<string, any> = {
   WhatsApp: MessageCircle,
@@ -631,6 +636,128 @@ const DualRangeSlider = ({
   );
 };
 
+/**
+ * Colour picker for one palette (exterior or interior).
+ *
+ * Two modes, chosen by whether the dossier actually offers colours:
+ *  - with options: swatch buttons, plus an "Other" escape hatch so a customer
+ *    who wants a colour we haven't listed isn't blocked from inquiring;
+ *  - without options (the generic /request page): a plain text field.
+ *
+ * Either way the value written to the lead is a human-readable string, which
+ * is what a sales agent actually needs to act on.
+ */
+function ColorChoiceField({
+  label,
+  options,
+  value,
+  onChange,
+  placeholder,
+}: {
+  label: string;
+  options: VehicleColor[];
+  value: string;
+  onChange: (value: string) => void;
+  placeholder: string;
+}) {
+  // "Other" is active when a value is set that isn't one of the swatches.
+  const optionLabels = options.map(colorLabel);
+  const isCustom = value.length > 0 && !optionLabels.includes(value);
+  const [showCustom, setShowCustom] = useState(isCustom);
+  // An id can't contain whitespace, so derive one from the label.
+  const fieldId = `color-${label.toLowerCase().replace(/[^a-z0-9]+/g, "-")}`;
+
+  if (options.length === 0) {
+    return (
+      <div className="relative">
+        <label
+          htmlFor={fieldId}
+          className="text-[10px] font-bold text-[#4da8da] uppercase tracking-wider block mb-2"
+        >
+          {label} (optional)
+        </label>
+        <input
+          id={fieldId}
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
+          placeholder={placeholder}
+          className="w-full font-sans bg-transparent border-b border-black/10 focus:border-sky-500 text-black placeholder:text-zinc-400 focus:outline-none transition-colors rounded-none px-0 py-3 text-lg"
+        />
+      </div>
+    );
+  }
+
+  return (
+    <div>
+      <p className="text-[10px] font-bold text-[#4da8da] uppercase tracking-wider mb-4">
+        {label} (optional)
+      </p>
+      <div className="flex flex-wrap gap-3">
+        {options.map((color) => {
+          const optionLabel = colorLabel(color);
+          const isSelected = value === optionLabel && !showCustom;
+          return (
+            <button
+              key={`${color.name}-${color.hex}`}
+              type="button"
+              aria-pressed={isSelected}
+              onClick={() => {
+                setShowCustom(false);
+                // Clicking the active swatch clears it — the field is optional.
+                onChange(isSelected ? "" : optionLabel);
+              }}
+              className={`flex items-center gap-2.5 rounded-full border py-1.5 pl-1.5 pr-4 transition-all ${
+                isSelected
+                  ? "border-sky-500 bg-sky-50 shadow-[0_0_0_3px_rgba(14,165,233,0.12)]"
+                  : "border-black/10 bg-white hover:border-black/25"
+              }`}
+            >
+              <span
+                className="h-7 w-7 shrink-0 rounded-full border border-black/10"
+                style={swatchStyle(color)}
+                aria-hidden="true"
+              />
+              <span className="text-sm font-medium text-zinc-700 text-left">
+                {optionLabel}
+              </span>
+            </button>
+          );
+        })}
+
+        <button
+          type="button"
+          aria-pressed={showCustom}
+          onClick={() => {
+            setShowCustom(!showCustom);
+            // Clear in BOTH directions. Entering "Other" must drop a
+            // previously-picked swatch, or the empty text box and the
+            // unhighlighted swatches would both suggest "nothing selected"
+            // while the swatch's label is still what gets submitted.
+            onChange("");
+          }}
+          className={`rounded-full border px-4 py-2.5 text-sm font-medium transition-all ${
+            showCustom
+              ? "border-sky-500 bg-sky-50 text-sky-700"
+              : "border-black/10 bg-white text-zinc-600 hover:border-black/25"
+          }`}
+        >
+          Other
+        </button>
+      </div>
+
+      {showCustom && (
+        <input
+          aria-label={`${label} — other`}
+          value={isCustom ? value : ""}
+          onChange={(e) => onChange(e.target.value)}
+          placeholder={placeholder}
+          className="mt-4 w-full font-sans bg-transparent border-b border-black/10 focus:border-sky-500 text-black placeholder:text-zinc-400 focus:outline-none transition-colors rounded-none px-0 py-3 text-lg"
+        />
+      )}
+    </div>
+  );
+}
+
 // --- MAIN FORM COMPONENT ---
 
 const initialFormState = {
@@ -641,12 +768,19 @@ const initialFormState = {
   mileageMin: MILEAGE_MIN,
   mileageMax: MILEAGE_MAX,
   specs: "",
+  // Colour choices. Stored as the rendered label ("Sonic Grey / Black roof")
+  // rather than an index into the dossier palette, so the lead stays readable
+  // even after the dossier is edited.
+  exteriorColor: "",
+  interiorColor: "",
   name: "",
   email: "",
   phone: "",
   countryCode: "+1",
   countryOfImport: "",
   importTimeline: "",
+  // Set by the prefill when the inquiry comes off a coming-soon dossier.
+  isUpcomingVehicle: false,
   // Contact preferences (step 3)
   contactMethods: [] as string[],
   contactDays: [] as string[],
@@ -666,12 +800,18 @@ export default function RequestForm({
   prefill,
   defaultPhoneCountry = "US",
   assignedAgentId,
+  exteriorColorOptions = [],
+  interiorColorOptions = [],
 }: {
   prefill?: Partial<typeof initialFormState>;
   defaultPhoneCountry?: string;
   // When set (sales-member profile pages), pins the inquiry directly to this
   // agent instead of the round-robin rotation.
   assignedAgentId?: string;
+  // Palettes from the dossier this form is embedded under. Empty on the
+  // generic /request page, where the colour fields fall back to free text.
+  exteriorColorOptions?: VehicleColor[];
+  interiorColorOptions?: VehicleColor[];
 }) {
   const searchParams = useSearchParams();
   const pathname = usePathname();
@@ -947,6 +1087,9 @@ export default function RequestForm({
           ? mileageRangeLabel(formData.mileageMin, formData.mileageMax)
           : undefined,
       specs: formData.specs,
+      exteriorColor: formData.exteriorColor.trim() || undefined,
+      interiorColor: formData.interiorColor.trim() || undefined,
+      isUpcomingVehicle: formData.isUpcomingVehicle === true,
       name: formData.name,
       email: formData.email,
       countryCode: formData.countryCode,
@@ -1429,6 +1572,28 @@ export default function RequestForm({
                         specifications.
                       </motion.p>
                     )}
+                  </div>
+
+                  {/* Colours */}
+                  <div className="mt-10 space-y-8">
+                    <ColorChoiceField
+                      label="Exterior colour"
+                      options={exteriorColorOptions}
+                      value={formData.exteriorColor}
+                      onChange={(v) =>
+                        setFormData((prev) => ({ ...prev, exteriorColor: v }))
+                      }
+                      placeholder="e.g. Sonic Grey Pearl, or Black with a white roof"
+                    />
+                    <ColorChoiceField
+                      label="Interior colour"
+                      options={interiorColorOptions}
+                      value={formData.interiorColor}
+                      onChange={(v) =>
+                        setFormData((prev) => ({ ...prev, interiorColor: v }))
+                      }
+                      placeholder="e.g. Black leather with tan inserts"
+                    />
                   </div>
 
                   {/* Specs */}

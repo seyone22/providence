@@ -109,6 +109,15 @@ export const requests = pgTable("request", {
   countryOfImport: text("countryOfImport").notNull(),
   importTimeline: text("importTimeline"),
   dossierIds: text("dossierIds").array().notNull().default([]),
+  // Set when the inquiry came from a dossier flagged as an upcoming /
+  // coming-soon model, so the pipeline can tell a pre-order from a car we can
+  // quote and ship today.
+  isUpcomingVehicle: boolean("isUpcomingVehicle").default(false).notNull(),
+  // Colour choices carried over from the inquiry form. Stored as the rendered
+  // label ("Sonic Grey / Black roof") rather than a dossier reference, so the
+  // lead stays readable even if the dossier's palette is later edited.
+  exteriorColor: text("exteriorColor"),
+  interiorColor: text("interiorColor"),
   contactMethods: text("contactMethods").array().notNull().default([]),
   contactDays: text("contactDays").array().notNull().default([]),
   contactTimeWindow: text("contactTimeWindow"),
@@ -174,6 +183,11 @@ export const specDossiers = pgTable("specdossier", {
   steering: text("steering").default("RHD").notNull(),
   emissions: text("emissions").default("").notNull(),
   pricing: jsonb("pricing").notNull().default([]),
+  // Colour palettes offered for this model. Each entry is
+  // { name, hex, hex2?, isDualTone? } — hex2 is only meaningful when
+  // isDualTone is true (e.g. a contrast roof, or a two-tone cabin).
+  exteriorColors: jsonb("exteriorColors").notNull().default([]),
+  interiorColors: jsonb("interiorColors").notNull().default([]),
   upholstery: text("upholstery").default("").notNull(),
   infotainment: text("infotainment").default("").notNull(),
   features: text("features").array().notNull().default([]),
@@ -185,6 +199,15 @@ export const specDossiers = pgTable("specdossier", {
   slug: text("slug").default("").notNull(),
   notes: text("notes").default("").notNull(),
   status: text("status").default("Draft").notNull(),
+  // --- Upcoming / coming-soon models ------------------------------------
+  // A car we are taking interest in ahead of availability. It still gets a
+  // full public page, but the page sells a pre-order rather than a car in
+  // stock, and every lead off it is flagged for the sales pipeline.
+  isUpcoming: boolean("isUpcoming").default(false).notNull(),
+  /** Free text, e.g. "Q3 2026" or "Deliveries from March 2027". */
+  expectedAvailability: text("expectedAvailability").default("").notNull(),
+  /** Slug of the /latest-news announcement this model was launched in. */
+  newsSlug: text("newsSlug").default("").notNull(),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().notNull(),
 });

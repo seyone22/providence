@@ -15,6 +15,13 @@
       "when": 1784127855025,
       "tag": "0001_nice_photon",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1786964787831,
+      "tag": "0002_loving_sprite",
+      "breakpoints": true
     }
   ]
 }

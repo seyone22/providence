@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
+import { getCarsForNewsArticle } from "@/actions/spec-actions";
 import NewsShell from "@/components/news/NewsShell";
+import type { UpcomingCar } from "@/components/news/UpcomingCarCard";
 import {
   getAllNewsSlugs,
   getCategoryMetaByLabel,
@@ -15,6 +17,11 @@ const SITE = "https://www.providenceauto.co.uk";
 export function generateStaticParams() {
   return getAllNewsSlugs().map((slug) => ({ slug }));
 }
+
+// The article body is static, but the "cars in this story" block reads live
+// dossiers — without ISR, linking a new car page to an existing story would
+// never appear until the next deploy.
+export const revalidate = 300;
 
 export async function generateMetadata({
   params,
@@ -77,6 +84,15 @@ export default async function NewsArticlePage({
 
   const path = `${NEWS_BASE_PATH}/${article.slug}`;
   const url = `${SITE}${path}`;
+
+  // Car pages for the models this story announces, if any exist yet.
+  const carsResponse = await getCarsForNewsArticle(
+    article.slug,
+    article.linkedVehicleSlugs ?? [],
+  );
+  const linkedCars = (
+    carsResponse.success ? carsResponse.data : []
+  ) as UpcomingCar[];
 
   const categoryMeta = getCategoryMetaByLabel(article.category);
   const heroImageUrl = article.heroImage.startsWith("http")
@@ -191,7 +207,7 @@ export default async function NewsArticlePage({
         // biome-ignore lint/security/noDangerouslySetInnerHtml: JSON-LD must be inlined as a script tag for crawlers
         dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }}
       />
-      <NewsShell article={article}>
+      <NewsShell article={article} linkedCars={linkedCars}>
         <Body />
       </NewsShell>
     </>
