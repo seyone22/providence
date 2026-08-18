@@ -909,6 +909,218 @@ export const NEWS_ARTICLES: NewsArticle[] = [
       "cost-to-import-a-car-from-japan",
     ],
   },
+
+  // ── Releases ──────────────────────────────────────────────────────────────
+  {
+    slug: "mercedes-maybach-s-580-e-first-class-uk-spec",
+    title:
+      "Mercedes-Maybach S 580 e First Class: £206,090, and a CO₂ figure worth reading",
+    h1: "Mercedes-Maybach S 580 e First Class: The UK Specification, the £206,090 Price, and the 69 g/km That Sets Your Tax",
+    seoTitle: "Mercedes-Maybach S 580 e First Class: UK Spec and Price",
+    description:
+      "Mercedes-Maybach S 580 e First Class: £206,090 UK on-the-road, 585 hp, 58 miles of electric range, and the 69 g/km CO₂ figure that decides your registration tax.",
+    excerpt:
+      "A 585 hp plug-in hybrid limousine with a £16,000 paint option and a CO₂ figure higher than plug-in buyers expect. The full UK specification, and why the on-the-road price is not your CIF base.",
+    category: "Releases",
+    dateline: "London",
+    keywords: [
+      "mercedes-maybach s 580 e",
+      "maybach s 580 e price uk",
+      "maybach s-class first class specification",
+      "mercedes-maybach s 580 e co2 emissions",
+      "maybach s 580 e electric range",
+      "how much is the mercedes-maybach s 580 e",
+      "can you import a mercedes-maybach s 580 e",
+    ],
+    author: AUTHOR,
+    publishDate: "2026-08-18",
+    updatedDate: "2026-08-18",
+    readingTimeMins: 10,
+    heroImage:
+      "https://upload.wikimedia.org/wikipedia/commons/thumb/2/2c/MERCEDES_MAYBACH_S-CLASS_%28W223%29_China_%2826%29.jpg/1280px-MERCEDES_MAYBACH_S-CLASS_%28W223%29_China_%2826%29.jpg",
+    heroAlt:
+      "Mercedes-Maybach S-Class (W223) long-wheelbase saloon photographed in Shenzhen, China",
+    heroCaption:
+      "Illustrative image — a Mercedes-Maybach S-Class (W223) photographed in Shenzhen on 15 January 2026, not the S 580 e First Class specification described here. Photo by Dinkun Chen, licensed under CC BY-SA 4.0 via Wikimedia Commons.",
+    toc: [
+      { id: "what-it-is", label: "What it actually is" },
+      { id: "the-numbers", label: "The specification in full" },
+      { id: "co2", label: "Why 69 g/km matters" },
+      { id: "landed", label: "The price is not your CIF base" },
+      { id: "rhd-lhd", label: "Can you import one?" },
+      { id: "who-should-not", label: "Who should not buy it new" },
+      { id: "timing", label: "Order now or wait?" },
+      { id: "faqs", label: "FAQs" },
+    ],
+    faqs: [
+      {
+        q: "How much does the Mercedes-Maybach S 580 e First Class cost in the UK?",
+        a: "As configured on the Mercedes-Benz Cars UK site in March 2026, £206,090 on the road. That breaks down as a £190,090 basic price plus £16,000 of selected equipment, which in this configuration is entirely accounted for by the Maybach two-tone paint in obsidian black over velvet brown. The on-the-road figure includes UK VAT at 20%, the road fund licence, a £730 delivery charge, a £55 first registration fee, £50 of fuel and £25 of number plates.",
+      },
+      {
+        q: "What are the Mercedes-Maybach S 580 e specifications?",
+        a: "A 2,999 cc petrol inline-six producing 330 kW (449 hp) works with a 120 kW (163 hp) electric motor for a system output of 430 kW (585 hp) and 750 Nm, through a 9G-TRONIC automatic and all-wheel drive. It reaches 62 mph in 4.8 seconds and is limited to 155 mph. The usable battery is 21.96 kWh, giving 58 miles of WLTP electric range, and the car is 5,484 mm long on a 3,396 mm wheelbase.",
+      },
+      {
+        q: "What is the CO2 figure for the Maybach S 580 e, and why does it matter?",
+        a: "The Mercedes-Benz UK configurator declares weighted CO₂ of 69 g/km under the Euro 6e-bis standard. It matters because registration tax in many markets is banded by CO₂, and the authority reads the figure from the vehicle's Certificate of Conformity rather than from a brochure. Plug-in hybrids have historically advertised lower figures, so a buyer budgeting from an older number can be caught out by a higher band.",
+      },
+      {
+        q: "Can you import a Mercedes-Maybach S 580 e in right-hand drive?",
+        a: "Yes. The car is built and homologated in right-hand drive, which covers Ireland, the United Kingdom, Malta, Cyprus, Kenya, Uganda, Australia, New Zealand, Hong Kong, Malaysia, Sri Lanka and the Caribbean markets. Left-hand drive is also available and is the deeper market for this model, serving continental Europe, the Gulf and China. Age-limit rules that restrict used imports do not apply, because this is a new car.",
+      },
+      {
+        q: "Is the £206,090 UK price what an exporter pays?",
+        a: "No, and treating it as a CIF base is the most expensive mistake made with UK price lists. The on-the-road figure bundles UK VAT at 20% plus registration items an exporter never pays. Removing VAT from the £190,090 basic price gives £158,408 on our arithmetic. Zero-rating on export is a procedure that depends on evidence of removal being produced within HMRC's time limits and on the supplying dealer agreeing to handle the sale that way.",
+      },
+      {
+        q: "When are first deliveries of the updated Maybach S 580 e?",
+        a: "European pre-orders opened in late March 2026, consistent with the UK configurator print-out generated on 26 March 2026. First UK customer deliveries are expected in September 2026. Mercedes-Benz has not published a UK first-delivery date we can cite, so September is the expectation the trade is working to rather than a manufacturer commitment.",
+      },
+    ],
+    sources: [
+      {
+        label: "The new Mercedes-Benz S-Class — press kit",
+        href: "https://media.mercedes-benz.com/en/s-class-2026",
+        publisher: "Mercedes-Benz Media",
+      },
+      {
+        label: "The new Mercedes-Benz S-Class: Refined in every detail",
+        href: "https://mercedes-benz-media.co.uk/releases/1674",
+        publisher: "Mercedes-Benz Cars UK",
+      },
+      {
+        label:
+          "New 2026 Mercedes S-Class facelift: luxury limo redefines car tech",
+        href: "https://www.autoexpress.co.uk/mercedes/s-class/368777/new-2026-mercedes-s-class-facelift-luxury-limo-redefines-car-tech",
+        publisher: "Auto Express",
+      },
+      {
+        label:
+          "Mercedes-Maybach S-Class (W223) — hero image, CC BY-SA 4.0, by Dinkun Chen",
+        href: "https://commons.wikimedia.org/wiki/File:MERCEDES_MAYBACH_S-CLASS_(W223)_China_(26).jpg",
+        publisher: "Wikimedia Commons",
+      },
+    ],
+    relatedGuides: [
+      "how-to-import-a-car-from-the-uk",
+      "cost-to-import-a-car-from-the-uk",
+      "uk-car-export-documents-explained",
+    ],
+    linkedVehicleSlugs: [
+      "mercedes-maybach-s-580-e-first-class-rhd",
+      "mercedes-maybach-s-580-e-first-class-lhd",
+    ],
+  },
+
+  // ── Policy & Tax ──────────────────────────────────────────────────────────
+  {
+    slug: "sri-lanka-vehicle-import-surcharge-extended-2026",
+    title:
+      "Sri Lanka extends the 50% vehicle import surcharge — and the real deadline is 15 November",
+    h1: "Sri Lanka Extends the 50% Vehicle Import Duty Surcharge to 31 December 2026",
+    seoTitle: "Sri Lanka Vehicle Import Surcharge Extended to 31 Dec 2026",
+    description:
+      "Sri Lanka's 50% surcharge on vehicle import duty now runs to 31 December 2026. The LC exemption dies if your bill of lading is dated after 15 November.",
+    excerpt:
+      "Gazette 2501/88 extends the surcharge by four and a half months. It is 50% of the duty, not 50% of the car — and the 90-day registration clock costs dealers more than the surcharge does.",
+    category: "Policy & Tax",
+    dateline: "Colombo",
+    keywords: [
+      "sri lanka vehicle import surcharge",
+      "sri lanka car import duty 2026",
+      "gazette 2501/88 sri lanka",
+      "sri lanka vehicle registration 90 days",
+      "sri lanka import duty surcharge extended",
+      "how much is the sri lanka vehicle import surcharge",
+      "when does the sri lanka vehicle surcharge end",
+    ],
+    author: AUTHOR,
+    publishDate: "2026-08-18",
+    updatedDate: "2026-08-18",
+    readingTimeMins: 11,
+    heroImage:
+      "https://images.unsplash.com/photo-1450101499163-c8848c66ca85?q=80&w=2400&auto=format&fit=crop",
+    heroAlt:
+      "Customs and duty paperwork, illustrating coverage of Sri Lanka's vehicle import surcharge",
+    heroCaption: "Illustrative image.",
+    toc: [
+      { id: "what-changed", label: "What the gazette does" },
+      { id: "not-fifty-percent", label: "It is not 50% on the car" },
+      { id: "the-exemption", label: "The exemption, and how to lose it" },
+      { id: "the-deadline", label: "Why 15 November is close" },
+      { id: "the-other-clock", label: "The clock that costs more" },
+      { id: "what-to-do", label: "What dealers should do now" },
+      { id: "private-buyers", label: "Does this affect private buyers?" },
+      { id: "faqs", label: "FAQs" },
+    ],
+    faqs: [
+      {
+        q: "How long is Sri Lanka's 50% vehicle import surcharge in place?",
+        a: "Gazette Extraordinary No. 2501/88, issued on 13 August 2026, extends the 50% surcharge on Customs Import Duty for specified motor vehicles from 15 August 2026 to 31 December 2026. The surcharge was first imposed with effect from 16 May 2026 as a three-month measure. Nothing on the record says what happens after 31 December 2026, and it has already been extended once.",
+      },
+      {
+        q: "Is the Sri Lankan surcharge 50% of the car's value?",
+        a: "No. It is 50% of the Customs Import Duty payable, not of the vehicle value. Where a car attracts a 20% duty, a 50% surcharge adds 10 percentage points of CIF and produces an effective duty of 30%. Duty rates vary by HS code, engine capacity and propulsion type, so the correct figure has to be confirmed against your own classification with Sri Lanka Customs.",
+      },
+      {
+        q: "Which vehicles are exempt from the Sri Lankan import surcharge?",
+        a: "Vehicles imported under Letters of Credit established on or before 15 May 2026. The exemption is lost if the LC is amended as to the number of vehicles, the vehicle descriptions, the technical specifications or the expiry dates, and it is also lost if the shipped-on-board date on the bill of lading or airway bill falls after 15 November 2026. The loading date governs, not the arrival date.",
+      },
+      {
+        q: "What is Sri Lanka's 90-day vehicle registration rule?",
+        a: "Under the Imports and Exports (Control) Regulations at Gazette Extraordinary No. 2421/04, a vehicle must be registered within 90 days of the date of the Customs Declaration. After that the importer pays a monthly late fee of 3% of the CIF value, computed non-compounded and linearly, capped at 45% of CIF, which is reached after fifteen months. Part-months of fewer than 30 days count as full months and no waiver is granted.",
+      },
+      {
+        q: "How old can a car be to import into Sri Lanka?",
+        a: "Motor cars are admissible at not more than three years old. Age is measured from the date of manufacture to the date of the bill of lading or airway bill, not to arrival or clearance. Where the manufacturer's certificate states a month, the date of manufacture is deemed to be the fifteenth of that month; where only a year is stated, it is deemed to be 15 January of that year.",
+      },
+      {
+        q: "Can a private buyer import more than one car into Sri Lanka?",
+        a: "Not usually. An importer registered with the Department of Motor Traffic as a motor vehicle importer may import the number of vehicles required, subject to the regulations. Any other importer is permitted only one vehicle within a twelve-month period, measured from the date of the Bill of Entry. That limit catches buyers who assume trading through a company name is sufficient.",
+      },
+    ],
+    sources: [
+      {
+        label: "Sri Lanka extends 50% surcharge on vehicle import duties",
+        href: "https://adaderana.lk/news/cmssxqtx40004356qmapl2tjz",
+        publisher: "Ada Derana",
+      },
+      {
+        label:
+          "Govt imposes 50% surcharge on imported vehicles for three months",
+        href: "https://adaderana.lk/news/122574",
+        publisher: "Ada Derana",
+      },
+      {
+        label: "50% Vehicle Import Duty Surcharge Extended Until End of 2026",
+        href: "https://asianmirror.lk/news/50-vehicle-import-duty-surcharge-extended-until-end-of-2026/",
+        publisher: "Asian Mirror",
+      },
+      {
+        label:
+          "Sri Lanka vehicle imports hit by 50-pct duty surcharge, EV taxes and new luxury levels",
+        href: "https://economynext.com/sri-lanka-vehicle-imports-hit-by-50-pct-duty-surcharge-ev-taxes-and-new-luxury-levels-202669/",
+        publisher: "EconomyNext",
+      },
+      {
+        label:
+          "Imports and Exports (Control) Regulations — Gazette Extraordinary No. 2421/04",
+        href: "https://economynext.com/wp-content/uploads/2025/01/2421-04-vehicle-imports-gazette-EN.pdf",
+        publisher: "Government of Sri Lanka (via EconomyNext)",
+      },
+      {
+        label: "Sri Lanka Customs — importing goods",
+        href: "https://www.customs.gov.lk/services/importing-goods/",
+        publisher: "Sri Lanka Customs",
+      },
+    ],
+    relatedGuides: [
+      "sri-lanka-vehicle-import-rules-for-dealers",
+      "sri-lanka-vehicle-import-taxes-explained",
+      "importing-a-car-to-sri-lanka",
+    ],
+  },
 ];
 
 export const NEWS_BASE_PATH = "/latest-news";
