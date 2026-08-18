@@ -340,6 +340,9 @@ const initialSpecData: SpecDataType = {
  * Rows are edited in place: name, primary swatch, and (when two-tone) a
  * secondary swatch plus its own name so the lead reads "Sonic Grey / Black
  * roof" rather than an ambiguous "two-tone".
+ *
+ * Each row can also be linked to one of the dossier's photographs, so picking
+ * that swatch on the car page swaps the gallery to the car in that finish.
  */
 function ColorPaletteEditor({
   title,
@@ -350,6 +353,7 @@ function ColorPaletteEditor({
   onRemove,
   namePlaceholder,
   secondaryPlaceholder,
+  images,
 }: {
   title: string;
   description: string;
@@ -359,6 +363,8 @@ function ColorPaletteEditor({
   onRemove: (index: number) => void;
   namePlaceholder: string;
   secondaryPlaceholder: string;
+  /** The dossier's gallery, in order — `imageIndex` points into this. */
+  images: string[];
 }) {
   return (
     <div className="space-y-4">
@@ -457,6 +463,53 @@ function ColorPaletteEditor({
                     onChange={(e) => onChange(index, { hex2: e.target.value })}
                     className="h-11 w-16 rounded-xl border border-zinc-200 bg-white p-1 cursor-pointer"
                   />
+                </div>
+              )}
+
+              {/* Link this finish to the photograph that shows it. Optional —
+                  most of a factory palette has no matching shot, and an
+                  unlinked swatch simply stays non-interactive on the car page
+                  rather than showing the car in the wrong colour. */}
+              {images.length > 0 && (
+                <div>
+                  <p className="text-[11px] font-bold uppercase tracking-wider text-zinc-500 mb-2">
+                    Linked photo
+                  </p>
+                  <div className="flex flex-wrap items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={() => onChange(index, { imageIndex: undefined })}
+                      aria-pressed={color.imageIndex === undefined}
+                      className={`h-12 px-3 rounded-lg border-2 text-[11px] font-bold uppercase tracking-wider transition-all ${
+                        color.imageIndex === undefined
+                          ? "border-black bg-black text-white"
+                          : "border-zinc-200 bg-white text-zinc-500 hover:border-zinc-400"
+                      }`}
+                    >
+                      None
+                    </button>
+                    {images.map((img, imgIdx) => (
+                      <button
+                        // biome-ignore lint/suspicious/noArrayIndexKey: the index IS the stored value
+                        key={imgIdx}
+                        type="button"
+                        onClick={() => onChange(index, { imageIndex: imgIdx })}
+                        aria-pressed={color.imageIndex === imgIdx}
+                        title={`Link photo ${imgIdx + 1}`}
+                        className={`h-12 w-16 rounded-lg overflow-hidden border-2 transition-all ${
+                          color.imageIndex === imgIdx
+                            ? "border-sky-500 ring-2 ring-sky-200"
+                            : "border-zinc-200 hover:border-zinc-400"
+                        }`}
+                      >
+                        <img
+                          src={img}
+                          alt={`Photo ${imgIdx + 1}`}
+                          className="h-full w-full object-cover"
+                        />
+                      </button>
+                    ))}
+                  </div>
                 </div>
               )}
 
@@ -810,9 +863,18 @@ function SpecBuilderContent() {
         : finalImageUrls[0] || "";
 
       // Drop half-filled colour rows (an admin clicked "add" then moved on) so
-      // an unnamed swatch never renders on the public page or a lead.
+      // an unnamed swatch never renders on the public page or a lead. Also
+      // clear any photo link that now points past the end of the gallery —
+      // deleting an image would otherwise leave the swatch aimed at nothing.
       const namedColors = (colors: VehicleColor[]) =>
-        colors.filter((c) => c.name.trim().length > 0);
+        colors
+          .filter((c) => c.name.trim().length > 0)
+          .map((c) =>
+            typeof c.imageIndex === "number" &&
+            c.imageIndex >= finalImageUrls.length
+              ? { ...c, imageIndex: undefined }
+              : c,
+          );
 
       const payload: any = {
         ...specData,
@@ -1563,6 +1625,7 @@ function SpecBuilderContent() {
                 onRemove={(i) => removeColor(setExteriorColors, i)}
                 namePlaceholder="e.g. Sonic Grey Pearl"
                 secondaryPlaceholder="Second tone, e.g. Black roof"
+                images={existingImages}
               />
 
               <ColorPaletteEditor
@@ -1576,6 +1639,7 @@ function SpecBuilderContent() {
                 onRemove={(i) => removeColor(setInteriorColors, i)}
                 namePlaceholder="e.g. Black Semi-Aniline Leather"
                 secondaryPlaceholder="Second tone, e.g. Saddle Tan inserts"
+                images={existingImages}
               />
             </div>
 

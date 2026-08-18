@@ -103,12 +103,23 @@ function normalizeColors(value, label) {
     if (!c || typeof c !== "object" || !c.name) {
       fail(`"${label}[${i}]" needs at least a "name".`);
     }
+    // Optional link to the photograph showing this finish — an index into the
+    // brief's own `images` array. Anything that isn't a non-negative integer
+    // is treated as "not linked" rather than silently pointing at image 0.
+    const imageIndex = Number(c.imageIndex);
+    const hasImage =
+      c.imageIndex !== undefined &&
+      c.imageIndex !== null &&
+      Number.isInteger(imageIndex) &&
+      imageIndex >= 0;
+
     return {
       name: String(c.name).trim(),
       hex: normalizeHex(c.hex),
       hex2: normalizeHex(c.hex2 ?? "#f5f5f5"),
       isDualTone: c.isDualTone === true,
       secondaryName: c.secondaryName ? String(c.secondaryName).trim() : "",
+      ...(hasImage ? { imageIndex } : {}),
     };
   });
 }
@@ -169,18 +180,26 @@ async function uploadImage(r2, bucket, publicUrl, filePath) {
   return `${publicUrl.replace(/\/$/, "")}/${key}`;
 }
 
+/** Already servable as-is: an absolute URL, or a path under `public/`. */
+function isPublicPath(entry) {
+  return /^https?:\/\//i.test(entry) || entry.startsWith("/");
+}
+
 /**
  * Resolves the brief's `images` into public URLs.
  *
  * Entries that already look like URLs pass straight through — that covers
- * imagery hosted elsewhere. Anything else is treated as a path relative to the
- * brief's own directory and uploaded to R2.
+ * imagery hosted elsewhere. So do root-relative paths like `/cars/foo.jpg`,
+ * which Next serves straight out of `public/` — the right home for a handful
+ * of curated, version-controlled shots that want reviewing in a diff. Anything
+ * else is treated as a path relative to the brief's own directory and uploaded
+ * to R2.
  */
 async function resolveImages(brief, briefDir) {
   const entries = Array.isArray(brief.images) ? brief.images : [];
   if (entries.length === 0) return [];
 
-  const local = entries.filter((e) => !/^https?:\/\//i.test(e));
+  const local = entries.filter((e) => !isPublicPath(e));
 
   if (local.length === 0) return entries;
 
@@ -224,9 +243,7 @@ async function resolveImages(brief, briefDir) {
   const uploadedByOriginal = new Map(
     local.map((original, i) => [original, uploaded[i]]),
   );
-  return entries.map((e) =>
-    /^https?:\/\//i.test(e) ? e : uploadedByOriginal.get(e),
-  );
+  return entries.map((e) => (isPublicPath(e) ? e : uploadedByOriginal.get(e)));
 }
 
 async function run() {

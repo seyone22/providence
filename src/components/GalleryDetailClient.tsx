@@ -4,8 +4,10 @@ import {
   ArrowLeft,
   ArrowRight,
   CalendarClock,
+  ChevronDown,
   FileText,
   Globe,
+  Images,
   Loader2,
   Mail,
   Palette,
@@ -19,7 +21,12 @@ import MinimalHeader from "@/components/MinimalHeader";
 import { Reveal } from "@/components/Reveal";
 import RequestForm, { mileageToPrefillRange } from "@/components/requestForm";
 import { getLogoFilename } from "@/lib/logo-utils";
-import { colorLabel, parseColors, swatchStyle } from "@/lib/vehicle-colors";
+import {
+  colorLabel,
+  parseColors,
+  swatchStyle,
+  type VehicleColor,
+} from "@/lib/vehicle-colors";
 
 // Updated Type to include Pricing Matrix
 type PriceEntry = {
@@ -78,9 +85,59 @@ type Dossier = {
   interiorColors?: unknown;
 };
 
+const FALLBACK_IMAGE =
+  "https://images.unsplash.com/photo-1603584173870-7f23fdae1b7a?q=80&w=2938&auto=format&fit=crop";
+
+// How much of each long list is shown before the reader has to ask for more.
+// A spec dossier can carry 20+ custom rows and a dozen features; rendering all
+// of it up front is what made this page an endless scroll.
+const LIMITS = {
+  specs: 8,
+  features: 8,
+  advantages: 3,
+  thumbs: 6,
+  colors: 6,
+};
+
+/** Shared "show the rest of this list" toggle. `noun` is singular. */
+function MoreButton({
+  expanded,
+  hiddenCount,
+  noun,
+  onClick,
+}: {
+  expanded: boolean;
+  hiddenCount: number;
+  noun: string;
+  onClick: () => void;
+}) {
+  if (hiddenCount <= 0) return null;
+  const label = hiddenCount === 1 ? noun : `${noun}s`;
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className="mt-4 inline-flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-zinc-500 hover:text-black transition-colors"
+    >
+      {expanded ? "Show less" : `Show ${hiddenCount} more ${label}`}
+      <ChevronDown
+        size={14}
+        className={`transition-transform duration-300 ${expanded ? "rotate-180" : ""}`}
+      />
+    </button>
+  );
+}
+
 export default function GalleryDetailClient({ car }: { car: Dossier }) {
   const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
   const inquiryRef = useRef<HTMLDivElement>(null);
+  const galleryRef = useRef<HTMLDivElement>(null);
+
+  const [specsOpen, setSpecsOpen] = useState(false);
+  const [featuresOpen, setFeaturesOpen] = useState(false);
+  const [advantagesOpen, setAdvantagesOpen] = useState(false);
+  const [thumbsOpen, setThumbsOpen] = useState(false);
+  const [descriptionOpen, setDescriptionOpen] = useState(false);
 
   const scrollToInquiry = () => {
     inquiryRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
@@ -133,22 +190,40 @@ export default function GalleryDetailClient({ car }: { car: Dossier }) {
     ],
   );
 
-  // UPDATE: Set default image based on hero selection
-  const displayImages =
-    car.images?.length > 0
-      ? car.images
-      : [
-          "https://images.unsplash.com/photo-1603584173870-7f23fdae1b7a?q=80&w=2938&auto=format&fit=crop",
-        ];
+  const displayImages = car.images?.length > 0 ? car.images : [FALLBACK_IMAGE];
 
-  // Use heroImageUrl if it exists, otherwise default to index 0
-  const _initialHero =
-    car.heroImageUrl && car.images?.includes(car.heroImageUrl)
-      ? car.heroImageUrl
-      : displayImages[0];
+  // The hero is an index into the dossier's own image order rather than a
+  // reordering of it — colour swatches store an `imageIndex` against that same
+  // order, so shuffling the array here would point them at the wrong photo.
+  const heroIndex = car.heroImageUrl
+    ? displayImages.indexOf(car.heroImageUrl)
+    : -1;
+  const [activeImage, setActiveImage] = useState(
+    heroIndex >= 0 ? heroIndex : 0,
+  );
 
-  // Initialize activeImage to show the hero image first
-  const [activeImage, setActiveImage] = useState(0);
+  /** The image linked to a swatch, if it points at one that actually exists. */
+  const linkedImage = (color: VehicleColor) =>
+    typeof color.imageIndex === "number" &&
+    color.imageIndex < displayImages.length
+      ? color.imageIndex
+      : undefined;
+
+  const showColorImage = (color: VehicleColor) => {
+    const idx = linkedImage(color);
+    if (idx === undefined) return;
+    setActiveImage(idx);
+    // On mobile the palette sits below the gallery, so bring the photo back
+    // into view — otherwise the swatch appears to do nothing.
+    galleryRef.current?.scrollIntoView({
+      behavior: "smooth",
+      block: "nearest",
+    });
+  };
+
+  const anyColorLinked = [...exteriorColors, ...interiorColors].some(
+    (c) => linkedImage(c) !== undefined,
+  );
 
   const handleDownloadPdf = async () => {
     setIsGeneratingPdf(true);
@@ -176,137 +251,259 @@ export default function GalleryDetailClient({ car }: { car: Dossier }) {
     }
   };
 
+  // Base spec rows and the dossier's custom rows share one table and one
+  // collapse, so the reader sees a single "Technical Specifications" list.
+  const specRows = [
+    { label: "Variant / Trim", value: car.trim },
+    { label: "Origin", value: car.countryOfOrigin },
+    {
+      label: "Engine",
+      value: `${car.displacement || ""} ${car.engineConfig || ""}`.trim(),
+    },
+    { label: "Transmission", value: car.transmission },
+    { label: "Fuel System", value: car.fuelSystem },
+    { label: "Steering", value: car.steering },
+    ...(car.customData ?? []).map((c) => ({
+      label: c.label,
+      value: c.value,
+    })),
+  ].filter((row) => row.value);
+
+  const visibleSpecs = specsOpen ? specRows : specRows.slice(0, LIMITS.specs);
+  const features = car.features ?? [];
+  const visibleFeatures = featuresOpen
+    ? features
+    : features.slice(0, LIMITS.features);
+  const advantages = car.valuePoints ?? [];
+  const visibleAdvantages = advantagesOpen
+    ? advantages
+    : advantages.slice(0, LIMITS.advantages);
+  const visibleThumbs = thumbsOpen
+    ? displayImages
+    : displayImages.slice(0, LIMITS.thumbs);
+
   return (
-    <main className="min-h-screen bg-[#FDFCFB] text-black selection:bg-black/10 selection:text-black font-sans overflow-x-hidden pb-32">
+    <main className="min-h-screen bg-[#FDFCFB] text-black selection:bg-black/10 selection:text-black font-sans overflow-x-hidden pb-16">
       <MinimalHeader />
 
-      {/* Top Section */}
-      <section className="pt-32 px-6 max-w-[1400px] mx-auto">
+      <section className="pt-28 px-6 max-w-[1400px] mx-auto">
         <Link
           href="/b2c/gallery"
-          className="inline-flex items-center gap-2 text-sm font-medium text-zinc-500 hover:text-black transition-colors mb-12"
+          className="inline-flex items-center gap-2 text-sm font-medium text-zinc-500 hover:text-black transition-colors mb-6"
         >
           <ArrowLeft size={16} /> Back to Gallery
         </Link>
 
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-24 items-start">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-start">
+          {/* Identity + description */}
           <Reveal
             immediate
-            y={30}
-            duration={0.8}
-            className="lg:col-span-5 flex flex-col justify-center sticky top-32"
+            y={24}
+            duration={0.7}
+            className="lg:col-span-5 flex flex-col"
           >
-            {/* Logo Display */}
             {getLogoFilename(car.make) && (
-              <div className="mb-6">
-                <img
-                  src={`/car_logo/${getLogoFilename(car.make)}`}
-                  alt={`${car.make} logo`}
-                  className="h-12 w-auto opacity-50 grayscale hover:opacity-100 transition-opacity duration-500"
-                />
-              </div>
+              <img
+                src={`/car_logo/${getLogoFilename(car.make)}`}
+                alt={`${car.make} logo`}
+                className="h-9 w-auto opacity-50 grayscale hover:opacity-100 transition-opacity duration-500 mb-4"
+              />
             )}
 
             {car.isUpcoming && (
-              <div className="mb-5 inline-flex items-center gap-2 self-start rounded-full bg-sky-600 px-4 py-2 text-[11px] font-bold uppercase tracking-[0.15em] text-white">
-                <CalendarClock size={14} /> Coming Soon
+              <div className="mb-4 inline-flex items-center gap-2 self-start rounded-full bg-sky-600 px-3.5 py-1.5 text-[10px] font-bold uppercase tracking-[0.15em] text-white">
+                <CalendarClock size={13} /> Coming Soon
               </div>
             )}
 
-            <h1 className="text-5xl md:text-7xl lg:text-[5.5rem] font-bold tracking-tighter leading-[0.9] mb-4 uppercase">
-              {car.make} <br />
-              <span className="text-zinc-400">{car.model}</span> <br />
-              {car.year}
+            <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold tracking-tighter leading-[0.95] mb-3 uppercase">
+              {car.make} <span className="text-zinc-400">{car.model}</span>{" "}
+              <span className="text-zinc-300">{car.year}</span>
             </h1>
 
             {/* Pre-order framing: state plainly that this car isn't here yet,
                 and link to the announcement it was launched in. */}
             {car.isUpcoming && (
-              <div className="mt-2 rounded-[1.5rem] border border-sky-200 bg-sky-50/60 p-6">
+              <div className="mt-3 rounded-2xl border border-sky-200 bg-sky-50/60 p-4">
                 <p className="text-sm text-zinc-600 font-light leading-relaxed">
-                  This model has been announced but is not yet available to buy.
-                  Register your interest now and we&rsquo;ll come back to you
-                  with a landed cost for your country the moment specification
-                  and pricing are confirmed.
+                  Announced but not yet available to buy. Register your interest
+                  and we&rsquo;ll come back with a landed cost for your country
+                  once specification and pricing are confirmed.
                 </p>
-                {car.expectedAvailability && (
-                  <p className="mt-4 flex items-center gap-2 text-sm font-bold text-sky-700">
-                    <CalendarClock size={15} className="shrink-0" />
-                    Expected: {car.expectedAvailability}
-                  </p>
-                )}
-                {car.newsSlug && (
-                  <Link
-                    href={`/latest-news/${car.newsSlug}`}
-                    className="group mt-4 inline-flex items-center gap-2 text-sm font-bold text-sky-600 hover:text-sky-700 transition-colors"
+                <div className="mt-3 flex flex-wrap items-center gap-x-5 gap-y-2">
+                  {car.expectedAvailability && (
+                    <p className="flex items-center gap-1.5 text-sm font-bold text-sky-700">
+                      <CalendarClock size={14} className="shrink-0" />
+                      {car.expectedAvailability}
+                    </p>
+                  )}
+                  {car.newsSlug && (
+                    <Link
+                      href={`/latest-news/${car.newsSlug}`}
+                      className="group inline-flex items-center gap-1.5 text-sm font-bold text-sky-600 hover:text-sky-700 transition-colors"
+                    >
+                      Read the announcement
+                      <ArrowRight
+                        size={14}
+                        className="group-hover:translate-x-1 transition-transform"
+                      />
+                    </Link>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {car.notes && (
+              <div className="mt-5">
+                <p
+                  className={`text-base text-zinc-600 font-light leading-relaxed ${descriptionOpen ? "" : "line-clamp-4"}`}
+                >
+                  {car.notes}
+                </p>
+                {car.notes.length > 260 && (
+                  <button
+                    type="button"
+                    onClick={() => setDescriptionOpen((v) => !v)}
+                    className="mt-2 text-xs font-bold uppercase tracking-wider text-zinc-500 hover:text-black transition-colors"
                   >
-                    Read the announcement
-                    <ArrowRight
-                      size={15}
-                      className="group-hover:translate-x-1 transition-transform"
-                    />
-                  </Link>
+                    {descriptionOpen ? "Show less" : "Read more"}
+                  </button>
                 )}
               </div>
             )}
 
-            <div className="h-px w-full bg-black/10 my-8" />
-            <div className="prose prose-lg text-zinc-600 font-light leading-relaxed">
-              {car.notes ? (
-                <p>{car.notes}</p>
-              ) : (
-                <p>A pristine example of engineering and design...</p>
-              )}
+            <div className="flex flex-col sm:flex-row gap-3 mt-6">
+              <button
+                onClick={scrollToInquiry}
+                className="flex-1 inline-flex items-center justify-center gap-2 px-5 py-3.5 bg-black hover:bg-zinc-800 text-white text-sm font-bold uppercase tracking-wider rounded-full transition-colors"
+              >
+                <Mail size={17} />{" "}
+                {car.isUpcoming ? "Register Interest" : "Inquire Now"}
+              </button>
+              <button
+                onClick={handleDownloadPdf}
+                disabled={isGeneratingPdf}
+                className="flex-1 inline-flex items-center justify-center gap-2 px-5 py-3.5 bg-white border border-black/10 hover:border-black/30 hover:bg-zinc-50 text-black text-sm font-bold uppercase tracking-wider rounded-full transition-all disabled:opacity-70"
+              >
+                {isGeneratingPdf ? (
+                  <Loader2 className="animate-spin" size={17} />
+                ) : (
+                  <FileText size={17} />
+                )}
+                {isGeneratingPdf ? "Generating" : "PDF"}
+              </button>
             </div>
           </Reveal>
 
+          {/* Gallery + the palette that drives it */}
           <Reveal
             immediate
             y={0}
-            scale={0.95}
-            duration={1}
+            scale={0.97}
+            duration={0.8}
             delay={0.1}
-            className="lg:col-span-7"
+            className="lg:col-span-7 flex flex-col gap-4 lg:sticky lg:top-24"
           >
-            <div className="relative aspect-[16/10] w-full rounded-[2rem] overflow-hidden bg-black flex items-center justify-center shadow-[0_20px_50px_rgba(0,0,0,0.1)]">
+            <div
+              ref={galleryRef}
+              className="relative aspect-[16/10] w-full rounded-[1.5rem] overflow-hidden bg-black flex items-center justify-center shadow-[0_16px_40px_rgba(0,0,0,0.10)]"
+            >
               <img
                 key={activeImage}
-                src={
-                  activeImage === 0 &&
-                  car.heroImageUrl &&
-                  car.images?.includes(car.heroImageUrl)
-                    ? car.heroImageUrl
-                    : displayImages[activeImage]
-                }
-                alt={`${car.make} - View ${activeImage + 1}`}
+                src={displayImages[activeImage]}
+                alt={`${car.make} ${car.model} — view ${activeImage + 1}`}
                 className="w-full h-full object-cover animate-in fade-in zoom-in-95 duration-500"
               />
             </div>
+
+            {displayImages.length > 1 && (
+              <div>
+                <div className="grid grid-cols-5 sm:grid-cols-6 gap-2.5">
+                  {visibleThumbs.map((img, idx) => (
+                    <button
+                      key={`${img}-${idx}`}
+                      onClick={() => setActiveImage(idx)}
+                      className={`relative aspect-[4/3] rounded-xl overflow-hidden bg-zinc-100 border-2 transition-all duration-300 ${activeImage === idx ? "border-black shadow-md" : "border-transparent hover:border-black/20"}`}
+                    >
+                      <img
+                        src={img}
+                        alt={`Thumbnail ${idx + 1}`}
+                        className="w-full h-full object-cover"
+                      />
+                    </button>
+                  ))}
+                </div>
+                <MoreButton
+                  expanded={thumbsOpen}
+                  hiddenCount={displayImages.length - LIMITS.thumbs}
+                  noun="photo"
+                  onClick={() => setThumbsOpen((v) => !v)}
+                />
+              </div>
+            )}
+
+            {/* Colours & finishes, next to the photo they change. */}
+            {(exteriorColors.length > 0 || interiorColors.length > 0) && (
+              <div className="mt-2 rounded-2xl border border-black/5 bg-white p-5">
+                <div className="flex items-center justify-between gap-3 mb-4">
+                  <div className="flex items-center gap-2">
+                    <Palette size={17} className="text-zinc-400" />
+                    <p className="text-xs font-bold tracking-[0.2em] text-zinc-500 uppercase">
+                      Colours &amp; Finishes
+                    </p>
+                  </div>
+                  {anyColorLinked && (
+                    <p className="hidden sm:flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider text-sky-600">
+                      <Images size={12} /> Tap a swatch to view
+                    </p>
+                  )}
+                </div>
+
+                {/* Exterior and interior sit side by side from sm up, so the
+                    card's full width is used and the block stays short. */}
+                <div className="grid gap-x-8 gap-y-5 sm:grid-cols-2">
+                  {[
+                    { label: "Exterior", colors: exteriorColors },
+                    { label: "Interior", colors: interiorColors },
+                  ]
+                    .filter((group) => group.colors.length > 0)
+                    .map((group) => (
+                      <ColorGroup
+                        key={group.label}
+                        label={group.label}
+                        colors={group.colors}
+                        linkedImage={linkedImage}
+                        activeImage={activeImage}
+                        onPick={showColorImage}
+                      />
+                    ))}
+                </div>
+
+                <p className="mt-4 text-[11px] text-zinc-400 font-light leading-relaxed">
+                  Swatches are an approximation of the factory paint, not a
+                  colour match. Availability varies by market and build slot.
+                </p>
+              </div>
+            )}
           </Reveal>
         </div>
       </section>
 
-      {/* Specs, Pricing & Gallery */}
-      <section className="mt-24 lg:mt-40 px-6 max-w-[1400px] mx-auto">
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-24">
-          {/* Left Column */}
-          <Reveal y={30} duration={0.8} className="lg:col-span-5 flex flex-col">
-            <h2 className="text-3xl md:text-5xl font-bold tracking-tighter mb-12 uppercase leading-tight">
-              Vehicle <br /> Details
-            </h2>
-
-            {/* 1. PRICING MATRIX (New Section) */}
+      {/* Details */}
+      <section className="mt-16 lg:mt-24 px-6 max-w-[1400px] mx-auto">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12">
+          <div className="lg:col-span-6 flex flex-col">
             {car.pricing && car.pricing.length > 0 && (
-              <div className="mb-12">
-                <h3 className="text-xl font-bold text-black mb-6 flex items-center gap-2">
-                  <Globe size={20} className="text-[#4da8da]" /> Landed Pricing
+              <div className="mb-8">
+                <h3 className="text-lg font-bold text-black mb-4 flex items-center gap-2">
+                  <Globe size={18} className="text-[#4da8da]" /> Landed Pricing
                   Estimate
                 </h3>
-                <div className="space-y-3">
+                <div className="space-y-2.5">
                   {car.pricing.map((p, i) => (
                     <div
                       key={i}
-                      className="flex justify-between items-center p-4 bg-white rounded-2xl border border-black/5 shadow-sm"
+                      className="flex justify-between items-center p-3.5 bg-white rounded-xl border border-black/5 shadow-sm"
                     >
                       <div>
                         <p className="text-[10px] font-black uppercase text-zinc-400 tracking-widest">
@@ -316,17 +513,15 @@ export default function GalleryDetailClient({ car }: { car: Dossier }) {
                           {p.type}
                         </p>
                       </div>
-                      <div className="text-right">
-                        <p className="text-xl font-bold text-black tracking-tight">
-                          <span className="text-sm font-medium mr-1 text-[#4da8da]">
-                            {p.currency}
-                          </span>
-                          {p.amount.toLocaleString()}
-                        </p>
-                      </div>
+                      <p className="text-lg font-bold text-black tracking-tight">
+                        <span className="text-sm font-medium mr-1 text-[#4da8da]">
+                          {p.currency}
+                        </span>
+                        {p.amount.toLocaleString()}
+                      </p>
                     </div>
                   ))}
-                  <p className="text-[10px] text-zinc-400 italic px-2 mt-2">
+                  <p className="text-[10px] text-zinc-400 italic px-1 pt-1">
                     * Estimates include logistics and estimated duties. Final
                     quote provided upon inquiry.
                   </p>
@@ -334,20 +529,48 @@ export default function GalleryDetailClient({ car }: { car: Dossier }) {
               </div>
             )}
 
-            {/* 2. PROVIDENCE VALUE ADVANTAGES (New Section) */}
-            {car.valuePoints && car.valuePoints.length > 0 && (
-              <div className="mb-12 space-y-4">
-                <h3 className="text-xl font-bold text-black flex items-center gap-2">
-                  <Zap size={20} className="text-amber-500 fill-amber-500/10" />{" "}
+            <h3 className="text-xs font-bold tracking-[0.2em] text-zinc-500 uppercase mb-4">
+              Technical Specifications
+            </h3>
+            <div className="bg-white rounded-2xl border border-black/5 p-6 shadow-[0_12px_28px_rgba(0,0,0,0.02)]">
+              <dl className="divide-y divide-black/5">
+                {visibleSpecs.map((spec, i) => (
+                  <div
+                    key={`${spec.label}-${i}`}
+                    className="py-3 flex justify-between items-start gap-6 first:pt-0"
+                  >
+                    <dt className="text-zinc-500 text-sm font-medium shrink-0">
+                      {spec.label}
+                    </dt>
+                    <dd className="text-black font-semibold text-right text-sm max-w-[62%] break-words">
+                      {spec.value}
+                    </dd>
+                  </div>
+                ))}
+              </dl>
+              <MoreButton
+                expanded={specsOpen}
+                hiddenCount={specRows.length - LIMITS.specs}
+                noun="specification"
+                onClick={() => setSpecsOpen((v) => !v)}
+              />
+            </div>
+          </div>
+
+          <div className="lg:col-span-6 flex flex-col">
+            {advantages.length > 0 && (
+              <div className="mb-8">
+                <h3 className="text-lg font-bold text-black flex items-center gap-2 mb-4">
+                  <Zap size={18} className="text-amber-500 fill-amber-500/10" />{" "}
                   Providence Advantages
                 </h3>
-                <div className="space-y-4">
-                  {car.valuePoints.map((point, i) => (
+                <div className="space-y-3">
+                  {visibleAdvantages.map((point, i) => (
                     <div
                       key={i}
-                      className="p-6 bg-amber-50/50 rounded-3xl border border-amber-100/70 shadow-sm"
+                      className="p-5 bg-amber-50/50 rounded-2xl border border-amber-100/70"
                     >
-                      <h4 className="text-md font-bold text-zinc-900 mb-1.5">
+                      <h4 className="text-sm font-bold text-zinc-900 mb-1">
                         {point.title}
                       </h4>
                       <p className="text-xs text-zinc-600 leading-relaxed font-light">
@@ -356,215 +579,54 @@ export default function GalleryDetailClient({ car }: { car: Dossier }) {
                     </div>
                   ))}
                 </div>
+                <MoreButton
+                  expanded={advantagesOpen}
+                  hiddenCount={advantages.length - LIMITS.advantages}
+                  noun="advantage"
+                  onClick={() => setAdvantagesOpen((v) => !v)}
+                />
               </div>
             )}
-
-            {/* 3. TECHNICAL SPECS */}
-            <h3 className="text-2xl font-serif text-zinc-500 mb-6 italic">
-              Technical Specifications
-            </h3>
-            <div className="bg-white rounded-[2rem] border border-black/5 p-8 shadow-[0_20px_40px_rgba(0,0,0,0.02)] mb-10">
-              <dl className="divide-y divide-black/5">
-                {[
-                  { label: "Variant / Trim", value: car.trim },
-                  { label: "Origin", value: car.countryOfOrigin },
-                  {
-                    label: "Engine",
-                    value:
-                      `${car.displacement || ""} ${car.engineConfig || ""}`.trim(),
-                  },
-                  { label: "Transmission", value: car.transmission },
-                  { label: "Fuel System", value: car.fuelSystem },
-                  { label: "Steering", value: car.steering },
-                ].map(
-                  (spec, i) =>
-                    spec.value && (
-                      <div
-                        key={i}
-                        className="py-4 flex justify-between items-center first:pt-0"
-                      >
-                        <dt className="text-zinc-500 text-sm font-medium">
-                          {spec.label}
-                        </dt>
-                        <dd className="text-black font-semibold text-right">
-                          {spec.value}
-                        </dd>
-                      </div>
-                    ),
-                )}
-
-                {/* Append Custom Data Rows Dynamically inside the spec table list */}
-                {car.customData &&
-                  car.customData.length > 0 &&
-                  car.customData.map(
-                    (custom, idx) =>
-                      custom.value && (
-                        <div
-                          key={`custom-${idx}`}
-                          className="py-4 flex justify-between items-center last:pb-0"
-                        >
-                          <dt className="text-zinc-500 text-sm font-medium">
-                            {custom.label}
-                          </dt>
-                          <dd className="text-black font-semibold text-right">
-                            {custom.value}
-                          </dd>
-                        </div>
-                      ),
-                  )}
-              </dl>
-            </div>
-
-            {/* Action Buttons */}
-            <div className="flex flex-col sm:flex-row gap-4 mb-12">
-              <button
-                onClick={handleDownloadPdf}
-                disabled={isGeneratingPdf}
-                className="flex-1 inline-flex items-center justify-center gap-2 px-6 py-4 bg-zinc-800 hover:bg-black text-white text-sm font-bold uppercase tracking-wider rounded-full transition-colors disabled:opacity-70"
-              >
-                {isGeneratingPdf ? (
-                  <Loader2 className="animate-spin" size={18} />
-                ) : (
-                  <FileText size={18} />
-                )}
-                {isGeneratingPdf ? "Generating..." : "Download PDF"}
-              </button>
-
-              <button
-                onClick={scrollToInquiry}
-                className="flex-1 inline-flex items-center justify-center gap-2 px-6 py-4 bg-white border border-black/10 hover:border-black/30 hover:bg-zinc-50 text-black text-sm font-bold uppercase tracking-wider rounded-full transition-all"
-              >
-                <Mail size={18} /> Inquire Now
-              </button>
-            </div>
-
-            {/* Features */}
-            {car.features && car.features.length > 0 && (
-              <div className="mt-auto pt-8 border-t border-black/10">
-                <p className="text-zinc-500 font-bold tracking-widest uppercase text-sm mb-4">
-                  Included Features
-                </p>
-                <div className="flex flex-wrap gap-2">
-                  {car.features.map((feature, idx) => (
-                    <span
-                      key={idx}
-                      className="px-4 py-2 bg-zinc-100/80 text-zinc-800 text-xs font-bold uppercase tracking-wider rounded-xl border border-black/5"
-                    >
-                      {feature}
-                    </span>
-                  ))}
-                </div>
-              </div>
-            )}
-          </Reveal>
-
-          {/* Right Column: Interactive Gallery */}
-          <Reveal
-            y={30}
-            duration={0.8}
-            delay={0.2}
-            className="lg:col-span-7 flex flex-col gap-6"
-          >
-            <div className="relative aspect-[16/10] w-full rounded-[2rem] overflow-hidden bg-black flex items-center justify-center shadow-[0_20px_50px_rgba(0,0,0,0.1)]">
-              <img
-                key={activeImage}
-                src={displayImages[activeImage]}
-                alt={`${car.make} - View ${activeImage + 1}`}
-                className="w-full h-full object-cover animate-in fade-in zoom-in-95 duration-500"
-              />
-            </div>
-            {displayImages.length > 1 && (
-              <div className="grid grid-cols-4 sm:grid-cols-5 gap-4">
-                {displayImages.map((img, idx) => (
-                  <button
-                    key={idx}
-                    onClick={() => setActiveImage(idx)}
-                    className={`relative aspect-[4/3] rounded-2xl overflow-hidden bg-zinc-100 border-2 transition-all duration-300 ${activeImage === idx ? "border-black shadow-lg scale-105" : "border-transparent hover:border-black/20"}`}
-                  >
-                    <img
-                      src={img}
-                      alt={`Thumbnail ${idx + 1}`}
-                      className="w-full h-full object-cover"
-                    />
-                  </button>
-                ))}
-              </div>
-            )}
-          </Reveal>
-        </div>
-      </section>
-
-      {/* Colours & Finishes — only rendered when the dossier actually carries
-          a palette, so older records don't show an empty shell. */}
-      {(exteriorColors.length > 0 || interiorColors.length > 0) && (
-        <section className="mt-32 lg:mt-48 px-6 max-w-[1400px] mx-auto">
-          <Reveal y={30} duration={0.8}>
-            <div className="flex items-center gap-4 mb-12">
-              <Palette size={28} className="text-zinc-300" />
-              <h2 className="text-4xl md:text-5xl font-bold tracking-tighter uppercase leading-none">
-                Colours &amp; Finishes
-              </h2>
-            </div>
-          </Reveal>
-
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-16">
-            {[
-              { label: "Exterior", colors: exteriorColors },
-              { label: "Interior", colors: interiorColors },
-            ]
-              .filter((group) => group.colors.length > 0)
-              .map((group, groupIndex) => (
-                <Reveal
-                  key={group.label}
-                  y={30}
-                  delay={groupIndex * 0.1}
-                  duration={0.8}
-                >
-                  <p className="text-xs font-bold tracking-[0.3em] text-zinc-400 uppercase mb-8">
-                    {group.label}
-                  </p>
-                  <ul className="grid grid-cols-2 sm:grid-cols-3 gap-x-6 gap-y-8">
-                    {group.colors.map((color) => (
-                      <li
-                        key={`${color.name}-${color.hex}`}
-                        className="flex flex-col gap-3"
-                      >
-                        <span
-                          className="h-16 w-16 rounded-full border border-black/10 shadow-[0_6px_16px_rgba(0,0,0,0.08)]"
-                          style={swatchStyle(color)}
-                          aria-hidden="true"
-                        />
-                        <span className="text-sm font-medium text-zinc-700 leading-snug">
-                          {colorLabel(color)}
-                        </span>
-                        {color.isDualTone && (
-                          <span className="-mt-2 text-[10px] font-bold uppercase tracking-wider text-zinc-400">
-                            Dual tone
-                          </span>
-                        )}
-                      </li>
-                    ))}
-                  </ul>
-                </Reveal>
-              ))}
           </div>
+        </div>
 
-          <p className="mt-12 text-sm text-zinc-400 font-light">
-            Availability varies by market and build slot. Choose your
-            combination below and we&rsquo;ll confirm it against the factory
-            options list for your destination.
-          </p>
-        </section>
-      )}
+        {/* Feature chips carry long sentences ("First-class rear compartment
+            with two individual executive seats"), so in a half-width column
+            they stack one per line. Given the full row they flow several to a
+            line and the block collapses to a couple of rows. */}
+        {features.length > 0 && (
+          <div className="mt-10 lg:mt-12">
+            <h3 className="text-xs font-bold tracking-[0.2em] text-zinc-500 uppercase mb-4">
+              Included Features
+            </h3>
+            <div className="flex flex-wrap gap-2">
+              {visibleFeatures.map((feature, idx) => (
+                <span
+                  key={idx}
+                  className="px-3.5 py-1.5 bg-zinc-100/80 text-zinc-800 text-[11px] font-bold uppercase tracking-wider rounded-lg border border-black/5"
+                >
+                  {feature}
+                </span>
+              ))}
+            </div>
+            <MoreButton
+              expanded={featuresOpen}
+              hiddenCount={features.length - LIMITS.features}
+              noun="feature"
+              onClick={() => setFeaturesOpen((v) => !v)}
+            />
+          </div>
+        )}
+      </section>
 
       {/* Inquiry Section */}
       <section
         ref={inquiryRef}
-        className="mt-32 lg:mt-56 px-6 py-24 bg-zinc-50 border-y border-black/5"
+        className="mt-16 lg:mt-24 px-6 py-16 bg-zinc-50 border-y border-black/5"
       >
-        <div className="max-w-[1400px] mx-auto grid grid-cols-1 lg:grid-cols-12 gap-16">
+        <div className="max-w-[1400px] mx-auto grid grid-cols-1 lg:grid-cols-12 gap-10">
           <div className="lg:col-span-4">
-            <h2 className="text-4xl md:text-6xl font-bold tracking-tighter uppercase leading-[0.8] mb-6">
+            <h2 className="text-3xl md:text-5xl font-bold tracking-tighter uppercase leading-[0.85] mb-4">
               {car.isUpcoming ? (
                 <>
                   Register <br />{" "}
@@ -577,7 +639,7 @@ export default function GalleryDetailClient({ car }: { car: Dossier }) {
                 </>
               )}
             </h2>
-            <p className="text-zinc-500 text-lg font-light leading-relaxed">
+            <p className="text-zinc-500 text-base font-light leading-relaxed">
               {car.isUpcoming
                 ? `We'll hold your specification for this ${car.model} and come back with a landed cost for your country as soon as it's confirmed for release.`
                 : `Our team will verify the availability of this ${car.model} and provide a landed cost estimate for your destination country.`}
@@ -595,5 +657,91 @@ export default function GalleryDetailClient({ car }: { car: Dossier }) {
 
       <FAQSection />
     </main>
+  );
+}
+
+/** One palette (exterior or interior), collapsing past a handful of swatches. */
+function ColorGroup({
+  label,
+  colors,
+  linkedImage,
+  activeImage,
+  onPick,
+}: {
+  label: string;
+  colors: VehicleColor[];
+  linkedImage: (color: VehicleColor) => number | undefined;
+  activeImage: number;
+  onPick?: (color: VehicleColor) => void;
+}) {
+  const [open, setOpen] = useState(false);
+  const visible = open ? colors : colors.slice(0, LIMITS.colors);
+
+  return (
+    <div className="mb-4 last:mb-0">
+      <p className="text-[10px] font-bold tracking-[0.25em] text-zinc-400 uppercase mb-3">
+        {label}
+      </p>
+      <ul className="flex flex-wrap gap-x-3 gap-y-3">
+        {visible.map((color) => {
+          const idx = linkedImage(color);
+          const isLinked = idx !== undefined;
+          const isShowing = isLinked && idx === activeImage;
+
+          // Only the finish's own name goes under the swatch. Appending the
+          // second tone ("Maybach Two-Tone / Obsidian black over velvet
+          // brown") runs to four lines in a column this narrow, so the second
+          // tone becomes a marker and the full label lives on hover.
+          const fullLabel = colorLabel(color);
+
+          const swatch = (
+            <>
+              <span
+                className={`h-9 w-9 rounded-full border shadow-[0_3px_10px_rgba(0,0,0,0.08)] transition-transform ${isShowing ? "border-black ring-2 ring-black ring-offset-2" : "border-black/10"} ${isLinked ? "group-hover:scale-105" : ""}`}
+                style={swatchStyle(color)}
+                aria-hidden="true"
+              />
+              <span className="text-[11px] font-medium text-zinc-600 leading-tight line-clamp-2">
+                {color.name}
+              </span>
+              {color.isDualTone && (
+                <span className="-mt-1 text-[9px] font-bold uppercase tracking-wider text-zinc-400">
+                  Two-tone
+                </span>
+              )}
+            </>
+          );
+
+          return (
+            <li key={`${color.name}-${color.hex}`} className="w-20">
+              {isLinked && onPick ? (
+                <button
+                  type="button"
+                  onClick={() => onPick(color)}
+                  aria-pressed={isShowing}
+                  title={`${fullLabel} — show this photograph`}
+                  className="group flex w-full flex-col items-start gap-1.5 text-left cursor-pointer"
+                >
+                  {swatch}
+                </button>
+              ) : (
+                <div
+                  title={fullLabel}
+                  className="flex w-full flex-col items-start gap-1.5"
+                >
+                  {swatch}
+                </div>
+              )}
+            </li>
+          );
+        })}
+      </ul>
+      <MoreButton
+        expanded={open}
+        hiddenCount={colors.length - LIMITS.colors}
+        noun={`${label.toLowerCase()} colour`}
+        onClick={() => setOpen((v) => !v)}
+      />
+    </div>
   );
 }
