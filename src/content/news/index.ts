@@ -3,8 +3,10 @@ import ChineseEvBrandsRecordEuropeMarketShare2026 from "./chinese-ev-brands-reco
 import FerrariLuceChassis040MillionAuction from "./ferrari-luce-chassis-0-40-million-auction";
 import IrelandEvIncentivesTaper20262028 from "./ireland-ev-incentives-taper-2026-2028";
 import JapanUsedCarExportsRecordWeakYen2026 from "./japan-used-car-exports-record-weak-yen-2026";
+import MercedesMaybachS580EFirstClassUkSpec from "./mercedes-maybach-s-580-e-first-class-uk-spec";
 import Monterey2026AuctionWeekMarketReport from "./monterey-2026-auction-week-market-report";
 import MontereyCarWeek2026NewCarDebuts from "./monterey-car-week-2026-new-car-debuts";
+import SriLankaVehicleImportSurchargeExtended2026 from "./sri-lanka-vehicle-import-surcharge-extended-2026";
 import UkZevMandateReview2026Consultation from "./uk-zev-mandate-review-2026-consultation";
 
 // Maps a news slug to its body component. Keep keys in sync with NEWS_ARTICLES
@@ -21,6 +23,10 @@ export const NEWS_BODIES: Record<string, ComponentType> = {
   "ireland-ev-incentives-taper-2026-2028": IrelandEvIncentivesTaper20262028,
   "japan-used-car-exports-record-weak-yen-2026":
     JapanUsedCarExportsRecordWeakYen2026,
+  "mercedes-maybach-s-580-e-first-class-uk-spec":
+    MercedesMaybachS580EFirstClassUkSpec,
+  "sri-lanka-vehicle-import-surcharge-extended-2026":
+    SriLankaVehicleImportSurchargeExtended2026,
 };
 
 export function getNewsBody(slug: string): ComponentType | undefined {

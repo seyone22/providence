@@ -2143,6 +2143,71 @@ const sriLankaPosts: BlogPost[] = [
       },
     ],
   }),
+  // Dealer-facing operations guide. Deliberately not run through post(), which
+  // pins every country post to the cluster's original publish date — this one
+  // was written against the August 2026 gazette position and is dated honestly.
+  {
+    slug: "sri-lanka-vehicle-import-rules-for-dealers",
+    title: "Sri Lanka Vehicle Import Rules for Dealers",
+    h1: "Sri Lanka Vehicle Import Rules for Dealers: The Clocks That Cost You Money",
+    seoTitle: "Sri Lanka Vehicle Import Rules for Dealers (2026 Guide)",
+    description:
+      "The Sri Lankan import rules that decide dealer margin — the 90-day registration clock at 3% of CIF per month, how vehicle age is measured, importer registration limits and the re-export penalty.",
+    excerpt:
+      "The margin is not made at the auction. It is made by not owning an unregistered car in month five.",
+    cluster: "Sri Lanka",
+    primaryKeyword: "sri lanka vehicle import rules for dealers",
+    keywords: [
+      "sri lanka vehicle import rules for dealers",
+      "sri lanka 90 day vehicle registration rule",
+      "sri lanka vehicle import age limit",
+      "sri lanka motor vehicle importer registration",
+      "importing cars to sri lanka for resale",
+      "sri lanka vehicle re-export penalty",
+    ],
+    author: AUTHOR,
+    publishDate: "2026-08-18",
+    updatedDate: "2026-08-18",
+    readingTimeMins: 11,
+    heroImage: UNSPLASH("1554224155-6726b3ff858f"),
+    heroAlt:
+      "Working through the landed cost and holding cost of vehicles imported into Sri Lanka",
+    related: [
+      "importing-a-car-to-sri-lanka",
+      "sri-lanka-vehicle-import-taxes-explained",
+      "sri-lanka-car-import-documents-explained",
+      "best-cars-to-import-to-sri-lanka",
+    ],
+    toc: [
+      { id: "five-gates", label: "The five gates" },
+      { id: "registration-clock", label: "The 90-day registration clock" },
+      { id: "importer-status", label: "Importer status and volume" },
+      { id: "age-rule", label: "How age is measured" },
+      { id: "lc-discipline", label: "Letter of credit discipline" },
+      { id: "re-export", label: "The re-export penalty" },
+      { id: "duty-timing", label: "Buy on the gate, not the rate" },
+      { id: "checklist", label: "The pre-purchase checklist" },
+      { id: "faqs", label: "FAQs" },
+    ],
+    faqs: [
+      {
+        q: "How long do I have to register an imported vehicle in Sri Lanka?",
+        a: "Ninety days from the date of the Customs Declaration. After that the importer owes a monthly late fee of 3% of the CIF value, computed non-compounded and linearly, payable to the Commissioner General of the Department of Motor Traffic at the point of registration. The fee is capped at 45% of CIF, reached after fifteen months, and the regulations state that no waiver is granted under any circumstances.",
+      },
+      {
+        q: "How is a vehicle's age measured for Sri Lankan import eligibility?",
+        a: "From the date of manufacture to the date of the bill of lading or airway bill — not to arrival, clearance or registration. Where the manufacturer's certificate or export inspection certificate gives a month, the date of manufacture is deemed to be the fifteenth of that month. Where only a year appears, it is deemed to be 15 January of that year, which can cost most of a year of eligibility.",
+      },
+      {
+        q: "How many vehicles can I import into Sri Lanka?",
+        a: "It depends on your status. An importer registered with the Department of Motor Traffic as a motor vehicle importer may import the number of vehicles required, subject to the rest of the regulations. Any other importer is limited to one vehicle within any twelve-month period, measured from the date of the Bill of Entry. Trading through a company name does not by itself lift the limit.",
+      },
+      {
+        q: "What happens if I import a vehicle that turns out to be ineligible?",
+        a: "It must be re-exported by the importer within 90 days of the date of the Bill of Entry, with all associated costs borne by the importer. There is no fine-and-keep alternative written into the provision, which makes it the largest single downside risk in the trade — and an avoidable one, since age, HS classification and propulsion type are all knowable before you bid.",
+      },
+    ],
+  },
 ];
 
 export const COUNTRY_BLOG_POSTS: BlogPost[] = [

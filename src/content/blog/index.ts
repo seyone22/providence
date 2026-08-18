@@ -38,6 +38,7 @@ import JapanCarExportDocumentsExplained from "./japan-car-export-documents-expla
 import JapaneseAuctionGradesExplained from "./japanese-auction-grades-explained";
 import NewZealandVsJapanForUsedImports from "./new-zealand-vs-japan-for-used-imports";
 import SriLankaCarImportDocumentsExplained from "./sri-lanka-car-import-documents-explained";
+import SriLankaVehicleImportRulesForDealers from "./sri-lanka-vehicle-import-rules-for-dealers";
 import SriLankaVehicleImportTaxesExplained from "./sri-lanka-vehicle-import-taxes-explained";
 import ThailandCarExportDocumentsExplained from "./thailand-car-export-documents-explained";
 import ThailandVsJapanForPickupImports from "./thailand-vs-japan-for-pickup-imports";
@@ -120,6 +121,8 @@ export const BLOG_BODIES: Record<string, ComponentType> = {
   "sri-lanka-car-import-documents-explained":
     SriLankaCarImportDocumentsExplained,
   "importing-hybrids-and-evs-to-sri-lanka": ImportingHybridsAndEvsToSriLanka,
+  "sri-lanka-vehicle-import-rules-for-dealers":
+    SriLankaVehicleImportRulesForDealers,
 };
 
 export function getBody(slug: string): ComponentType | undefined {
