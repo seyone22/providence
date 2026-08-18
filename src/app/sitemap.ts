@@ -12,13 +12,21 @@ import {
 } from "@/config/news";
 
 /**
- * Without this the sitemap is prerendered once at build time and a vehicle or
- * team profile added afterwards never appears in it until the next deploy.
- * With ISR it refreshes hourly on its own, and — more importantly — the server
- * actions that create/publish/delete those records call
- * `revalidatePath("/sitemap.xml")` so the change lands on the next request.
+ * The sitemap is DB-backed, so it must never be prerendered.
+ *
+ * Under `revalidate` Next bakes a copy at build time, and the Railway build
+ * container cannot reach the database — both queries below fail, both swallow
+ * the error into an empty array, and the deploy ships a sitemap advertising
+ * zero vehicles and zero team profiles. It only healed an hour later when ISR
+ * regenerated it at runtime, so every deploy blanked the car and team URLs for
+ * the first hour they were live.
+ *
+ * Rendering per request costs two queries on a URL crawlers hit a handful of
+ * times a day, and removes the build-time copy entirely. The
+ * `revalidatePath("/sitemap.xml")` calls in the dossier/profile actions are now
+ * redundant but harmless.
  */
-export const revalidate = 3600;
+export const dynamic = "force-dynamic";
 
 /** Dossier statuses that render publicly; anything else redirects to "/". */
 const LIVE_DOSSIER_STATUSES = new Set(["Active", "Published"]);
@@ -95,8 +103,14 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   // hands Google a redirect. The URL is built from the slug with the id as the
   // fallback, matching every internal link (gallery, previews, team profiles) —
   // emitting the id form here instead would split the signal across two URLs.
-  const dossiers = (await getAllSpecDossiers()).data;
-  const carRoutes = dossiers
+  const dossierResult = await getAllSpecDossiers();
+  if (!dossierResult.success) {
+    // The action reports failure by returning an empty `data`. Emitting the
+    // sitemap regardless would tell Google every car page had been removed;
+    // failing the request instead leaves the last good copy in place.
+    throw new Error("[sitemap] Failed to load spec dossiers");
+  }
+  const carRoutes = dossierResult.data
     .filter((car: any) => LIVE_DOSSIER_STATUSES.has(car.status))
     .map((car: any) => ({
       url: `${baseUrl}/b2c/gallery/${car.slug || car._id}`,
