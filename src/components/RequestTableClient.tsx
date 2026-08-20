@@ -412,27 +412,23 @@ export default function RequestTableClient({
                         )}
                       </div>
 
-                      {/* Colour choices, when the customer made one. */}
-                      {(req.exteriorColor || req.interiorColor) && (
-                        <div className="mt-2 space-y-0.5">
-                          {req.exteriorColor && (
-                            <div className="text-[10px] text-zinc-500">
-                              <span className="font-bold uppercase tracking-wide text-zinc-400">
-                                Ext:
-                              </span>{" "}
-                              {req.exteriorColor}
-                            </div>
-                          )}
-                          {req.interiorColor && (
-                            <div className="text-[10px] text-zinc-500">
-                              <span className="font-bold uppercase tracking-wide text-zinc-400">
-                                Int:
-                              </span>{" "}
-                              {req.interiorColor}
-                            </div>
-                          )}
-                        </div>
-                      )}
+                      {/* Colour choices. Always rendered, with an em dash when
+                          the customer didn't pick one, so "not asked for" is
+                          distinguishable from a field nobody has looked at. */}
+                      <div className="mt-2 flex flex-wrap gap-x-3 gap-y-0.5 text-[10px] text-zinc-500">
+                        <span>
+                          <span className="font-bold uppercase tracking-wide text-zinc-400">
+                            Ext:
+                          </span>{" "}
+                          {req.exteriorColor || "—"}
+                        </span>
+                        <span>
+                          <span className="font-bold uppercase tracking-wide text-zinc-400">
+                            Int:
+                          </span>{" "}
+                          {req.interiorColor || "—"}
+                        </span>
+                      </div>
 
                       {req.source && (
                         <div className="mt-2">

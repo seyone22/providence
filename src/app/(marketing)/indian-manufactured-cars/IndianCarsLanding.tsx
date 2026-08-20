@@ -546,6 +546,8 @@ export default function IndianCarsLanding() {
           <Reveal y={24} duration={0.7}>
             <Link
               href={`/blog/${BLOG_SLUG}`}
+              target="_blank"
+              rel="noopener noreferrer"
               className="group grid md:grid-cols-2 gap-0 overflow-hidden rounded-[2rem] border border-black/8 bg-white shadow-[0_20px_50px_rgba(0,0,0,0.06)] transition-shadow hover:shadow-[0_30px_60px_rgba(0,0,0,0.1)]"
             >
               <img
