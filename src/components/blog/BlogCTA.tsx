@@ -2,13 +2,21 @@ import { ArrowRight, Calculator } from "lucide-react";
 import { Reveal } from "@/components/Reveal";
 
 // End-of-post call to action. Two genuine next steps: get an exact landed-cost
-// quote (inquiry on the Japan landing page) or estimate it yourself (calculator).
+// quote or estimate it yourself (calculator).
+//
+// The inquiry button defaults to the Japan/Ireland landing page, which is where
+// most of the catalogue points. A post about another source country passes its
+// own `href` so the reader lands on the inquiry form for the cars they were
+// just reading about, rather than being bounced to an unrelated market.
 export default function BlogCTA({
   heading = "Thinking about importing? Let's price your exact car.",
   body = "Tell us the make, model and year you want and we'll come back with a full landed-cost quote — car price, shipping, customs, VAT and VRT included — before you commit to a single euro.",
+  href = "/import-japanese-cars-to-ireland#inquiry",
 }: {
   heading?: string;
   body?: string;
+  /** Where "Begin your import inquiry" goes. */
+  href?: string;
 }) {
   return (
     <Reveal
@@ -29,7 +37,7 @@ export default function BlogCTA({
         </p>
         <div className="flex flex-col sm:flex-row gap-3">
           <a
-            href="/import-japanese-cars-to-ireland#inquiry"
+            href={href}
             className="group inline-flex items-center justify-center gap-2 rounded-full bg-white px-7 py-3.5 text-sm font-bold text-black transition-transform hover:scale-105"
           >
             Begin your import inquiry

@@ -117,7 +117,7 @@ export default function ArticleShell({
       {/* ── RELATED + CTA ──────────────────────────────── */}
       <div className="px-6 pb-20 max-w-3xl mx-auto">
         <RelatedPosts slug={post.slug} />
-        <BlogCTA />
+        <BlogCTA href={post.ctaHref} />
       </div>
     </main>
   );
