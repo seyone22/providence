@@ -70,6 +70,12 @@ export type BlogPost = {
   faqs: BlogFAQ[];
   /** In-page table of contents (anchor ids must match headings in the body). */
   toc: BlogTocItem[];
+  /**
+   * Where the end-of-post CTA's inquiry button should go. Defaults to the
+   * Japan/Ireland landing page; set it on posts about another source country
+   * so the reader is not sent to an unrelated market's form.
+   */
+  ctaHref?: string;
   /** Mark the pillar/hub post. */
   isPillar?: boolean;
 };
@@ -433,6 +439,8 @@ const IRELAND_POSTS: BlogPost[] = [
   // ── 7 · INDIA-BUILT CARS: WHY CHEAPER (Source Country) ────────────────────
   {
     slug: "why-are-indian-manufactured-cars-cheaper",
+    // An India post, so the inquiry button belongs on the India landing page.
+    ctaHref: "/indian-manufactured-cars#inquiry",
     title:
       "Why Are Indian-Manufactured Cars Cheaper? (And Is the Quality Low?)",
     h1: "Why Are Indian-Manufactured Cars So Much Cheaper — and Is the Quality Low?",
