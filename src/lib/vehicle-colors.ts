@@ -111,3 +111,21 @@ export function swatchStyle(color: VehicleColor): React.CSSProperties {
     backgroundImage: `linear-gradient(135deg, ${primary} 0%, ${primary} 50%, ${secondary} 50%, ${secondary} 100%)`,
   };
 }
+
+/**
+ * Black or white, whichever stays readable drawn on top of `hex`. Used for the
+ * tick inside a selected swatch, where the paint underneath can be anything
+ * from Nardo Grey to Obsidian Black.
+ *
+ * Rec. 709 coefficients on the raw channels — no sRGB linearisation, which is
+ * more than accurate enough for a two-way choice and keeps this cheap enough
+ * to call while rendering a full palette.
+ */
+export function contrastInk(hex: string): string {
+  const normalized = normalizeHex(hex);
+  const r = parseInt(normalized.slice(1, 3), 16);
+  const g = parseInt(normalized.slice(3, 5), 16);
+  const b = parseInt(normalized.slice(5, 7), 16);
+  const luminance = (0.2126 * r + 0.7152 * g + 0.0722 * b) / 255;
+  return luminance > 0.6 ? "#111111" : "#ffffff";
+}

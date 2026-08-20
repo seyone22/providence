@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   colorLabel,
+  contrastInk,
   DEFAULT_COLOR_HEX,
   normalizeHex,
   parseColors,
@@ -130,5 +131,24 @@ describe("swatchStyle", () => {
       isDualTone: true,
     };
     expect(swatchStyle(color).backgroundImage).toContain(DEFAULT_COLOR_HEX);
+  });
+});
+
+describe("contrastInk", () => {
+  it("puts dark ink on light paint", () => {
+    expect(contrastInk("#ffffff")).toBe("#111111");
+    expect(contrastInk("#f5f5f5")).toBe("#111111");
+  });
+
+  it("puts light ink on dark paint", () => {
+    expect(contrastInk("#000000")).toBe("#ffffff");
+    expect(contrastInk("#1a1a1a")).toBe("#ffffff");
+    // Mid grey and a saturated red both need the white tick.
+    expect(contrastInk("#808080")).toBe("#ffffff");
+    expect(contrastInk("#c8102e")).toBe("#ffffff");
+  });
+
+  it("falls back to the default paint for junk input", () => {
+    expect(contrastInk("not a colour")).toBe(contrastInk(DEFAULT_COLOR_HEX));
   });
 });

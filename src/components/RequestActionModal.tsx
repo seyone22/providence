@@ -472,6 +472,36 @@ export default function RequestActionModal({
                     {modal.request.make} {modal.request.vehicle_model}
                   </span>
                 </div>
+                {/* Colour choices. Shown whether or not the customer made one
+                    — "N/A" is an answer, a missing row is just a gap. */}
+                <div>
+                  <span className="block text-zinc-400 text-[10px] uppercase tracking-widest font-bold mb-1">
+                    Exterior Colour
+                  </span>
+                  <span
+                    className={
+                      modal.request.exteriorColor
+                        ? "font-medium text-black"
+                        : "font-medium text-zinc-400"
+                    }
+                  >
+                    {modal.request.exteriorColor || "N/A"}
+                  </span>
+                </div>
+                <div>
+                  <span className="block text-zinc-400 text-[10px] uppercase tracking-widest font-bold mb-1">
+                    Interior Colour
+                  </span>
+                  <span
+                    className={
+                      modal.request.interiorColor
+                        ? "font-medium text-black"
+                        : "font-medium text-zinc-400"
+                    }
+                  >
+                    {modal.request.interiorColor || "N/A"}
+                  </span>
+                </div>
               </div>
             </div>
 

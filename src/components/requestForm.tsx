@@ -6,6 +6,7 @@ import {
   AlertCircle,
   ArrowLeft,
   CalendarDays,
+  Check,
   CheckCircle2,
   ChevronDown,
   Clock,
@@ -15,6 +16,7 @@ import {
   MessageCircle,
   Phone,
   PhoneCall,
+  Plus,
   User,
 } from "lucide-react";
 import { usePathname, useSearchParams } from "next/navigation";
@@ -37,6 +39,7 @@ import {
 } from "@/lib/contactScheduling";
 import {
   colorLabel,
+  contrastInk,
   swatchStyle,
   type VehicleColor,
 } from "@/lib/vehicle-colors";
@@ -640,9 +643,15 @@ const DualRangeSlider = ({
  * Colour picker for one palette (exterior or interior).
  *
  * Two modes, chosen by whether the dossier actually offers colours:
- *  - with options: swatch buttons, plus an "Other" escape hatch so a customer
- *    who wants a colour we haven't listed isn't blocked from inquiring;
+ *  - with options: a grid of swatches, the way a factory configurator reads —
+ *    the colour itself is the control, and the name of whichever swatch is
+ *    hovered, focused or selected is echoed in the readout beside the label.
+ *    Names are not printed under every swatch: a full palette of them turns
+ *    into a wall of text that is slower to scan than the colours are;
  *  - without options (the generic /request page): a plain text field.
+ *
+ * There is also an "Other" escape hatch so a customer who wants a colour we
+ * haven't listed isn't blocked from inquiring.
  *
  * Either way the value written to the lead is a human-readable string, which
  * is what a sales agent actually needs to act on.
@@ -664,6 +673,9 @@ function ColorChoiceField({
   const optionLabels = options.map(colorLabel);
   const isCustom = value.length > 0 && !optionLabels.includes(value);
   const [showCustom, setShowCustom] = useState(isCustom);
+  // Whatever the pointer or keyboard focus is currently on. Naming the swatch
+  // under the cursor is what replaces the per-swatch caption.
+  const [previewLabel, setPreviewLabel] = useState<string | null>(null);
   // An id can't contain whitespace, so derive one from the label.
   const fieldId = `color-${label.toLowerCase().replace(/[^a-z0-9]+/g, "-")}`;
 
@@ -687,12 +699,40 @@ function ColorChoiceField({
     );
   }
 
+  // The readout: what's under the cursor wins over what's committed, so
+  // running along the row names every colour without spending a click.
+  const selectedLabel = showCustom
+    ? isCustom
+      ? value
+      : "Other colour"
+    : value;
+  const readout = previewLabel ?? selectedLabel;
+
+  const clear = () => {
+    setShowCustom(false);
+    setPreviewLabel(null);
+    onChange("");
+  };
+
   return (
     <div>
-      <p className="text-[10px] font-bold text-[#4da8da] uppercase tracking-wider mb-4">
-        {label} (optional)
-      </p>
-      <div className="flex flex-wrap gap-3">
+      <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1 mb-3">
+        <p className="text-[10px] font-bold text-[#4da8da] uppercase tracking-wider">
+          {label} (optional)
+        </p>
+        {/* Live region: a swatch has no visible caption, so the name has to be
+            announced when selection moves by keyboard as well as by mouse. */}
+        <p
+          aria-live="polite"
+          className={`text-sm font-medium leading-tight ${
+            readout ? "text-black" : "text-zinc-400"
+          }`}
+        >
+          {readout || "No preference"}
+        </p>
+      </div>
+
+      <div className="flex flex-wrap items-center gap-2.5">
         {options.map((color) => {
           const optionLabel = colorLabel(color);
           const isSelected = value === optionLabel && !showCustom;
@@ -700,34 +740,55 @@ function ColorChoiceField({
             <button
               key={`${color.name}-${color.hex}`}
               type="button"
+              title={optionLabel}
+              aria-label={optionLabel}
               aria-pressed={isSelected}
+              onMouseEnter={() => setPreviewLabel(optionLabel)}
+              onMouseLeave={() => setPreviewLabel(null)}
+              onFocus={() => setPreviewLabel(optionLabel)}
+              onBlur={() => setPreviewLabel(null)}
               onClick={() => {
+                // Drop the hover preview on commit: a tap fires mouseenter but
+                // often never mouseleave, which would otherwise leave the
+                // readout naming a swatch the customer has since changed.
+                setPreviewLabel(null);
                 setShowCustom(false);
                 // Clicking the active swatch clears it — the field is optional.
                 onChange(isSelected ? "" : optionLabel);
               }}
-              className={`flex items-center gap-2.5 rounded-full border py-1.5 pl-1.5 pr-4 transition-all ${
+              className={`relative h-11 w-11 shrink-0 rounded-full transition-all focus:outline-none ${
                 isSelected
-                  ? "border-sky-500 bg-sky-50 shadow-[0_0_0_3px_rgba(14,165,233,0.12)]"
-                  : "border-black/10 bg-white hover:border-black/25"
+                  ? "ring-2 ring-sky-500 ring-offset-2 ring-offset-white"
+                  : "ring-1 ring-black/15 hover:ring-black/40 hover:scale-[1.08] focus-visible:ring-2 focus-visible:ring-sky-400"
               }`}
+              style={swatchStyle(color)}
             >
-              <span
-                className="h-7 w-7 shrink-0 rounded-full border border-black/10"
-                style={swatchStyle(color)}
-                aria-hidden="true"
-              />
-              <span className="text-sm font-medium text-zinc-700 text-left">
-                {optionLabel}
-              </span>
+              {isSelected && (
+                <Check
+                  size={18}
+                  strokeWidth={3}
+                  className="absolute inset-0 m-auto"
+                  // The tick sits on the paint itself, so its colour has to be
+                  // picked from the paint rather than fixed.
+                  style={{ color: contrastInk(color.hex) }}
+                  aria-hidden="true"
+                />
+              )}
             </button>
           );
         })}
 
         <button
           type="button"
+          title="A colour that isn't listed"
+          aria-label="Other colour"
           aria-pressed={showCustom}
+          onMouseEnter={() => setPreviewLabel("Other colour")}
+          onMouseLeave={() => setPreviewLabel(null)}
+          onFocus={() => setPreviewLabel("Other colour")}
+          onBlur={() => setPreviewLabel(null)}
           onClick={() => {
+            setPreviewLabel(null);
             setShowCustom(!showCustom);
             // Clear in BOTH directions. Entering "Other" must drop a
             // previously-picked swatch, or the empty text box and the
@@ -735,14 +796,27 @@ function ColorChoiceField({
             // while the swatch's label is still what gets submitted.
             onChange("");
           }}
-          className={`rounded-full border px-4 py-2.5 text-sm font-medium transition-all ${
+          className={`flex h-11 shrink-0 items-center gap-1.5 rounded-full border border-dashed px-4 text-sm font-medium transition-all ${
             showCustom
-              ? "border-sky-500 bg-sky-50 text-sky-700"
-              : "border-black/10 bg-white text-zinc-600 hover:border-black/25"
+              ? "border-sky-500 bg-sky-50 text-sky-600"
+              : "border-black/25 bg-white text-zinc-500 hover:border-black/50 hover:text-black"
           }`}
         >
-          Other
+          <Plus size={15} strokeWidth={2.5} aria-hidden="true" /> Other
         </button>
+
+        {/* Deselecting by clicking the live swatch again isn't discoverable,
+            so give the way out its own control — but only once there's
+            something to undo. */}
+        {(value.length > 0 || showCustom) && (
+          <button
+            type="button"
+            onClick={clear}
+            className="ml-1 text-xs font-medium text-zinc-400 underline underline-offset-4 hover:text-black transition-colors"
+          >
+            Clear
+          </button>
+        )}
       </div>
 
       {showCustom && (
