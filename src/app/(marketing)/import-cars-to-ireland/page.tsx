@@ -691,6 +691,38 @@ function SectionHeading({
   );
 }
 
+/**
+ * Closes a section with its conclusion and an exit ramp to the form.
+ *
+ * The page is long by design, and a reader who is convinced by section 3 should
+ * not have to scroll through five more to act. Each takeaway also doubles as a
+ * skim path: reading only these gives the short version of the page.
+ *
+ * The CTA label is written per section rather than shared — eight identical
+ * "Enquire now" buttons read as a template and stop being seen after the first.
+ */
+function Takeaway({ point, cta }: { point: React.ReactNode; cta: string }) {
+  return (
+    <div className="mt-10 rounded-2xl border border-black/[0.09] bg-white p-6 md:flex md:items-center md:justify-between md:gap-8">
+      <div className="max-w-2xl">
+        <p className="text-[11px] font-bold tracking-[0.2em] uppercase text-zinc-400 mb-2">
+          The takeaway
+        </p>
+        <p className="text-sm md:text-[15px] text-zinc-700 leading-relaxed">
+          {point}
+        </p>
+      </div>
+      <a
+        href="#inquiry"
+        className="mt-5 md:mt-0 shrink-0 inline-flex items-center gap-2 rounded-full bg-black px-5 py-3 text-sm font-bold text-white hover:bg-zinc-800 transition-colors"
+      >
+        {cta}
+        <ArrowRight size={15} />
+      </a>
+    </div>
+  );
+}
+
 function Trap({
   title,
   children,
@@ -848,6 +880,12 @@ export default function ImportCarsToIrelandPage() {
                   understand which cars are worth calculating in the first
                   place, start here.
                 </p>
+                <p>
+                  Every section ends with a{" "}
+                  <span className="font-semibold text-black">takeaway</span> —
+                  read only those for the short version, and stop whenever
+                  you&apos;ve seen enough to ask us for a quote.
+                </p>
               </div>
             </div>
 
@@ -969,6 +1007,18 @@ export default function ImportCarsToIrelandPage() {
                 visible in the advertised price.
               </p>
             </div>
+
+            <Takeaway
+              cta="Price my car"
+              point={
+                <>
+                  The charges are the same for everyone. What changes is the car
+                  you point them at — across these three examples the tax bill
+                  alone runs from <strong>€5,275 to €10,654</strong>, and the
+                  buyer decided that spread the moment they chose the car.
+                </>
+              }
+            />
           </section>
 
           {/* ── 02 · THE FOUR CHARGES ──────────────────────────────────── */}
@@ -1268,6 +1318,20 @@ export default function ImportCarsToIrelandPage() {
                 </p>
               </Trap>
             </div>
+
+            <Takeaway
+              cta="Have us check a car"
+              point={
+                <>
+                  Two of the four are fixed by rules you cannot argue with — VAT
+                  is 23% or it is not, duty is 0% or 10%. The other two,{" "}
+                  <strong>VRT and the NOx levy, are chosen by the car</strong>,
+                  and that is where an import is won or lost. Send us a
+                  registration or a listing and we will tell you which side of
+                  each line it falls on.
+                </>
+              }
+            />
           </section>
 
           {/* ── 03 · ORDER ─────────────────────────────────────────────── */}
@@ -1318,6 +1382,19 @@ export default function ImportCarsToIrelandPage() {
                 </li>
               ))}
             </ol>
+
+            <Takeaway
+              cta="Check my car's origin"
+              point={
+                <>
+                  Because each charge compounds on the last, that €1,545 duty
+                  bill really costs about <strong>€1,900</strong> once the VAT
+                  charged on top of it is counted. Proving origin before you buy
+                  is worth more than anything you will win haggling over the
+                  purchase price.
+                </>
+              }
+            />
           </section>
 
           {/* ── 04 · WHERE TO BUY ──────────────────────────────────────── */}
@@ -1428,6 +1505,19 @@ export default function ImportCarsToIrelandPage() {
               </Link>
               .
             </p>
+
+            <Takeaway
+              cta="Compare markets for me"
+              point={
+                <>
+                  The right market depends on the car, not the other way round.
+                  We buy directly in eight countries and compare the{" "}
+                  <strong>total landed cost across every one</strong> that can
+                  supply your specification — then buy where it lands cheapest,
+                  which is not always where you expected.
+                </>
+              }
+            />
           </section>
 
           {/* ── 05 · SWEET SPOT ────────────────────────────────────────── */}
@@ -1499,6 +1589,18 @@ export default function ImportCarsToIrelandPage() {
                 that people routinely forget to plan for.
               </p>
             </Trap>
+
+            <Takeaway
+              cta="Find me one in that band"
+              point={
+                <>
+                  <strong>Three to eight years old, average mileage</strong>{" "}
+                  beats both the newer car and the lower-mileage one — OMSP, the
+                  VAT trap and the NEDC conversion all turn against you outside
+                  that band. Tell us the model and we will source inside it.
+                </>
+              }
+            />
           </section>
 
           {/* ── 06 · WHAT TO BUY ───────────────────────────────────────── */}
@@ -1564,6 +1666,19 @@ export default function ImportCarsToIrelandPage() {
               </Link>{" "}
               before you commit.
             </p>
+
+            <Takeaway
+              cta="Shortlist cars for me"
+              point={
+                <>
+                  A shortlist is not a decision. Two cars from the same
+                  &quot;worth calculating&quot; list can land{" "}
+                  <strong>thousands apart</strong> once their actual CO₂ figures
+                  and OMSPs are applied. Give us your budget and use case and we
+                  will come back with specific cars, priced landed.
+                </>
+              }
+            />
           </section>
 
           {/* ── 07 · RELIEFS ───────────────────────────────────────────── */}
@@ -1594,6 +1709,22 @@ export default function ImportCarsToIrelandPage() {
                 </div>
               ))}
             </div>
+
+            <Takeaway
+              cta="Ask which reliefs apply"
+              point={
+                <>
+                  Every one of these is claimable, and every one is auditable —
+                  the conditions matter more than the headline. The EV relief is
+                  the urgent one:{" "}
+                  <strong>
+                    registration, not purchase, has to happen before 31 December
+                    2026
+                  </strong>
+                  , and shipping time has to fit inside that.
+                </>
+              }
+            />
           </section>
 
           {/* ── 08 · PROCESS ───────────────────────────────────────────── */}
@@ -1631,6 +1762,18 @@ export default function ImportCarsToIrelandPage() {
                 one — the car has not changed, only what you can prove about it.
               </p>
             </div>
+
+            <Takeaway
+              cta="Hand this to us"
+              point={
+                <>
+                  Both deadlines start the day the car lands, not the day you
+                  buy it. We handle the customs declaration, the NCTS booking,
+                  VRT and Irish registration end to end, so{" "}
+                  <strong>the 30-day clock is our problem, not yours</strong>.
+                </>
+              }
+            />
           </section>
 
           {/* ── 09 · TOOLS ─────────────────────────────────────────────── */}
