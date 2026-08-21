@@ -56,10 +56,10 @@ export const metadata: Metadata = {
       "Eight countries, our own people in every one. Save on luxury SUVs, sedans, and performance cars by cutting out the middleman. Direct delivery to your port.",
     images: [
       {
-        url: "/og-image.jpg",
-        width: 1200,
-        height: 630,
-        alt: "Providence Auto Global Car Sourcing",
+        url: "/logo.png",
+        width: 1007,
+        height: 967,
+        alt: "Providence Auto",
       },
     ],
   },
@@ -68,7 +68,7 @@ export const metadata: Metadata = {
     title: "Providence Auto | Global Car Sourcing & Direct Import",
     description:
       "Source premium vehicles from 40+ global markets tax-efficiently.",
-    images: ["/og-image.jpg"],
+    images: ["/logo.png"],
   },
   robots: {
     index: true,
