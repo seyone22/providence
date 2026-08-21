@@ -1504,9 +1504,15 @@ export default function IrelandCostCalculator() {
                 </div>
               </div>
 
-              {/* CTA */}
+              {/* CTA. Points at the source-agnostic Ireland page, not the
+                  Japan one: this calculator prices imports from the UK, the EU,
+                  NI, India, Australia and NZ too, so someone who just costed a
+                  UK-built hatch should not land on a Japanese-import pitch.
+                  Deep-linked to #inquiry because intent is highest right here —
+                  the reader has their number and wants the form, not the top of
+                  a long reference page. */}
               <Link
-                href="/import-japanese-cars-to-ireland"
+                href="/import-cars-to-ireland#inquiry"
                 className="group flex items-center justify-between w-full px-7 py-5 bg-sky-500 hover:bg-sky-600 text-white rounded-2xl font-bold text-base transition-all duration-300 shadow-[0_10px_40px_rgba(14,165,233,0.25)]"
               >
                 <span>Source This Vehicle With Providence</span>
