@@ -12,6 +12,7 @@ import {
   Ship,
   Zap,
 } from "lucide-react";
+import Link from "next/link";
 import { Suspense, useEffect, useMemo, useState } from "react";
 import FAQSection from "@/components/faqSection";
 import GradientMesh from "@/components/GradientMesh";
@@ -531,6 +532,24 @@ export default function ImportJapaneseCarsIreland() {
             </Reveal>
           ))}
         </div>
+
+        {/* Not everyone arriving here has settled on Japan. Rather than lose
+            them, hand them the source-agnostic pillar page. */}
+        <Reveal
+          y={20}
+          duration={0.6}
+          className="mt-16 text-center text-base text-zinc-500 font-light"
+        >
+          Still weighing up source countries?{" "}
+          <Link
+            href="/import-cars-to-ireland"
+            className="font-medium text-sky-600 underline decoration-sky-600/30 hover:decoration-sky-600 transition-colors"
+          >
+            Our full guide to importing a car to Ireland
+          </Link>{" "}
+          compares Japan, the UK, the EU and Northern Ireland side by side on
+          duty, VAT, VRT and shipping.
+        </Reveal>
       </section>
 
       {/* ── PROCESS ─────────────────────────────────── */}
@@ -710,6 +729,13 @@ export default function ImportJapaneseCarsIreland() {
                 >
                   cheapest cars to import
                 </a>
+                , or see{" "}
+                <Link
+                  href="/import-cars-to-ireland"
+                  className="underline decoration-zinc-300 hover:decoration-zinc-500 hover:text-zinc-600 transition-colors"
+                >
+                  how these charges are calculated for every source country
+                </Link>
                 .
               </p>
             </Reveal>

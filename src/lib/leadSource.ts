@@ -34,6 +34,10 @@ export function pathnameToSource(pathname: string): string {
     b2b: "B2B Landing",
     b2c: "B2C Landing",
     "import-japanese-cars-to-ireland": "Import to Ireland",
+    // Distinct label from the Japan page above: both carry an inquiry form and
+    // the auto-prettified slug would read "Import Cars To Ireland", which is
+    // near-indistinguishable from "Import to Ireland" in the leads table.
+    "import-cars-to-ireland": "Ireland Import Guide",
     "ireland-cost-calculator": "Ireland Calculator",
   };
   if (MAP[slug]) return MAP[slug];

@@ -69,6 +69,19 @@ Plus the Better-Auth tables (`users`, `sessions`, `accounts`, `verifications`). 
 - `scripts/migrate.mjs` — runs the generated `drizzle/` SQL migrations against `DATABASE_URL` (SSL configured for the Railway pool).
 - `scripts/create-car-page.mjs` — upserts a spec dossier (a public car page) from a JSON brief, uploading any local images to R2. Supports `--dry-run` and `--publish`; upserts by slug so re-running an edited brief updates the same page. Driven by the `car-landing-page` skill (`/car-landing-page`).
 
+### Sourcing & Profit Analyzer
+
+The admin tool at `/admin/sourcing-calculator`: landed cost → live UK market comparables → margin and buy/avoid verdict.
+
+**Before changing any rate, filter or formula, read `sourcing-analyzer-methodology.md` at the repo root.** It documents the whole pipeline — the CIF/duty/post-border maths, the reverse solver for the maximum auction bid, how listings are scraped, cleaned, deduped, matched and ranked, how the statistics are trimmed, and every standing assumption.
+
+The rules that most often trip people up:
+
+- **Numbers are computed, prose is generated.** Every figure comes from a pure function (`src/lib/uk-landed-cost.ts`, `src/lib/market-stats.ts`); Gemini only narrates finished numbers. Never let a model produce a price, rate or margin.
+- **Duty defaults to 10% MFN**; the only 0% route is Japan-built with a CEPA statement of origin, which is why the statement-of-origin question appears for Japan alone.
+- **Import VAT is excluded** from the analyzer's landed cost (the importer reclaims it), via `includeVat: false`. The VAT machinery stays in the engine for consumer-facing surfaces like `LandedCostBar`, which default to including it.
+- **30% gross margin on landed cost** (`TARGET_MARGIN_PCT`) is the desk minimum, enforced in code after the model answers — a car below target can never come back as "source".
+
 ### Vehicles: colours and upcoming models
 
 Car pages are **database rows, not files** — they can't be added by committing code. Create them in `/admin/specs` or via `scripts/create-car-page.mjs`.
@@ -97,6 +110,22 @@ Feeds and discovery, all automatic: `/news-sitemap.xml` (Google News, 48-hour wi
 **Before writing any news article, read `news-editorial-playbook.md` at the repo root.** It defines the target market (all RHD destinations, plus LHD for luxury only), the two reader segments, the relevance gate, the seven landed-cost lenses, the "Landed Desk" voice, the SEO/AEO spec and the mandatory fact-checking protocol. The repeatable weekly run — 20 publish-ready stories — is the `news-desk` skill (`/news-desk`).
 
 Three standing editorial rules: **never invent a tax, duty or registration-tax figure** — cite the revenue authority, date the check and add `<Disclaimer />`; **never forecast a currency** — name the pair, date the level, and say which side of the trade it lands on (a weak *source* currency makes the car cheaper; a weak *destination* currency makes everything dearer); and **a missing number is not a failure, a wrong number is.**
+
+### SEO & AEO: standing requirement for every new page
+
+**Before creating or publishing any new page** — marketing/campaign page, car page (spec dossier), blog post, or news article — read `seo-aeo-optimization-guide.md` at the repo root. It is the canonical SEO/AEO playbook: user-intent identification, keyword/entity research, on-page copywriting (title tags, meta descriptions, header hierarchy), the technical SEO checklist, JSON-LD structured-data selection, and AEO/LLM optimization (featured-snippet answers, tables/lists, E-E-A-T). Run every new page through its Phase 1–5 process and the final pre-publishing checklist before treating the page as done.
+
+Every new page ships with all of the following by default — a page missing any of these is incomplete, not "SEO to follow up later":
+
+- **Title tag** — under 60 characters, primary keyword near the front, unique per page. Set via `export const metadata: Metadata`, following the existing pattern in `src/app/(marketing)/*/page.tsx`.
+- **Meta description** — under 155 characters, includes a call to action.
+- **Open Graph + Twitter Card, with a visible preview image** — `openGraph.images` must include explicit `width`/`height` (1200×630) on a real, reachable image URL. A missing/404 image or one without declared dimensions will fail to render in link previews on Slack/LinkedIn/X/iMessage. Verify with `curl -o /dev/null -w "%{http_code} %{content_type}"` on the exact image URL before shipping.
+- **Canonical URL** — `alternates: { canonical: PATH }`.
+- **Structured data (JSON-LD)** — match the schema to the page's core entity per the guide's Phase 4 (Product/Service, Article/NewsArticle, FAQPage, LocalBusiness, ItemList, etc.) — see existing examples in `src/app/(marketing)/indian-manufactured-cars/page.tsx` and `src/content/news/`.
+- **One H1, hierarchical H2/H3s**, BLUF-style copy (answer the primary question in the first ~100 words), and at least one direct 40–50 word answer to a likely AI/voice query, for AEO.
+- **`robots` metadata set explicitly** (`index: true, follow: true`) unless the page is intentionally noindexed.
+
+This is additive to, not a replacement for, the per-content-type rules above — `sourcing-analyzer-methodology.md` still governs the sourcing tool's numbers, and `news-editorial-playbook.md` still governs news articles' voice and fact-checking.
 
 ### Route Structure
 
