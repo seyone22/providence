@@ -744,10 +744,18 @@ export default function AboutUsPage() {
 
         {/* ── CLOSING CTA ──────────────────────────── */}
         <section className="relative overflow-hidden py-24 md:py-32 px-6 text-center">
-          <RadialBurst
-            className="absolute inset-0"
-            colours={["#0ea5e9", "#8b5cf6"]}
-          />
+          {/* RadialBurst's own root is hard-coded `relative` — passing
+              `absolute inset-0` straight into its className loses that
+              cascade fight (Tailwind compiles `.relative` after `.absolute`,
+              so it wins regardless of class order) and the burst collapses to
+              zero height. Owning the absolute positioning here and sizing the
+              burst with plain `h-full w-full` sidesteps the conflict. */}
+          <div className="absolute inset-0">
+            <RadialBurst
+              className="h-full w-full"
+              colours={["#0ea5e9", "#8b5cf6"]}
+            />
+          </div>
           <Reveal
             y={24}
             duration={0.7}
