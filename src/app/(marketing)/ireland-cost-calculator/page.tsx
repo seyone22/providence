@@ -1730,6 +1730,34 @@ export default function IrelandCostCalculator() {
           <p className="text-[10px] font-bold tracking-[0.3em] text-zinc-400 uppercase mb-6">
             Read next
           </p>
+
+          {/* The pillar guide sits above the three cards, not inside them: a
+              calculator answers "how much for this car", and the next question
+              is almost always "is this the right car to be importing at all". */}
+          <Link
+            href="/import-cars-to-ireland"
+            className="group mb-4 flex flex-col rounded-2xl border border-sky-500/20 bg-sky-50/50 p-6 transition-all hover:border-sky-500/40 hover:bg-sky-50"
+          >
+            <span className="text-[10px] font-bold tracking-[0.25em] text-sky-600 uppercase mb-2">
+              Start here
+            </span>
+            <span className="text-lg font-bold text-black group-hover:text-sky-600 transition-colors">
+              Importing a car to Ireland: the complete cost guide
+            </span>
+            <span className="mt-1.5 text-sm text-zinc-500 font-light max-w-2xl">
+              How customs duty, VAT, VRT and the NOx levy stack up — plus which
+              source country, age and model actually land cheapest. The context
+              behind every number this calculator produces.
+            </span>
+            <span className="mt-3 inline-flex items-center gap-1.5 text-xs font-bold text-sky-600">
+              Read the guide
+              <ArrowRight
+                size={12}
+                className="group-hover:translate-x-1 transition-transform"
+              />
+            </span>
+          </Link>
+
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             {[
               {
