@@ -69,6 +69,19 @@ Plus the Better-Auth tables (`users`, `sessions`, `accounts`, `verifications`). 
 - `scripts/migrate.mjs` — runs the generated `drizzle/` SQL migrations against `DATABASE_URL` (SSL configured for the Railway pool).
 - `scripts/create-car-page.mjs` — upserts a spec dossier (a public car page) from a JSON brief, uploading any local images to R2. Supports `--dry-run` and `--publish`; upserts by slug so re-running an edited brief updates the same page. Driven by the `car-landing-page` skill (`/car-landing-page`).
 
+### Sourcing & Profit Analyzer
+
+The admin tool at `/admin/sourcing-calculator`: landed cost → live UK market comparables → margin and buy/avoid verdict.
+
+**Before changing any rate, filter or formula, read `sourcing-analyzer-methodology.md` at the repo root.** It documents the whole pipeline — the CIF/duty/post-border maths, the reverse solver for the maximum auction bid, how listings are scraped, cleaned, deduped, matched and ranked, how the statistics are trimmed, and every standing assumption.
+
+The rules that most often trip people up:
+
+- **Numbers are computed, prose is generated.** Every figure comes from a pure function (`src/lib/uk-landed-cost.ts`, `src/lib/market-stats.ts`); Gemini only narrates finished numbers. Never let a model produce a price, rate or margin.
+- **Duty defaults to 10% MFN**; the only 0% route is Japan-built with a CEPA statement of origin, which is why the statement-of-origin question appears for Japan alone.
+- **Import VAT is excluded** from the analyzer's landed cost (the importer reclaims it), via `includeVat: false`. The VAT machinery stays in the engine for consumer-facing surfaces like `LandedCostBar`, which default to including it.
+- **30% gross margin on landed cost** (`TARGET_MARGIN_PCT`) is the desk minimum, enforced in code after the model answers — a car below target can never come back as "source".
+
 ### Vehicles: colours and upcoming models
 
 Car pages are **database rows, not files** — they can't be added by committing code. Create them in `/admin/specs` or via `scripts/create-car-page.mjs`.

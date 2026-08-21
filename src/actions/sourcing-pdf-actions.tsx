@@ -30,8 +30,6 @@ export interface SourcingPdfData {
     cifGbp: number;
     duty: number;
     dutyLabel: string;
-    vat: number;
-    vatLabel: string;
     postBorder: number;
     totalLanded: number;
   };
@@ -69,6 +67,14 @@ export interface SourcingPdfData {
     confidence: string;
     grossMargin: number;
     marginPct: number;
+    targetMarginPct: number;
+  };
+  // The biggest hammer price that still clears the target margin.
+  maxBid: {
+    currency: string;
+    maxHammer: number;
+    maxLandedGbp: number;
+    achievable: boolean;
   };
   usage: {
     aiTokens: number;
@@ -245,6 +251,9 @@ const ReportPDF = ({
   const vehicleLine = [v.year, v.make, v.model, v.edition]
     .filter(Boolean)
     .join(" ");
+  const targetLabel = `${(data.verdict.targetMarginPct * 100).toFixed(0)}%`;
+  const meetsTarget = data.verdict.marginPct >= data.verdict.targetMarginPct;
+  const bidCcy = data.maxBid.currency === "JPY" ? "¥" : "$";
   return (
     <Document title={`Sourcing Report — ${vehicleLine}`}>
       <Page size="A4" style={styles.page}>
@@ -272,10 +281,14 @@ const ReportPDF = ({
                 style={{
                   fontSize: 18,
                   fontFamily: "Helvetica-Bold",
-                  color: data.verdict.grossMargin >= 0 ? SKY : "#f87171",
+                  color: meetsTarget ? SKY : "#f87171",
                 }}
               >
-                {fmtGBP(data.verdict.grossMargin)}
+                {fmtGBP(data.verdict.grossMargin)} ·{" "}
+                {(data.verdict.marginPct * 100).toFixed(1)}%
+              </Text>
+              <Text style={{ fontSize: 8, color: "#a1a1aa", marginTop: 2 }}>
+                {meetsTarget ? "clears" : "below"} the {targetLabel} target
               </Text>
             </View>
           </View>
@@ -291,9 +304,15 @@ const ReportPDF = ({
           ) : null}
 
           <Text style={styles.sectionTitle}>Landed Cost (GBP)</Text>
-          <Row label="CIF value" value={fmtGBP(data.landed.cifGbp)} />
+          <Row
+            label="CIF value (full customs value)"
+            value={fmtGBP(data.landed.cifGbp)}
+          />
           <Row label={data.landed.dutyLabel} value={fmtGBP(data.landed.duty)} />
-          <Row label={data.landed.vatLabel} value={fmtGBP(data.landed.vat)} />
+          <Row
+            label="Import VAT"
+            value="Excluded — reclaimed by the importer"
+          />
           <Row
             label="Post-border fees"
             value={fmtGBP(data.landed.postBorder)}
@@ -301,6 +320,14 @@ const ReportPDF = ({
           <Row
             label="Total landed cost"
             value={fmtGBP(data.landed.totalLanded)}
+          />
+          <Row
+            label={`Max auction bid for ${targetLabel} margin`}
+            value={
+              data.maxBid.achievable
+                ? `${bidCcy}${Math.round(data.maxBid.maxHammer).toLocaleString()} hammer`
+                : `Unreachable at any bid`
+            }
           />
 
           <Text style={styles.sectionTitle}>
@@ -380,11 +407,27 @@ const ReportPDF = ({
               ]}
             >
               {VERDICT_LABEL[data.verdict.recommendation]} ·{" "}
-              {(data.verdict.marginPct * 100).toFixed(1)}% margin ·{" "}
-              {data.verdict.confidence} confidence
+              {(data.verdict.marginPct * 100).toFixed(1)}% margin vs{" "}
+              {targetLabel} target · {data.verdict.confidence} confidence
             </Text>
             <Text style={styles.verdictHeadline}>{data.verdict.headline}</Text>
             <Text style={styles.verdictBody}>{data.verdict.reasoning}</Text>
+            {data.maxBid.achievable ? (
+              <Text style={styles.verdictBody}>
+                Ceiling bid: do not exceed {bidCcy}
+                {Math.round(data.maxBid.maxHammer).toLocaleString()} at the
+                hammer — that lands the car at{" "}
+                {fmtGBP(data.maxBid.maxLandedGbp)} and holds the {targetLabel}{" "}
+                margin against the median resale.
+              </Text>
+            ) : (
+              <Text style={styles.verdictBody}>
+                No hammer price reaches {targetLabel} on this car: freight, duty
+                and UK-side costs alone exceed the{" "}
+                {fmtGBP(data.maxBid.maxLandedGbp)} landed budget the median
+                resale allows.
+              </Text>
+            )}
           </View>
 
           <View style={styles.usageBox}>
@@ -399,7 +442,8 @@ const ReportPDF = ({
 
           <Text style={styles.disclaimer}>
             Disclaimer: Indicative analysis only. Landed cost uses HMRC-based
-            rates — confirm duty against the live UK Trade Tariff (10-digit
+            rates and excludes import VAT, which a VAT-registered importer
+            reclaims — confirm duty against the live UK Trade Tariff (10-digit
             code) and use HMRC's monthly FX rate. Market figures are scraped
             from live third-party listings and reflect a snapshot at generation
             time; a widened match means fewer exact comparables. The verdict is
