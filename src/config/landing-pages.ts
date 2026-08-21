@@ -385,9 +385,9 @@ export const japanImportCampaignConfig: LandingPageConfig = {
 export const indianCampaignConfig: LandingPageConfig = {
   slug: "indian-manufactured-cars",
   meta: {
-    title: "India-Built Cars, Landed for Less | Providence Auto",
+    title: "Indian-Manufactured Cars | Providence Auto",
     description:
-      "Source Indian-manufactured cars — Suzuki, Toyota, Kia, Nissan, Hyundai and more — through Providence's dealer network in India. Safety-inspected before export, full landed cost quoted up front, delivered to your door.",
+      "Import Indian-built cars — Suzuki, Toyota, Kia, Hyundai and more — through Providence Auto. Inspected before export, full landed cost upfront.",
   },
   hero: {
     tagline: "Providence Auto · India-Built Specialists",
@@ -403,7 +403,7 @@ export const indianCampaignConfig: LandingPageConfig = {
   },
   valueProps: {
     title: "Why Import From Providence Auto",
-    containerImage: "/gallery_image.jpg",
+    containerImage: "/import-cars/india-why-import.jpg",
     features: [
       {
         icon: Handshake,
