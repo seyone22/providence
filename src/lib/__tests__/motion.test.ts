@@ -4,7 +4,7 @@ import {
   digitCount,
   easeInOutCubic,
   easeOutCubic,
-  odometerColumn,
+  odometerColumns,
   quadAngle,
   quadLength,
   quadPoint,
@@ -120,57 +120,63 @@ describe("windowProgress", () => {
   });
 });
 
-describe("odometerColumn", () => {
+describe("odometerColumns", () => {
   it("reads the digit at each place when the drums are settled", () => {
     // A round number leaves every column parked on a whole digit.
-    expect(odometerColumn(4000, 0)).toBeCloseTo(0, 12);
-    expect(odometerColumn(4000, 1)).toBeCloseTo(0, 12);
-    expect(odometerColumn(4000, 2)).toBeCloseTo(0, 12);
-    expect(odometerColumn(4000, 3)).toBeCloseTo(4, 12);
-    expect(odometerColumn(4810, 1)).toBeCloseTo(1, 12);
-    expect(odometerColumn(4800, 2)).toBeCloseTo(8, 12);
+    expect(odometerColumns(4000, 4)).toEqual([0, 0, 0, 4]);
+    expect(odometerColumns(4810, 4)[1]).toBeCloseTo(1, 12);
+    expect(odometerColumns(4800, 4)[2]).toBeCloseTo(8, 12);
   });
 
-  it("part-turns a column when the one below it is mid-way", () => {
-    // The point of a geared drum: at 4812 the tens digit is 1, but the drum has
-    // already turned 20% towards 2 because the units are sitting at 2. Reading
-    // the tens as a flat 1 would make the columns animate independently, which
-    // is what makes cheap odometers look wrong.
-    expect(odometerColumn(4812, 0)).toBeCloseTo(2, 12);
-    expect(odometerColumn(4812, 1)).toBeCloseTo(1.2, 12);
-    expect(odometerColumn(4812, 2)).toBeCloseTo(8.12, 12);
-    expect(odometerColumn(4812, 3)).toBeCloseTo(4.812, 12);
+  it("settles every column on a clean digit even when the value is not round", () => {
+    // An earlier version derived each column from value/10^place directly, which
+    // left e.g. the tens column at 4812 parked 20% of the way to 2 forever —
+    // a finished count-up that never actually looked finished. Chaining the
+    // bleed from each column's own resolved offset fixes that.
+    expect(odometerColumns(4812, 4)).toEqual([2, 1, 8, 4]);
   });
 
   it("carries the fractional turn on the units column", () => {
-    expect(odometerColumn(7.5, 0)).toBeCloseTo(7.5, 12);
+    expect(odometerColumns(7.5, 1)[0]).toBeCloseTo(7.5, 12);
   });
 
-  it("gears higher columns to turn a tenth as fast", () => {
-    // Going from 19 to 20: units make a whole turn, tens make a tenth of one.
-    const tensAt19 = odometerColumn(19, 1);
-    const tensAt20 = odometerColumn(20, 1);
-    expect(tensAt20 - tensAt19).toBeCloseTo(0.1, 12);
+  it("bleeds a turn into the next column only in the final stretch of the one below", () => {
+    // Units freshly on 9: tens has not started turning yet.
+    expect(odometerColumns(19, 2)[1]).toBeCloseTo(1, 12);
+    // Units mid-turn through 9: tens follows it partway towards 2.
+    expect(odometerColumns(19.5, 2)[1]).toBeCloseTo(1.5, 12);
+    // Rollover complete: tens is settled clean on 2, not still trailing 19's turn.
+    expect(odometerColumns(20, 2)[1]).toBeCloseTo(2, 12);
+  });
+
+  it("cascades a turn across every column on a genuine rollover", () => {
+    // Every digit below the thousands is sitting on 9 and mid-turn, so the
+    // bleed should be climbing on every one of them at once, the same way a
+    // real drum counter turns over from 4999 to 5000.
+    const offsets = odometerColumns(4999.5, 4);
+    expect(offsets[0]).toBeCloseTo(9.5, 12);
+    expect(offsets[1]).toBeCloseTo(9.5, 12);
+    expect(offsets[2]).toBeCloseTo(9.5, 12);
+    expect(offsets[3]).toBeCloseTo(4.5, 12);
   });
 
   it("wraps 9 to 0 rather than running to 10", () => {
-    expect(odometerColumn(9, 0)).toBeCloseTo(9, 12);
-    expect(odometerColumn(10, 0)).toBeCloseTo(0, 12);
-    expect(odometerColumn(19, 0)).toBeCloseTo(9, 12);
+    expect(odometerColumns(9, 1)[0]).toBeCloseTo(9, 12);
+    expect(odometerColumns(10, 1)[0]).toBeCloseTo(0, 12);
+    expect(odometerColumns(19, 1)[0]).toBeCloseTo(9, 12);
   });
 
   it("always sits within one drum revolution", () => {
     for (let v = 0; v < 5000; v += 7.3) {
-      for (const place of [0, 1, 2, 3]) {
-        const column = odometerColumn(v, place);
-        expect(column).toBeGreaterThanOrEqual(0);
-        expect(column).toBeLessThan(10);
+      for (const offset of odometerColumns(v, 4)) {
+        expect(offset).toBeGreaterThanOrEqual(0);
+        expect(offset).toBeLessThan(10);
       }
     }
   });
 
   it("treats negatives as zero rather than rolling backwards", () => {
-    expect(odometerColumn(-42, 0)).toBe(0);
+    expect(odometerColumns(-42, 1)[0]).toBe(0);
   });
 });
 

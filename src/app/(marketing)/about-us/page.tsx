@@ -1,24 +1,25 @@
 import {
   Anchor,
   ArrowRight,
-  Award,
   Building2,
   FileCheck2,
-  Globe2,
   Handshake,
   Landmark,
   MapPin,
-  Search,
-  Send,
   ShieldCheck,
-  Ship,
   Store,
   Users,
 } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
+import DotGlobe, { GLOBE_PALETTE_LIGHT } from "@/components/DotGlobe";
+import GradientMesh from "@/components/GradientMesh";
+import LandedCostBar from "@/components/LandedCostBar";
 import MinimalHeader from "@/components/MinimalHeader";
+import OdometerCounter from "@/components/OdometerCounter";
+import RadialBurst from "@/components/RadialBurst";
 import { Reveal } from "@/components/Reveal";
+import VoyageTrack from "@/components/VoyageTrack";
 import {
   COUNTRY_BASE_PATH,
   COUNTRY_PAGES,
@@ -72,23 +73,14 @@ export const metadata: Metadata = {
   robots: { index: true, follow: true },
 };
 
-// ── How it works ─────────────────────────────────────────────────────────────
-const STEPS = [
-  {
-    icon: Send,
-    title: "Request",
-    desc: "Tell us the exact car. A full global sourcing quote comes back within 24 hours.",
-  },
-  {
-    icon: Search,
-    title: "Source",
-    desc: "We search 40+ markets for your spec at the most tax-efficient price, buying through our own offices in eight of them.",
-  },
-  {
-    icon: Ship,
-    title: "Shipping",
-    desc: "It arrives cleared, compliant, and ready to register.",
-  },
+// ── Stats — real figures, shared by the hero row and the full grid below. ──
+const STATS = [
+  { value: 15, suffix: "+", label: "Years trading history" },
+  { value: 8, label: "Countries with our own offices" },
+  { value: 40, suffix: "+", label: "Retail sourcing markets" },
+  { value: 21, label: "Destination markets served" },
+  { value: 100, suffix: "+", label: "Dealer sourcing markets" },
+  { value: 24, suffix: " hrs", label: "To your first sourcing quote" },
 ];
 
 // ── Why we're different (condensed from /source-cars-from) ─────────────────
@@ -101,17 +93,17 @@ const PILLARS = [
   {
     icon: FileCheck2,
     title: "Transparency before payment",
-    desc: "You see the inspection report before we spend a dollar of your money.",
+    desc: "You see the inspection before we spend your money.",
   },
   {
     icon: Users,
     title: "One team, start to finish",
-    desc: "A named consultant owns your import end to end — not a shared inbox.",
+    desc: "A named consultant owns your import, start to finish — not a shared inbox.",
   },
   {
     icon: Landmark,
     title: "One landed price",
-    desc: "We quote the total cost across every source country, wherever it comes from.",
+    desc: "One number for the total cost, wherever the car comes from.",
   },
 ];
 
@@ -120,21 +112,21 @@ const AUDIENCES = [
   {
     icon: MapPin,
     title: "Direct buyers",
-    desc: "Skip the dealer markup — source the exact spec yourself, through the same network dealers use.",
+    desc: "Skip the dealer markup. Source the exact spec yourself.",
     href: "/b2c",
     cta: "For direct buyers",
   },
   {
     icon: Store,
     title: "Dealerships",
-    desc: "Sell inventory you don't hold. We source and ship on request, so your lot isn't your ceiling.",
+    desc: "Sell inventory you don't hold. We source and ship on request.",
     href: "/b2b",
     cta: "For dealerships",
   },
   {
     icon: Handshake,
     title: "Dealer platform",
-    desc: "Embed our global stock on your own site. The system sources and ships automatically — you keep the commission.",
+    desc: "Embed our stock on your site. It sources and ships itself — you keep the commission.",
     href: "/saas",
     cta: "The dealer platform",
   },
@@ -174,16 +166,6 @@ const DESTINATION_REGIONS = [
       "Maldives",
     ],
   },
-];
-
-// ── By the numbers ───────────────────────────────────────────────────────────
-const STATS = [
-  { value: "15+", label: "Years trading history" },
-  { value: "8", label: "Countries with our own offices" },
-  { value: "40+", label: "Retail sourcing markets" },
-  { value: "100+", label: "Dealer sourcing markets" },
-  { value: "24 hrs", label: "To your first sourcing quote" },
-  { value: "21", label: "Destination markets served" },
 ];
 
 export default function AboutUsPage() {
@@ -232,61 +214,67 @@ export default function AboutUsPage() {
         <MinimalHeader />
 
         {/* ── HERO ─────────────────────────────────── */}
-        <section className="px-6 pt-36 md:pt-40 pb-16 max-w-5xl mx-auto text-center">
-          <Reveal
-            as="p"
-            immediate
-            y={16}
-            duration={0.6}
-            className="text-sm font-bold tracking-[0.3em] text-zinc-400 uppercase mb-5"
-          >
-            About Providence Auto
-          </Reveal>
-          <Reveal
-            as="h1"
-            immediate
-            y={20}
-            duration={0.8}
-            className="pa-headline-gradient text-4xl md:text-7xl font-bold tracking-tighter leading-[1.05] mb-6"
-          >
-            Any car. Any country.
-            <br className="hidden md:block" /> Any port.
-          </Reveal>
-          <Reveal
-            immediate
-            y={16}
-            delay={0.1}
-            duration={0.6}
-            className="text-xl md:text-2xl text-zinc-500 font-light max-w-3xl mx-auto"
-          >
-            We are building the world's largest borderless showroom — a global
-            vehicle sourcing group with our own people in{" "}
-            <span className="text-black font-medium">
-              {OFFICE_COUNTRIES_SENTENCE}
-            </span>
-            .
-          </Reveal>
+        <section className="relative overflow-hidden px-6 pt-36 md:pt-40 pb-16">
+          <GradientMesh animated />
+          <div className="relative z-10 max-w-5xl mx-auto text-center">
+            <Reveal
+              as="p"
+              immediate
+              y={16}
+              duration={0.6}
+              className="text-sm font-bold tracking-[0.3em] text-zinc-400 uppercase mb-5"
+            >
+              About Providence Auto
+            </Reveal>
+            <Reveal
+              as="h1"
+              immediate
+              y={20}
+              duration={0.8}
+              className="pa-headline-gradient text-4xl md:text-7xl font-bold tracking-tighter leading-[1.05] mb-6"
+            >
+              Any car. Any country.
+              <br className="hidden md:block" /> Any port.
+            </Reveal>
+            <Reveal
+              immediate
+              y={16}
+              delay={0.1}
+              duration={0.6}
+              className="text-xl md:text-2xl text-zinc-500 font-light max-w-3xl mx-auto"
+            >
+              Providence Auto is a global vehicle sourcing group with our own
+              people in{" "}
+              <span className="text-black font-medium">
+                {OFFICE_COUNTRIES_SENTENCE}
+              </span>
+              . We buy, inspect and ship your car ourselves — no brokers, no
+              borders.
+            </Reveal>
 
-          <Reveal
-            y={20}
-            delay={0.2}
-            duration={0.6}
-            className="mt-10 grid grid-cols-2 md:grid-cols-4 gap-3 max-w-3xl mx-auto"
-          >
-            {STATS.slice(0, 4).map((s) => (
-              <div
-                key={s.label}
-                className="rounded-2xl border border-black/5 bg-[#FAFAFA] px-4 py-5"
-              >
-                <div className="text-2xl md:text-3xl font-bold tracking-tight">
-                  {s.value}
+            <Reveal
+              y={20}
+              delay={0.2}
+              duration={0.6}
+              className="mt-10 grid grid-cols-2 md:grid-cols-4 gap-3 max-w-3xl mx-auto"
+            >
+              {STATS.slice(0, 4).map((s) => (
+                <div
+                  key={s.label}
+                  className="rounded-2xl border border-black/5 bg-white/70 backdrop-blur-sm px-4 py-5"
+                >
+                  <div className="flex justify-center">
+                    <OdometerCounter
+                      value={s.value}
+                      suffix={s.suffix}
+                      label={s.label}
+                      className="text-2xl md:text-3xl font-bold tracking-tight text-center"
+                    />
+                  </div>
                 </div>
-                <div className="text-xs text-zinc-500 mt-1 leading-snug">
-                  {s.label}
-                </div>
-              </div>
-            ))}
-          </Reveal>
+              ))}
+            </Reveal>
+          </div>
         </section>
 
         {/* ── IN SHORT (AEO direct-answer block) ──────── */}
@@ -300,11 +288,11 @@ export default function AboutUsPage() {
               What is Providence Auto?
             </p>
             <p className="text-lg text-zinc-700 font-light leading-relaxed">
-              Providence Auto is a global vehicle sourcing and export group that
-              buys, inspects and ships cars through its own offices in eight
+              Providence Auto is a global vehicle sourcing and export group. We
+              buy, inspect and ship cars through our own offices in eight
               countries — Japan, the UK, the UAE, India, Thailand, Australia,
-              New Zealand and Sri Lanka — delivering to 21+ right-hand-drive and
-              luxury left-hand-drive markets worldwide.
+              New Zealand and Sri Lanka — to 21+ right-hand-drive and luxury
+              left-hand-drive markets worldwide.
             </p>
           </Reveal>
         </section>
@@ -321,8 +309,8 @@ export default function AboutUsPage() {
               </h2>
               <p className="text-lg text-zinc-500 font-light">
                 Local lots only show what's already sitting on them. Going
-                abroad for it looks like a maze of duties, paperwork and sellers
-                nobody can vouch for.
+                abroad looks like a maze of duty, paperwork and sellers you
+                can't verify.
               </p>
             </Reveal>
 
@@ -330,15 +318,15 @@ export default function AboutUsPage() {
               {[
                 {
                   title: "The spec you want isn't on the lot",
-                  desc: "Dealers sell what they were able to stock, not what fits your list.",
+                  desc: "Dealers stock what they could get, not what you want.",
                 },
                 {
                   title: "The price isn't the price",
-                  desc: "Duty, freight and registration costs surface after you've already committed.",
+                  desc: "Duty, freight and registration costs show up after you've committed.",
                 },
                 {
                   title: "You can't verify a car eight time zones away",
-                  desc: "No one to inspect it, no one to answer for it if the listing was wrong.",
+                  desc: "No one to inspect it. No one to answer for it.",
                 },
               ].map((item, i) => (
                 <Reveal
@@ -358,9 +346,9 @@ export default function AboutUsPage() {
           </div>
         </section>
 
-        {/* ── WHO WE ARE + HOW IT WORKS ────────────── */}
+        {/* ── WHO WE ARE ────────────────────────────── */}
         <section className="py-20 md:py-28 px-6">
-          <div className="max-w-5xl mx-auto text-center mb-16">
+          <div className="max-w-5xl mx-auto text-center">
             <Reveal y={24} duration={0.6}>
               <p className="text-xs font-bold tracking-[0.25em] text-zinc-400 uppercase mb-4">
                 Who we are
@@ -370,53 +358,47 @@ export default function AboutUsPage() {
               </h2>
               <p className="text-lg text-zinc-500 font-light max-w-3xl mx-auto">
                 Providence Auto is the trading name of Providence Trading
-                Limited. For 15+ years we've bought cars ourselves, inspected
-                them ourselves, and shipped them ourselves — through our own
-                offices, not a chain of intermediaries who never see the
-                vehicle.
+                Limited. For 15+ years we've bought, inspected and shipped every
+                car ourselves — through our own offices, never a chain of
+                intermediaries who never see the vehicle.
               </p>
             </Reveal>
           </div>
+        </section>
 
+        {/* ── HOW IT WORKS ─────────────────────────── */}
+        <section className="py-20 md:py-28 px-6 bg-[#FAFAFA] border-y border-black/5">
           <div className="max-w-5xl mx-auto">
-            <Reveal y={20} duration={0.6} className="text-center mb-10">
-              <p className="text-xs font-bold tracking-[0.25em] text-zinc-400 uppercase">
+            <Reveal
+              y={24}
+              duration={0.6}
+              className="text-center mb-12 max-w-2xl mx-auto"
+            >
+              <p className="text-xs font-bold tracking-[0.25em] text-zinc-400 uppercase mb-4">
                 How it works
               </p>
-              <h3 className="text-2xl md:text-3xl font-bold tracking-tighter text-black mt-3">
-                Three steps. One landed price.
-              </h3>
+              <h2 className="text-3xl md:text-5xl font-bold tracking-tighter text-black mb-5">
+                Request it. We source it. It ships.
+              </h2>
+              <p className="text-lg text-zinc-500 font-light">
+                Tell us the exact car — a full sourcing quote comes back in 24
+                hours. We buy it through our own office, verify it, and get it
+                moving. Every import tracks the same way:
+              </p>
             </Reveal>
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
-              {STEPS.map((step, i) => (
-                <Reveal
-                  key={step.title}
-                  y={24}
-                  delay={i * 0.08}
-                  duration={0.5}
-                  className="group flex flex-col items-start p-8 rounded-[2rem] bg-[#FAFAFA] border border-black/5 hover:border-black/10 hover:shadow-[0_20px_40px_rgba(0,0,0,0.05)] transition-all duration-300"
-                >
-                  <div className="p-3 bg-black/5 border border-black/10 rounded-2xl group-hover:bg-black group-hover:border-black transition-colors duration-500 mb-5">
-                    <step.icon className="text-black h-6 w-6 group-hover:text-white transition-colors duration-500" />
-                  </div>
-                  <span className="text-xs font-bold tracking-[0.2em] text-zinc-400 uppercase mb-1">
-                    Step {i + 1}
-                  </span>
-                  <h4 className="text-xl font-bold text-black mb-2">
-                    {step.title}
-                  </h4>
-                  <p className="text-zinc-500 text-base leading-relaxed font-light">
-                    {step.desc}
-                  </p>
-                </Reveal>
-              ))}
-            </div>
+            <Reveal
+              y={20}
+              duration={0.6}
+              className="rounded-[2rem] bg-white border border-black/5 p-6 md:p-10"
+            >
+              <VoyageTrack />
+            </Reveal>
           </div>
         </section>
 
         {/* ── WHY WE'RE DIFFERENT ─────────────────── */}
-        <section className="py-20 md:py-28 px-6 bg-[#FAFAFA] border-y border-black/5">
+        <section className="py-20 md:py-28 px-6">
           <div className="max-w-6xl mx-auto">
             <Reveal
               y={24}
@@ -460,189 +442,145 @@ export default function AboutUsPage() {
           </div>
         </section>
 
-        {/* ── SOURCING NETWORK ─────────────────────── */}
-        <section className="py-20 md:py-28 px-6">
+        {/* ── OUR NETWORK ───────────────────────────── */}
+        <section className="py-20 md:py-28 px-6 bg-[#FAFAFA] border-y border-black/5">
           <div className="max-w-6xl mx-auto">
             <Reveal
               y={24}
               duration={0.6}
-              className="text-center mb-12 max-w-3xl mx-auto"
+              className="text-center mb-10 max-w-3xl mx-auto"
             >
               <p className="text-xs font-bold tracking-[0.25em] text-zinc-400 uppercase mb-4">
-                Where we source
+                Our network
               </p>
               <h2 className="text-3xl md:text-5xl font-bold tracking-tighter text-black mb-5">
-                Eight offices. Forty-plus markets.
+                Eight offices. Forty-plus markets. Twenty-one destinations.
               </h2>
               <p className="text-lg text-zinc-500 font-light">
-                Our own operations teams sit in eight countries, each with its
-                own specialty, and we buy well beyond them.
+                Our own teams sit in eight countries and buy in many more. Every
+                route below is a real shipping lane, not a claim — drag to spin
+                it.
               </p>
             </Reveal>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-              {COUNTRY_PAGES.map((c, i) => (
-                <Reveal
-                  as="div"
-                  key={c.slug}
-                  y={20}
-                  delay={i * 0.04}
-                  duration={0.5}
-                >
-                  <Link
-                    href={`${COUNTRY_BASE_PATH}/${c.slug}`}
-                    className="group flex h-full flex-col p-6 rounded-[1.5rem] border border-black/5 bg-white hover:border-sky-500/20 hover:shadow-[0_16px_36px_rgba(0,0,0,0.06)] transition-all duration-300"
-                  >
-                    <span className="inline-flex self-start rounded-full bg-black/5 px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.15em] text-zinc-500 mb-3">
-                      {c.role === "hub"
-                        ? "Hub"
-                        : c.role === "both"
-                          ? "Source & hub"
-                          : "Source"}
-                    </span>
-                    <h3 className="text-lg font-bold tracking-tight mb-1.5">
-                      {c.shortName}
-                    </h3>
-                    <p className="text-sm text-zinc-500 font-light leading-relaxed flex-1">
-                      {c.cardBlurb}
-                    </p>
-                    <span className="mt-4 inline-flex items-center gap-1.5 text-xs font-bold text-sky-600">
-                      Visit the office
-                      <ArrowRight
-                        size={12}
-                        className="group-hover:translate-x-1 transition-transform"
-                      />
-                    </span>
-                  </Link>
-                </Reveal>
-              ))}
-            </div>
-
-            <Reveal y={20} duration={0.5} className="text-center mt-10">
-              <Link
-                href={COUNTRY_BASE_PATH}
-                className="inline-flex items-center gap-2 text-sm font-bold text-black hover:text-sky-600 transition-colors group"
-              >
-                Explore the full network
-                <ArrowRight
-                  size={14}
-                  className="group-hover:translate-x-1 transition-transform"
-                />
-              </Link>
-            </Reveal>
-          </div>
-        </section>
-
-        {/* ── WHERE WE DELIVER ─────────────────────── */}
-        <section className="py-20 md:py-28 px-6 bg-[#FAFAFA] border-y border-black/5">
-          <div className="max-w-4xl mx-auto">
-            <Reveal y={24} duration={0.6} className="text-center mb-12">
-              <p className="text-xs font-bold tracking-[0.25em] text-zinc-400 uppercase mb-4">
-                Where we deliver
-              </p>
-              <h2 className="text-3xl md:text-5xl font-bold tracking-tighter text-black mb-5">
-                Every right-hand-drive country on earth.
-                <br className="hidden md:block" /> Plus left-hand-drive, for
-                luxury.
-              </h2>
-              <p className="text-lg text-zinc-500 font-light max-w-2xl mx-auto">
-                Twenty-one priority destination markets today, across four
-                regions — plus a standing exception for luxury marques into
-                left-hand-drive Europe, the Middle East and the Americas.
-              </p>
+            <Reveal
+              y={20}
+              duration={0.6}
+              className="mx-auto max-w-xl rounded-[2rem] border border-black/5 bg-white p-4 md:p-6"
+            >
+              <DotGlobe palette={GLOBE_PALETTE_LIGHT} />
             </Reveal>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-              {DESTINATION_REGIONS.map((r, i) => (
-                <Reveal
-                  key={r.region}
-                  y={20}
-                  delay={i * 0.06}
-                  duration={0.5}
-                  className="rounded-[1.5rem] bg-white border border-black/5 p-6"
-                >
-                  <p className="text-xs font-bold tracking-[0.2em] text-sky-600 uppercase mb-3">
-                    {r.region}
-                  </p>
-                  <div className="flex flex-wrap gap-1.5">
-                    {r.countries.map((country) => (
-                      <span
-                        key={country}
-                        className="inline-flex items-center rounded-full bg-black/5 px-2.5 py-1 text-[12px] font-medium text-zinc-700"
+            <div className="mt-12 grid grid-cols-1 lg:grid-cols-2 gap-10">
+              <div>
+                <p className="text-xs font-bold tracking-[0.2em] text-sky-600 uppercase mb-4">
+                  Where we source
+                </p>
+                <ul className="flex flex-col divide-y divide-black/5 rounded-[1.5rem] border border-black/5 bg-white overflow-hidden">
+                  {COUNTRY_PAGES.map((c) => (
+                    <li key={c.slug}>
+                      <Link
+                        href={`${COUNTRY_BASE_PATH}/${c.slug}`}
+                        className="group flex items-start justify-between gap-4 px-5 py-4 hover:bg-[#FAFAFA] transition-colors"
                       >
-                        {country}
-                      </span>
-                    ))}
-                  </div>
-                </Reveal>
-              ))}
-            </div>
-
-            <Reveal y={16} duration={0.5} className="text-center mt-8">
-              <p className="text-sm text-zinc-500 font-light">
-                Buying a left-hand-drive luxury marque?{" "}
+                        <div>
+                          <span className="font-bold text-sm">
+                            {c.shortName}
+                          </span>
+                          <p className="text-sm text-zinc-500 font-light mt-0.5">
+                            {c.cardBlurb}
+                          </p>
+                        </div>
+                        <ArrowRight
+                          size={14}
+                          className="mt-1 shrink-0 text-zinc-300 group-hover:text-sky-600 group-hover:translate-x-1 transition-all"
+                        />
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
                 <Link
-                  href="/japanese-luxury-cars-lhd"
-                  className="font-bold text-black hover:text-sky-600 transition-colors"
+                  href={COUNTRY_BASE_PATH}
+                  className="inline-flex items-center gap-2 mt-5 text-sm font-bold text-black hover:text-sky-600 transition-colors group"
                 >
-                  See our LHD sourcing route
+                  Explore the full network
+                  <ArrowRight
+                    size={14}
+                    className="group-hover:translate-x-1 transition-transform"
+                  />
                 </Link>
-                .
-              </p>
-            </Reveal>
+              </div>
+
+              <div>
+                <p className="text-xs font-bold tracking-[0.2em] text-sky-600 uppercase mb-4">
+                  Where we deliver
+                </p>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  {DESTINATION_REGIONS.map((r) => (
+                    <div
+                      key={r.region}
+                      className="rounded-[1.5rem] bg-white border border-black/5 p-5"
+                    >
+                      <p className="text-xs font-bold tracking-[0.15em] text-zinc-400 uppercase mb-3">
+                        {r.region}
+                      </p>
+                      <div className="flex flex-wrap gap-1.5">
+                        {r.countries.map((country) => (
+                          <span
+                            key={country}
+                            className="inline-flex items-center rounded-full bg-black/5 px-2.5 py-1 text-[12px] font-medium text-zinc-700"
+                          >
+                            {country}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+                <p className="mt-5 text-sm text-zinc-500 font-light">
+                  Buying a left-hand-drive luxury marque?{" "}
+                  <Link
+                    href="/japanese-luxury-cars-lhd"
+                    className="font-bold text-black hover:text-sky-600 transition-colors"
+                  >
+                    See our LHD sourcing route
+                  </Link>
+                  .
+                </p>
+              </div>
+            </div>
           </div>
         </section>
 
-        {/* ── TAX / LANDED COST + TRUST ────────────── */}
+        {/* ── THE MATH THAT MATTERS ────────────────── */}
         <section className="py-20 md:py-28 px-6">
-          <div className="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-14">
-            {/* Landed cost */}
-            <Reveal y={24} duration={0.6}>
+          <div className="max-w-3xl mx-auto">
+            <Reveal y={24} duration={0.6} className="text-center mb-10">
               <p className="text-xs font-bold tracking-[0.25em] text-zinc-400 uppercase mb-4">
                 The math that matters
               </p>
-              <h2 className="text-2xl md:text-3xl font-bold tracking-tighter text-black mb-4">
-                One all-in number, before you commit.
+              <h2 className="text-3xl md:text-5xl font-bold tracking-tighter text-black mb-5">
+                One landed number. Before you commit.
               </h2>
-              <p className="text-zinc-500 font-light leading-relaxed mb-6">
-                Import duty, VAT, freight and registration tax differ on every
-                lane. We work the full landed cost out before you buy — not
-                after.
+              <p className="text-lg text-zinc-500 font-light">
+                Duty, VAT, freight and registration differ on every lane. We
+                work out the full landed cost first — not after you've paid.
+                Here's a real one:
               </p>
-              <ul className="flex flex-col gap-4">
-                {[
-                  {
-                    icon: Landmark,
-                    title: "Japan → UK",
-                    desc: "0% import duty under the UK–Japan CEPA, with a valid statement of origin.",
-                  },
-                  {
-                    icon: Anchor,
-                    title: "Japan → Ireland",
-                    desc: "0% duty under the EU–Japan EPA, effective 1 February 2026.",
-                  },
-                  {
-                    icon: Globe2,
-                    title: "India → anywhere",
-                    desc: "Sourced at roughly 30% below the global average vehicle price.",
-                  },
-                ].map((item) => (
-                  <li key={item.title} className="flex items-start gap-3">
-                    <div className="p-2 bg-black/5 border border-black/10 rounded-xl mt-0.5">
-                      <item.icon className="text-black h-4 w-4" />
-                    </div>
-                    <div>
-                      <p className="font-bold text-sm">{item.title}</p>
-                      <p className="text-zinc-500 text-sm font-light">
-                        {item.desc}
-                      </p>
-                    </div>
-                  </li>
-                ))}
-              </ul>
+            </Reveal>
+
+            <Reveal
+              y={20}
+              duration={0.6}
+              className="rounded-[2rem] border border-black/5 bg-[#FAFAFA] p-8"
+            >
+              <LandedCostBar />
+            </Reveal>
+
+            <div className="text-center mt-8">
               <Link
                 href="/ireland-cost-calculator"
-                className="inline-flex items-center gap-1.5 mt-6 text-sm font-bold text-black hover:text-sky-600 transition-colors group"
+                className="inline-flex items-center gap-1.5 text-sm font-bold text-black hover:text-sky-600 transition-colors group"
               >
                 Try the landed-cost calculator
                 <ArrowRight
@@ -650,55 +588,68 @@ export default function AboutUsPage() {
                   className="group-hover:translate-x-1 transition-transform"
                 />
               </Link>
-            </Reveal>
+            </div>
+          </div>
+        </section>
 
-            {/* Trust */}
-            <Reveal y={24} duration={0.6} delay={0.08}>
+        {/* ── PROTECTING YOUR MONEY ─────────────────── */}
+        <section className="py-20 md:py-28 px-6 bg-[#FAFAFA] border-y border-black/5">
+          <div className="max-w-3xl mx-auto">
+            <Reveal y={24} duration={0.6} className="text-center mb-10">
               <p className="text-xs font-bold tracking-[0.25em] text-zinc-400 uppercase mb-4">
                 Protecting your money
               </p>
-              <h2 className="text-2xl md:text-3xl font-bold tracking-tighter text-black mb-4">
+              <h2 className="text-3xl md:text-5xl font-bold tracking-tighter text-black">
                 You see the car before we spend yours.
               </h2>
-              <ul className="flex flex-col gap-4">
-                {[
-                  {
-                    icon: ShieldCheck,
-                    title: "Independent inspection first",
-                    desc: "If a car doesn't match its stated grade, it doesn't ship — and you aren't charged.",
-                  },
-                  {
-                    icon: FileCheck2,
-                    title: "Payment held until verified",
-                    desc: "Funds are secured, not released, until the car checks out.",
-                  },
-                  {
-                    icon: Anchor,
-                    title: "Door-to-door marine insurance",
-                    desc: "Covered from the source country to your door.",
-                  },
-                  {
-                    icon: Users,
-                    title: "One named consultant",
-                    desc: "The same person from your first message to the day it clears customs.",
-                  },
-                ].map((item) => (
-                  <li key={item.title} className="flex items-start gap-3">
-                    <div className="p-2 bg-black/5 border border-black/10 rounded-xl mt-0.5">
-                      <item.icon className="text-black h-4 w-4" />
-                    </div>
-                    <div>
-                      <p className="font-bold text-sm">{item.title}</p>
-                      <p className="text-zinc-500 text-sm font-light">
-                        {item.desc}
-                      </p>
-                    </div>
-                  </li>
-                ))}
-              </ul>
+            </Reveal>
+            <ul className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+              {[
+                {
+                  icon: ShieldCheck,
+                  title: "Independent inspection first",
+                  desc: "If a car doesn't match its grade, it doesn't ship. You aren't charged.",
+                },
+                {
+                  icon: FileCheck2,
+                  title: "Payment held until verified",
+                  desc: "Funds are secured, not released, until the car checks out.",
+                },
+                {
+                  icon: Anchor,
+                  title: "Door-to-door marine insurance",
+                  desc: "Covered from the source country to your door.",
+                },
+                {
+                  icon: Users,
+                  title: "One named consultant",
+                  desc: "The same person, first message to customs clearance.",
+                },
+              ].map((item, i) => (
+                <Reveal
+                  key={item.title}
+                  as="li"
+                  y={20}
+                  delay={i * 0.06}
+                  duration={0.5}
+                  className="flex items-start gap-3 rounded-[1.5rem] bg-white border border-black/5 p-5"
+                >
+                  <div className="p-2 bg-black/5 border border-black/10 rounded-xl mt-0.5">
+                    <item.icon className="text-black h-4 w-4" />
+                  </div>
+                  <div>
+                    <p className="font-bold text-sm">{item.title}</p>
+                    <p className="text-zinc-500 text-sm font-light">
+                      {item.desc}
+                    </p>
+                  </div>
+                </Reveal>
+              ))}
+            </ul>
+            <div className="text-center mt-8">
               <Link
                 href="/team"
-                className="inline-flex items-center gap-1.5 mt-6 text-sm font-bold text-black hover:text-sky-600 transition-colors group"
+                className="inline-flex items-center gap-1.5 text-sm font-bold text-black hover:text-sky-600 transition-colors group"
               >
                 Meet the sourcing team
                 <ArrowRight
@@ -706,12 +657,12 @@ export default function AboutUsPage() {
                   className="group-hover:translate-x-1 transition-transform"
                 />
               </Link>
-            </Reveal>
+            </div>
           </div>
         </section>
 
         {/* ── WHO WE SERVE ─────────────────────────── */}
-        <section className="py-20 md:py-28 px-6 bg-[#FAFAFA] border-y border-black/5">
+        <section className="py-20 md:py-28 px-6">
           <div className="max-w-6xl mx-auto">
             <Reveal
               y={24}
@@ -731,7 +682,7 @@ export default function AboutUsPage() {
                 <Reveal key={a.title} y={24} delay={i * 0.08} duration={0.5}>
                   <Link
                     href={a.href}
-                    className="group flex h-full flex-col items-start p-8 rounded-[2rem] bg-white border border-black/5 hover:border-sky-500/20 hover:shadow-[0_20px_40px_rgba(0,0,0,0.06)] transition-all duration-300"
+                    className="group flex h-full flex-col items-start p-8 rounded-[2rem] bg-[#FAFAFA] border border-black/5 hover:border-sky-500/20 hover:shadow-[0_20px_40px_rgba(0,0,0,0.06)] transition-all duration-300"
                   >
                     <div className="p-3 bg-black/5 border border-black/10 rounded-2xl group-hover:bg-black group-hover:border-black transition-colors duration-500 mb-5">
                       <a.icon className="text-black h-6 w-6 group-hover:text-white transition-colors duration-500" />
@@ -757,7 +708,7 @@ export default function AboutUsPage() {
         </section>
 
         {/* ── BY THE NUMBERS ───────────────────────── */}
-        <section className="py-20 md:py-28 px-6">
+        <section className="py-20 md:py-28 px-6 bg-[#FAFAFA] border-y border-black/5">
           <div className="max-w-5xl mx-auto">
             <Reveal y={24} duration={0.6} className="text-center mb-12">
               <p className="text-xs font-bold tracking-[0.25em] text-zinc-400 uppercase mb-4">
@@ -775,14 +726,15 @@ export default function AboutUsPage() {
                   y={20}
                   delay={i * 0.05}
                   duration={0.5}
-                  className="rounded-2xl border border-black/5 bg-[#FAFAFA] px-5 py-6 text-center"
+                  className="rounded-2xl border border-black/5 bg-white px-5 py-6 text-center"
                 >
-                  <div className="flex items-center justify-center gap-1.5 text-3xl font-bold tracking-tight">
-                    <Award size={18} className="text-sky-500 shrink-0" />
-                    {s.value}
-                  </div>
-                  <div className="text-xs text-zinc-500 mt-2 leading-snug">
-                    {s.label}
+                  <div className="flex justify-center">
+                    <OdometerCounter
+                      value={s.value}
+                      suffix={s.suffix}
+                      label={s.label}
+                      className="text-3xl md:text-4xl font-bold tracking-tight text-center"
+                    />
                   </div>
                 </Reveal>
               ))}
@@ -791,14 +743,22 @@ export default function AboutUsPage() {
         </section>
 
         {/* ── CLOSING CTA ──────────────────────────── */}
-        <section className="py-24 md:py-32 px-6 text-center max-w-3xl mx-auto">
-          <Reveal y={24} duration={0.7}>
+        <section className="relative overflow-hidden py-24 md:py-32 px-6 text-center">
+          <RadialBurst
+            className="absolute inset-0"
+            colours={["#0ea5e9", "#8b5cf6"]}
+          />
+          <Reveal
+            y={24}
+            duration={0.7}
+            className="relative z-10 max-w-3xl mx-auto"
+          >
             <h2 className="text-3xl md:text-5xl font-bold tracking-tighter text-black mb-5">
               Any car. Any country. Any port.
             </h2>
             <p className="text-lg text-zinc-500 font-light mb-8">
-              Tell us the car you want. A named consultant comes back with the
-              full landed cost — one number, before you commit.
+              Tell us the car. A named consultant sends back the full landed
+              cost — one number, before you commit.
             </p>
             <Link
               href="/request"
