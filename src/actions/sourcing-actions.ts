@@ -15,6 +15,7 @@ import {
   selectTopComparables,
   tokenize,
 } from "@/lib/scrapers/matching";
+import { TARGET_MARGIN_PCT } from "@/lib/uk-landed-cost";
 import { auth } from "@/utils/auth";
 
 // Server actions for the admin Sourcing & Profit tool: live FX (JPY→GBP) for
@@ -549,6 +550,13 @@ export interface VerdictInput {
   stats: MarketStats;
   matchUsed: string;
   widened: boolean;
+  // The biggest hammer price that still clears the target margin, computed by
+  // the landed-cost engine on the client. Narrated, never recomputed here.
+  maxBid?: {
+    currency: string;
+    maxHammer: number;
+    achievable: boolean;
+  };
 }
 
 export interface Verdict {
@@ -559,6 +567,8 @@ export interface Verdict {
   // Deterministic figures computed in code (not by the model).
   grossMargin: number; // median market price − landed cost (GBP)
   marginPct: number; // grossMargin / landed cost
+  targetMarginPct: number; // the policy threshold the verdict was judged against
+  meetsTarget: boolean; // marginPct >= targetMarginPct
 }
 
 export type VerdictResult =
@@ -588,26 +598,37 @@ export async function getVerdict(input: VerdictInput): Promise<VerdictResult> {
   const { stats, landedCostGbp } = input;
   const grossMargin = stats.median - landedCostGbp;
   const marginPct = landedCostGbp > 0 ? grossMargin / landedCostGbp : 0;
+  const targetPct = TARGET_MARGIN_PCT;
+  const meetsTarget = marginPct >= targetPct;
+  const targetLabel = `${(targetPct * 100).toFixed(0)}%`;
 
   const facts = [
     `Vehicle: ${input.vehicle.year} ${input.vehicle.make} ${input.vehicle.model} ${input.vehicle.edition}, ${input.vehicle.mileage} miles.`,
-    `Total UK landed cost (already includes duty, VAT, shipping and fees): £${Math.round(landedCostGbp).toLocaleString()}.`,
+    `Total UK landed cost (includes duty, shipping, fees and UK-side clearance; import VAT is excluded because the importer reclaims it): £${Math.round(landedCostGbp).toLocaleString()}.`,
     `Live UK market for comparable cars (${stats.count} listings${input.widened ? `, match auto-widened to "${input.matchUsed}" — fewer exact comparables, so lower confidence` : ""}):`,
     `  median £${Math.round(stats.median).toLocaleString()}, mean £${Math.round(stats.mean).toLocaleString()}, range £${Math.round(stats.min).toLocaleString()}–£${Math.round(stats.max).toLocaleString()}, interquartile £${Math.round(stats.p25).toLocaleString()}–£${Math.round(stats.p75).toLocaleString()}.`,
-    `Gross margin at median resale = £${Math.round(grossMargin).toLocaleString()} (${(marginPct * 100).toFixed(1)}% of landed cost).`,
+    `Gross margin at median resale = £${Math.round(grossMargin).toLocaleString()} = ${(marginPct * 100).toFixed(1)}% of landed cost. The desk's minimum is ${targetLabel}, so this car ${meetsTarget ? "CLEARS" : "FALLS SHORT OF"} the threshold.`,
+    input.maxBid
+      ? input.maxBid.achievable
+        ? `Ceiling bid to still make ${targetLabel}: ${Math.round(input.maxBid.maxHammer).toLocaleString()} ${input.maxBid.currency} hammer.`
+        : `No hammer price reaches ${targetLabel} — freight, duty and UK costs alone consume the headroom.`
+      : "",
     `Listing supply (${stats.count}) is a rough liquidity signal: very few listings = thin/illiquid; many = easy to sell but more competition.`,
-  ].join("\n");
+  ]
+    .filter(Boolean)
+    .join("\n");
 
   const prompt = `You are a used-car import sourcing analyst for a UK dealer. Based ONLY on the figures below, decide whether this car is worth sourcing from a Japanese auction.
 
 ${facts}
 
 Guidance:
-- "source" = clearly worth buying (healthy margin with reasonable confidence).
-- "marginal" = thin margin, low supply, low confidence, or widened match — proceed with caution.
-- "avoid" = margin too thin or negative once you account for reconditioning, selling time and price negotiation.
+- The desk's policy is a minimum ${targetLabel} gross margin on landed cost. A car below ${targetLabel} can NEVER be "source", however attractive it looks otherwise.
+- "source" = clears ${targetLabel} with reasonable confidence in the comparables.
+- "marginal" = short of ${targetLabel} but close, or at/above it with thin supply, low confidence or a widened match — proceed with caution.
+- "avoid" = margin far short of ${targetLabel}, or negative once you account for reconditioning, selling time and price negotiation.
 - Be realistic: dealers rarely achieve the full median; allow headroom for haggling and prep.
-- Keep "headline" under 12 words. Keep "reasoning" to 2-4 sentences, concrete and numbers-led. Do not restate every figure.`;
+- Keep "headline" under 12 words. Keep "reasoning" to 2-4 sentences, concrete and numbers-led. State the margin percentage against the ${targetLabel} target, and if a ceiling bid is given, say what the buyer must not exceed. Do not restate every figure.`;
 
   try {
     const result = await generateGeminiText(key, {
@@ -633,9 +654,26 @@ Guidance:
       input.widened && parsed.confidence === "high"
         ? "medium"
         : parsed.confidence;
+    // Policy guardrail: the minimum margin is a business rule, not a judgement
+    // call, so it is enforced here rather than trusted to the model. Below
+    // target the best available verdict is "marginal"; the model stays free to
+    // downgrade further, and to withhold "source" above target for other
+    // reasons (thin supply, low confidence).
+    const recommendation =
+      !meetsTarget && parsed.recommendation === "source"
+        ? "marginal"
+        : parsed.recommendation;
     return {
       success: true,
-      data: { ...parsed, confidence, grossMargin, marginPct },
+      data: {
+        ...parsed,
+        recommendation,
+        confidence,
+        grossMargin,
+        marginPct,
+        targetMarginPct: targetPct,
+        meetsTarget,
+      },
       tokens: result.tokens,
       model: result.model,
     };
