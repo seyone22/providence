@@ -183,7 +183,9 @@ describe("sourcing-actions", () => {
           reasoning: "Excellent condition",
           confidence: "high",
           grossMargin: 20000,
-          marginPct: 15,
+          marginPct: 0.15,
+          targetMarginPct: 0.3,
+          meetsTarget: false,
         },
       });
 

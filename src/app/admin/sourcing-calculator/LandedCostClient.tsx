@@ -40,16 +40,22 @@ import {
 import { Separator } from "@/components/ui/separator";
 import { computeMarketStats, type NormalizedListing } from "@/lib/market-stats";
 import {
+  AUCTION_FEE_RATE,
   computeLandedCost,
+  DEFAULT_OCEAN_FREIGHT_JPY,
   DUTY_LABELS,
-  FTA_COUNTRIES,
   fmtGBP,
   fmtPct,
+  isNearIvaExemption,
+  maxAuctionPriceForMargin,
   ORIGIN_COUNTRY_LABELS,
+  ORIGIN_STATEMENT_COUNTRIES,
   type OriginCountry,
   POST_BORDER_DEFAULTS,
+  POST_BORDER_IVA,
   postBorderForAge,
   resolveTaxTreatment,
+  TARGET_MARGIN_PCT,
 } from "@/lib/uk-landed-cost";
 
 // Fuel types offered for the vehicle.
@@ -339,12 +345,16 @@ export default function LandedCostClient({
   useEffect(() => {
     if (!feeManual) {
       const h = num(hammerPrice);
-      setAuctionExportFees(h > 0 ? String(Math.round(h * 0.07)) : "");
+      setAuctionExportFees(
+        h > 0 ? String(Math.round(h * AUCTION_FEE_RATE)) : "",
+      );
     }
   }, [hammerPrice, feeManual]);
   const [inlandTransportOrigin, setInlandTransportOrigin] = useState("");
-  // Default freight: 260,000 JPY for a 3-car container (editable per shipment).
-  const [oceanFreight, setOceanFreight] = useState("260000");
+  // Default freight: 400,000 JPY per car (editable per shipment).
+  const [oceanFreight, setOceanFreight] = useState(
+    String(DEFAULT_OCEAN_FREIGHT_JPY),
+  );
   const [marineInsurance, setMarineInsurance] = useState("");
 
   // FX — displayed and entered as units-per-GBP (e.g. JPY per GBP), the intuitive
@@ -355,7 +365,9 @@ export default function LandedCostClient({
 
   // ── Tax treatment (salesperson-friendly inputs → duty/VAT derived) ──────────
   const [country, setCountry] = useState<OriginCountry>("japan");
-  const [hasOriginStatement, setHasOriginStatement] = useState(true); // default Yes
+  // Default No: duty starts at the 10% MFN rate and only drops to 0% once the
+  // desk confirms a Japan CEPA statement of origin is actually held.
+  const [hasOriginStatement, setHasOriginStatement] = useState(false);
   const [isCommercialPickup, setIsCommercialPickup] = useState(false);
 
   const vehicleAgeYears = year
@@ -393,6 +405,14 @@ export default function LandedCostClient({
   // Default post-border is the age-based figure; the operator can switch to the
   // itemised breakdown to override.
   const [postBorderDetailed, setPostBorderDetailed] = useState(false);
+  // A car within a year of the 10-year IVA exemption usually clears and
+  // registers after its birthday, so the operator can drop the IVA allowance.
+  // Offered only in that window, and reset whenever the car leaves it.
+  const [waiveIva, setWaiveIva] = useState(false);
+  const ivaWaiverOffered = isNearIvaExemption(vehicleAgeYears);
+  useEffect(() => {
+    if (!ivaWaiverOffered) setWaiveIva(false);
+  }, [ivaWaiverOffered]);
 
   const detailedPostBorder =
     num(dvlaRegistration) +
@@ -402,7 +422,7 @@ export default function LandedCostClient({
     num(ukInlandTransport);
   const postBorderTotal = postBorderDetailed
     ? detailedPostBorder
-    : postBorderForAge(vehicleAgeYears);
+    : postBorderForAge(vehicleAgeYears, { waiveIva });
 
   // GBP per 1 unit of currency, from the JPY-per-GBP the operator enters.
   const fxGbpPerUnit = num(fxRate) > 0 ? 1 / num(fxRate) : 0;
@@ -419,6 +439,9 @@ export default function LandedCostClient({
         fxRate: fxGbpPerUnit,
         dutyBasis,
         vatBasis,
+        // Import VAT is reclaimed by the (VAT-registered) importer, so it is
+        // cash-flow, not cost — carrying it here would understate margin.
+        includeVat: false,
         postBorderTotal,
       }),
     [
@@ -523,6 +546,45 @@ export default function LandedCostClient({
 
   // Live margin, recomputed from the current listing set.
   const liveMargin = liveStats.median - result.totalLanded;
+  const liveMarginPct =
+    result.totalLanded > 0 ? liveMargin / result.totalLanded : 0;
+
+  // The ceiling bid: back-solve the engine from the median resale price to the
+  // biggest hammer that still clears the target margin. Fees that scale with the
+  // hammer stay a rate; a manually-entered fee is a fixed CIF component.
+  const maxBid = useMemo(
+    () =>
+      maxAuctionPriceForMargin({
+        targetMarginPct: TARGET_MARGIN_PCT,
+        resaleGbp: liveStats.median,
+        postBorderTotal,
+        dutyRate: result.dutyRate,
+        vatEffectiveRate: result.vatEffectiveRate,
+        fxRate: fxGbpPerUnit,
+        otherCifCosts:
+          num(inlandTransportOrigin) +
+          num(oceanFreight) +
+          num(marineInsurance) +
+          (feeManual ? num(auctionExportFees) : 0),
+        auctionFeeRate: feeManual ? 0 : AUCTION_FEE_RATE,
+      }),
+    [
+      liveStats.median,
+      postBorderTotal,
+      result.dutyRate,
+      result.vatEffectiveRate,
+      fxGbpPerUnit,
+      inlandTransportOrigin,
+      oceanFreight,
+      marineInsurance,
+      auctionExportFees,
+      feeManual,
+    ],
+  );
+  // How the ceiling compares with what's actually being bid.
+  const bidHeadroom = maxBid.achievable
+    ? maxBid.maxHammer - num(hammerPrice)
+    : 0;
 
   // The verdict narrative is written against a specific set of comparables.
   // Signing the set lets us tell the operator when the prose has fallen behind
@@ -546,8 +608,6 @@ export default function LandedCostClient({
           cifGbp: result.cifGbp,
           duty: result.duty,
           dutyLabel: `Customs duty (${fmtPct(result.dutyRate)})`,
-          vat: result.vat,
-          vatLabel: `Import VAT (${fmtPct(result.vatEffectiveRate)})`,
           postBorder: result.postBorderTotal,
           totalLanded: result.totalLanded,
         },
@@ -580,8 +640,14 @@ export default function LandedCostClient({
         verdict: {
           ...verdict,
           grossMargin: liveMargin,
-          marginPct:
-            result.totalLanded > 0 ? liveMargin / result.totalLanded : 0,
+          marginPct: liveMarginPct,
+          targetMarginPct: TARGET_MARGIN_PCT,
+        },
+        maxBid: {
+          currency,
+          maxHammer: maxBid.maxHammer,
+          maxLandedGbp: maxBid.maxLandedGbp,
+          achievable: maxBid.achievable,
         },
         usage: {
           aiTokens: extractTokens + verdictTokens,
@@ -634,8 +700,7 @@ export default function LandedCostClient({
         verdict: {
           ...verdict,
           grossMargin: liveMargin,
-          marginPct:
-            result.totalLanded > 0 ? liveMargin / result.totalLanded : 0,
+          marginPct: liveMarginPct,
         },
       });
       if (res.success) {
@@ -719,6 +784,11 @@ export default function LandedCostClient({
         stats: liveStats,
         matchUsed: market.matchUsed,
         widened: liveStats.count < 5,
+        maxBid: {
+          currency,
+          maxHammer: maxBid.maxHammer,
+          achievable: maxBid.achievable,
+        },
       });
       if (v.success) {
         setVerdict(v.data);
@@ -1015,8 +1085,8 @@ export default function LandedCostClient({
                   }}
                   hint={
                     feeManual
-                      ? "Manually set — 7% of hammer is the default"
-                      : "Auto: 7% of hammer value (editable)"
+                      ? `Manually set — ${(AUCTION_FEE_RATE * 100).toFixed(0)}% of hammer is the default`
+                      : `Auto: ${(AUCTION_FEE_RATE * 100).toFixed(0)}% of hammer value (editable)`
                   }
                 />
                 {feeManual ? (
@@ -1025,7 +1095,7 @@ export default function LandedCostClient({
                     onClick={() => setFeeManual(false)}
                     className="text-[11px] font-medium text-sky-600 hover:underline -mt-2 justify-self-start"
                   >
-                    Reset to 7%
+                    Reset to {(AUCTION_FEE_RATE * 100).toFixed(0)}%
                   </button>
                 ) : null}
                 <Field
@@ -1037,7 +1107,7 @@ export default function LandedCostClient({
                   label="Ocean freight to UK port"
                   value={oceanFreight}
                   onChange={setOceanFreight}
-                  hint="Default 260,000 JPY for a 3-car container — adjust per shipment"
+                  hint={`Default ${DEFAULT_OCEAN_FREIGHT_JPY.toLocaleString()} JPY per car — adjust per shipment`}
                 />
                 <Field
                   label="Marine insurance"
@@ -1101,10 +1171,10 @@ export default function LandedCostClient({
                 </div>
               </div>
 
-              {FTA_COUNTRIES.includes(country) ? (
+              {ORIGIN_STATEMENT_COUNTRIES.includes(country) ? (
                 <div className="space-y-1.5">
                   <Label className="text-xs font-medium text-zinc-600">
-                    Statement of origin from exporter?
+                    CEPA statement of origin from exporter?
                   </Label>
                   <Select
                     value={hasOriginStatement ? "yes" : "no"}
@@ -1119,8 +1189,8 @@ export default function LandedCostClient({
                     </SelectContent>
                   </Select>
                   <p className="text-[11px] text-zinc-400">
-                    Required for the 0% preferential rate; often hard to obtain
-                    for a used re-export.
+                    Japan-built cars only. Held documents drop duty to 0%;
+                    without them the car is priced at 10%.
                   </p>
                 </div>
               ) : null}
@@ -1138,12 +1208,14 @@ export default function LandedCostClient({
                 </p>
                 <div className="flex items-center justify-between border-t border-zinc-200 pt-2">
                   <span className="text-sm text-zinc-600">Import VAT</span>
-                  <span className="text-sm font-bold text-zinc-900">
-                    {fmtPct(result.vatEffectiveRate)}
+                  <span className="text-sm font-bold text-zinc-500">
+                    Excluded
                   </span>
                 </div>
                 <p className="text-[11px] text-zinc-500 -mt-1">
-                  {treatment.vatReason}
+                  Reclaimed as input tax by the importer, so it is cash-flow
+                  rather than cost — it is left out of the landed figure and the
+                  margin below.
                 </p>
                 {treatment.isHistoric ? (
                   <p className="text-[11px] text-amber-700">
@@ -1176,8 +1248,10 @@ export default function LandedCostClient({
                 {!postBorderDetailed ? (
                   <p className="text-[11px] text-zinc-400 mt-1">
                     {vehicleAgeYears != null && vehicleAgeYears >= 10
-                      ? "10+ yrs: £800 standard clearance (no IVA)."
-                      : "Under 10 yrs: £1,000 clearance + £800 IVA buffer = £1,800."}
+                      ? "10+ yrs: £800 clearance + registration (outside the IVA scheme)."
+                      : waiveIva
+                        ? "£800 clearance + registration — IVA allowance waived."
+                        : "Under 10 yrs: £800 clearance + £1,000 IVA allowance = £1,800."}
                   </p>
                 ) : null}
                 <button
@@ -1190,6 +1264,32 @@ export default function LandedCostClient({
                     : "Itemise costs instead"}
                 </button>
               </div>
+
+              {/* A car within a year of the 10-yr IVA exemption will usually be
+                  registered after its birthday, so the IVA cost never lands. */}
+              {ivaWaiverOffered && !postBorderDetailed ? (
+                <label className="flex items-start gap-3 rounded-lg border border-sky-200 bg-sky-50 p-3 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={waiveIva}
+                    onChange={(e) => setWaiveIva(e.target.checked)}
+                    className="mt-0.5 size-4 shrink-0 accent-sky-600"
+                  />
+                  <span>
+                    <span className="block text-[12px] font-medium text-sky-900">
+                      Drop the £{POST_BORDER_IVA.toLocaleString()} IVA allowance
+                      — this car turns 10 before it clears
+                    </span>
+                    <span className="block text-[11px] text-sky-700 mt-0.5">
+                      It's {vehicleAgeYears} years old now. Shipping and
+                      clearance usually take long enough that registration falls
+                      after the 10-year mark, where an MOT replaces the IVA
+                      test. Your call — confirm the timeline before relying on
+                      it.
+                    </span>
+                  </span>
+                </label>
+              ) : null}
 
               {postBorderDetailed ? (
                 <>
@@ -1246,7 +1346,7 @@ export default function LandedCostClient({
                 Landed cost
               </CardTitle>
               <Badge variant="secondary" className="text-[10px]">
-                {fmtPct(result.taxPctOfCif)} tax / CIF
+                {fmtPct(result.taxPctOfCif)} duty / CIF
               </Badge>
             </div>
             <p className="text-3xl font-bold mt-2">
@@ -1258,12 +1358,7 @@ export default function LandedCostClient({
               <BreakdownRow
                 label="CIF value"
                 value={fmtGBP(result.cifGbp)}
-                sub={cifLabel}
-              />
-              <BreakdownRow
-                label="Customs value (60% of CIF)"
-                value={fmtGBP(result.customsValue)}
-                sub="Valuation basis for duty & VAT"
+                sub={`${cifLabel} · full CIF is the customs value`}
               />
               <BreakdownRow
                 label={`Customs duty (${fmtPct(result.dutyRate)})`}
@@ -1271,9 +1366,9 @@ export default function LandedCostClient({
                 sub={DUTY_LABELS[result.dutyBasis]}
               />
               <BreakdownRow
-                label={`Import VAT (${fmtPct(result.vatEffectiveRate)})`}
-                value={fmtGBP(result.vat)}
-                sub={`On ${fmtGBP(result.vatBase)}`}
+                label="Import VAT"
+                value="Excluded"
+                sub="Reclaimed by the importer — not a cost"
               />
               <BreakdownRow
                 label="Post-border fees"
@@ -1281,7 +1376,9 @@ export default function LandedCostClient({
                 sub={
                   postBorderDetailed
                     ? "Itemised (DVLA, plates, IVA/MOT, mods, transport)"
-                    : "Standard clearance + registration (by age)"
+                    : waiveIva
+                      ? "Clearance + registration · IVA waived"
+                      : "Standard clearance + registration (by age)"
                 }
               />
             </div>
@@ -1291,10 +1388,52 @@ export default function LandedCostClient({
               value={fmtGBP(result.totalLanded)}
               strong
             />
+
+            {/* The ceiling bid — the single number a buyer needs in the room.
+                Only meaningful once there's a market median to work back from. */}
+            {liveStats.count > 0 ? (
+              <div className="mt-4 rounded-lg border border-zinc-700 bg-zinc-800/60 p-3">
+                <p className="text-[10px] uppercase tracking-widest text-zinc-400">
+                  Max auction bid for {(TARGET_MARGIN_PCT * 100).toFixed(0)}%
+                  margin
+                </p>
+                {maxBid.achievable ? (
+                  <>
+                    <p className="mt-1 text-2xl font-bold tabular-nums">
+                      {currency === "JPY" ? "¥" : "$"}
+                      {Math.round(maxBid.maxHammer).toLocaleString()}
+                    </p>
+                    <p className="text-[11px] text-zinc-400 mt-0.5">
+                      ≈ {fmtGBP(maxBid.maxHammer * fxGbpPerUnit)} · lands at{" "}
+                      {fmtGBP(maxBid.maxLandedGbp)} against a{" "}
+                      {fmtGBP(liveStats.median)} median
+                    </p>
+                    {num(hammerPrice) > 0 ? (
+                      <p
+                        className={`text-[11px] mt-1.5 font-medium ${
+                          bidHeadroom >= 0 ? "text-emerald-400" : "text-red-400"
+                        }`}
+                      >
+                        {bidHeadroom >= 0
+                          ? `${Math.round(bidHeadroom).toLocaleString()} ${currency} of headroom left on your bid`
+                          : `${Math.round(-bidHeadroom).toLocaleString()} ${currency} over the ceiling`}
+                      </p>
+                    ) : null}
+                  </>
+                ) : (
+                  <p className="mt-1 text-sm font-semibold text-red-400">
+                    Unreachable — freight, duty and UK costs alone exceed{" "}
+                    {fmtGBP(maxBid.maxLandedGbp)}. No bid clears{" "}
+                    {(TARGET_MARGIN_PCT * 100).toFixed(0)}% on this car.
+                  </p>
+                )}
+              </div>
+            ) : null}
+
             <p className="text-[11px] text-zinc-500 mt-4 leading-relaxed">
-              Indicative HMRC-based estimate. Confirm duty against the live UK
-              Trade Tariff (10-digit code) and use HMRC's monthly FX rate before
-              committing.
+              Indicative HMRC-based estimate, excluding reclaimable import VAT.
+              Confirm duty against the live UK Trade Tariff (10-digit code) and
+              use HMRC's monthly FX rate before committing.
             </p>
 
             {/* Step 2: once costs are in and listings crawled, get the verdict */}
@@ -1564,17 +1703,51 @@ export default function LandedCostClient({
                       <p className="text-[11px] uppercase tracking-wide text-zinc-400">
                         Gross margin at median resale
                       </p>
-                      <p
-                        className={`text-2xl font-bold ${
-                          liveMargin >= 0 ? "text-emerald-600" : "text-red-600"
-                        }`}
-                      >
-                        {fmtGBP(liveMargin)}
-                      </p>
+                      <div className="flex items-baseline gap-2">
+                        <p
+                          className={`text-2xl font-bold ${
+                            liveMarginPct >= TARGET_MARGIN_PCT
+                              ? "text-emerald-600"
+                              : "text-red-600"
+                          }`}
+                        >
+                          {fmtGBP(liveMargin)}
+                        </p>
+                        <span
+                          className={`text-lg font-bold tabular-nums ${
+                            liveMarginPct >= TARGET_MARGIN_PCT
+                              ? "text-emerald-600"
+                              : "text-red-600"
+                          }`}
+                        >
+                          {(liveMarginPct * 100).toFixed(1)}%
+                        </span>
+                        <Badge
+                          className={`text-[10px] ${
+                            liveMarginPct >= TARGET_MARGIN_PCT
+                              ? "bg-emerald-100 text-emerald-800"
+                              : "bg-red-100 text-red-800"
+                          }`}
+                        >
+                          {liveMarginPct >= TARGET_MARGIN_PCT
+                            ? `clears the ${(TARGET_MARGIN_PCT * 100).toFixed(0)}% target`
+                            : `below the ${(TARGET_MARGIN_PCT * 100).toFixed(0)}% target`}
+                        </Badge>
+                      </div>
                       <p className="text-[11px] text-zinc-400">
                         median {fmtGBP(liveStats.median)} − landed{" "}
-                        {fmtGBP(result.totalLanded)}
+                        {fmtGBP(result.totalLanded)} · % of landed cost
                       </p>
+                      {maxBid.achievable ? (
+                        <p className="text-[11px] text-zinc-500 mt-1">
+                          Max bid for {(TARGET_MARGIN_PCT * 100).toFixed(0)}%:{" "}
+                          <span className="font-semibold text-zinc-700 tabular-nums">
+                            {currency === "JPY" ? "¥" : "$"}
+                            {Math.round(maxBid.maxHammer).toLocaleString()}
+                          </span>{" "}
+                          hammer ({fmtGBP(maxBid.maxHammer * fxGbpPerUnit)})
+                        </p>
+                      ) : null}
                     </div>
                     {verdict ? (
                       <Badge
