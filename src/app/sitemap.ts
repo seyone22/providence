@@ -41,6 +41,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     "/about",
     "/contact",
     "/dealer-dashboard",
+    "/import-cars-to-ireland",
     "/import-japanese-cars",
     "/import-japanese-cars-to-ireland",
     "/indian-manufactured-cars",
