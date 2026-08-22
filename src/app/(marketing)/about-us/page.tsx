@@ -13,6 +13,7 @@ import {
 import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
+import type { CSSProperties } from "react";
 import DotGlobe, { GLOBE_PALETTE_LIGHT } from "@/components/DotGlobe";
 import GradientMesh from "@/components/GradientMesh";
 import LandedCostBar from "@/components/LandedCostBar";
@@ -84,14 +85,10 @@ const STATS = [
   { value: 24, suffix: " hrs", label: "To your first sourcing quote" },
 ];
 
-// ── The six values, dealt as a deck. `deck` holds the per-card fan: a z
-// order so each card overlaps the one before it, plus the rotation and lift
-// that make the row read as a hand of cards. All of it is lg-only — below
-// that the same cards are a plain horizontal scroller.
-//
-// Tailwind v4 compiles rotate/translate/scale to the *individual* transform
-// properties, not to `transform`, so none of this collides with the transform
-// the reveal runtime animates.
+// ── The six values, dealt as a deck. `rot`/`y` are the card's angle and lift
+// in the fan, handed to the .pa-fan rules in globals.css as custom
+// properties; `z` stacks each card over the one before it. The fan itself is
+// lg-only — below that these are a plain horizontal scroller.
 const VALUES = [
   {
     n: "01",
@@ -99,7 +96,9 @@ const VALUES = [
     line: "We earn it before we ask for anything in return. Every conversation, every car.",
     src: "/about/value-trust.jpg",
     alt: "A Mercedes-Benz grille and star with a Providence Auto plate below it",
-    deck: "z-[11] lg:rotate-[-6deg] lg:translate-y-6",
+    rot: "-6deg",
+    y: "1.5rem",
+    z: 11,
   },
   {
     n: "02",
@@ -107,7 +106,9 @@ const VALUES = [
     line: "When we say we'll call, we call. When we say it's ready, it's ready.",
     src: "/about/value-reliability.jpg",
     alt: "The headlight and front wing of a white saloon in close detail",
-    deck: "z-[12] lg:rotate-[-3.6deg] lg:translate-y-2",
+    rot: "-3.6deg",
+    y: "0.5rem",
+    z: 12,
   },
   {
     n: "03",
@@ -115,7 +116,9 @@ const VALUES = [
     line: "No hidden fees, no small print. You see the price, the process and the people.",
     src: "/about/value-transparency.jpg",
     alt: "The front of a silver sports car under low garage light",
-    deck: "z-[13] lg:rotate-[-1.2deg]",
+    rot: "-1.2deg",
+    y: "0rem",
+    z: 13,
   },
   {
     n: "04",
@@ -123,7 +126,9 @@ const VALUES = [
     line: "It doesn't end at handover. We're in it for every mile after the sale.",
     src: "/about/value-commitment.jpg",
     alt: "The rear wheel and tail light of a yellow supercar in close detail",
-    deck: "z-[14] lg:rotate-[1.2deg]",
+    rot: "1.2deg",
+    y: "0rem",
+    z: 14,
   },
   {
     n: "05",
@@ -131,7 +136,9 @@ const VALUES = [
     line: "What the car needs, and what we'd choose ourselves. Advice over a quick sale.",
     src: "/about/value-honesty.jpg",
     alt: "A lit headlight on a dark SUV at night",
-    deck: "z-[15] lg:rotate-[3.6deg] lg:translate-y-2",
+    rot: "3.6deg",
+    y: "0.5rem",
+    z: 15,
   },
   {
     n: "06",
@@ -139,7 +146,9 @@ const VALUES = [
     line: "We remember your name and what matters to you. Not a transaction — a beginning.",
     src: "/about/value-relationship.jpg",
     alt: "The rear of a dark coupé at night with its tail lights lit",
-    deck: "z-[16] lg:rotate-[6deg] lg:translate-y-6",
+    rot: "6deg",
+    y: "1.5rem",
+    z: 16,
   },
 ];
 
@@ -338,7 +347,7 @@ export default function AboutUsPage() {
               {STATS.slice(0, 4).map((s) => (
                 <div
                   key={s.label}
-                  className="rounded-2xl border border-black/5 bg-white/70 backdrop-blur-sm px-4 py-5"
+                  className="rounded-2xl border border-black/5 bg-white/85 px-4 py-5 sm:bg-white/70 sm:backdrop-blur-sm"
                 >
                   <div className="flex justify-center">
                     <OdometerCounter
@@ -363,49 +372,61 @@ export default function AboutUsPage() {
               className="text-center mb-10 lg:mb-14"
             >
               <SectionRule />
-              <h2 className="text-3xl md:text-5xl font-bold tracking-tighter text-black mb-4">
+              <h2 className="text-3xl md:text-5xl font-bold tracking-tighter text-black">
                 Our values.
               </h2>
-              <p className="text-lg text-zinc-500 font-light max-w-xl mx-auto">
-                Six words the whole company is held to.
-              </p>
             </Reveal>
 
-            <div className="flex gap-4 overflow-x-auto snap-x snap-mandatory pb-4 -mx-6 px-6 lg:mx-0 lg:px-0 lg:gap-0 lg:items-end lg:justify-center lg:overflow-visible lg:pt-8 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-              {VALUES.map((v, i) => (
-                <Reveal
-                  key={v.name}
-                  y={28}
-                  delay={i * 0.06}
-                  duration={0.7}
-                  className={`group/card relative w-[68vw] shrink-0 origin-bottom snap-center transition-all duration-500 ease-out sm:w-[44vw] lg:-ml-16 lg:w-48 lg:first:ml-0 xl:w-56 lg:hover:z-50 lg:hover:rotate-0 lg:hover:scale-[1.12] lg:hover:-translate-y-4 ${v.deck}`}
-                >
-                  <div className="relative aspect-[4/5] overflow-hidden rounded-[1.5rem] bg-[#FAFAFA] ring-1 ring-black/10 shadow-[0_24px_60px_-30px_rgba(0,0,0,0.5)] lg:shadow-[0_30px_70px_-35px_rgba(0,0,0,0.6)]">
-                    <Image
-                      src={v.src}
-                      alt={v.alt}
-                      fill
-                      sizes="(max-width: 1024px) 68vw, 224px"
-                      className="object-cover"
-                    />
-                    {/* Dealt cards sit under a heavier scrim; the hovered one
-                        clears to full colour as it lifts out of the fan. */}
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-black/15 transition-all duration-500 lg:via-black/60 lg:to-black/45 lg:group-hover/card:via-black/35 lg:group-hover/card:to-black/5" />
-                    <div className="absolute inset-x-0 bottom-0 p-4 xl:p-5">
-                      <p className="text-[10px] font-bold uppercase tracking-[0.25em] text-white/45">
-                        {v.n}
-                      </p>
-                      <p className="mt-1.5 text-lg font-bold tracking-tight text-white xl:text-xl">
-                        {v.name}
-                      </p>
-                      <p className="mt-1.5 text-[12px] font-light leading-snug text-zinc-200 transition-all duration-500 lg:translate-y-1 lg:opacity-0 lg:group-hover/card:translate-y-0 lg:group-hover/card:opacity-100">
-                        {v.line}
-                      </p>
+            {/* One reveal for the whole deck, not one per card. Per-card
+                reveals left the cards that start off-screen to the right of the
+                scroller waiting on an observer that only ever fires against the
+                viewport, so they stayed invisible while you scrolled past them.
+                The scroller itself is never the animated element either — a
+                transform on a scroll container fights the scroll. */}
+            <Reveal y={28} duration={0.7}>
+              <div className="flex gap-4 overflow-x-auto overscroll-x-contain snap-x snap-mandatory pb-4 -mx-6 px-6 lg:mx-0 lg:px-0 lg:gap-0 lg:items-end lg:justify-center lg:overflow-visible lg:pt-8 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+                {VALUES.map((v) => (
+                  <div
+                    key={v.name}
+                    style={
+                      {
+                        "--fan-rot": v.rot,
+                        "--fan-y": v.y,
+                        zIndex: v.z,
+                      } as CSSProperties
+                    }
+                    className="pa-fan relative w-52 shrink-0 snap-center sm:w-56 lg:-ml-16 lg:w-48 lg:first:ml-0 xl:w-56"
+                  >
+                    {/* The photo is rounded as well as clipped: a rounded box
+                        that is also rotated antialiases its own edge, and any
+                        lighter fill behind it shows through as a hairline. */}
+                    <div className="relative aspect-[4/5] overflow-hidden rounded-[1.5rem] bg-zinc-950 shadow-[0_24px_60px_-30px_rgba(0,0,0,0.5)] lg:shadow-[0_30px_70px_-35px_rgba(0,0,0,0.6)]">
+                      <Image
+                        src={v.src}
+                        alt={v.alt}
+                        fill
+                        sizes="224px"
+                        className="rounded-[1.5rem] object-cover"
+                      />
+                      <div className="pa-fan-scrim absolute inset-0 rounded-[1.5rem]" />
+                      <div className="absolute inset-x-0 bottom-0 p-4">
+                        <p className="text-[10px] font-bold uppercase tracking-[0.25em] text-white/45">
+                          {v.n}
+                        </p>
+                        <p className="mt-1.5 text-lg font-bold tracking-tight text-white">
+                          {v.name}
+                        </p>
+                        {/* Held back until hover on the deck, where the cards
+                            overlap; always shown where there is no hover. */}
+                        <p className="pa-fan-line mt-1.5 text-[12px] font-light leading-snug text-zinc-200">
+                          {v.line}
+                        </p>
+                      </div>
                     </div>
                   </div>
-                </Reveal>
-              ))}
-            </div>
+                ))}
+              </div>
+            </Reveal>
           </div>
         </section>
 
@@ -604,7 +625,7 @@ export default function AboutUsPage() {
                   y={24}
                   delay={i * 0.06}
                   duration={0.5}
-                  className="group flex flex-col items-start p-7 rounded-[1.75rem] bg-white/[0.04] border border-white/10 backdrop-blur-sm hover:border-white/25 hover:bg-white/[0.07] transition-all duration-300"
+                  className="group flex flex-col items-start p-7 rounded-[1.75rem] bg-white/[0.06] border border-white/10 sm:bg-white/[0.04] sm:backdrop-blur-sm hover:border-white/25 hover:bg-white/[0.09] sm:hover:bg-white/[0.07] transition-all duration-300"
                 >
                   <div className="p-3 bg-white/10 border border-white/15 rounded-2xl group-hover:bg-white group-hover:border-white transition-colors duration-500 mb-5">
                     <pillar.icon className="text-white h-5 w-5 group-hover:text-black transition-colors duration-500" />
