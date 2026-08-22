@@ -244,6 +244,99 @@ const DESTINATIONS: Destination[] = [
     readMoreLabel: "How importing from India works",
   },
   {
+    key: "mauritius",
+    label: "Mauritius",
+    formCountry: "Mauritius",
+    headline:
+      "Mauritius taxes by engine size — which is exactly how India builds.",
+    body: "Mauritian excise duty is set in bands by engine capacity, so the compact, efficient engines India specialises in land in the lower brackets rather than the punitive ones — and that saving stacks on top of the lower factory price. Second-hand imports are permit-controlled and age-restricted, so we confirm the conditions in force with the authorities before we buy rather than working off an old rate sheet, then quote one landed price into Port Louis with excise, VAT and clearance already inside it.",
+    facts: [
+      { icon: Gauge, label: "Excise banded by engine capacity" },
+      { icon: Wrench, label: "Factory right-hand drive" },
+      {
+        icon: ShieldCheck,
+        label: "Import permit rules confirmed before we buy",
+      },
+      { icon: Anchor, label: "Cleared through Port Louis" },
+    ],
+    popular:
+      "Most requested for Mauritius: India-built Suzuki and Hyundai small cars, and the compact SUVs that sit in the lower excise bands.",
+    readMoreHref: "/blog/cost-to-import-a-car-from-india",
+    readMoreLabel: "What an India import actually costs",
+  },
+  {
+    key: "seychelles",
+    label: "Seychelles",
+    formCountry: "Seychelles",
+    headline:
+      "Seychelles all but closes the door on used imports — a new India-built car walks straight through.",
+    body: "Second-hand vehicles enter Seychelles only under narrow concessions — chiefly returning residents and graduates, and only for very recent cars — so for most buyers a new car is the realistic route. That suits an India-built order precisely: we buy new through our dealer network in your exact model, trim and colour, and price duty, levies and clearance into Port Victoria inside the single figure you approve before we commit. Right-hand drive is standard, so nothing needs converting.",
+    facts: [
+      { icon: ShieldCheck, label: "Used-import concessions checked for you" },
+      { icon: Boxes, label: "Bought new, to your specification" },
+      { icon: Wrench, label: "Factory right-hand drive" },
+      { icon: Anchor, label: "Cleared through Port Victoria" },
+    ],
+    popular:
+      "Most requested for Seychelles: new India-built Suzuki, Hyundai and Toyota small cars and compact SUVs.",
+    readMoreHref: "/blog/how-to-import-a-car-from-india",
+    readMoreLabel: "How importing from India works",
+  },
+  {
+    key: "trinidad-and-tobago",
+    label: "Trinidad & Tobago",
+    formCountry: "Trinidad and Tobago",
+    headline:
+      "Trinidad widened its used-car age limit to eight years — the range India builds in.",
+    body: "A 2025 revision of the Foreign Used Car Policy raised the permissible age of imported private cars from three years to eight, and light diesel commercials to ten, which puts most of our India-built stock comfortably inside the rule. Used right-hand-drive vehicles still need an import licence, and quota rules govern dealer volume, so we confirm the licence and the age rule in force at the time we buy — then land the car at Port of Spain with tariff, VAT and charges inside the quote you already approved.",
+    facts: [
+      { icon: Gauge, label: "Eight-year age rule for private cars" },
+      { icon: ShieldCheck, label: "Import licence arranged before shipping" },
+      { icon: Wrench, label: "Factory right-hand drive" },
+      { icon: Anchor, label: "Cleared through Port of Spain" },
+    ],
+    popular:
+      "Most requested for Trinidad & Tobago: India-built Suzuki and Hyundai hatchbacks, plus Mahindra and Tata pickups.",
+    readMoreHref: "/blog/india-car-export-documents-explained",
+    readMoreLabel: "The export paperwork explained",
+  },
+  {
+    key: "jamaica",
+    label: "Jamaica",
+    formCountry: "Jamaica",
+    headline:
+      "Jamaica caps motor cars at six years, and wants the licence first.",
+    body: "The Trade Board import licence has to be in hand before the car ships, motor cars and station wagons must be no more than six years old, and every used import needs a pre-shipment inspection certificate from the country of export. All three are ours to handle: age-compliant stock sourced through our Indian dealer network, the inspection booked in India before loading, and the car cleared into Kingston with duty and GCT already inside the price you approved.",
+    facts: [
+      { icon: Gauge, label: "Six-year rule for motor cars" },
+      { icon: ShieldCheck, label: "Trade Board licence arranged first" },
+      { icon: Wrench, label: "Factory right-hand drive" },
+      { icon: Anchor, label: "Cleared through Kingston" },
+    ],
+    popular:
+      "Most requested for Jamaica: India-built Suzuki, Toyota and Nissan small cars, and compact SUVs for family use.",
+    readMoreHref: "/blog/india-car-export-documents-explained",
+    readMoreLabel: "The export paperwork explained",
+  },
+  {
+    key: "grenada",
+    label: "Grenada",
+    formCountry: "Grenada",
+    headline:
+      "In Grenada the environmental levy climbs with age, so the newer car is the cheaper car.",
+    body: "Grenada admits right-hand-drive imports and charges the CARICOM common external tariff and VAT alongside an environmental levy that steps up sharply once a vehicle is a few years old — which is why a newer India-built car routinely lands cheaper than an older one bought for less. An age ceiling applies as well, so we confirm the rules in force with Grenada Customs before we buy and quote one landed figure into St George's with every charge inside it.",
+    facts: [
+      { icon: Gauge, label: "Environmental levy rises with vehicle age" },
+      { icon: ShieldCheck, label: "Current rules confirmed with Customs" },
+      { icon: Wrench, label: "Factory right-hand drive" },
+      { icon: Anchor, label: "Cleared through St George's" },
+    ],
+    popular:
+      "Most requested for Grenada: India-built Suzuki and Hyundai hatchbacks, and Mahindra and Tata 4x4s.",
+    readMoreHref: "/blog/how-to-import-a-car-from-india",
+    readMoreLabel: "How importing from India works",
+  },
+  {
     key: "other",
     label: "Other",
     formCountry: null,

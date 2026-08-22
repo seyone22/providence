@@ -85,7 +85,21 @@ export default function IndianManufacturedCarsPage() {
     serviceType: "Vehicle sourcing and import",
     description: indianCampaignConfig.meta.description,
     url: URL,
-    areaServed: ["United Kingdom", "Europe", "Middle East"],
+    // Kept in sync with DESTINATIONS in IndianCarsLanding.tsx — the countries
+    // the destination picker actually quotes rules and routes for.
+    areaServed: [
+      "United Kingdom",
+      "Ireland",
+      "Sri Lanka",
+      "Kenya",
+      "Tanzania",
+      "Uganda",
+      "Mauritius",
+      "Seychelles",
+      "Trinidad and Tobago",
+      "Jamaica",
+      "Grenada",
+    ],
     provider: {
       "@type": "Organization",
       name: "Providence Auto",
