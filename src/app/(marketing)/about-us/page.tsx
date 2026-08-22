@@ -84,32 +84,62 @@ const STATS = [
   { value: 24, suffix: " hrs", label: "To your first sourcing quote" },
 ];
 
-// ── What we promise, in four words. Mood photography, not inventory: the
-// point of this strip is the brand, so nothing here is a car for sale. ────
-const BRAND_MOMENTS = [
+// ── The six values, dealt as a deck. `deck` holds the per-card fan: a z
+// order so each card overlaps the one before it, plus the rotation and lift
+// that make the row read as a hand of cards. All of it is lg-only — below
+// that the same cards are a plain horizontal scroller.
+//
+// Tailwind v4 compiles rotate/translate/scale to the *individual* transform
+// properties, not to `transform`, so none of this collides with the transform
+// the reveal runtime animates.
+const VALUES = [
   {
-    src: "/about/brand-exact.jpg",
-    word: "Exact.",
-    line: "The car you specified — not the nearest thing on a lot.",
+    n: "01",
+    name: "Trust",
+    line: "We earn it before we ask for anything in return. Every conversation, every car.",
+    src: "/about/value-trust.jpg",
+    alt: "A Mercedes-Benz grille and star with a Providence Auto plate below it",
+    deck: "z-[11] lg:rotate-[-6deg] lg:translate-y-6",
+  },
+  {
+    n: "02",
+    name: "Reliability",
+    line: "When we say we'll call, we call. When we say it's ready, it's ready.",
+    src: "/about/value-reliability.jpg",
     alt: "The headlight and front wing of a white saloon in close detail",
+    deck: "z-[12] lg:rotate-[-3.6deg] lg:translate-y-2",
   },
   {
-    src: "/about/brand-verified.jpg",
-    word: "Verified.",
-    line: "Someone of ours stands in front of it before you pay.",
+    n: "03",
+    name: "Transparency",
+    line: "No hidden fees, no small print. You see the price, the process and the people.",
+    src: "/about/value-transparency.jpg",
     alt: "The front of a silver sports car under low garage light",
+    deck: "z-[13] lg:rotate-[-1.2deg]",
   },
   {
-    src: "/about/brand-borderless.jpg",
-    word: "Borderless.",
-    line: "Forty-plus sourcing markets. Twenty-one destinations.",
-    alt: "The rear of a dark coupé at night with its tail lights lit",
+    n: "04",
+    name: "Commitment",
+    line: "It doesn't end at handover. We're in it for every mile after the sale.",
+    src: "/about/value-commitment.jpg",
+    alt: "The rear wheel and tail light of a yellow supercar in close detail",
+    deck: "z-[14] lg:rotate-[1.2deg]",
   },
   {
-    src: "/about/brand-landed.jpg",
-    word: "Landed.",
-    line: "One number, from the auction floor to your door.",
+    n: "05",
+    name: "Honesty",
+    line: "What the car needs, and what we'd choose ourselves. Advice over a quick sale.",
+    src: "/about/value-honesty.jpg",
     alt: "A lit headlight on a dark SUV at night",
+    deck: "z-[15] lg:rotate-[3.6deg] lg:translate-y-2",
+  },
+  {
+    n: "06",
+    name: "Relationship",
+    line: "We remember your name and what matters to you. Not a transaction — a beginning.",
+    src: "/about/value-relationship.jpg",
+    alt: "The rear of a dark coupé at night with its tail lights lit",
+    deck: "z-[16] lg:rotate-[6deg] lg:translate-y-6",
   },
 ];
 
@@ -324,35 +354,52 @@ export default function AboutUsPage() {
           </div>
         </section>
 
-        {/* ── WHAT WE PROMISE ──────────────────────── */}
-        <section className="px-6 pb-16 md:pb-28">
+        {/* ── OUR VALUES ───────────────────────────── */}
+        <section className="px-6 pb-16 md:pb-24">
           <div className="max-w-7xl mx-auto">
-            <div className="flex gap-4 md:gap-6 overflow-x-auto snap-x snap-mandatory pb-2 -mx-6 px-6 md:mx-0 md:px-0 md:grid md:grid-cols-4 md:overflow-visible [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-              {BRAND_MOMENTS.map((m, i) => (
+            <Reveal
+              y={24}
+              duration={0.6}
+              className="text-center mb-10 lg:mb-14"
+            >
+              <SectionRule />
+              <h2 className="text-3xl md:text-5xl font-bold tracking-tighter text-black mb-4">
+                Our values.
+              </h2>
+              <p className="text-lg text-zinc-500 font-light max-w-xl mx-auto">
+                Six words the whole company is held to.
+              </p>
+            </Reveal>
+
+            <div className="flex gap-4 overflow-x-auto snap-x snap-mandatory pb-4 -mx-6 px-6 lg:mx-0 lg:px-0 lg:gap-0 lg:items-end lg:justify-center lg:overflow-visible lg:pt-8 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+              {VALUES.map((v, i) => (
                 <Reveal
-                  key={m.word}
+                  key={v.name}
                   y={28}
-                  delay={i * 0.08}
+                  delay={i * 0.06}
                   duration={0.7}
-                  className={`group relative w-[72vw] shrink-0 snap-center sm:w-[46vw] md:w-auto ${
-                    i % 2 === 1 ? "md:translate-y-8" : ""
-                  }`}
+                  className={`group/card relative w-[68vw] shrink-0 origin-bottom snap-center transition-all duration-500 ease-out sm:w-[44vw] lg:-ml-16 lg:w-48 lg:first:ml-0 xl:w-56 lg:hover:z-50 lg:hover:rotate-0 lg:hover:scale-[1.12] lg:hover:-translate-y-4 ${v.deck}`}
                 >
-                  <div className="relative aspect-[4/5] overflow-hidden rounded-[1.75rem] bg-[#FAFAFA] ring-1 ring-black/5 shadow-[0_24px_60px_-30px_rgba(0,0,0,0.45)]">
+                  <div className="relative aspect-[4/5] overflow-hidden rounded-[1.5rem] bg-[#FAFAFA] ring-1 ring-black/10 shadow-[0_24px_60px_-30px_rgba(0,0,0,0.5)] lg:shadow-[0_30px_70px_-35px_rgba(0,0,0,0.6)]">
                     <Image
-                      src={m.src}
-                      alt={m.alt}
+                      src={v.src}
+                      alt={v.alt}
                       fill
-                      sizes="(max-width: 640px) 72vw, (max-width: 768px) 46vw, 25vw"
-                      className="object-cover transition-transform duration-[1200ms] ease-out group-hover:scale-[1.05]"
+                      sizes="(max-width: 1024px) 68vw, 224px"
+                      className="object-cover"
                     />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/25 to-transparent" />
-                    <div className="absolute inset-x-0 bottom-0 p-5 md:p-6">
-                      <p className="text-2xl font-bold tracking-tighter text-white">
-                        {m.word}
+                    {/* Dealt cards sit under a heavier scrim; the hovered one
+                        clears to full colour as it lifts out of the fan. */}
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-black/15 transition-all duration-500 lg:via-black/60 lg:to-black/45 lg:group-hover/card:via-black/35 lg:group-hover/card:to-black/5" />
+                    <div className="absolute inset-x-0 bottom-0 p-4 xl:p-5">
+                      <p className="text-[10px] font-bold uppercase tracking-[0.25em] text-white/45">
+                        {v.n}
                       </p>
-                      <p className="mt-1.5 text-[13px] font-light leading-snug text-zinc-300">
-                        {m.line}
+                      <p className="mt-1.5 text-lg font-bold tracking-tight text-white xl:text-xl">
+                        {v.name}
+                      </p>
+                      <p className="mt-1.5 text-[12px] font-light leading-snug text-zinc-200 transition-all duration-500 lg:translate-y-1 lg:opacity-0 lg:group-hover/card:translate-y-0 lg:group-hover/card:opacity-100">
+                        {v.line}
                       </p>
                     </div>
                   </div>
