@@ -94,7 +94,7 @@ export default function MotionLabPage() {
 
         <Panel
           title="Radial burst"
-          note="Particles travelling outward along fixed spokes. Every spoke keeps its angle for the life of the component — only the radius animates — which is what gives the clean fan instead of a scatter."
+          note="Particles travelling outward along fixed spokes. Every spoke keeps its angle for the life of the component — only the radius animates — which is what gives the clean fan instead of a scatter. Interactive by default: hover tilts the fan a few degrees towards the cursor, and dragging or a horizontal wheel/trackpad swipe spins it with inertia, like DotGlobe's drag-to-spin. Try it on the big one below."
         >
           <div className="space-y-10">
             <RadialBurst className="h-[420px] w-full rounded-3xl" />
@@ -152,23 +152,24 @@ export default function MotionLabPage() {
 
         <Panel
           title="Odometer"
-          note="A count-up as the instrument the number would actually come from. Columns are geared to each other rather than animated independently — the units drum spins while the higher ones sit still and flick over, as a real drum does. The three figures below are placeholders chosen to show different digit counts; replace them with real ones before this goes on a public page."
+          note="A count-up as the instrument the number would actually come from. Columns are geared to each other rather than animated independently — the units drum spins continuously, and a higher column only turns during the final stretch of the one below it completing a revolution, so every column still settles on a clean digit at rest even when the number is not round. (An earlier version derived each column straight from value/10^place, which left non-round numbers permanently stuck mid-roll — fixed in lib/motion.ts.) These are the real figures used on /about-us."
         >
           <div className="grid gap-8 rounded-3xl border border-zinc-200 p-8 sm:grid-cols-3">
             <OdometerCounter
-              value={4812}
-              label="Cars landed"
+              value={15}
+              suffix="+"
+              label="Years trading history"
               className="text-4xl"
             />
             <OdometerCounter
-              value={24}
-              label="Markets served"
+              value={21}
+              label="Destination markets"
               className="text-4xl"
             />
             <OdometerCounter
-              value={128400}
-              prefix="£"
-              label="Duty saved via CEPA"
+              value={100}
+              suffix="+"
+              label="Dealer sourcing markets"
               className="text-4xl"
             />
           </div>

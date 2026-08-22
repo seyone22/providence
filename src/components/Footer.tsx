@@ -57,6 +57,12 @@ export default function Footer() {
             Company
           </h4>
           <nav className="flex flex-col gap-2.5 text-sm font-light text-zinc-400">
+            <Link
+              href="/about-us"
+              className="hover:text-white transition-colors"
+            >
+              About Us
+            </Link>
             <Link href="/b2c" className="hover:text-white transition-colors">
               For Direct Buyers
             </Link>
