@@ -8,7 +8,6 @@ import {
   desc,
   eq,
   ilike,
-  inArray,
   ne,
   notInArray,
   sql,
@@ -41,6 +40,17 @@ const COUNTRY_LEAD_OWNERS: Record<string, string> = {
 const COUNTRY_OWNER_EMAILS = new Set(
   Object.values(COUNTRY_LEAD_OWNERS).map((email) => email.toLowerCase()),
 );
+
+/**
+ * The one rule for who may own a lead: an active member of the Sales team.
+ * Every assignment path is gated on this, so there is no route — direct,
+ * country or rotation — by which a lead reaches anyone else.
+ *
+ * Role is compared case-insensitively because the environments disagree on
+ * capitalisation (production stores "Sales"/"Admin"/"Staff").
+ */
+const canOwnLeads = () =>
+  and(sql`lower(${users.role}) = 'sales'`, ne(users.isBanned, true));
 
 export async function submitCarRequest(data: {
   // When present, update the existing lead instead of creating a new one
@@ -138,13 +148,7 @@ export async function submitCarRequest(data: {
       const [directAgent] = await db
         .select()
         .from(users)
-        .where(
-          and(
-            eq(users.id, data.assignedAgentId),
-            inArray(users.role, ["Sales", "admin"]),
-            ne(users.isBanned, true),
-          ),
-        )
+        .where(and(eq(users.id, data.assignedAgentId), canOwnLeads()))
         .limit(1);
 
       if (directAgent) {
@@ -169,16 +173,7 @@ export async function submitCarRequest(data: {
         const [countryOwner] = await db
           .select()
           .from(users)
-          .where(
-            and(
-              ilike(users.email, ownerEmail),
-              // Compared case-insensitively on purpose: production stores
-              // "Admin"/"Sales" capitalised while dev and staging do not, and
-              // a country owner must resolve in every environment.
-              inArray(sql`lower(${users.role})`, ["sales", "admin"]),
-              ne(users.isBanned, true),
-            ),
-          )
+          .where(and(ilike(users.email, ownerEmail), canOwnLeads()))
           .limit(1);
 
         if (countryOwner) {
@@ -192,11 +187,11 @@ export async function submitCarRequest(data: {
     }
 
     if (!assignedAgent) {
-      // Fetch all users with the role 'Sales', sorted alphabetically by name
+      // The rotation pool: active Sales members, alphabetically by name.
       const staffMembers = await db
         .select()
         .from(users)
-        .where(eq(users.role, "Sales"))
+        .where(canOwnLeads())
         .orderBy(asc(users.name));
 
       // Drop country owners out of the rotation — they are reached by their
@@ -244,27 +239,11 @@ export async function submitCarRequest(data: {
 
           assignedAgent = mappedStaffMembers[nextIndex];
         }
-      } else {
-        // Fallback: If no staff found, try to find an admin, or just grab the first user
-        const [adminAgent] = await db
-          .select()
-          .from(users)
-          .where(eq(users.role, "admin"))
-          .limit(1);
-
-        let fallbackAgentObj = adminAgent;
-        if (!fallbackAgentObj) {
-          const [firstUser] = await db.select().from(users).limit(1);
-          fallbackAgentObj = firstUser;
-        }
-
-        if (fallbackAgentObj) {
-          assignedAgent = {
-            ...fallbackAgentObj,
-            _id: fallbackAgentObj.id,
-          };
-        }
       }
+      // No else: with no Sales member to take it the lead stays unassigned and
+      // falls to the Providence Support inbox below. The previous fallback
+      // reached for any admin and then, failing that, literally the first row
+      // in the user table — which could hand a lead to a signed-up customer.
     }
 
     // Standardize the agent data for the DB and frontend return

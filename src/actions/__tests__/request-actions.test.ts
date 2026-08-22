@@ -142,13 +142,13 @@ describe("request-actions", () => {
     });
 
     it("routes a Cyprus inquiry to the country owner, bypassing the rotation", async () => {
-      // Deliberately an admin: the round-robin pool is role "Sales" only, so
-      // this is the case country routing exists to cover.
+      // Holds the Sales role so he is assignable, but owning Cyprus is what
+      // gets him the lead rather than his turn in the rotation.
       const mockCountryOwner = {
         id: "shaq-1",
         name: "Shaqeeq Shahiq",
         email: "shaq@providenceauto.uk.com",
-        role: "admin",
+        role: "Sales",
         isBanned: false,
       };
       const mockResultRequest = { id: "new-req-id" };
@@ -185,7 +185,7 @@ describe("request-actions", () => {
         id: "shaq-1",
         name: "Shaqeeq Shahiq",
         email: "shaq@providenceauto.uk.com",
-        role: "admin",
+        role: "Sales",
         isBanned: false,
       };
 
@@ -353,6 +353,69 @@ describe("request-actions", () => {
       });
 
       expect(result.agent?.id).toBe("agent-123");
+    });
+
+    it("refuses to assign a lead to a non-Sales user", async () => {
+      // An admin id arriving as a profile-page pin must not win the lead; it
+      // falls through to the Sales rotation instead.
+      const mockSalesMembers = [
+        {
+          id: "sales-1",
+          name: "Alice",
+          email: "alice@providenceauto.uk.com",
+          role: "Sales",
+        },
+      ];
+
+      vi.mocked(db.then)
+        .mockImplementationOnce((onFulfilled) => onFulfilled([])) // direct lookup rejects the admin
+        .mockImplementationOnce((onFulfilled) => onFulfilled(mockSalesMembers))
+        .mockImplementationOnce((onFulfilled) => onFulfilled([]))
+        .mockImplementationOnce((onFulfilled) => onFulfilled([{ id: "r" }]));
+
+      const result = await submitCarRequest({
+        make: "Ford",
+        vehicle_model: "Ranger",
+        condition: "Used",
+        name: "Admin Pin Customer",
+        email: "customer9@test.com",
+        countryCode: "GB",
+        phone: "+447111111111",
+        countryOfImport: "United Kingdom",
+        assignedAgentId: "an-admin-id",
+      });
+
+      expect(result.agent?.id).toBe("sales-1");
+    });
+
+    it("leaves the lead with Providence Support when no Sales member exists", async () => {
+      // The old fallback reached for any admin, then the first row in the user
+      // table. Nobody outside Sales may own a lead, so it goes unassigned.
+      vi.mocked(db.then)
+        .mockImplementationOnce((onFulfilled) => onFulfilled([])) // empty Sales list
+        .mockImplementationOnce((onFulfilled) => onFulfilled([{ id: "r" }]));
+
+      const result = await submitCarRequest({
+        make: "Mazda",
+        vehicle_model: "CX-5",
+        condition: "New",
+        name: "Orphan Lead",
+        email: "customer10@test.com",
+        countryCode: "GB",
+        phone: "+447222222222",
+        countryOfImport: "United Kingdom",
+      });
+
+      expect(result.success).toBe(true);
+      expect(result.agent?.id).toBeNull();
+      // agent is a union across the create/update paths, so match the shape
+      // rather than reaching for a field only one arm declares.
+      expect(result.agent).toMatchObject({
+        name: "Providence Support",
+        email: "info@providenceauto.uk.com",
+      });
+      // Only the Sales lookup and the insert ran — no admin or first-user probe.
+      expect(db.then).toHaveBeenCalledTimes(2);
     });
   });
 
