@@ -33,9 +33,9 @@ const URL = `${SITE}${PATH}`;
 const TITLE = "About Providence Auto | Global Vehicle Sourcing Group";
 const DESCRIPTION =
   "A global vehicle sourcing group with our own offices in eight countries. See how we source, verify and land cars worldwide.";
-// Three of our own showroom cars, composited to the 1200×630 size
-// link-preview crawlers (Facebook, LinkedIn, X, Slack…) expect. Self-hosted
-// so the preview can't break when a third-party CDN rewrites a URL.
+// Cropped to the 1200×630 size link-preview crawlers (Facebook, LinkedIn,
+// X, Slack…) expect. Self-hosted so the preview can't break when a
+// third-party CDN rewrites a URL.
 const OG_IMAGE = `${SITE}/about/og-about-us.jpg`;
 
 export const metadata: Metadata = {
@@ -61,7 +61,7 @@ export const metadata: Metadata = {
         url: OG_IMAGE,
         width: 1200,
         height: 630,
-        alt: "Cars handled by Providence Auto — a global vehicle sourcing group",
+        alt: "Providence Auto — a global vehicle sourcing group",
       },
     ],
   },
@@ -84,12 +84,33 @@ const STATS = [
   { value: 24, suffix: " hrs", label: "To your first sourcing quote" },
 ];
 
-// ── Our own floor — cars that physically passed through our hands. ────────
-const SHOWROOM = [
-  { src: "/about/showroom-lamborghini.jpg", name: "Lamborghini" },
-  { src: "/about/showroom-ferrari-296.jpg", name: "Ferrari 296 GTB" },
-  { src: "/about/showroom-range-rover.jpg", name: "Range Rover" },
-  { src: "/about/showroom-mercedes.jpg", name: "Mercedes-Benz C-Class" },
+// ── What we promise, in four words. Mood photography, not inventory: the
+// point of this strip is the brand, so nothing here is a car for sale. ────
+const BRAND_MOMENTS = [
+  {
+    src: "/about/brand-exact.jpg",
+    word: "Exact.",
+    line: "The car you specified — not the nearest thing on a lot.",
+    alt: "The headlight and front wing of a white saloon in close detail",
+  },
+  {
+    src: "/about/brand-verified.jpg",
+    word: "Verified.",
+    line: "Someone of ours stands in front of it before you pay.",
+    alt: "The front of a silver sports car under low garage light",
+  },
+  {
+    src: "/about/brand-borderless.jpg",
+    word: "Borderless.",
+    line: "Forty-plus sourcing markets. Twenty-one destinations.",
+    alt: "The rear of a dark coupé at night with its tail lights lit",
+  },
+  {
+    src: "/about/brand-landed.jpg",
+    word: "Landed.",
+    line: "One number, from the auction floor to your door.",
+    alt: "A lit headlight on a dark SUV at night",
+  },
 ];
 
 // ── Why we're different (condensed from /source-cars-from) ─────────────────
@@ -303,13 +324,13 @@ export default function AboutUsPage() {
           </div>
         </section>
 
-        {/* ── OUR OWN FLOOR ────────────────────────── */}
-        <section className="px-6 pb-16 md:pb-24">
+        {/* ── WHAT WE PROMISE ──────────────────────── */}
+        <section className="px-6 pb-16 md:pb-28">
           <div className="max-w-7xl mx-auto">
             <div className="flex gap-4 md:gap-6 overflow-x-auto snap-x snap-mandatory pb-2 -mx-6 px-6 md:mx-0 md:px-0 md:grid md:grid-cols-4 md:overflow-visible [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-              {SHOWROOM.map((car, i) => (
+              {BRAND_MOMENTS.map((m, i) => (
                 <Reveal
-                  key={car.name}
+                  key={m.word}
                   y={28}
                   delay={i * 0.08}
                   duration={0.7}
@@ -319,25 +340,25 @@ export default function AboutUsPage() {
                 >
                   <div className="relative aspect-[4/5] overflow-hidden rounded-[1.75rem] bg-[#FAFAFA] ring-1 ring-black/5 shadow-[0_24px_60px_-30px_rgba(0,0,0,0.45)]">
                     <Image
-                      src={car.src}
-                      alt={`A ${car.name} handled by Providence Auto`}
+                      src={m.src}
+                      alt={m.alt}
                       fill
                       sizes="(max-width: 640px) 72vw, (max-width: 768px) 46vw, 25vw"
                       className="object-cover transition-transform duration-[1200ms] ease-out group-hover:scale-[1.05]"
                     />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/55 via-transparent to-transparent" />
-                    <span className="absolute inset-x-0 bottom-0 p-5 text-sm font-bold tracking-tight text-white">
-                      {car.name}
-                    </span>
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/25 to-transparent" />
+                    <div className="absolute inset-x-0 bottom-0 p-5 md:p-6">
+                      <p className="text-2xl font-bold tracking-tighter text-white">
+                        {m.word}
+                      </p>
+                      <p className="mt-1.5 text-[13px] font-light leading-snug text-zinc-300">
+                        {m.line}
+                      </p>
+                    </div>
                   </div>
                 </Reveal>
               ))}
             </div>
-            <Reveal y={16} delay={0.2} className="mt-8 text-center md:mt-16">
-              <p className="text-sm font-light text-zinc-500">
-                Cars that came through our own hands — not stock photography.
-              </p>
-            </Reveal>
           </div>
         </section>
 
@@ -417,18 +438,29 @@ export default function AboutUsPage() {
               duration={0.7}
               className="order-2 lg:order-1"
             >
-              <div className="relative aspect-[3/4] overflow-hidden rounded-[2rem] ring-1 ring-black/5 shadow-[0_30px_80px_-40px_rgba(0,0,0,0.5)]">
-                <Image
-                  src="/about/ferrari-296-cabin.jpg"
-                  alt="The red leather cabin of a right-hand-drive Ferrari 296 GTB with a Providence Auto mat laid in the footwell"
-                  fill
-                  sizes="(max-width: 1024px) 100vw, 45vw"
-                  className="object-cover"
-                />
+              <div className="relative">
+                <div className="relative aspect-[3/4] overflow-hidden rounded-[2rem] ring-1 ring-black/5 shadow-[0_30px_80px_-40px_rgba(0,0,0,0.5)]">
+                  <Image
+                    src="/about/ferrari-296-cabin.jpg"
+                    alt="The red leather cabin of a right-hand-drive Ferrari 296 GTB with a Providence Auto mat laid in the footwell"
+                    fill
+                    sizes="(max-width: 1024px) 100vw, 45vw"
+                    className="object-cover"
+                  />
+                </div>
+                <div className="hidden sm:block absolute -bottom-8 -right-5 w-40 lg:w-48 aspect-square overflow-hidden rounded-[1.25rem] ring-4 ring-white shadow-[0_20px_50px_-20px_rgba(0,0,0,0.45)]">
+                  <Image
+                    src="/about/ferrari-296-exterior.jpg"
+                    alt="The same Ferrari 296 GTB photographed head-on, with a Providence Auto plate"
+                    fill
+                    sizes="(max-width: 1024px) 160px, 192px"
+                    className="object-cover"
+                  />
+                </div>
               </div>
-              <figcaption className="mt-4 text-sm font-light text-zinc-400">
-                A right-hand-drive Ferrari 296 GTB in our care — our mats, our
-                plate.
+              <figcaption className="mt-6 sm:mt-14 text-sm font-light text-zinc-400">
+                The same right-hand-drive Ferrari 296 GTB, inside and out — our
+                mats, our plate.
               </figcaption>
             </Reveal>
 
@@ -464,6 +496,20 @@ export default function AboutUsPage() {
                 hours. We buy it through our own office, verify it, and get it
                 moving. Every import tracks the same way:
               </p>
+            </Reveal>
+
+            <Reveal
+              y={24}
+              duration={0.7}
+              className="relative mb-6 aspect-[1297/556] overflow-hidden rounded-[2rem] ring-1 ring-black/5"
+            >
+              <Image
+                src="/about/in-motion.jpg"
+                alt="A car at speed on an open road, photographed with a panning blur"
+                fill
+                sizes="(max-width: 1024px) 100vw, 1024px"
+                className="object-cover"
+              />
             </Reveal>
 
             <Reveal
