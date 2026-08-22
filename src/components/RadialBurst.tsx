@@ -11,10 +11,25 @@ import { buildSpokes, maxRadiusFrom, spokeFrame } from "@/lib/burst";
  * gradient, driven by one requestAnimationFrame loop) with none of the sphere
  * maths. Use it as a section backdrop or behind a stat row.
  *
- * The whole effect is one parametrisation: a spoke's angle is fixed for the life
- * of the component, and only the particle's radius animates. That is what gives
- * the clean fan of straight lines rather than a scatter — the randomness lives
- * in each spoke's speed, length and starting phase, never in its direction.
+ * The whole effect is one parametrisation: a spoke's angle is fixed relative to
+ * the fan for the life of the component, and only the particle's radius
+ * animates. That is what gives the clean fan of straight lines rather than a
+ * scatter — the randomness lives in each spoke's speed, length and starting
+ * phase, never in its direction.
+ *
+ * ## Interactivity
+ *
+ * The fan as a whole can turn, on top of its fixed per-spoke geometry — the
+ * same split DotGlobe uses between the sphere's fixed dot field and its live
+ * spin. Two inputs drive it, both horizontal-only per the brief:
+ *  - Hovering tilts the fan a few degrees towards the cursor's x position,
+ *    easing back to centre when the pointer leaves. This is a direct read of
+ *    pointer position, not physics, so it stays on under reduced motion.
+ *  - Dragging or a horizontal wheel/trackpad swipe spins the fan with the same
+ *    inertia-and-friction model as the globe's drag-to-spin, so a flick keeps
+ *    turning and settles rather than snapping back.
+ * Both add a runtime radians offset to every spoke's fixed angle at draw time,
+ * so buildSpokes' output — and its tests — stay exactly as they were.
  */
 
 type Props = {
@@ -32,8 +47,23 @@ type Props = {
   speed?: number;
   /** Draws the warm gradient wash behind the rays. */
   backdrop?: boolean;
+  /** Cursor tilt and drag/wheel spin. Off for a purely decorative backdrop. */
+  interactive?: boolean;
   className?: string;
 };
+
+/** Max cursor-follow tilt, in radians (18°). */
+const HOVER_MAX = (18 * Math.PI) / 180;
+/** How fast the hover tilt eases towards the cursor's current x, per second. */
+const HOVER_EASE = 4.5;
+/** Radians of spin per pixel dragged. */
+const DRAG_SENSITIVITY = 0.006;
+/** How hard a drag's release velocity carries the spin on, per second. */
+const RELEASE_CARRY = 40;
+/** Per-second decay on the spin's release velocity. */
+const SPIN_FRICTION = 2.4;
+/** Radians/sec of spin per pixel of horizontal wheel delta. */
+const WHEEL_SENSITIVITY = 0.0022;
 
 export default function RadialBurst({
   origin = [0.5, 1],
@@ -43,6 +73,7 @@ export default function RadialBurst({
   colours = ["#8b5cf6", "#ec4899"],
   speed = 1,
   backdrop = true,
+  interactive = true,
   className = "",
 }: Props) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -64,6 +95,17 @@ export default function RadialBurst({
     let width = 0;
     let height = 0;
     let onScreen = true;
+
+    // Turn state, layered on top of the spokes' fixed geometry — see the
+    // "Interactivity" note above. `spin` is the persistent drag/wheel angle
+    // (with inertia, like the globe's); `hoverTarget`/`hoverCurrent` are the
+    // cursor-follow tilt, eased rather than snapped.
+    let spin = 0;
+    let spinVelocity = 0;
+    let hoverTarget = 0;
+    let hoverCurrent = 0;
+    let dragging = false;
+    let lastPointerX = 0;
 
     const spokes = buildSpokes({ rays, spread, rotation, colours });
 
@@ -87,6 +129,9 @@ export default function RadialBurst({
       const ox = origin[0] * width;
       const oy = origin[1] * height;
       const maxRadius = maxRadiusFrom(ox, oy, width, height);
+      // Runtime-only turn on top of each spoke's fixed angle — see the
+      // "Interactivity" note above.
+      const turn = hoverCurrent + spin;
 
       ctx.lineCap = "round";
       for (const spoke of spokes) {
@@ -99,8 +144,8 @@ export default function RadialBurst({
         if (life <= 0.01) continue;
 
         const rgb = spoke.colour.join(", ");
-        const cos = Math.cos(spoke.angle);
-        const sin = Math.sin(spoke.angle);
+        const cos = Math.cos(spoke.angle + turn);
+        const sin = Math.sin(spoke.angle + turn);
 
         const gradient = ctx.createLinearGradient(
           ox + cos * tail,
@@ -125,8 +170,22 @@ export default function RadialBurst({
       }
     };
 
+    let previous = 0;
     const tick = (now: number): void => {
       if (cancelled) return;
+      const dt = previous ? Math.min((now - previous) / 1000, 0.05) : 0;
+      previous = now;
+
+      // Hover always eases towards its target. The drag/wheel spin only
+      // decays while nothing is actively dragging it — a flick should carry
+      // on turning after release, not stop the instant the pointer lifts.
+      hoverCurrent +=
+        (hoverTarget - hoverCurrent) * Math.min(1, dt * HOVER_EASE);
+      if (!dragging) {
+        spin += spinVelocity * dt;
+        spinVelocity *= Math.max(0, 1 - dt * SPIN_FRICTION);
+      }
+
       draw(now / 1000);
       frame = requestAnimationFrame(tick);
     };
@@ -142,6 +201,7 @@ export default function RadialBurst({
         onScreen = entry.isIntersecting;
         if (reduceMotion) return;
         if (onScreen && !frame) {
+          previous = 0;
           frame = requestAnimationFrame(tick);
         } else if (!onScreen && frame) {
           cancelAnimationFrame(frame);
@@ -151,6 +211,68 @@ export default function RadialBurst({
       { rootMargin: "120px" },
     );
     visibility.observe(wrap);
+
+    // Hover: hovering the fan aims it a few degrees towards the cursor,
+    // horizontally only. Reading pointer position is not itself motion, so
+    // this stays live under reduced motion too — it just never visibly moves
+    // there, since the rAF loop that would ease it in is off.
+    const onPointerEnterOrMove = (event: PointerEvent) => {
+      if (dragging) return;
+      const rect = wrap.getBoundingClientRect();
+      const nx = rect.width
+        ? ((event.clientX - rect.left) / rect.width) * 2 - 1
+        : 0;
+      hoverTarget = Math.max(-1, Math.min(1, nx)) * HOVER_MAX;
+    };
+    const onPointerLeave = () => {
+      hoverTarget = 0;
+    };
+
+    // Drag / swipe: same inertia model as <DotGlobe />'s drag-to-spin, applied
+    // to the fan's turn instead of a sphere's spin.
+    const onPointerDown = (event: PointerEvent) => {
+      dragging = true;
+      lastPointerX = event.clientX;
+      spinVelocity = 0;
+      canvas.setPointerCapture(event.pointerId);
+    };
+    const onPointerMove = (event: PointerEvent) => {
+      onPointerEnterOrMove(event);
+      if (!dragging) return;
+      const delta = event.clientX - lastPointerX;
+      lastPointerX = event.clientX;
+      spin += delta * DRAG_SENSITIVITY;
+      spinVelocity = delta * DRAG_SENSITIVITY * RELEASE_CARRY;
+    };
+    const onPointerUp = (event: PointerEvent) => {
+      if (!dragging) return;
+      dragging = false;
+      if (canvas.hasPointerCapture(event.pointerId)) {
+        canvas.releasePointerCapture(event.pointerId);
+      }
+    };
+
+    // Horizontal wheel/trackpad swipe: a Shift-modified vertical wheel is the
+    // standard way a plain mouse sends a "horizontal" scroll, so it counts too.
+    // Never preventDefault — this only reacts to horizontal intent, so it never
+    // competes with the page's own vertical scroll.
+    const onWheel = (event: WheelEvent) => {
+      const dx =
+        event.shiftKey && event.deltaX === 0 ? event.deltaY : event.deltaX;
+      if (dx === 0) return;
+      spinVelocity += dx * WHEEL_SENSITIVITY * RELEASE_CARRY;
+    };
+
+    if (interactive && !reduceMotion) {
+      wrap.style.touchAction = "pan-y";
+      canvas.addEventListener("pointerenter", onPointerEnterOrMove);
+      canvas.addEventListener("pointermove", onPointerMove);
+      canvas.addEventListener("pointerleave", onPointerLeave);
+      canvas.addEventListener("pointerdown", onPointerDown);
+      canvas.addEventListener("pointerup", onPointerUp);
+      canvas.addEventListener("pointercancel", onPointerUp);
+      canvas.addEventListener("wheel", onWheel, { passive: true });
+    }
 
     resize();
     if (reduceMotion) {
@@ -165,12 +287,20 @@ export default function RadialBurst({
       if (frame) cancelAnimationFrame(frame);
       resizeObserver.disconnect();
       visibility.disconnect();
+      canvas.removeEventListener("pointerenter", onPointerEnterOrMove);
+      canvas.removeEventListener("pointermove", onPointerMove);
+      canvas.removeEventListener("pointerleave", onPointerLeave);
+      canvas.removeEventListener("pointerdown", onPointerDown);
+      canvas.removeEventListener("pointerup", onPointerUp);
+      canvas.removeEventListener("pointercancel", onPointerUp);
+      canvas.removeEventListener("wheel", onWheel);
     };
     // Depends on the array *contents*, not the array identities. Callers pass
     // these inline (`origin={[0.5, 1]}`), and the defaults above allocate afresh
     // on every render, so depending on the arrays themselves would tear down and
     // rebuild the whole particle system each time the parent re-renders.
   }, [
+    interactive,
     origin[0],
     origin[1],
     rays,
@@ -185,10 +315,13 @@ export default function RadialBurst({
     <div
       ref={wrapRef}
       aria-hidden
-      className={`pointer-events-none relative overflow-hidden ${className}`}
+      className={`relative overflow-hidden ${interactive ? "" : "pointer-events-none"} ${className}`}
     >
       {backdrop && <div className="pa-burst-backdrop absolute inset-0" />}
-      <canvas ref={canvasRef} className="absolute inset-0" />
+      <canvas
+        ref={canvasRef}
+        className={`absolute inset-0 ${interactive ? "" : "pointer-events-none"}`}
+      />
     </div>
   );
 }

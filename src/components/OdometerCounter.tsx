@@ -2,7 +2,7 @@
 
 import { useRef } from "react";
 import { useInViewProgress } from "@/components/useInViewProgress";
-import { digitCount, easeOutCubic, odometerColumn } from "@/lib/motion";
+import { digitCount, easeOutCubic, odometerColumns } from "@/lib/motion";
 
 /**
  * A mechanical odometer that rolls up to a figure.
@@ -13,10 +13,11 @@ import { digitCount, easeOutCubic, odometerColumn } from "@/lib/motion";
  * the higher columns sit still and flick over, exactly as a real drum does,
  * which a text counter cannot convey.
  *
- * The per-column rotation is `odometerColumn` in lib/motion.ts: each column is a
- * strip of 0-9 translated by the digit plus the fraction of the way it has
+ * The per-column rotation is `odometerColumns` in lib/motion.ts: each column is
+ * a strip of 0-9 translated by the digit plus the fraction of the way it has
  * turned, so the columns are geared to each other rather than animated
- * independently.
+ * independently — and every column still settles on a clean digit at rest,
+ * even when the finished number is not round.
  */
 
 type Props = {
@@ -61,6 +62,7 @@ export default function OdometerCounter({
   // place value counts up from the units end.
   const columns = digitCount(value);
   const places = Array.from({ length: columns }, (_, i) => columns - 1 - i);
+  const offsets = odometerColumns(current, columns);
 
   return (
     <div ref={ref} className={className}>
@@ -71,7 +73,7 @@ export default function OdometerCounter({
       >
         {prefix && <span aria-hidden>{prefix}</span>}
         {places.map((place, index) => {
-          const offset = odometerColumn(current, place);
+          const offset = offsets[place];
           // A separator before every third column from the right.
           const needsSeparator =
             grouped && place > 0 && place % 3 === 0 && index > 0;

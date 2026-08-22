@@ -50,18 +50,46 @@ export function windowProgress(t: number, window: Window): number {
 }
 
 /**
- * The value shown by one column of a mechanical odometer.
+ * The value shown by every column of a mechanical odometer, all at once.
  *
- * `place` is the power of ten this column displays: 0 for units, 1 for tens and
- * so on. The returned value is the digit plus the fraction of the way it has
- * turned towards the next one, so a caller can translate a strip of 0-9 by
- * `value * digitHeight` and get the real thing — units spinning continuously
- * while the higher columns sit still and then flick over.
+ * Index 0 is the units column, 1 is tens, and so on. Each returned number is
+ * the column's digit plus the fraction of the way it has turned towards the
+ * next one, so a caller can translate a strip of 0-9 by `offset * digitHeight`.
+ *
+ * Columns are geared to the one below them the way a real drum counter is:
+ * the units column spins continuously, but a higher column only turns during
+ * the final stretch of the one below it completing a revolution — its digit
+ * sitting on 9, rolling towards 0 — not for the whole time the value is
+ * counting up. That is what keeps a column parked on a clean whole digit at
+ * rest on *any* value, not just a round one, while a genuine rollover
+ * (…999 → …000) still cascades a turn across every column at once, because
+ * each column's bleed window only opens once the one below it is already
+ * bleeding.
+ *
+ * (An earlier version derived each column independently from `value / 10^place`,
+ * which reads as geared while the value is still climbing but never settles: a
+ * finished count landing on, say, 4812 left the tens column parked 20% of the
+ * way to 2 forever, because that fraction came from the units digit's raw
+ * magnitude rather than from an actual rollover. Chaining the bleed from each
+ * column's own resolved offset fixes that — every column is exact once its
+ * neighbour below is.)
  */
-export function odometerColumn(value: number, place: number): number {
-  const scaled = Math.max(0, value) / 10 ** place;
-  const whole = Math.floor(scaled);
-  return (whole % 10) + (scaled - whole);
+export function odometerColumns(value: number, columns: number): number[] {
+  const v = Math.max(0, value);
+  const offsets: number[] = [];
+  let below = 0;
+  for (let place = 0; place < columns; place += 1) {
+    const digit = Math.floor(v / 10 ** place) % 10;
+    // Place 0 has nothing below it to gear from, so it just spins with the
+    // value's own sub-digit fraction. Every column above only picks up a
+    // fraction once the column below has turned past 9 — the last tenth of
+    // its revolution.
+    const bleed = place === 0 ? v - Math.floor(v) : clamp01(below - 9);
+    const offset = digit + bleed;
+    offsets.push(offset);
+    below = offset;
+  }
+  return offsets;
 }
 
 /** Number of digit columns needed to show `value`. */
