@@ -102,8 +102,18 @@ describe("request-actions", () => {
 
     it("should use round-robin assignment alphabetically if no agent is specified", async () => {
       const mockSalesMembers = [
-        { id: "sales-1", name: "Alice", role: "Sales" },
-        { id: "sales-2", name: "Bob", role: "Sales" },
+        {
+          id: "sales-1",
+          name: "Alice",
+          email: "alice@providenceauto.uk.com",
+          role: "Sales",
+        },
+        {
+          id: "sales-2",
+          name: "Bob",
+          email: "bob@providenceauto.uk.com",
+          role: "Sales",
+        },
       ];
       const mockLastRequest = { id: "req-old", assignedToId: "sales-1" };
       const mockResultRequest = { id: "new-req-id" };
@@ -201,8 +211,18 @@ describe("request-actions", () => {
 
     it("falls back to the rotation when the country owner cannot be resolved", async () => {
       const mockSalesMembers = [
-        { id: "sales-1", name: "Alice", role: "Sales" },
-        { id: "sales-2", name: "Bob", role: "Sales" },
+        {
+          id: "sales-1",
+          name: "Alice",
+          email: "alice@providenceauto.uk.com",
+          role: "Sales",
+        },
+        {
+          id: "sales-2",
+          name: "Bob",
+          email: "bob@providenceauto.uk.com",
+          role: "Sales",
+        },
       ];
 
       vi.mocked(db.then)
@@ -226,6 +246,86 @@ describe("request-actions", () => {
 
       expect(result.success).toBe(true);
       expect(result.agent?.id).toBe("sales-2");
+    });
+
+    it("keeps a country owner out of the general rotation", async () => {
+      // Shaq holds the Sales role so he is assignable, but owning Cyprus means
+      // he must not also take his turn on non-Cyprus leads.
+      const mockSalesMembers = [
+        {
+          id: "sales-1",
+          name: "Alice",
+          email: "alice@providenceauto.uk.com",
+          role: "Sales",
+        },
+        {
+          id: "shaq-1",
+          name: "Shaqeeq Shahiq",
+          email: "shaq@providenceauto.uk.com",
+          role: "Sales",
+        },
+        {
+          id: "sales-2",
+          name: "Zoe",
+          email: "zoe@providenceauto.uk.com",
+          role: "Sales",
+        },
+      ];
+
+      vi.mocked(db.then)
+        .mockImplementationOnce((onFulfilled) => onFulfilled(mockSalesMembers)) // staff list
+        .mockImplementationOnce((onFulfilled) =>
+          onFulfilled([{ id: "req-old", assignedToId: "sales-1" }]),
+        ) // last rotation lead was Alice
+        .mockImplementationOnce((onFulfilled) => onFulfilled([{ id: "r" }]));
+
+      const result = await submitCarRequest({
+        make: "Toyota",
+        vehicle_model: "Corolla",
+        condition: "Used",
+        name: "Kenya Customer",
+        email: "customer7@test.com",
+        countryCode: "KE",
+        phone: "+254700000000",
+        countryOfImport: "Kenya",
+      });
+
+      // Alphabetically Shaq follows Alice, but he is excluded, so the turn
+      // passes to Zoe rather than to him.
+      expect(result.agent?.id).toBe("sales-2");
+      expect(result.agent?.name).toBe("Zoe");
+    });
+
+    it("still rotates when every Sales member owns a country", async () => {
+      // Degenerate case: filtering would empty the pool, so the unfiltered list
+      // is used rather than dropping through to the admin fallback.
+      const mockSalesMembers = [
+        {
+          id: "shaq-1",
+          name: "Shaqeeq Shahiq",
+          email: "shaq@providenceauto.uk.com",
+          role: "Sales",
+        },
+      ];
+
+      vi.mocked(db.then)
+        .mockImplementationOnce((onFulfilled) => onFulfilled(mockSalesMembers))
+        .mockImplementationOnce((onFulfilled) => onFulfilled([]))
+        .mockImplementationOnce((onFulfilled) => onFulfilled([{ id: "r" }]));
+
+      const result = await submitCarRequest({
+        make: "Honda",
+        vehicle_model: "Fit",
+        condition: "Used",
+        name: "Fallback Customer",
+        email: "customer8@test.com",
+        countryCode: "GB",
+        phone: "+447000000000",
+        countryOfImport: "United Kingdom",
+      });
+
+      expect(result.success).toBe(true);
+      expect(result.agent?.id).toBe("shaq-1");
     });
 
     it("lets an explicit profile-page pin win over country routing", async () => {

@@ -34,6 +34,14 @@ const COUNTRY_LEAD_OWNERS: Record<string, string> = {
   cyprus: "shaq@providenceauto.uk.com",
 };
 
+// Owning a market is exclusive, not additive: a country owner takes their own
+// market's leads and nothing else, so they are held out of the general
+// rotation. Without this, giving an owner the "Sales" role to make them
+// assignable would also drop them into the round-robin for every country.
+const COUNTRY_OWNER_EMAILS = new Set(
+  Object.values(COUNTRY_LEAD_OWNERS).map((email) => email.toLowerCase()),
+);
+
 export async function submitCarRequest(data: {
   // When present, update the existing lead instead of creating a new one
   // (e.g. the customer stepped Back from contact preferences to edit details).
@@ -191,7 +199,17 @@ export async function submitCarRequest(data: {
         .where(eq(users.role, "Sales"))
         .orderBy(asc(users.name));
 
-      const mappedStaffMembers = staffMembers.map((staff) => ({
+      // Drop country owners out of the rotation — they are reached by their
+      // market, not by their turn. Guarded against emptying the pool: if every
+      // Sales member happens to own a country, a rotation with everyone in it
+      // beats no rotation at all.
+      const rotationPool = staffMembers.filter(
+        (staff) => !COUNTRY_OWNER_EMAILS.has(staff.email.toLowerCase()),
+      );
+
+      const mappedStaffMembers = (
+        rotationPool.length > 0 ? rotationPool : staffMembers
+      ).map((staff) => ({
         ...staff,
         _id: staff.id,
       }));
