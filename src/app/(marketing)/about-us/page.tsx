@@ -304,15 +304,6 @@ export default function AboutUsPage() {
           <GradientMesh animated />
           <div className="relative z-10 max-w-5xl mx-auto text-center">
             <Reveal
-              as="p"
-              immediate
-              y={16}
-              duration={0.6}
-              className="text-sm font-bold tracking-[0.3em] text-zinc-400 uppercase mb-5"
-            >
-              About Providence Auto
-            </Reveal>
-            <Reveal
               as="h1"
               immediate
               y={20}
