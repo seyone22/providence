@@ -11,6 +11,7 @@ import {
   Users,
 } from "lucide-react";
 import type { Metadata } from "next";
+import Image from "next/image";
 import Link from "next/link";
 import DotGlobe, { GLOBE_PALETTE_LIGHT } from "@/components/DotGlobe";
 import GradientMesh from "@/components/GradientMesh";
@@ -32,10 +33,10 @@ const URL = `${SITE}${PATH}`;
 const TITLE = "About Providence Auto | Global Vehicle Sourcing Group";
 const DESCRIPTION =
   "A global vehicle sourcing group with our own offices in eight countries. See how we source, verify and land cars worldwide.";
-// Same source photo as the UK office hero, cropped to the 1200×630 size
-// link-preview crawlers (Facebook, LinkedIn, X, Slack…) expect.
-const OG_IMAGE =
-  "https://images.unsplash.com/photo-1637859460045-ac3ae9ced99d?q=80&w=1200&h=630&fit=crop&auto=format";
+// Three of our own showroom cars, composited to the 1200×630 size
+// link-preview crawlers (Facebook, LinkedIn, X, Slack…) expect. Self-hosted
+// so the preview can't break when a third-party CDN rewrites a URL.
+const OG_IMAGE = `${SITE}/about/og-about-us.jpg`;
 
 export const metadata: Metadata = {
   title: { absolute: TITLE },
@@ -60,7 +61,7 @@ export const metadata: Metadata = {
         url: OG_IMAGE,
         width: 1200,
         height: 630,
-        alt: "Providence Auto — a global vehicle sourcing group",
+        alt: "Cars handled by Providence Auto — a global vehicle sourcing group",
       },
     ],
   },
@@ -81,6 +82,14 @@ const STATS = [
   { value: 21, label: "Destination markets served" },
   { value: 100, suffix: "+", label: "Dealer sourcing markets" },
   { value: 24, suffix: " hrs", label: "To your first sourcing quote" },
+];
+
+// ── Our own floor — cars that physically passed through our hands. ────────
+const SHOWROOM = [
+  { src: "/about/showroom-lamborghini.jpg", name: "Lamborghini" },
+  { src: "/about/showroom-ferrari-296.jpg", name: "Ferrari 296 GTB" },
+  { src: "/about/showroom-range-rover.jpg", name: "Range Rover" },
+  { src: "/about/showroom-mercedes.jpg", name: "Mercedes-Benz C-Class" },
 ];
 
 // ── Why we're different (condensed from /source-cars-from) ─────────────────
@@ -167,6 +176,23 @@ const DESTINATION_REGIONS = [
     ],
   },
 ];
+
+/**
+ * Short gradient hairline that sits where the eyebrow label used to. Section
+ * headings now carry their own label inside the sentence (see CLAUDE.md,
+ * "Heading language"), so this rule is what re-establishes the visual step
+ * down from one section to the next.
+ */
+function SectionRule({ align = "center" }: { align?: "center" | "left" }) {
+  return (
+    <span
+      aria-hidden
+      className={`mb-6 block h-px w-12 bg-gradient-to-r from-sky-500 to-violet-500 ${
+        align === "center" ? "mx-auto" : ""
+      }`}
+    />
+  );
+}
 
 export default function AboutUsPage() {
   const breadcrumbSchema = {
@@ -277,6 +303,44 @@ export default function AboutUsPage() {
           </div>
         </section>
 
+        {/* ── OUR OWN FLOOR ────────────────────────── */}
+        <section className="px-6 pb-16 md:pb-24">
+          <div className="max-w-7xl mx-auto">
+            <div className="flex gap-4 md:gap-6 overflow-x-auto snap-x snap-mandatory pb-2 -mx-6 px-6 md:mx-0 md:px-0 md:grid md:grid-cols-4 md:overflow-visible [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+              {SHOWROOM.map((car, i) => (
+                <Reveal
+                  key={car.name}
+                  y={28}
+                  delay={i * 0.08}
+                  duration={0.7}
+                  className={`group relative w-[72vw] shrink-0 snap-center sm:w-[46vw] md:w-auto ${
+                    i % 2 === 1 ? "md:translate-y-8" : ""
+                  }`}
+                >
+                  <div className="relative aspect-[4/5] overflow-hidden rounded-[1.75rem] bg-[#FAFAFA] ring-1 ring-black/5 shadow-[0_24px_60px_-30px_rgba(0,0,0,0.45)]">
+                    <Image
+                      src={car.src}
+                      alt={`A ${car.name} handled by Providence Auto`}
+                      fill
+                      sizes="(max-width: 640px) 72vw, (max-width: 768px) 46vw, 25vw"
+                      className="object-cover transition-transform duration-[1200ms] ease-out group-hover:scale-[1.05]"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/55 via-transparent to-transparent" />
+                    <span className="absolute inset-x-0 bottom-0 p-5 text-sm font-bold tracking-tight text-white">
+                      {car.name}
+                    </span>
+                  </div>
+                </Reveal>
+              ))}
+            </div>
+            <Reveal y={16} delay={0.2} className="mt-8 text-center md:mt-16">
+              <p className="text-sm font-light text-zinc-500">
+                Cars that came through our own hands — not stock photography.
+              </p>
+            </Reveal>
+          </div>
+        </section>
+
         {/* ── IN SHORT (AEO direct-answer block) ──────── */}
         <section className="px-6 max-w-3xl mx-auto pb-20">
           <Reveal
@@ -301,11 +365,9 @@ export default function AboutUsPage() {
         <section className="py-20 md:py-28 px-6 bg-[#FAFAFA] border-y border-black/5">
           <div className="max-w-4xl mx-auto">
             <Reveal y={24} duration={0.6} className="mb-12">
-              <p className="text-xs font-bold tracking-[0.25em] text-zinc-400 uppercase mb-4">
-                The problem
-              </p>
+              <SectionRule align="left" />
               <h2 className="text-3xl md:text-5xl font-bold tracking-tighter text-black mb-5">
-                Buying a car still means settling.
+                The problem is, buying a car still means settling.
               </h2>
               <p className="text-lg text-zinc-500 font-light">
                 Local lots only show what's already sitting on them. Going
@@ -348,15 +410,34 @@ export default function AboutUsPage() {
 
         {/* ── WHO WE ARE ────────────────────────────── */}
         <section className="py-20 md:py-28 px-6">
-          <div className="max-w-5xl mx-auto text-center">
-            <Reveal y={24} duration={0.6}>
-              <p className="text-xs font-bold tracking-[0.25em] text-zinc-400 uppercase mb-4">
-                Who we are
-              </p>
+          <div className="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-[minmax(0,5fr)_minmax(0,6fr)] gap-10 lg:gap-16 items-center">
+            <Reveal
+              as="figure"
+              y={28}
+              duration={0.7}
+              className="order-2 lg:order-1"
+            >
+              <div className="relative aspect-[3/4] overflow-hidden rounded-[2rem] ring-1 ring-black/5 shadow-[0_30px_80px_-40px_rgba(0,0,0,0.5)]">
+                <Image
+                  src="/about/ferrari-296-cabin.jpg"
+                  alt="The red leather cabin of a right-hand-drive Ferrari 296 GTB with a Providence Auto mat laid in the footwell"
+                  fill
+                  sizes="(max-width: 1024px) 100vw, 45vw"
+                  className="object-cover"
+                />
+              </div>
+              <figcaption className="mt-4 text-sm font-light text-zinc-400">
+                A right-hand-drive Ferrari 296 GTB in our care — our mats, our
+                plate.
+              </figcaption>
+            </Reveal>
+
+            <Reveal y={24} duration={0.6} className="order-1 lg:order-2">
+              <SectionRule align="left" />
               <h2 className="text-3xl md:text-5xl font-bold tracking-tighter text-black mb-5">
-                Not a marketplace. Not a broker network.
+                We are not a marketplace, and not a broker network.
               </h2>
-              <p className="text-lg text-zinc-500 font-light max-w-3xl mx-auto">
+              <p className="text-lg text-zinc-500 font-light">
                 Providence Auto is the trading name of Providence Trading
                 Limited. For 15+ years we've bought, inspected and shipped every
                 car ourselves — through our own offices, never a chain of
@@ -374,11 +455,9 @@ export default function AboutUsPage() {
               duration={0.6}
               className="text-center mb-12 max-w-2xl mx-auto"
             >
-              <p className="text-xs font-bold tracking-[0.25em] text-zinc-400 uppercase mb-4">
-                How it works
-              </p>
+              <SectionRule />
               <h2 className="text-3xl md:text-5xl font-bold tracking-tighter text-black mb-5">
-                Request it. We source it. It ships.
+                Here's how it works — you request it, we source it, it ships.
               </h2>
               <p className="text-lg text-zinc-500 font-light">
                 Tell us the exact car — a full sourcing quote comes back in 24
@@ -398,20 +477,27 @@ export default function AboutUsPage() {
         </section>
 
         {/* ── WHY WE'RE DIFFERENT ─────────────────── */}
-        <section className="py-20 md:py-28 px-6">
-          <div className="max-w-6xl mx-auto">
+        <section className="relative overflow-hidden py-20 md:py-28 px-6 bg-black">
+          <Image
+            src="/about/coupe-overcast.jpg"
+            alt=""
+            aria-hidden="true"
+            fill
+            sizes="100vw"
+            className="object-cover opacity-40"
+          />
+          <div className="absolute inset-0 bg-gradient-to-b from-black via-black/75 to-black" />
+          <div className="relative z-10 max-w-6xl mx-auto">
             <Reveal
               y={24}
               duration={0.6}
               className="text-center mb-12 max-w-3xl mx-auto"
             >
-              <p className="text-xs font-bold tracking-[0.25em] text-zinc-400 uppercase mb-4">
-                The difference
-              </p>
-              <h2 className="text-3xl md:text-5xl font-bold tracking-tighter text-black mb-5">
-                An office beats an inbox.
+              <SectionRule />
+              <h2 className="text-3xl md:text-5xl font-bold tracking-tighter text-white mb-5">
+                The difference is that an office beats an inbox.
               </h2>
-              <p className="text-lg text-zinc-500 font-light">
+              <p className="text-lg text-zinc-400 font-light">
                 Almost everything that goes wrong with a vehicle import goes
                 wrong in the source country, thousands of miles from the buyer.
                 So that's where we put our people.
@@ -425,15 +511,15 @@ export default function AboutUsPage() {
                   y={24}
                   delay={i * 0.06}
                   duration={0.5}
-                  className="group flex flex-col items-start p-7 rounded-[1.75rem] bg-white border border-black/5 hover:border-black/10 hover:shadow-[0_20px_40px_rgba(0,0,0,0.05)] transition-all duration-300"
+                  className="group flex flex-col items-start p-7 rounded-[1.75rem] bg-white/[0.04] border border-white/10 backdrop-blur-sm hover:border-white/25 hover:bg-white/[0.07] transition-all duration-300"
                 >
-                  <div className="p-3 bg-black/5 border border-black/10 rounded-2xl group-hover:bg-black group-hover:border-black transition-colors duration-500 mb-5">
-                    <pillar.icon className="text-black h-5 w-5 group-hover:text-white transition-colors duration-500" />
+                  <div className="p-3 bg-white/10 border border-white/15 rounded-2xl group-hover:bg-white group-hover:border-white transition-colors duration-500 mb-5">
+                    <pillar.icon className="text-white h-5 w-5 group-hover:text-black transition-colors duration-500" />
                   </div>
-                  <h3 className="text-base font-bold text-black mb-2">
+                  <h3 className="text-base font-bold text-white mb-2">
                     {pillar.title}
                   </h3>
-                  <p className="text-zinc-500 text-sm leading-relaxed font-light">
+                  <p className="text-zinc-400 text-sm leading-relaxed font-light">
                     {pillar.desc}
                   </p>
                 </Reveal>
@@ -450,11 +536,10 @@ export default function AboutUsPage() {
               duration={0.6}
               className="text-center mb-10 max-w-3xl mx-auto"
             >
-              <p className="text-xs font-bold tracking-[0.25em] text-zinc-400 uppercase mb-4">
-                Our network
-              </p>
+              <SectionRule />
               <h2 className="text-3xl md:text-5xl font-bold tracking-tighter text-black mb-5">
-                Eight offices. Forty-plus markets. Twenty-one destinations.
+                Our network is eight offices, forty-plus markets and twenty-one
+                destinations.
               </h2>
               <p className="text-lg text-zinc-500 font-light">
                 Our own teams sit in eight countries and buy in many more. Every
@@ -556,11 +641,9 @@ export default function AboutUsPage() {
         <section className="py-20 md:py-28 px-6">
           <div className="max-w-3xl mx-auto">
             <Reveal y={24} duration={0.6} className="text-center mb-10">
-              <p className="text-xs font-bold tracking-[0.25em] text-zinc-400 uppercase mb-4">
-                The math that matters
-              </p>
+              <SectionRule />
               <h2 className="text-3xl md:text-5xl font-bold tracking-tighter text-black mb-5">
-                One landed number. Before you commit.
+                The math that matters is one landed number, before you commit.
               </h2>
               <p className="text-lg text-zinc-500 font-light">
                 Duty, VAT, freight and registration differ on every lane. We
@@ -596,11 +679,9 @@ export default function AboutUsPage() {
         <section className="py-20 md:py-28 px-6 bg-[#FAFAFA] border-y border-black/5">
           <div className="max-w-3xl mx-auto">
             <Reveal y={24} duration={0.6} className="text-center mb-10">
-              <p className="text-xs font-bold tracking-[0.25em] text-zinc-400 uppercase mb-4">
-                Protecting your money
-              </p>
+              <SectionRule />
               <h2 className="text-3xl md:text-5xl font-bold tracking-tighter text-black">
-                You see the car before we spend yours.
+                We protect your money by showing you the car before we spend it.
               </h2>
             </Reveal>
             <ul className="grid grid-cols-1 sm:grid-cols-2 gap-5">
@@ -661,6 +742,28 @@ export default function AboutUsPage() {
           </div>
         </section>
 
+        {/* ── TAGLINE BAND ─────────────────────────── */}
+        <section className="relative h-[240px] md:h-[320px] overflow-hidden">
+          <Image
+            src="/about/ferrari-f8-detail.jpg"
+            alt="Close detail of the front wing and headlight of a red Ferrari"
+            fill
+            sizes="100vw"
+            className="object-cover"
+          />
+          <div className="absolute inset-0 bg-gradient-to-r from-black/85 via-black/45 to-transparent" />
+          <div className="relative z-10 flex h-full max-w-6xl mx-auto px-6 flex-col justify-center">
+            <Reveal y={20} duration={0.7} className="max-w-lg">
+              <p className="text-2xl md:text-4xl font-bold tracking-tighter text-white leading-[1.15]">
+                Powered by trust. Driven by value.
+              </p>
+              <p className="mt-3 text-sm font-light text-zinc-300">
+                The line printed on the mat we lay in every car we handle.
+              </p>
+            </Reveal>
+          </div>
+        </section>
+
         {/* ── WHO WE SERVE ─────────────────────────── */}
         <section className="py-20 md:py-28 px-6">
           <div className="max-w-6xl mx-auto">
@@ -669,11 +772,9 @@ export default function AboutUsPage() {
               duration={0.6}
               className="text-center mb-12 max-w-3xl mx-auto"
             >
-              <p className="text-xs font-bold tracking-[0.25em] text-zinc-400 uppercase mb-4">
-                Who we serve
-              </p>
+              <SectionRule />
               <h2 className="text-3xl md:text-5xl font-bold tracking-tighter text-black mb-5">
-                Three ways in. One network behind them.
+                We serve three kinds of buyer, through one network.
               </h2>
             </Reveal>
 
@@ -711,11 +812,9 @@ export default function AboutUsPage() {
         <section className="py-20 md:py-28 px-6 bg-[#FAFAFA] border-y border-black/5">
           <div className="max-w-5xl mx-auto">
             <Reveal y={24} duration={0.6} className="text-center mb-12">
-              <p className="text-xs font-bold tracking-[0.25em] text-zinc-400 uppercase mb-4">
-                By the numbers
-              </p>
+              <SectionRule />
               <h2 className="text-3xl md:text-5xl font-bold tracking-tighter text-black">
-                The network, in figures.
+                The network, by the numbers.
               </h2>
             </Reveal>
 
@@ -761,6 +860,7 @@ export default function AboutUsPage() {
             duration={0.7}
             className="relative z-10 max-w-3xl mx-auto"
           >
+            <SectionRule />
             <h2 className="text-3xl md:text-5xl font-bold tracking-tighter text-black mb-5">
               Any car. Any country. Any port.
             </h2>
