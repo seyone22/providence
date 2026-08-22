@@ -368,56 +368,55 @@ export default function AboutUsPage() {
               </h2>
             </Reveal>
 
-            {/* One reveal for the whole deck, not one per card. Per-card
-                reveals left the cards that start off-screen to the right of the
-                scroller waiting on an observer that only ever fires against the
-                viewport, so they stayed invisible while you scrolled past them.
-                The scroller itself is never the animated element either — a
-                transform on a scroll container fights the scroll. */}
-            <Reveal y={28} duration={0.7}>
-              <div className="flex gap-4 overflow-x-auto overscroll-x-contain snap-x snap-mandatory pb-4 -mx-6 px-6 lg:mx-0 lg:px-0 lg:gap-0 lg:items-end lg:justify-center lg:overflow-visible lg:pt-8 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-                {VALUES.map((v) => (
-                  <div
-                    key={v.name}
-                    style={
-                      {
-                        "--fan-rot": v.rot,
-                        "--fan-y": v.y,
-                        zIndex: v.z,
-                      } as CSSProperties
-                    }
-                    className="pa-fan relative w-52 shrink-0 snap-center sm:w-56 lg:-ml-16 lg:w-48 lg:first:ml-0 xl:w-56"
-                  >
-                    {/* The photo is rounded as well as clipped: a rounded box
-                        that is also rotated antialiases its own edge, and any
-                        lighter fill behind it shows through as a hairline. */}
-                    <div className="relative aspect-[4/5] overflow-hidden rounded-[1.5rem] bg-zinc-950 shadow-[0_24px_60px_-30px_rgba(0,0,0,0.5)] lg:shadow-[0_30px_70px_-35px_rgba(0,0,0,0.6)]">
-                      <Image
-                        src={v.src}
-                        alt={v.alt}
-                        fill
-                        sizes="224px"
-                        className="rounded-[1.5rem] object-cover"
-                      />
-                      <div className="pa-fan-scrim absolute inset-0 rounded-[1.5rem]" />
-                      <div className="absolute inset-x-0 bottom-0 p-4">
-                        <p className="text-[10px] font-bold uppercase tracking-[0.25em] text-white/45">
-                          {v.n}
-                        </p>
-                        <p className="mt-1.5 text-lg font-bold tracking-tight text-white">
-                          {v.name}
-                        </p>
-                        {/* Held back until hover on the deck, where the cards
-                            overlap; always shown where there is no hover. */}
-                        <p className="pa-fan-line mt-1.5 text-[12px] font-light leading-snug text-zinc-200">
-                          {v.line}
-                        </p>
-                      </div>
+            {/* Nothing here is wrapped in a reveal. A horizontal scroller
+                inside an element that has been opacity/transform-animated is a
+                reliable way to get blank tiles on iOS: the scroller stops
+                repainting as you fling it and cards drop out one by one. The
+                cards are static markup, the fan is pure CSS at lg, and the
+                only animated thing in the section is the heading above. */}
+            <div className="flex gap-4 overflow-x-auto overscroll-x-contain snap-x snap-proximity scroll-px-6 pb-4 -mx-6 px-6 lg:mx-0 lg:px-0 lg:gap-0 lg:items-end lg:justify-center lg:overflow-visible lg:pt-8 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+              {VALUES.map((v) => (
+                <div
+                  key={v.name}
+                  style={
+                    {
+                      "--fan-rot": v.rot,
+                      "--fan-y": v.y,
+                      "--fan-z": v.z,
+                    } as CSSProperties
+                  }
+                  className="pa-fan relative w-52 shrink-0 snap-center sm:w-56 lg:-ml-16 lg:w-48 lg:first:ml-0 xl:w-56"
+                >
+                  {/* The photo is rounded as well as clipped: a rounded box
+                      that is also rotated antialiases its own edge, and any
+                      lighter fill behind it shows through as a hairline. */}
+                  <div className="relative aspect-[4/5] overflow-hidden rounded-[1.5rem] bg-zinc-950 shadow-[0_10px_24px_-14px_rgba(0,0,0,0.5)] lg:shadow-[0_30px_70px_-35px_rgba(0,0,0,0.6)]">
+                    <Image
+                      src={v.src}
+                      alt={v.alt}
+                      fill
+                      sizes="224px"
+                      loading="eager"
+                      className="rounded-[1.5rem] object-cover"
+                    />
+                    <div className="pa-fan-scrim absolute inset-0 rounded-[1.5rem]" />
+                    <div className="absolute inset-x-0 bottom-0 p-4">
+                      <p className="text-[10px] font-bold uppercase tracking-[0.25em] text-white/45">
+                        {v.n}
+                      </p>
+                      <p className="mt-1.5 text-lg font-bold tracking-tight text-white">
+                        {v.name}
+                      </p>
+                      {/* Held back until hover on the deck, where the cards
+                          overlap; always shown where there is no hover. */}
+                      <p className="pa-fan-line mt-1.5 text-[12px] font-light leading-snug text-zinc-200">
+                        {v.line}
+                      </p>
                     </div>
                   </div>
-                ))}
-              </div>
-            </Reveal>
+                </div>
+              ))}
+            </div>
           </div>
         </section>
 
