@@ -368,13 +368,21 @@ export default function AboutUsPage() {
               </h2>
             </Reveal>
 
-            {/* Nothing here is wrapped in a reveal. A horizontal scroller
-                inside an element that has been opacity/transform-animated is a
-                reliable way to get blank tiles on iOS: the scroller stops
-                repainting as you fling it and cards drop out one by one. The
-                cards are static markup, the fan is pure CSS at lg, and the
-                only animated thing in the section is the heading above. */}
-            <div className="flex gap-4 overflow-x-auto overscroll-x-contain snap-x snap-proximity scroll-px-6 pb-4 -mx-6 px-6 lg:mx-0 lg:px-0 lg:gap-0 lg:items-end lg:justify-center lg:overflow-visible lg:pt-8 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+            {/* Built on the same bones as the home page's gallery strip,
+                which is the one horizontal scroller on this site that has never
+                misbehaved on an iPhone: a plain flex scroller, proximity
+                snapping, and — the part that matters — a photo that sits in
+                normal flow rather than a next/image `fill`. An absolutely
+                positioned image inside a rounded, clipped box inside a scroller
+                is what WebKit was failing to repaint, which is why cards kept
+                dropping out mid-fling. Explicit width/height keeps the srcset
+                and the optimiser while giving up the absolute positioning.
+
+                The focus effect is a CSS scroll-driven animation, so it is
+                driven by the scroller itself rather than by a scroll listener:
+                nothing runs on the main thread, and where it isn't supported
+                every card simply renders open. */}
+            <div className="flex gap-4 overflow-x-auto overscroll-x-contain snap-x snap-proximity scroll-px-6 pb-6 -mx-6 px-6 lg:mx-0 lg:px-0 lg:gap-0 lg:items-end lg:justify-center lg:overflow-visible lg:pt-8 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
               {VALUES.map((v) => (
                 <div
                   key={v.name}
@@ -385,21 +393,19 @@ export default function AboutUsPage() {
                       "--fan-z": v.z,
                     } as CSSProperties
                   }
-                  className="pa-fan relative w-52 shrink-0 snap-center sm:w-56 lg:-ml-16 lg:w-48 lg:first:ml-0 xl:w-56"
+                  className="pa-fan pa-value-card relative w-[232px] shrink-0 snap-center sm:w-[248px] lg:-ml-16 lg:w-48 lg:first:ml-0 xl:w-56"
                 >
-                  {/* The photo is rounded as well as clipped: a rounded box
-                      that is also rotated antialiases its own edge, and any
-                      lighter fill behind it shows through as a hairline. */}
-                  <div className="relative aspect-[4/5] overflow-hidden rounded-[1.5rem] bg-zinc-950 shadow-[0_10px_24px_-14px_rgba(0,0,0,0.5)] lg:shadow-[0_30px_70px_-35px_rgba(0,0,0,0.6)]">
+                  <div className="relative aspect-[4/5] overflow-hidden rounded-[1.5rem] bg-zinc-900 shadow-[0_10px_24px_-14px_rgba(0,0,0,0.5)] lg:shadow-[0_30px_70px_-35px_rgba(0,0,0,0.6)]">
                     <Image
                       src={v.src}
                       alt={v.alt}
-                      fill
-                      sizes="224px"
+                      width={900}
+                      height={1125}
+                      sizes="(max-width: 1023px) 248px, 224px"
                       loading="eager"
-                      className="rounded-[1.5rem] object-cover"
+                      className="h-full w-full object-cover"
                     />
-                    <div className="pa-fan-scrim absolute inset-0 rounded-[1.5rem]" />
+                    <div className="pa-fan-scrim absolute inset-0" />
                     <div className="absolute inset-x-0 bottom-0 p-4">
                       <p className="text-[10px] font-bold uppercase tracking-[0.25em] text-white/45">
                         {v.n}
