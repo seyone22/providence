@@ -309,43 +309,6 @@ html {
     rgba(0, 0, 0, 0.15) 100%
   );
 }
-/* Below lg the cards are a scroller, and the one nearest the middle of it
-   reads as the open one: full colour and full size, its neighbours dimmed and
-   set back. This is a scroll-driven animation rather than a scroll listener,
-   so the scroller drives it directly and no work lands on the main thread —
-   which is the whole point on a phone. Where animation-timeline is missing the
-   declaration is dropped and every card renders open, which is a perfectly
-   good strip rather than a broken one.
-
-   Deliberately opacity and scale only. A rotateY would read more like the page
-   being turned, but 3D transforms on the children of a horizontal scroller are
-   exactly what WebKit stops repainting, and that bug is the reason this section
-   was rebuilt. */
-@keyframes pa-value-focus {
-  0% {
-    opacity: 0.45;
-    scale: 0.88;
-  }
-  50% {
-    opacity: 1;
-    scale: 1;
-  }
-  100% {
-    opacity: 0.45;
-    scale: 0.88;
-  }
-}
-@media (max-width: 1023px) {
-  @supports (animation-timeline: view()) {
-    .pa-value-card {
-      animation: pa-value-focus linear both;
-      animation-timeline: view(inline);
-      animation-range: cover 15% cover 85%;
-      transform-origin: center center;
-    }
-  }
-}
-
 @media (min-width: 1024px) {
   .pa-fan {
     transform-origin: bottom center;
@@ -397,11 +360,6 @@ html {
   .pa-fan-scrim,
   .pa-fan-line {
     transition: none;
-  }
-  .pa-value-card {
-    animation: none;
-    opacity: 1;
-    scale: 1;
   }
   .pa-fan-line {
     opacity: 1;

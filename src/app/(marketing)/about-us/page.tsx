@@ -368,21 +368,16 @@ export default function AboutUsPage() {
               </h2>
             </Reveal>
 
-            {/* Built on the same bones as the home page's gallery strip,
-                which is the one horizontal scroller on this site that has never
-                misbehaved on an iPhone: a plain flex scroller, proximity
-                snapping, and — the part that matters — a photo that sits in
-                normal flow rather than a next/image `fill`. An absolutely
-                positioned image inside a rounded, clipped box inside a scroller
-                is what WebKit was failing to repaint, which is why cards kept
-                dropping out mid-fling. Explicit width/height keeps the srcset
-                and the optimiser while giving up the absolute positioning.
-
-                The focus effect is a CSS scroll-driven animation, so it is
-                driven by the scroller itself rather than by a scroll listener:
-                nothing runs on the main thread, and where it isn't supported
-                every card simply renders open. */}
-            <div className="flex gap-4 overflow-x-auto overscroll-x-contain snap-x snap-proximity scroll-px-6 pb-6 -mx-6 px-6 lg:mx-0 lg:px-0 lg:gap-0 lg:items-end lg:justify-center lg:overflow-visible lg:pt-8 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+            {/* Below lg this is a plain two-column grid — no scroll
+                container, no snapping, no scroll-driven animation, nothing
+                positioned absolutely over the photo except the caption. Three
+                attempts at making a horizontal strip repaint reliably on an
+                iPhone failed, and every one of them failed in a way I could not
+                reproduce here, so the mechanism is gone rather than tuned
+                again. All six values are on screen at once and the value line
+                sits under its card in ordinary flow, where it cannot be clipped
+                by anything. The fan is still the fan from lg up. */}
+            <div className="grid grid-cols-2 gap-x-4 gap-y-7 lg:flex lg:items-end lg:justify-center lg:gap-0 lg:pt-8">
               {VALUES.map((v) => (
                 <div
                   key={v.name}
@@ -393,33 +388,37 @@ export default function AboutUsPage() {
                       "--fan-z": v.z,
                     } as CSSProperties
                   }
-                  className="pa-fan pa-value-card relative w-[232px] shrink-0 snap-center sm:w-[248px] lg:-ml-16 lg:w-48 lg:first:ml-0 xl:w-56"
+                  className="pa-fan relative lg:-ml-16 lg:w-48 lg:shrink-0 lg:first:ml-0 xl:w-56"
                 >
-                  <div className="relative aspect-[4/5] overflow-hidden rounded-[1.5rem] bg-zinc-900 shadow-[0_10px_24px_-14px_rgba(0,0,0,0.5)] lg:shadow-[0_30px_70px_-35px_rgba(0,0,0,0.6)]">
+                  <div className="relative aspect-[4/5] overflow-hidden rounded-[1.25rem] bg-zinc-900 lg:rounded-[1.5rem] lg:shadow-[0_30px_70px_-35px_rgba(0,0,0,0.6)]">
                     <Image
                       src={v.src}
                       alt={v.alt}
                       width={900}
                       height={1125}
-                      sizes="(max-width: 1023px) 248px, 224px"
+                      sizes="(max-width: 1023px) 45vw, 224px"
                       loading="eager"
                       className="h-full w-full object-cover"
                     />
                     <div className="pa-fan-scrim absolute inset-0" />
-                    <div className="absolute inset-x-0 bottom-0 p-4">
+                    <div className="absolute inset-x-0 bottom-0 p-3 lg:p-4">
                       <p className="text-[10px] font-bold uppercase tracking-[0.25em] text-white/45">
                         {v.n}
                       </p>
-                      <p className="mt-1.5 text-lg font-bold tracking-tight text-white">
+                      <p className="mt-1.5 text-base font-bold tracking-tight text-white lg:text-lg">
                         {v.name}
                       </p>
-                      {/* Held back until hover on the deck, where the cards
-                          overlap; always shown where there is no hover. */}
-                      <p className="pa-fan-line mt-1.5 text-[12px] font-light leading-snug text-zinc-200">
+                      {/* On the deck the cards overlap, so the line is held
+                          back until the card is hovered. Below lg it lives
+                          under the card instead — see the sibling below. */}
+                      <p className="pa-fan-line mt-1.5 hidden text-[12px] font-light leading-snug text-zinc-200 lg:block">
                         {v.line}
                       </p>
                     </div>
                   </div>
+                  <p className="mt-2.5 text-[12.5px] font-light leading-snug text-zinc-500 lg:hidden">
+                    {v.line}
+                  </p>
                 </div>
               ))}
             </div>
