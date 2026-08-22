@@ -17,6 +17,7 @@ type RevealTag =
   | "h4"
   | "li"
   | "ul"
+  | "figure"
   | "a"
   | "button";
 

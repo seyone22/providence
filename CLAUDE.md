@@ -111,6 +111,39 @@ Feeds and discovery, all automatic: `/news-sitemap.xml` (Google News, 48-hour wi
 
 Three standing editorial rules: **never invent a tax, duty or registration-tax figure** — cite the revenue authority, date the check and add `<Disclaimer />`; **never forecast a currency** — name the pair, date the level, and say which side of the trade it lands on (a weak *source* currency makes the car cheaper; a weak *destination* currency makes everything dearer); and **a missing number is not a failure, a wrong number is.**
 
+### Heading language: one heading says the whole thing
+
+Section headings carry their own label. Do **not** stack a small eyebrow label
+above a heading that then restates the same idea — fold the label into the
+heading so one sentence does both jobs.
+
+| Don't | Do |
+| --- | --- |
+| `Who we are` + `Not a marketplace. Not a broker network.` | `We are not a marketplace, and not a broker network.` |
+| `The problem` + `Buying a car still means settling.` | `The problem is, buying a car still means settling.` |
+| `How it works` + `Request it. We source it. It ships.` | `Here's how it works — you request it, we source it, it ships.` |
+| `Our network` + `Eight offices. Forty-plus markets.` | `Our network is eight offices and forty-plus markets.` |
+
+The rules:
+
+- **One heading per section.** The label ("the problem", "our network", "the
+  difference", "who we serve") becomes the subject of the sentence rather than a
+  separate line above it.
+- **Write it as a natural sentence**, not `Label: the thing`. A colon that just
+  re-splits the two halves is the same mistake with different punctuation.
+- **Keep it short enough to set at `text-5xl`** — one line of thought, usually
+  under twelve words.
+- **Replace the eyebrow's visual job with a rule, not with more text.**
+  `/about-us` uses a 48 px sky→violet hairline (`SectionRule` in that page) above
+  each H2 to keep the visual step down from one section to the next.
+- **The one exception is an AEO direct-answer block**, where the eyebrow is the
+  *question* a reader or an LLM would ask ("What is Providence Auto?") and the
+  body is the 40–50 word answer. That question/answer pair is the whole point of
+  the pattern — leave it alone.
+
+This governs every marketing page, campaign page, car page, blog post and news
+article written from now on, not just the page where it was introduced.
+
 ### SEO & AEO: standing requirement for every new page
 
 **Before creating or publishing any new page** — marketing/campaign page, car page (spec dossier), blog post, or news article — read `seo-aeo-optimization-guide.md` at the repo root. It is the canonical SEO/AEO playbook: user-intent identification, keyword/entity research, on-page copywriting (title tags, meta descriptions, header hierarchy), the technical SEO checklist, JSON-LD structured-data selection, and AEO/LLM optimization (featured-snippet answers, tables/lists, E-E-A-T). Run every new page through its Phase 1–5 process and the final pre-publishing checklist before treating the page as done.

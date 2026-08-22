@@ -212,7 +212,7 @@ export default function RootLayout({
   }
   var io = ('IntersectionObserver' in window) ? new IntersectionObserver(function(es){
     for(var i=0;i<es.length;i++){ if(es[i].isIntersecting){ var t=es[i].target; reveal(t); io.unobserve(t); } }
-  }, {rootMargin:'0px 0px -8% 0px', threshold:0}) : null;
+  }, {rootMargin:'0px 0px 15% 0px', threshold:0}) : null;
   function add(el){
     if(el.classList.contains('pa-reveal-immediate')){ reveal(el); return; }
     if(!io){ reveal(el); return; }
