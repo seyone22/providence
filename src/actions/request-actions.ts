@@ -2,7 +2,17 @@
 "use server";
 
 import crypto from "node:crypto";
-import { and, asc, desc, eq, inArray, ne } from "drizzle-orm";
+import {
+  and,
+  asc,
+  desc,
+  eq,
+  ilike,
+  inArray,
+  ne,
+  notInArray,
+  sql,
+} from "drizzle-orm";
 import { BLOG_BASE_PATH, getSuggestedPosts } from "@/config/blog";
 import { db, requests, users } from "@/db";
 import {
@@ -12,6 +22,17 @@ import {
 } from "@/lib/contactScheduling";
 import { emailService } from "@/lib/email";
 import connectToDatabase from "@/lib/mongoose";
+
+// Destination markets owned by a named member rather than the shared Sales
+// rotation: an inquiry to import to one of these goes to that person.
+//
+// Keyed by `countryOfImport` lowercased, valued by email rather than user id
+// so the rule survives the owner's account being re-created and, crucially,
+// their role changing — the round-robin pool is role "Sales" only, and these
+// owners are often admins who would never come up in it.
+const COUNTRY_LEAD_OWNERS: Record<string, string> = {
+  cyprus: "shaq@providenceauto.uk.com",
+};
 
 export async function submitCarRequest(data: {
   // When present, update the existing lead instead of creating a new one
@@ -93,11 +114,14 @@ export async function submitCarRequest(data: {
       // If the id no longer resolves, fall through and create a fresh lead.
     }
 
-    // 1. Assign an agent. A profile-page inquiry carries assignedAgentId and
-    //    is pinned directly to that member; everything else rotates through
-    //    the Sales team round-robin (alphabetically).
+    // 1. Assign an agent, in precedence order:
+    //      direct      — a profile-page inquiry carrying assignedAgentId is
+    //                    pinned to that member; the customer picked them.
+    //      country     — the destination market has a named owner.
+    //      round-robin — everything else rotates through the Sales team
+    //                    alphabetically.
     let assignedAgent = null;
-    let assignmentMethod: "direct" | "round-robin" = "round-robin";
+    let assignmentMethod: "direct" | "country" | "round-robin" = "round-robin";
 
     // 1a. Direct assignment — only honoured if the id resolves to a real
     //     user whose role can actually own leads. Never trust the client
@@ -124,6 +148,41 @@ export async function submitCarRequest(data: {
       }
     }
 
+    // 1b. Country routing — a destination market with a named owner skips the
+    //     rotation entirely. Matched case-insensitively on email, and gated on
+    //     the same can-own-leads check as a direct assignment. An owner who is
+    //     missing or banned falls through to the round-robin rather than
+    //     leaving the lead unassigned.
+    if (!assignedAgent) {
+      const ownerEmail =
+        COUNTRY_LEAD_OWNERS[data.countryOfImport?.trim().toLowerCase() ?? ""];
+
+      if (ownerEmail) {
+        const [countryOwner] = await db
+          .select()
+          .from(users)
+          .where(
+            and(
+              ilike(users.email, ownerEmail),
+              // Compared case-insensitively on purpose: production stores
+              // "Admin"/"Sales" capitalised while dev and staging do not, and
+              // a country owner must resolve in every environment.
+              inArray(sql`lower(${users.role})`, ["sales", "admin"]),
+              ne(users.isBanned, true),
+            ),
+          )
+          .limit(1);
+
+        if (countryOwner) {
+          assignedAgent = {
+            ...countryOwner,
+            _id: countryOwner.id,
+          };
+          assignmentMethod = "country";
+        }
+      }
+    }
+
     if (!assignedAgent) {
       // Fetch all users with the role 'Sales', sorted alphabetically by name
       const staffMembers = await db
@@ -138,13 +197,13 @@ export async function submitCarRequest(data: {
       }));
 
       if (mappedStaffMembers.length > 0) {
-        // Fetch the most recently created round-robin lead. Direct
-        // (profile-page) leads are excluded so pinning a lead to one
-        // member doesn't advance the shared rotation past them.
+        // Fetch the most recently created round-robin lead. Directly
+        // pinned and country-routed leads are excluded so assigning a lead
+        // to one member doesn't advance the shared rotation past them.
         const [lastRequest] = await db
           .select()
           .from(requests)
-          .where(ne(requests.assignmentMethod, "direct"))
+          .where(notInArray(requests.assignmentMethod, ["direct", "country"]))
           .orderBy(desc(requests.createdAt))
           .limit(1);
 
