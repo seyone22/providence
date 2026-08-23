@@ -294,13 +294,46 @@ html {
 }
 
 /* ── Values deck (/about-us) ───────────────────────────────────────────────
-   Each card needs its own angle and lift, so the fan is fed by custom
-   properties rather than by utilities. rotate/translate/scale are the
-   individual transform properties, which means none of this collides with the
-   `transform` the reveal runtime animates on ancestors.
+   Mobile first. Below lg the six values are a horizontal scroller; the fan is
+   an lg-only enhancement layered on the same markup.
 
-   Below lg the cards are a plain horizontal scroller: no fan, and the line
-   under each value stays visible, because there is no hover to reveal it. */
+   Three rules keep this row smooth on a phone, and every one of them was
+   learned by breaking it:
+
+   1. NOTHING HERE ANIMATES OPACITY, and nothing takes a card out of flow.
+      Every earlier attempt that dimmed an off-centre card, wrapped the
+      scroller in a reveal or switched the photo to `fill` ended with cards
+      reading as blank white mid-swipe. A card whose only animated properties
+      are rotate/translate/scale is fully visible even if the animation never
+      runs at all.
+
+   2. THE CARD PAINTS ITS OWN PLACEHOLDER, as a plain bitmap. `--fan-lqip` is
+      the 8x10 WebP from the VALUES table, set as a background-image and left
+      for the browser to upscale — one bilinear stretch, rasterised once with
+      the rest of the card. This replaces next/image's `placeholder="blur"`,
+      which ships the same thumbnail wrapped in an SVG carrying two chained
+      feGaussianBlur(20) filters over a 900x1125 viewBox. That filter graph has
+      to be evaluated per card, six times, on the raster path the scroller is
+      already competing for — it bought instant pixels at the cost of the
+      scroll being smooth.
+
+   3. THE SCROLL-DRIVEN MOTION IS A VIEW TIMELINE, not JavaScript. `view()`
+      progress is sampled by the compositor off the main thread, so the deal-in
+      cannot judder the swipe that drives it and there is no observer to fall
+      behind. Where it isn't supported the @supports block is skipped and the
+      row is exactly the static strip it was before.
+
+   Individual transform properties (rotate/translate/scale) throughout, so none
+   of this collides with the `transform` the reveal runtime animates on
+   ancestors. */
+
+.pa-fan-card {
+  background-color: #18181b; /* zinc-900, under the placeholder */
+  background-image: var(--fan-lqip);
+  background-size: cover;
+  background-position: center;
+}
+
 .pa-fan-scrim {
   background: linear-gradient(
     to top,
@@ -309,6 +342,48 @@ html {
     rgba(0, 0, 0, 0.15) 100%
   );
 }
+
+/* Deal each card in as it enters the scroller from the right, and let it ease
+   away again on the left. `cover` runs the whole crossing, with a plateau
+   across the middle so a card that is properly on screen sits square and
+   full-size rather than being mid-tween the entire time. Keep that plateau
+   wide: a card resting on a snap point sits inside it at scale 1, so snapping
+   never nudges the scroll position that is driving the scale that moves the
+   snap area. Narrow it and the row can hunt.
+
+   Kept off the desktop breakpoint deliberately: at lg the row stops being a
+   scroll container (`lg:overflow-visible`) and the fan below owns the same
+   three properties. */
+@keyframes pa-fan-deal {
+  0% {
+    scale: 0.9;
+    rotate: 3.5deg;
+    translate: 0 12px;
+  }
+  32%,
+  68% {
+    scale: 1;
+    rotate: 0deg;
+    translate: 0 0;
+  }
+  100% {
+    scale: 0.9;
+    rotate: -3.5deg;
+    translate: 0 12px;
+  }
+}
+
+@media (max-width: 1023.98px) and (prefers-reduced-motion: no-preference) {
+  @supports (animation-timeline: view(inline)) {
+    .pa-fan {
+      transform-origin: 50% 100%;
+      animation: pa-fan-deal linear both;
+      animation-timeline: view(inline);
+      animation-range: cover 0% cover 100%;
+    }
+  }
+}
+
 @media (min-width: 1024px) {
   .pa-fan {
     transform-origin: bottom center;
@@ -326,6 +401,16 @@ html {
     scale: 1.12;
     z-index: 50;
   }
+
+  /* Two stacked scrims cross-faded by opacity, rather than one scrim
+     transitioning its `background`. A gradient is not an interpolable value the
+     compositor can hand off, so the old version repainted the full card area on
+     every frame of the hover — the visible cost of which was the lift stuttering
+     as it started. Opacity on a pair of fixed gradients is a compositor swap. */
+  .pa-fan-scrim,
+  .pa-fan-scrim-open {
+    transition: opacity 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+  }
   .pa-fan-scrim {
     background: linear-gradient(
       to top,
@@ -333,9 +418,9 @@ html {
       rgba(0, 0, 0, 0.6) 55%,
       rgba(0, 0, 0, 0.45) 100%
     );
-    transition: background 0.5s ease;
   }
-  .pa-fan:hover .pa-fan-scrim {
+  .pa-fan-scrim-open {
+    opacity: 0;
     background: linear-gradient(
       to top,
       rgba(0, 0, 0, 0.9) 0%,
@@ -343,6 +428,15 @@ html {
       rgba(0, 0, 0, 0.05) 100%
     );
   }
+  .pa-fan:hover .pa-fan-scrim {
+    opacity: 0;
+  }
+  .pa-fan:hover .pa-fan-scrim-open {
+    opacity: 1;
+  }
+
+  /* On the deck the cards overlap, so the line is held back until hover. In the
+     scroller below lg nothing covers it and it simply shows. */
   .pa-fan-line {
     opacity: 0;
     translate: 0 4px;
@@ -355,9 +449,11 @@ html {
     translate: 0 0;
   }
 }
+
 @media (prefers-reduced-motion: reduce) {
   .pa-fan,
   .pa-fan-scrim,
+  .pa-fan-scrim-open,
   .pa-fan-line {
     transition: none;
   }

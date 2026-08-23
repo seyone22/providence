@@ -91,14 +91,20 @@ const STATS = [
 // lg-only — below that these are a plain horizontal scroller.
 //
 // `lqip` is an 8×10 WebP of the photo, inlined as a data URL (60–160 bytes
-// each, ~700 bytes for the row). It is what the card paints while the real
-// photo is in flight. Measured on the deployed site, each optimised photo is
-// 60–90 KB and Cloudflare returns `cf-cache-status: DYNAMIC` for
-// `/_next/image`, so every request travels to Railway — around 0.5s from a
-// desktop and 1.5–2s from a phone on mobile data. Nothing in the card used to
-// paint before its photo landed, so the row read as blank white for exactly
-// that long while you swiped it. The blur needs no request, so the card now
-// has real pixels from the moment the HTML parses.
+// each, ~700 bytes for the row). It goes out as the `--fan-lqip` custom
+// property and the card paints it as a plain background-image, stretched to
+// cover, while the real photo is in flight. Measured on the deployed site,
+// each optimised photo is 60–90 KB and Cloudflare returns
+// `cf-cache-status: DYNAMIC` for `/_next/image`, so every request travels to
+// Railway — around 0.5s from a desktop and 1.5–2s from a phone on mobile
+// data. Nothing in the card used to paint before its photo landed, so the row
+// read as blank white for exactly that long while you swiped it. This needs no
+// request, so the card has real pixels from the moment the HTML parses.
+//
+// Pass it as a background, not through next/image's `placeholder="blur"`:
+// that ships the same thumbnail wrapped in an SVG carrying two chained
+// feGaussianBlur(20) filters, which has to be rasterised per card and is what
+// made the swipe itself judder.
 //
 // Regenerate with sharp if a photo is replaced:
 //   sharp(file).resize(8, 10, { fit: "cover" }).webp({ quality: 40 })
@@ -415,18 +421,22 @@ export default function AboutUsPage() {
                 tall instead of three rows deep, with the caption back inside
                 the photo.
 
-                This is deliberately the home page gallery strip and nothing
-                else — same flex scroller, same proximity snapping, same
-                overscroll containment, same in-flow photo. That strip is the
-                one horizontal scroller on this site that has never misbehaved
-                on an iPhone, so it is the pattern rather than a starting point.
-                Everything earlier attempts layered on top of it is gone: no
-                reveal wrapper around the scroller, no per-card z-index building
-                stacking contexts, no next/image `fill` putting the photo out of
-                flow, no scroll-driven focus animation dimming the cards, and no
-                mandatory snapping. Adding any of those back is what broke it
-                each time — the dimming one worst of all, since a card that is
-                merely off-centre renders at 45% opacity. */}
+                The scroller itself is deliberately the home page gallery strip
+                and nothing else — same flex container, same proximity snapping,
+                same overscroll containment, same in-flow photo. That strip is
+                the one horizontal scroller on this site that has never
+                misbehaved on an iPhone, so it is the pattern rather than a
+                starting point, and what earlier attempts layered on top of it
+                stays gone: no reveal wrapper around the scroller, no per-card
+                z-index below lg, no next/image `fill` putting the photo out of
+                flow, no opacity driven off scroll position, and no mandatory
+                snapping.
+
+                The deal-in the cards now do is a CSS view timeline, sampled by
+                the compositor rather than by an observer, and it moves nothing
+                but rotate/translate/scale. See the .pa-fan block in globals.css
+                for why that is the one kind of scroll motion this row can
+                safely carry. */}
               <div className="flex gap-4 overflow-x-auto overscroll-x-contain pb-6 -mx-6 px-6 snap-x snap-proximity scroll-px-6 lg:mx-0 lg:px-0 lg:gap-0 lg:scroll-px-0 lg:items-end lg:justify-center lg:overflow-visible lg:pb-0 lg:pt-8 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
                 {VALUES.map((v) => (
                   <div
@@ -436,34 +446,47 @@ export default function AboutUsPage() {
                         "--fan-rot": v.rot,
                         "--fan-y": v.y,
                         "--fan-z": v.z,
+                        // Quoted so the `;` in `data:image/webp;base64,` sits
+                        // inside a CSS string rather than ending the
+                        // declaration when this is parsed out of the style
+                        // attribute.
+                        "--fan-lqip": `url('${v.lqip}')`,
                       } as CSSProperties
                     }
                     className="pa-fan relative w-[240px] shrink-0 snap-start lg:-ml-16 lg:w-48 lg:first:ml-0 xl:w-56"
                   >
-                    <div className="relative aspect-[4/5] overflow-hidden rounded-[1.25rem] bg-zinc-900 lg:rounded-[1.5rem] lg:shadow-[0_30px_70px_-35px_rgba(0,0,0,0.6)]">
+                    {/* The card, not the <img>, carries the placeholder:
+                      .pa-fan-card paints --fan-lqip as a plain background, so
+                      there are real pixels here the moment the HTML parses and
+                      no filter to rasterise. */}
+                    <div className="pa-fan-card relative aspect-[4/5] overflow-hidden rounded-[1.25rem] lg:rounded-[1.5rem] lg:shadow-[0_30px_70px_-35px_rgba(0,0,0,0.6)]">
                       <Image
                         src={v.src}
                         alt={v.alt}
                         width={900}
                         height={1125}
                         sizes="(max-width: 1023px) 240px, 224px"
-                        // The blur is the whole point on mobile: it renders as
-                        // a background-image on the <img> itself, straight from
-                        // the HTML, so the card is never an empty box waiting
-                        // on the network. See the note on VALUES for the
-                        // measurements behind that.
-                        placeholder="blur"
-                        blurDataURL={v.lqip}
-                        // No `quality` prop here on purpose. Next 16 only
-                        // serves the qualities in `images.qualities`, which
-                        // defaults to [75]: a production build coerces the
-                        // prop back to 75 at render time, and requesting
+                        // No `placeholder="blur"`. It ships this same 8×10
+                        // thumbnail, but wrapped in an SVG carrying two
+                        // chained feGaussianBlur(20) filters over a 900×1125
+                        // viewBox, painted as a background on the <img>. That
+                        // filter graph is re-evaluated per card, six times, on
+                        // the raster path the scroller is already competing
+                        // for — it bought instant pixels at the cost of the
+                        // swipe being smooth. The card behind gives the same
+                        // first paint for one bitmap stretch.
+                        //
+                        // No `quality` prop either. Next 16 only serves the
+                        // qualities in `images.qualities`, which defaults to
+                        // [75]: a production build coerces the prop back to
+                        // 75 at render time, and requesting
                         // /_next/image?…&q=70 directly returns 400. It looks
                         // like it works in dev, where the optimiser answers
                         // any quality. Lowering it for real would mean adding
                         // the value to next.config.ts, which changes every
                         // image on the site — not worth it for ~5% on six
                         // decorative photos.
+                        //
                         // All six load the same way, exactly as the home page
                         // gallery strip does. `loading="eager"` makes Next.js
                         // inject a <link rel=preload> whose scanner width
@@ -486,6 +509,9 @@ export default function AboutUsPage() {
                         className="h-full w-full object-cover"
                       />
                       <div className="pa-fan-scrim absolute inset-0" />
+                      {/* The lit half of the hover cross-fade. lg-only, so a
+                        phone never paints it at all. */}
+                      <div className="pa-fan-scrim-open absolute inset-0 hidden lg:block" />
                       <div className="absolute inset-x-0 bottom-0 p-4">
                         <p className="text-[10px] font-bold uppercase tracking-[0.25em] text-white/45">
                           {v.n}
