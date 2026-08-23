@@ -454,14 +454,16 @@ export default function AboutUsPage() {
                         // measurements behind that.
                         placeholder="blur"
                         blurDataURL={v.lqip}
-                        // Decorative photography sitting behind a 45–90% black
-                        // scrim at 240px wide, so it can stand a notch below
-                        // the default 75. Measured: 238 KB → 225 KB for the
-                        // six. Write 70, not a lower number — Next 16 snaps
-                        // `quality` to its allowed set, so 60 silently ships
-                        // as 70 and the comment would be describing a value
-                        // the optimiser never used.
-                        quality={70}
+                        // No `quality` prop here on purpose. Next 16 only
+                        // serves the qualities in `images.qualities`, which
+                        // defaults to [75]: a production build coerces the
+                        // prop back to 75 at render time, and requesting
+                        // /_next/image?…&q=70 directly returns 400. It looks
+                        // like it works in dev, where the optimiser answers
+                        // any quality. Lowering it for real would mean adding
+                        // the value to next.config.ts, which changes every
+                        // image on the site — not worth it for ~5% on six
+                        // decorative photos.
                         // All six load the same way, exactly as the home page
                         // gallery strip does. `loading="eager"` makes Next.js
                         // inject a <link rel=preload> whose scanner width
