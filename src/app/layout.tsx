@@ -185,18 +185,30 @@ export default function RootLayout({
           <style>{`.pa-reveal,.pa-reveal-immediate{opacity:1 !important;transform:none !important}`}</style>
         </noscript>
         {/* Reveal runtime — decoupled from React so reveals fire as the HTML
-                parses (not after hydration). One IntersectionObserver; motion via
-                the Web Animations API so it never conflicts with hover/transition
-                styles and the revealed state stays declaratively visible. */}
+                parses (not after hydration). Motion via the Web Animations API so
+                it never conflicts with hover/transition styles and the revealed
+                state stays declaratively visible.
+
+                Every revealable element ships at opacity:0, so anything that
+                stops this runtime from running leaves real content invisible on a
+                fully loaded page. IntersectionObserver alone is not enough of a
+                guarantee: its callbacks ride the rendering lifecycle, so a phone
+                whose main thread is busy hydrating can hold a section on screen
+                and unrevealed for seconds. So the observer is backed by a
+                synchronous sweep — a plain getBoundingClientRect test that needs
+                no frame — run at parse time, on scroll, on resize and on load. */}
         <script
           dangerouslySetInnerHTML={{
             __html: `(function(){
   var RM = !!(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches);
   var EASE = 'cubic-bezier(0.16,1,0.3,1)';
+  var pending = [];
+  var io = null;
   function reveal(el){
     if(el.__par || el.classList.contains('pa-revealed')) return;
     el.__par = 1;
     el.classList.add('pa-revealed');
+    if(io){ try{ io.unobserve(el); }catch(e){} }
     if(RM || typeof el.animate !== 'function') return;
     var y=el.getAttribute('data-ry')||0, x=el.getAttribute('data-rx')||0, s=el.getAttribute('data-rs')||1;
     var d=parseInt(el.getAttribute('data-rd')||'600',10), delay=parseInt(el.getAttribute('data-rdelay')||'0',10);
@@ -210,35 +222,60 @@ export default function RootLayout({
       );
     }catch(e){}
   }
-  var io = ('IntersectionObserver' in window) ? new IntersectionObserver(function(es){
-    for(var i=0;i<es.length;i++){ if(es[i].isIntersecting){ var t=es[i].target; reveal(t); io.unobserve(t); } }
+  io = ('IntersectionObserver' in window) ? new IntersectionObserver(function(es){
+    for(var i=0;i<es.length;i++){ if(es[i].isIntersecting) reveal(es[i].target); }
   }, {rootMargin:'0px 0px 15% 0px', threshold:0}) : null;
+  function near(el){
+    var r = el.getBoundingClientRect();
+    var h = window.innerHeight || document.documentElement.clientHeight || 0;
+    if(r.top === 0 && r.bottom === 0 && r.left === 0) return false;
+    return r.top < h * 1.15 && r.bottom > 0;
+  }
+  function sweep(){
+    if(!pending.length) return;
+    var rest = [], i, el;
+    for(i=0;i<pending.length;i++){
+      el = pending[i];
+      if(el.classList.contains('pa-revealed')) continue;
+      if(near(el)) reveal(el); else rest.push(el);
+    }
+    pending = rest;
+  }
+  var queued = false;
+  function onScroll(){
+    if(queued) return;
+    queued = true;
+    setTimeout(function(){ queued = false; sweep(); }, 120);
+  }
   function add(el){
     if(el.classList.contains('pa-reveal-immediate')){ reveal(el); return; }
     if(!io){ reveal(el); return; }
     io.observe(el);
+    pending.push(el);
   }
   function scan(root){
     var els=(root||document).querySelectorAll('.pa-reveal:not(.pa-revealed),.pa-reveal-immediate:not(.pa-revealed)');
     for(var i=0;i<els.length;i++) add(els[i]);
+    sweep();
   }
-  function init(){
-    scan();
-    if(window.MutationObserver){
-      new MutationObserver(function(muts){
-        for(var i=0;i<muts.length;i++){
-          var nodes=muts[i].addedNodes;
-          for(var j=0;j<nodes.length;j++){
-            var n=nodes[j];
-            if(n.nodeType===1){
-              if(n.classList && (n.classList.contains('pa-reveal')||n.classList.contains('pa-reveal-immediate'))) add(n);
-              if(n.querySelectorAll) scan(n);
-            }
+  if(window.MutationObserver){
+    new MutationObserver(function(muts){
+      for(var i=0;i<muts.length;i++){
+        var nodes=muts[i].addedNodes;
+        for(var j=0;j<nodes.length;j++){
+          var n=nodes[j];
+          if(n.nodeType===1){
+            if(n.classList && (n.classList.contains('pa-reveal')||n.classList.contains('pa-reveal-immediate'))) add(n);
+            if(n.querySelectorAll) scan(n);
           }
         }
-      }).observe(document.body||document.documentElement,{childList:true,subtree:true});
-    }
+      }
+    }).observe(document.documentElement,{childList:true,subtree:true});
   }
+  addEventListener('scroll', onScroll, {passive:true});
+  addEventListener('resize', onScroll);
+  addEventListener('load', sweep);
+  function init(){ scan(); }
   if(document.readyState==='loading') document.addEventListener('DOMContentLoaded', init);
   else init();
 })();`,
