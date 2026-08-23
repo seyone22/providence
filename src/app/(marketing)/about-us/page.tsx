@@ -80,7 +80,7 @@ const STATS = [
   { value: 15, suffix: "+", label: "Years trading history" },
   { value: 8, label: "Countries with our own offices" },
   { value: 40, suffix: "+", label: "Retail sourcing markets" },
-  { value: 21, label: "Destination markets served" },
+  { value: 26, label: "Destination markets served" },
   { value: 100, suffix: "+", label: "Dealer sourcing markets" },
   { value: 24, suffix: " hrs", label: "To your first sourcing quote" },
 ];
@@ -236,7 +236,17 @@ const DESTINATION_REGIONS = [
     region: "Europe",
     countries: ["Ireland", "United Kingdom", "Malta", "Cyprus", "Jersey"],
   },
-  { region: "Africa", countries: ["Kenya", "Uganda", "Zimbabwe"] },
+  {
+    region: "Africa",
+    countries: [
+      "Kenya",
+      "Uganda",
+      "Zimbabwe",
+      "Tanzania",
+      "Mauritius",
+      "Seychelles",
+    ],
+  },
   {
     region: "Caribbean",
     countries: [
@@ -256,8 +266,10 @@ const DESTINATION_REGIONS = [
       "Malaysia",
       "Indonesia",
       "Thailand",
-      "Sri Lanka",
-      "Maldives",
+      "Pakistan",
+      "Bangladesh",
+      "Nepal",
+      "Singapore",
     ],
   },
 ];
