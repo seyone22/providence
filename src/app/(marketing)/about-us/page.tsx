@@ -89,12 +89,26 @@ const STATS = [
 // in the fan, handed to the .pa-fan rules in globals.css as custom
 // properties; `z` stacks each card over the one before it. The fan itself is
 // lg-only — below that these are a plain horizontal scroller.
+//
+// `lqip` is an 8×10 WebP of the photo, inlined as a data URL (60–160 bytes
+// each, ~700 bytes for the row). It is what the card paints while the real
+// photo is in flight. Measured on the deployed site, each optimised photo is
+// 60–90 KB and Cloudflare returns `cf-cache-status: DYNAMIC` for
+// `/_next/image`, so every request travels to Railway — around 0.5s from a
+// desktop and 1.5–2s from a phone on mobile data. Nothing in the card used to
+// paint before its photo landed, so the row read as blank white for exactly
+// that long while you swiped it. The blur needs no request, so the card now
+// has real pixels from the moment the HTML parses.
+//
+// Regenerate with sharp if a photo is replaced:
+//   sharp(file).resize(8, 10, { fit: "cover" }).webp({ quality: 40 })
 const VALUES = [
   {
     n: "01",
     name: "Trust",
     line: "We earn it before we ask for anything in return. Every conversation, every car.",
     src: "/about/value-trust.jpg",
+    lqip: "data:image/webp;base64,UklGRkYAAABXRUJQVlA4IDoAAACwAQCdASoIAAoAA4BaJaQAAuc/wEgAAP7sWdN8zCAP/Uj07hvEwgtytJQLFeBEdjVkwL0JsGW4QAAA",
     alt: "A Mercedes-Benz grille and star with a Providence Auto plate below it",
     rot: "-6deg",
     y: "1.5rem",
@@ -105,6 +119,7 @@ const VALUES = [
     name: "Reliability",
     line: "When we say we'll call, we call. When we say it's ready, it's ready.",
     src: "/about/value-reliability.jpg",
+    lqip: "data:image/webp;base64,UklGRkoAAABXRUJQVlA4ID4AAACwAQCdASoIAAoAA4BaJZwAAldnNekAAP7x4KLEZdUkDbvp+scHnqWSO4PdN1dB0MKDCcuaAz41r4H2LrwIAA==",
     alt: "The headlight and front wing of a white saloon in close detail",
     rot: "-3.6deg",
     y: "0.5rem",
@@ -115,6 +130,7 @@ const VALUES = [
     name: "Transparency",
     line: "No hidden fees, no small print. You see the price, the process and the people.",
     src: "/about/value-transparency.jpg",
+    lqip: "data:image/webp;base64,UklGRkoAAABXRUJQVlA4ID4AAADQAQCdASoIAAoAA4BaJZwAAueKfalBMAD+5Tr8ooB40eiyJ7BDxy8/E6Gu0KI6hrVFcGQdwErX/WBR2mAgAA==",
     alt: "The front of a silver sports car under low garage light",
     rot: "-1.2deg",
     y: "0rem",
@@ -125,6 +141,7 @@ const VALUES = [
     name: "Commitment",
     line: "It doesn't end at handover. We're in it for every mile after the sale.",
     src: "/about/value-commitment.jpg",
+    lqip: "data:image/webp;base64,UklGRl4AAABXRUJQVlA4IFIAAACwAQCdASoIAAoAA4BaJbACdADzeaBwAP6bY3IAuHFYBhTjOjSSDruet/me+fQ5EJxa0sJfEizoiZXNTcb2CaqlA/vCkH3IKYuD6hHXgMMKAAAA",
     alt: "The rear wheel and tail light of a yellow supercar in close detail",
     rot: "1.2deg",
     y: "0rem",
@@ -135,6 +152,7 @@ const VALUES = [
     name: "Honesty",
     line: "What the car needs, and what we'd choose ourselves. Advice over a quick sale.",
     src: "/about/value-honesty.jpg",
+    lqip: "data:image/webp;base64,UklGRk4AAABXRUJQVlA4IEIAAADwAQCdASoIAAoAA4BaJZQCdAD0slMyIAAA/u0muB3IowvHcMG5tBZXaU88SZZDqGV/hzHCD1GMhSYl0TEbFxxOGAA=",
     alt: "A lit headlight on a dark SUV at night",
     rot: "3.6deg",
     y: "0.5rem",
@@ -145,6 +163,7 @@ const VALUES = [
     name: "Relationship",
     line: "We remember your name and what matters to you. Not a transaction — a beginning.",
     src: "/about/value-relationship.jpg",
+    lqip: "data:image/webp;base64,UklGRjoAAABXRUJQVlA4IC4AAAAwAQCdASoIAAoAA4BaJaQAA3AA/vWY2Zlf5o/96++oOcgix2FYkJeVESnQAAAA",
     alt: "The rear of a dark coupé at night with its tail lights lit",
     rot: "6deg",
     y: "1.5rem",
@@ -428,6 +447,21 @@ export default function AboutUsPage() {
                         width={900}
                         height={1125}
                         sizes="(max-width: 1023px) 240px, 224px"
+                        // The blur is the whole point on mobile: it renders as
+                        // a background-image on the <img> itself, straight from
+                        // the HTML, so the card is never an empty box waiting
+                        // on the network. See the note on VALUES for the
+                        // measurements behind that.
+                        placeholder="blur"
+                        blurDataURL={v.lqip}
+                        // Decorative photography sitting behind a 45–90% black
+                        // scrim at 240px wide, so it can stand a notch below
+                        // the default 75. Measured: 238 KB → 225 KB for the
+                        // six. Write 70, not a lower number — Next 16 snaps
+                        // `quality` to its allowed set, so 60 silently ships
+                        // as 70 and the comment would be describing a value
+                        // the optimiser never used.
+                        quality={70}
                         // All six load the same way, exactly as the home page
                         // gallery strip does. `loading="eager"` makes Next.js
                         // inject a <link rel=preload> whose scanner width
