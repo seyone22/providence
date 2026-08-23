@@ -85,95 +85,102 @@ const STATS = [
   { value: 24, suffix: " hrs", label: "To your first sourcing quote" },
 ];
 
-// ── The six values, dealt as a deck. `rot`/`y` are the card's angle and lift
-// in the fan, handed to the .pa-fan rules in globals.css as custom
-// properties; `z` stacks each card over the one before it. The fan itself is
-// lg-only — below that these are a plain horizontal scroller.
+// ── The six values, each a full dictionary entry: the word, how it is said,
+// what it means, and what it obliges us to. `n` is the series number, `slug`
+// names the photo files.
 //
-// `lqip` is an 8×10 WebP of the photo, inlined as a data URL (60–160 bytes
-// each, ~700 bytes for the row). It goes out as the `--fan-lqip` custom
+// `lqip` is an 8×10 WebP of the photo, inlined as a data URL (66–102 bytes
+// each, ~500 bytes for the row). It goes out as the `--value-lqip` custom
 // property and the card paints it as a plain background-image, stretched to
-// cover, while the real photo is in flight. Measured on the deployed site,
-// each optimised photo is 60–90 KB and Cloudflare returns
-// `cf-cache-status: DYNAMIC` for `/_next/image`, so every request travels to
-// Railway — around 0.5s from a desktop and 1.5–2s from a phone on mobile
-// data. Nothing in the card used to paint before its photo landed, so the row
-// read as blank white for exactly that long while you swiped it. This needs no
-// request, so the card has real pixels from the moment the HTML parses.
+// cover, so there are real pixels in the card from the moment the HTML parses
+// rather than an empty box waiting on the network.
 //
 // Pass it as a background, not through next/image's `placeholder="blur"`:
 // that ships the same thumbnail wrapped in an SVG carrying two chained
-// feGaussianBlur(20) filters, which has to be rasterised per card and is what
-// made the swipe itself judder.
+// feGaussianBlur(20) filters, which has to be rasterised per card and made
+// the swipe itself judder.
 //
-// Regenerate with sharp if a photo is replaced:
-//   sharp(file).resize(8, 10, { fit: "cover" }).webp({ quality: 40 })
+// The photos are static, pre-sized WebPs rather than /_next/image URLs — see
+// scripts/build-value-photos.mjs, which generates them and re-emits these
+// exact `lqip` strings.
 const VALUES = [
   {
     n: "01",
+    slug: "trust",
     name: "Trust",
-    line: "We earn it before we ask for anything in return. Every conversation, every car.",
-    src: "/about/value-trust.jpg",
+    phonetic: "/trʌst/",
+    pos: "noun & verb",
+    definition:
+      "The firm belief in the reliability and honesty of another — earned through consistent action, never assumed.",
+    quote:
+      "We earn your trust before we ask for anything in return. Every conversation, every car, every step of the way.",
     lqip: "data:image/webp;base64,UklGRkYAAABXRUJQVlA4IDoAAACwAQCdASoIAAoAA4BaJaQAAuc/wEgAAP7sWdN8zCAP/Uj07hvEwgtytJQLFeBEdjVkwL0JsGW4QAAA",
     alt: "A Mercedes-Benz grille and star with a Providence Auto plate below it",
-    rot: "-6deg",
-    y: "1.5rem",
-    z: 11,
   },
   {
     n: "02",
+    slug: "reliability",
     name: "Reliability",
-    line: "When we say we'll call, we call. When we say it's ready, it's ready.",
-    src: "/about/value-reliability.jpg",
+    phonetic: "/rɪˌlaɪəˈbɪlɪti/",
+    pos: "noun",
+    definition:
+      "The quality of being consistently dependable — performing without failure in service, in promise, and in presence.",
+    quote:
+      "When we say we'll call, we call. When we say it's ready, it's ready. No excuses — just results.",
     lqip: "data:image/webp;base64,UklGRkoAAABXRUJQVlA4ID4AAACwAQCdASoIAAoAA4BaJZwAAldnNekAAP7x4KLEZdUkDbvp+scHnqWSO4PdN1dB0MKDCcuaAz41r4H2LrwIAA==",
     alt: "The headlight and front wing of a white saloon in close detail",
-    rot: "-3.6deg",
-    y: "0.5rem",
-    z: 12,
   },
   {
     n: "03",
+    slug: "transparency",
     name: "Transparency",
-    line: "No hidden fees, no small print. You see the price, the process and the people.",
-    src: "/about/value-transparency.jpg",
+    phonetic: "/trænsˈpærənsi/",
+    pos: "noun",
+    definition:
+      "The practice of being open and clear — making the complex simple, and the unseen visible to all.",
+    quote:
+      "No hidden fees. No small print surprises. You see the price, the process, and the people — all of it.",
     lqip: "data:image/webp;base64,UklGRkoAAABXRUJQVlA4ID4AAADQAQCdASoIAAoAA4BaJZwAAueKfalBMAD+5Tr8ooB40eiyJ7BDxy8/E6Gu0KI6hrVFcGQdwErX/WBR2mAgAA==",
     alt: "The front of a silver sports car under low garage light",
-    rot: "-1.2deg",
-    y: "0rem",
-    z: 13,
   },
   {
     n: "04",
+    slug: "commitment",
     name: "Commitment",
-    line: "It doesn't end at handover. We're in it for every mile after the sale.",
-    src: "/about/value-commitment.jpg",
+    phonetic: "/kəˈmɪtmənt/",
+    pos: "noun",
+    definition:
+      "The state of being fully dedicated to a cause — giving without reservation, long after the easy option has passed.",
+    quote:
+      "Our commitment doesn't end at handover. We're in it for the long road — every mile after the sale.",
     lqip: "data:image/webp;base64,UklGRl4AAABXRUJQVlA4IFIAAACwAQCdASoIAAoAA4BaJbACdADzeaBwAP6bY3IAuHFYBhTjOjSSDruet/me+fQ5EJxa0sJfEizoiZXNTcb2CaqlA/vCkH3IKYuD6hHXgMMKAAAA",
     alt: "The rear wheel and tail light of a yellow supercar in close detail",
-    rot: "1.2deg",
-    y: "0rem",
-    z: 14,
   },
   {
     n: "05",
+    slug: "honesty",
     name: "Honesty",
-    line: "What the car needs, and what we'd choose ourselves. Advice over a quick sale.",
-    src: "/about/value-honesty.jpg",
+    phonetic: "/ˈɒnɪsti/",
+    pos: "noun",
+    definition:
+      "The quality of being truthful and straightforward — even when the truth requires courage to speak and humility to hear.",
+    quote:
+      "We'll tell you what the car needs and what we'd choose ourselves. Honest advice over a quick sale, every time.",
     lqip: "data:image/webp;base64,UklGRk4AAABXRUJQVlA4IEIAAADwAQCdASoIAAoAA4BaJZQCdAD0slMyIAAA/u0muB3IowvHcMG5tBZXaU88SZZDqGV/hzHCD1GMhSYl0TEbFxxOGAA=",
     alt: "A lit headlight on a dark SUV at night",
-    rot: "3.6deg",
-    y: "0.5rem",
-    z: 15,
   },
   {
     n: "06",
+    slug: "relationship",
     name: "Relationship",
-    line: "We remember your name and what matters to you. Not a transaction — a beginning.",
-    src: "/about/value-relationship.jpg",
+    phonetic: "/rɪˈleɪʃənʃɪp/",
+    pos: "noun",
+    definition:
+      "The connection between people, built through shared experience, mutual respect, and genuine care over time.",
+    quote:
+      "We remember your name, your preferences, and what matters to you. This isn't a transaction — it's the beginning of something lasting.",
     lqip: "data:image/webp;base64,UklGRjoAAABXRUJQVlA4IC4AAAAwAQCdASoIAAoAA4BaJaQAA3AA/vWY2Zlf5o/96++oOcgix2FYkJeVESnQAAAA",
     alt: "The rear of a dark coupé at night with its tail lights lit",
-    rot: "6deg",
-    y: "1.5rem",
-    z: 16,
   },
 ];
 
@@ -417,117 +424,105 @@ export default function AboutUsPage() {
                 </h2>
               </Reveal>
 
-              {/* One row below lg, which keeps the section about one screen
-                tall instead of three rows deep, with the caption back inside
-                the photo.
+              {/* A horizontal scroller below lg, a 3-up grid at lg. The deck
+                that used to fan on hover is gone: it worked by overlapping the
+                cards and revealing one line on hover, and neither survives a
+                card that carries a whole dictionary entry in the open.
 
-                The scroller itself is deliberately the home page gallery strip
-                and nothing else — same flex container, same proximity snapping,
+                The scroller is deliberately the home page gallery strip and
+                nothing else — same flex container, same proximity snapping,
                 same overscroll containment, same in-flow photo. That strip is
                 the one horizontal scroller on this site that has never
                 misbehaved on an iPhone, so it is the pattern rather than a
                 starting point, and what earlier attempts layered on top of it
                 stays gone: no reveal wrapper around the scroller, no per-card
-                z-index below lg, no next/image `fill` putting the photo out of
-                flow, no opacity driven off scroll position, and no mandatory
-                snapping.
+                z-index, no photo taken out of flow, no opacity driven off
+                scroll position, and no mandatory snapping.
 
-                The deal-in the cards now do is a CSS view timeline, sampled by
-                the compositor rather than by an observer, and it moves nothing
-                but rotate/translate/scale. See the .pa-fan block in globals.css
+                The deal-in the cards do have is a CSS view timeline, sampled
+                by the compositor rather than by an observer, moving nothing but
+                rotate/translate/scale. See the .pa-value block in globals.css
                 for why that is the one kind of scroll motion this row can
                 safely carry. */}
-              <div className="flex gap-4 overflow-x-auto overscroll-x-contain pb-6 -mx-6 px-6 snap-x snap-proximity scroll-px-6 lg:mx-0 lg:px-0 lg:gap-0 lg:scroll-px-0 lg:items-end lg:justify-center lg:overflow-visible lg:pb-0 lg:pt-8 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+              <div className="flex gap-4 overflow-x-auto overscroll-x-contain pb-6 -mx-6 px-6 snap-x snap-proximity scroll-px-6 lg:mx-0 lg:grid lg:grid-cols-3 lg:gap-6 lg:overflow-visible lg:px-0 lg:pb-0 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
                 {VALUES.map((v) => (
-                  <div
+                  <article
                     key={v.name}
                     style={
                       {
-                        "--fan-rot": v.rot,
-                        "--fan-y": v.y,
-                        "--fan-z": v.z,
                         // Quoted so the `;` in `data:image/webp;base64,` sits
                         // inside a CSS string rather than ending the
                         // declaration when this is parsed out of the style
                         // attribute.
-                        "--fan-lqip": `url('${v.lqip}')`,
+                        "--value-lqip": `url('${v.lqip}')`,
                       } as CSSProperties
                     }
-                    className="pa-fan relative w-[240px] shrink-0 snap-start lg:-ml-16 lg:w-48 lg:first:ml-0 xl:w-56"
+                    className="pa-value flex w-[280px] shrink-0 snap-start flex-col overflow-hidden rounded-[1.75rem] border border-black/5 bg-[#FAFAFA] lg:w-auto"
                   >
-                    {/* The card, not the <img>, carries the placeholder:
-                      .pa-fan-card paints --fan-lqip as a plain background, so
-                      there are real pixels here the moment the HTML parses and
-                      no filter to rasterise. */}
-                    <div className="pa-fan-card relative aspect-[4/5] overflow-hidden rounded-[1.25rem] lg:rounded-[1.5rem] lg:shadow-[0_30px_70px_-35px_rgba(0,0,0,0.6)]">
-                      <Image
-                        src={v.src}
+                    {/* The photo frame, not the <img>, carries the placeholder:
+                      .pa-value-photo paints --value-lqip as a plain background,
+                      so there are real pixels here the moment the HTML parses
+                      and no filter to rasterise. */}
+                    <div className="pa-value-photo relative aspect-square min-h-0 shrink-0 lg:aspect-[4/5]">
+                      {/* biome-ignore lint/performance/noImgElement: deliberate. Cloudflare returns cf-cache-status: DYNAMIC for /_next/image, so every optimised photo round-trips to Railway — measured at 613ms TTFB for a 362-byte thumbnail, paid six times over in one scroller. These are pre-sized static WebPs under public/, which come back cf-cache-status: REVALIDATED from the edge. scripts/build-value-photos.mjs builds them. */}
+                      <img
+                        src={`/about/value-${v.slug}-560.webp`}
+                        srcSet={`/about/value-${v.slug}-560.webp 560w, /about/value-${v.slug}-840.webp 840w`}
+                        // 280px card in the scroller, 410px in the lg 3-up grid
+                        // inside max-w-7xl. A 2x phone takes the 560w file at
+                        // 10–45 kB; the whole row is 156 kB.
+                        sizes="(min-width: 1024px) 410px, 280px"
                         alt={v.alt}
-                        width={900}
-                        height={1125}
-                        sizes="(max-width: 1023px) 240px, 224px"
-                        // No `placeholder="blur"`. It ships this same 8×10
-                        // thumbnail, but wrapped in an SVG carrying two
-                        // chained feGaussianBlur(20) filters over a 900×1125
-                        // viewBox, painted as a background on the <img>. That
-                        // filter graph is re-evaluated per card, six times, on
-                        // the raster path the scroller is already competing
-                        // for — it bought instant pixels at the cost of the
-                        // swipe being smooth. The card behind gives the same
-                        // first paint for one bitmap stretch.
-                        //
-                        // No `quality` prop either. Next 16 only serves the
-                        // qualities in `images.qualities`, which defaults to
-                        // [75]: a production build coerces the prop back to
-                        // 75 at render time, and requesting
-                        // /_next/image?…&q=70 directly returns 400. It looks
-                        // like it works in dev, where the optimiser answers
-                        // any quality. Lowering it for real would mean adding
-                        // the value to next.config.ts, which changes every
-                        // image on the site — not worth it for ~5% on six
-                        // decorative photos.
-                        //
-                        // All six load the same way, exactly as the home page
-                        // gallery strip does. `loading="eager"` makes Next.js
-                        // inject a <link rel=preload> whose scanner width
-                        // guess (256w) doesn't match what the laid-out <img>
-                        // needs at 2x DPR (640w), so an eager photo gets
-                        // fetched twice; but splitting the row into two eager
-                        // and four lazy just moved the problem, since the four
-                        // lazy cards then had nothing decoded when their tile
-                        // was first painted. Uniformly lazy, with no preload
-                        // links on the page at all, is what the reference
-                        // scroller does and what holds up on iOS.
-                        //
-                        // Don't reach for `fetchPriority` to bias the first
-                        // two: next/image (16.1.6) drops it from the
-                        // server-rendered HTML, so it only lands once React
-                        // hydrates — long after the browser has decided what
-                        // to fetch. Checked against the served markup on
-                        // staging, where it appears nowhere in the document.
-                        loading="lazy"
+                        width={560}
+                        height={700}
+                        // Eager, but low priority. Lazy is what left the last
+                        // two cards fetching as you reached them; eager on a
+                        // plain <img> starts all six as the HTML parses and,
+                        // unlike next/image, injects no <link rel=preload>, so
+                        // there is no scanner-width mismatch to fetch them
+                        // twice. `low` keeps them behind the hero.
+                        loading="eager"
+                        fetchPriority="low"
+                        decoding="async"
                         className="h-full w-full object-cover"
                       />
-                      <div className="pa-fan-scrim absolute inset-0" />
-                      {/* The lit half of the hover cross-fade. lg-only, so a
-                        phone never paints it at all. */}
-                      <div className="pa-fan-scrim-open absolute inset-0 hidden lg:block" />
-                      <div className="absolute inset-x-0 bottom-0 p-4">
-                        <p className="text-[10px] font-bold uppercase tracking-[0.25em] text-white/45">
-                          {v.n}
-                        </p>
-                        <p className="mt-1.5 text-lg font-bold tracking-tight text-white">
-                          {v.name}
-                        </p>
-                        {/* On the deck the cards overlap, so the line is held
-                          back until the card is hovered. In the row below lg
-                          nothing covers it, so it just shows. */}
-                        <p className="pa-fan-line mt-1.5 text-[12px] font-light leading-snug text-zinc-200">
-                          {v.line}
-                        </p>
-                      </div>
+                      <div className="pa-value-scrim absolute inset-x-0 top-0 h-20" />
+                      <p className="absolute left-5 top-4 font-mono text-[10px] font-medium tracking-[0.25em] text-white/70">
+                        {v.n} / 06
+                      </p>
                     </div>
-                  </div>
+
+                    <div className="flex flex-1 flex-col px-5 pt-4 pb-5 lg:px-6 lg:pt-5 lg:pb-6">
+                      <h3 className="text-2xl font-bold tracking-tight text-black">
+                        {v.name}
+                      </h3>
+                      <p className="mt-1 font-mono text-[11px] text-zinc-400">
+                        {v.phonetic}
+                      </p>
+                      <p className="mt-0.5 text-[11px] font-light italic text-zinc-500">
+                        {v.pos}
+                      </p>
+
+                      <p className="mt-5 font-mono text-[10px] font-medium uppercase tracking-[0.22em] text-zinc-400">
+                        Definition
+                      </p>
+                      <p className="mt-2 text-[13px] font-light leading-[1.6] text-zinc-600">
+                        {v.definition}
+                      </p>
+
+                      <span
+                        aria-hidden
+                        className="mt-5 block h-px w-full bg-black/[0.07]"
+                      />
+
+                      <p className="mt-5 font-mono text-[10px] font-medium uppercase tracking-[0.22em] text-zinc-400">
+                        At Providence Auto
+                      </p>
+                      <blockquote className="mt-2 border-l-2 border-violet-400/40 pl-3.5 text-[13px] font-light italic leading-[1.6] text-zinc-500">
+                        {v.quote}
+                      </blockquote>
+                    </div>
+                  </article>
                 ))}
               </div>
             </div>
