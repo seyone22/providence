@@ -409,7 +409,7 @@ export default function AboutUsPage() {
                 each time — the dimming one worst of all, since a card that is
                 merely off-centre renders at 45% opacity. */}
               <div className="flex gap-4 overflow-x-auto overscroll-x-contain pb-6 -mx-6 px-6 snap-x snap-proximity scroll-px-6 lg:mx-0 lg:px-0 lg:gap-0 lg:scroll-px-0 lg:items-end lg:justify-center lg:overflow-visible lg:pb-0 lg:pt-8 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-                {VALUES.map((v, i) => (
+                {VALUES.map((v) => (
                   <div
                     key={v.name}
                     style={
@@ -436,12 +436,17 @@ export default function AboutUsPage() {
                         // fetched twice; but splitting the row into two eager
                         // and four lazy just moved the problem, since the four
                         // lazy cards then had nothing decoded when their tile
-                        // was first painted. No preload links at all, and
-                        // fetchPriority to put the two cards visible at rest
-                        // at the front of the queue, is what the reference
-                        // scroller does and what actually holds up on iOS.
+                        // was first painted. Uniformly lazy, with no preload
+                        // links on the page at all, is what the reference
+                        // scroller does and what holds up on iOS.
+                        //
+                        // Don't reach for `fetchPriority` to bias the first
+                        // two: next/image (16.1.6) drops it from the
+                        // server-rendered HTML, so it only lands once React
+                        // hydrates — long after the browser has decided what
+                        // to fetch. Checked against the served markup on
+                        // staging, where it appears nowhere in the document.
                         loading="lazy"
-                        fetchPriority={i < 2 ? "high" : "auto"}
                         className="h-full w-full object-cover"
                       />
                       <div className="pa-fan-scrim absolute inset-0" />
