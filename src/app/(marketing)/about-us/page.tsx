@@ -392,7 +392,7 @@ export default function AboutUsPage() {
                 each time — the dimming one worst of all, since a card that is
                 merely off-centre renders at 45% opacity. */}
               <div className="flex gap-4 overflow-x-auto overscroll-x-contain pb-6 -mx-6 px-6 snap-x snap-proximity lg:mx-0 lg:px-0 lg:gap-0 lg:items-end lg:justify-center lg:overflow-visible lg:pb-0 lg:pt-8 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-                {VALUES.map((v) => (
+                {VALUES.map((v, i) => (
                   <div
                     key={v.name}
                     style={
@@ -411,7 +411,17 @@ export default function AboutUsPage() {
                         width={900}
                         height={1125}
                         sizes="(max-width: 1023px) 240px, 224px"
-                        loading="eager"
+                        // Only the two cards visible at rest on mobile load
+                        // eager. `loading="eager"` makes Next.js inject a
+                        // <link rel=preload>, and all six firing at once was
+                        // the actual cause of the section reading as empty
+                        // for a second on mobile: the preload scanner's width
+                        // guess (256w) doesn't match what the laid-out <img>
+                        // needs at 2x DPR (640w), so every eager photo was
+                        // fetched twice, and the row only painted once all
+                        // twelve requests cleared. The rest load lazily and
+                        // arrive well before a swipe reaches them.
+                        loading={i < 2 ? "eager" : "lazy"}
                         className="h-full w-full object-cover"
                       />
                       <div className="pa-fan-scrim absolute inset-0" />
