@@ -98,24 +98,29 @@ The VAT machinery still exists in `uk-landed-cost.ts` (`VatBasis`, 20% standard 
 
 Costs incurred *after* the customs border. Outside the customs value, inside the true landed cost.
 
-The standard estimate is age-driven:
+The figures are the desk's own, taken from the **"JPY Imports Calculator" workbook**, which is the operational source of truth for what a car costs to land and register. They are two groups: base costs that land on every car, and IVA costs that land only when the car has to sit the approval test.
 
 ```
-POST_BORDER_BASE = £800     // clearance + registration — every car
-POST_BORDER_IVA  = £1,000   // IVA test + the modifications it forces — under-10s only
+POST_BORDER_BASE_ITEMS          POST_BORDER_IVA_ITEMS
+  Clearance / admin      £600     IVA inspection      £900
+  UK inland transport    £300     IVA transport       £300
+  DVLA registration       £55                       ──────
+  Road tax (1st-yr VED)  £205     POST_BORDER_IVA   £1,200
+  Miscellaneous          £200
+                       ──────
+  POST_BORDER_BASE     £1,360
 ```
 
-| Vehicle age | Post-border total |
+| IVA required | Post-border total |
 |---|---|
-| Under 10 years | **£1,800** (£800 + £1,000) |
-| 10 years or older | **£800** — outside the IVA scheme, an MOT does instead |
-| Unknown | £1,800 — assume the IVA cost applies |
+| Yes | **£2,560** (£1,360 + £1,200) |
+| No | **£1,360** — outside the IVA scheme, an MOT does instead |
 
-**The IVA waiver for near-10-year cars.** A car bought at nine-and-a-bit years old will usually clear customs and reach registration *after* its tenth birthday, at which point the IVA requirement has already fallen away. From age 9 (`IVA_WAIVER_FROM_AGE`) the calculator shows an explicit checkbox letting the operator drop the £1,000 IVA allowance, taking the car to £800.
+**Every line is editable per run**, and the totals are derived from the item maps rather than hard-coded, so changing a figure in `uk-landed-cost.ts` moves the default, the tests and the docs' arithmetic together.
 
-It is deliberately **never automatic**. It is a judgement about the shipping and clearance timeline, which only the person booking the shipment can make, so it requires a decision and it is stated on the breakdown ("IVA waived") and in the PDF. The checkbox disappears — and resets to off — if the Year changes such that the car leaves the 9–10 window.
+**Whether IVA applies** defaults from age — under 10, or an unknown Year, means yes (`ivaRequiredForAge`); 10 or over means no. It is a **checkbox the operator owns**: the moment they touch it, their answer sticks and the age no longer overrides it. That matters because the real determinant is the clearance timeline, not the car's birthday.
 
-An **Itemise costs instead** mode replaces the standard estimate with editable line items (DVLA registration, plates, IVA/MOT test, IVA modifications, UK inland transport). Those defaults are indicative placeholders and are labelled as such.
+**The near-10-year prompt.** A car bought at nine-and-a-bit years old will usually clear customs and reach registration *after* its tenth birthday, by which point the IVA requirement has already fallen away. From age 9 (`IVA_WAIVER_FROM_AGE`) the card shows a note inviting the operator to untick IVA. It is deliberately **never automatic** — it is a judgement about the shipping timeline, which only the person booking the shipment can make.
 
 ### 2.7 The total
 
@@ -211,22 +216,32 @@ From the kept set: count, min, max, mean, **median**, p25, p75, standard deviati
 
 ## 5. Margin and the ceiling bid
 
-### 5.1 Margin
+### 5.1 Margin — net against net
+
+Scraped forecourt listings are advertised **VAT-inclusive**. The landed cost on this page deliberately **excludes** import VAT (§2.5), because the importer reclaims it. Comparing a gross asking price against a net cost would overstate every margin by the VAT fraction, so the resale side has the VAT taken back out first:
 
 ```
-gross margin  = market median − total landed cost
-margin %      = gross margin ÷ total landed cost
+net resale    = market median ÷ 1.2          // RESALE_VAT_DIVISOR = 1 + STANDARD_VAT_RATE
+profit (PNL)  = net resale − total landed cost
+ROI %         = profit ÷ total landed cost
 ```
 
-Margin percentage is measured **against landed cost**, not against the sale price. £5,000 on a £20,000 landed car is 25%, not 20%. Both the money figure and the percentage are displayed, colour-coded against the target, with an explicit "clears / below the 30% target" badge.
+Both halves of the subtraction are now net figures. **Never compare the raw median against the landed cost** — that is the single easiest way to make an unprofitable car look like a buy.
+
+The percentage is measured **against landed cost**, not against the sale price. £5,000 on a £20,000 landed car is 25%, not 20%. Both the money figure and the percentage are displayed, colour-coded against the target, with an explicit "clears / below the target" badge, and the on-screen line shows the arithmetic ("net resale £8,792 (median £10,550 ÷ 1.2) − landed £6,649").
+
+The dark summary panel carries the whole P&L in one column — CIF, duty, VAT (excluded), UK costs, total landed, net resale, profit and ROI, then the ceiling bid — so the decision does not require scrolling.
 
 ### 5.2 The target
 
 ```
-TARGET_MARGIN_PCT = 0.30
+TARGET_MARGIN_PCT = 0.30        // the standing desk minimum, and the default
+clampTargetMargin(pct)          // holds any entry inside 0–200%
 ```
 
-**30% gross margin on landed cost is the desk minimum.** It is a business directive held in one constant, so changing it moves the badge, the verdict policy, the ceiling bid and the PDF together.
+**30% ROI on landed cost is the desk minimum.** It is a business directive held in one constant — but it is also **editable per run** from a *Minimum ROI* field in the summary panel, because the right threshold is a judgement (a thin, risky car may need 35%; a quick flip may not).
+
+Whatever it is set to, it moves **the badge, the ceiling bid, the verdict policy and the PDF together** — the client passes it to `getVerdict` and into the PDF payload rather than each surface reading the constant independently. `clampTargetMargin` guards the entry so a typo cannot silently make every car look like a buy; a non-numeric entry falls back to 30%.
 
 ### 5.3 The maximum auction price
 
@@ -235,7 +250,7 @@ The most useful number in the room is not the margin on a bid already placed —
 Landed cost is linear in CIF, so the inversion is exact rather than a search:
 
 ```
-landed budget      = median resale ÷ (1 + target margin)
+landed budget      = net resale (median ÷ 1.2) ÷ (1 + target margin)
 CIF multiplier     = 1 + f·d + f·(1+d)·r        // f = customs fraction, d = duty rate, r = VAT rate
 max CIF (GBP)      = (landed budget − post-border total) ÷ CIF multiplier
 max CIF (currency) = max CIF (GBP) ÷ FX rate
@@ -245,6 +260,8 @@ max hammer         = (max CIF (currency) − other CIF costs) ÷ (1 + auction fe
 "Other CIF costs" are inland transport, ocean freight and marine insurance — plus the auction fee itself **when the operator has typed a fixed amount**, in which case the fee rate drops to zero so the fee is not counted twice. When the fee is still auto-deriving at 7%, it stays a rate, because it scales with the very number being solved for.
 
 The result is shown in the auction currency (the number you bid), its GBP equivalent, the landed cost it implies, and — once a hammer price is entered — **the headroom left or the amount over the ceiling**.
+
+**A note on the workbook's version of this formula.** The spreadsheet holds duty fixed at the *actual* car's duty while solving for a lower bid, so its ceiling overshoots by roughly 0.3% and lands just under target. The solver here re-derives duty from the bid being solved for, which is why the round-trip is exact. Where the two disagree, the tool is right; `workbook parity` in `uk-landed-cost.test.ts` pins both.
 
 If fixed costs alone exceed the landed budget, the tool says the target is **unreachable at any bid** rather than printing a negative or a zero. Tests round-trip the solver back through `computeLandedCost` and assert the margin lands exactly on target, with and without VAT.
 
@@ -256,11 +273,13 @@ If fixed costs alone exceed the landed budget, the tool says the target is **unr
 
 The AI (Gemini) is handed a block of **already-computed facts** and asked for four things only: a recommendation enum, a headline, 2–4 sentences of reasoning, and a confidence level. Response schema is enforced by the API (`responseSchema` with `responseMimeType: application/json`), so parsing is not a guess.
 
-Facts supplied: the vehicle, the landed cost (with an explicit note that VAT is excluded and why), the full market statistics, the margin in pounds and percent, whether it clears the 30% target, the ceiling bid, and the listing count as a liquidity signal.
+Facts supplied: the vehicle, the landed cost (with an explicit note that VAT is excluded and why), the full market statistics, the net-of-VAT resale figure and how it was derived, the profit in pounds and percent, whether it clears the run's target, the ceiling bid, and the listing count as a liquidity signal.
+
+The margin maths is **not** recomputed server-side from the raw median — `getVerdict` takes `resaleExVatGbp` and `targetMarginPct` from the client, so the prose and the panel can never disagree about which numbers were compared.
 
 ### 6.2 Guardrails applied in code, after the model answers
 
-- **The 30% policy is enforced, not requested.** A car below the target can never come back as "source". If the model says `source` and the margin is short, the recommendation is downgraded to `marginal` on return. The model remains free to go *lower* than that, and free to withhold `source` above target for other reasons — thin supply, a widened match, a suspicious spread.
+- **The target is enforced, not requested.** A car below the run's target can never come back as "source". If the model says `source` and the margin is short, the recommendation is downgraded to `marginal` on return. The model remains free to go *lower* than that, and free to withhold `source` above target for other reasons — thin supply, a widened match, a suspicious spread.
 - **Widened match caps confidence.** Fewer than 5 comparables means fewer exact matches, so `high` confidence is downgraded to `medium`.
 
 The stored `Verdict` therefore always carries `grossMargin`, `marginPct`, `targetMarginPct` and `meetsTarget` alongside the prose — the numbers travel with the narrative, so a saved analysis can be re-audited later without re-running anything.
@@ -295,13 +314,14 @@ Model fallback: `gemini-2.5-flash` → `gemini-2.5-flash-lite` → `gemini-flash
 Every one of these is a stated assumption, not a fact about a specific car. They are listed here so a reviewer can attack them directly.
 
 1. **The market median is the achievable resale price.** In practice a dealer rarely gets the full median — there is haggling, prep and time-to-sell. The verdict prompt is told to allow headroom for this; the margin figure itself is not discounted for it.
+   - **The car resells at the standard 20% VAT rate.** The net resale figure is a flat median ÷ 1.2. A margin-scheme sale (VAT on the profit only, not the full price) would earn more than the tool credits, so the figure is conservative rather than wrong.
 2. **Reconditioning is not in the landed cost.** No paint, no tyres, no service, no warranty provision. A car needing work is worse than the number says.
 3. **Selling costs are not in the landed cost.** No advertising, no forecourt time, no finance commission clawback.
 4. **The importer is VAT-registered and reclaims import VAT.** If that is ever untrue, the landed figure is understated by roughly 20% of (CIF + duty) and the tool must be reconfigured.
 5. **The FX rate is a spot indication.** HMRC's monthly rate governs the actual declaration.
 6. **Duty rate is the desk's conservative reading, not a tariff lookup.** Confirm against the live UK Trade Tariff at the 10-digit commodity code before committing.
 7. **Post-border figures are business estimates**, not quotes from a clearing agent.
-8. **Vehicle age is calendar-year arithmetic** — current year minus the Year field. It does not know the registration month, which is exactly why the IVA waiver near the 10-year mark is a human decision.
+8. **Vehicle age is calendar-year arithmetic** — current year minus the Year field. It does not know the registration month, which is exactly why the IVA decision near the 10-year mark is a human one.
 9. **Scraped listings are asking prices, not sold prices.** Asking prices run above transaction prices, and AutoTrader exposes no ad-posted date, so time-on-market cannot be measured. Listing count is the only liquidity signal available.
 10. **The comparable set is a snapshot.** Re-running tomorrow can legitimately give a different answer.
 11. **Partial AutoTrader results are accepted by design** (see §3.1). The sample is not the whole pool.
