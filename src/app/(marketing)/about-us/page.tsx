@@ -296,14 +296,31 @@ export default function AboutUsPage() {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(aboutPageSchema) }}
       />
 
-      {/* overflow-x-hidden lives on this wrapping div, not on <main> itself —
-          on iOS, the same clip applied directly to the <main> landmark
-          degrades touch-scroll momentum for any nested horizontal scroller
-          (the Our Values row below), which is what made its cards freeze and
-          then jump instead of tracking the swipe. See the identical fix and
-          comment on the home page's <main> in src/app/page.tsx. */}
+      {/* The horizontal clip lives on this wrapping div, not on <main> itself:
+          on iOS the same clip applied directly to the <main> landmark degrades
+          touch-scroll momentum for any nested horizontal scroller (the Our
+          Values row below).
+
+          It has to be `overflow-hidden` on BOTH axes, not `overflow-x-hidden`
+          on its own. With overflow-y left at `visible`, CSS promotes the used
+          value of overflow-y to `auto` — which quietly turns this div into a
+          scroll container wrapping all ~13,000px of the page. On iOS a
+          horizontal scroller nested inside a page-wide scroll container drops
+          off the main-frame painting path onto the overflow-scroller path,
+          where the tile budget is far tighter: swipe the values row and its
+          cards render as blank white for seconds before popping in, because
+          the tiles behind them were never rasterised. Nothing in the section
+          is dimmed or unloaded at that point — the whole card, its near-black
+          background and its caption included, simply isn't painted.
+
+          This is the same wrapper the home page uses (src/app/page.tsx), which
+          is the one page whose horizontal strip has never misbehaved on an
+          iPhone. Nothing here relies on the promoted scroller: every section
+          that can overflow already clips itself, and there are no sticky
+          descendants that would start sticking to this div instead of the
+          viewport. */}
       <main className="min-h-screen bg-white text-black font-sans">
-        <div className="overflow-x-hidden">
+        <div className="relative w-full overflow-hidden">
           <MinimalHeader />
 
           {/* ── HERO ─────────────────────────────────── */}
@@ -391,7 +408,7 @@ export default function AboutUsPage() {
                 mandatory snapping. Adding any of those back is what broke it
                 each time — the dimming one worst of all, since a card that is
                 merely off-centre renders at 45% opacity. */}
-              <div className="flex gap-4 overflow-x-auto overscroll-x-contain pb-6 -mx-6 px-6 snap-x snap-proximity lg:mx-0 lg:px-0 lg:gap-0 lg:items-end lg:justify-center lg:overflow-visible lg:pb-0 lg:pt-8 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+              <div className="flex gap-4 overflow-x-auto overscroll-x-contain pb-6 -mx-6 px-6 snap-x snap-proximity scroll-px-6 lg:mx-0 lg:px-0 lg:gap-0 lg:scroll-px-0 lg:items-end lg:justify-center lg:overflow-visible lg:pb-0 lg:pt-8 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
                 {VALUES.map((v, i) => (
                   <div
                     key={v.name}
@@ -411,17 +428,20 @@ export default function AboutUsPage() {
                         width={900}
                         height={1125}
                         sizes="(max-width: 1023px) 240px, 224px"
-                        // Only the two cards visible at rest on mobile load
-                        // eager. `loading="eager"` makes Next.js inject a
-                        // <link rel=preload>, and all six firing at once was
-                        // the actual cause of the section reading as empty
-                        // for a second on mobile: the preload scanner's width
+                        // All six load the same way, exactly as the home page
+                        // gallery strip does. `loading="eager"` makes Next.js
+                        // inject a <link rel=preload> whose scanner width
                         // guess (256w) doesn't match what the laid-out <img>
-                        // needs at 2x DPR (640w), so every eager photo was
-                        // fetched twice, and the row only painted once all
-                        // twelve requests cleared. The rest load lazily and
-                        // arrive well before a swipe reaches them.
-                        loading={i < 2 ? "eager" : "lazy"}
+                        // needs at 2x DPR (640w), so an eager photo gets
+                        // fetched twice; but splitting the row into two eager
+                        // and four lazy just moved the problem, since the four
+                        // lazy cards then had nothing decoded when their tile
+                        // was first painted. No preload links at all, and
+                        // fetchPriority to put the two cards visible at rest
+                        // at the front of the queue, is what the reference
+                        // scroller does and what actually holds up on iOS.
+                        loading="lazy"
+                        fetchPriority={i < 2 ? "high" : "auto"}
                         className="h-full w-full object-cover"
                       />
                       <div className="pa-fan-scrim absolute inset-0" />
