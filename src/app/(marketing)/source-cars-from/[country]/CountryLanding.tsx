@@ -22,8 +22,8 @@ import RequestForm from "@/components/requestForm";
 import { BLOG_BASE_PATH, getPost } from "@/config/blog";
 import {
   COUNTRY_BASE_PATH,
-  COUNTRY_PAGES,
   getCountryPage,
+  SOURCE_COUNTRY_PAGES,
 } from "@/config/countries";
 
 // Head-office fallback shown wherever a local office's details are still blank,
@@ -32,6 +32,20 @@ const HEAD_OFFICE = {
   phone: "+44 208 004 3000",
   email: "info@providenceauto.uk.com",
 };
+
+// Spelled-out counts for the "rest of the network" heading, which changes with
+// the length of `others` (six from a sourcing country, seven from Sri Lanka).
+const COUNT_WORDS = [
+  "No",
+  "One",
+  "Two",
+  "Three",
+  "Four",
+  "Five",
+  "Six",
+  "Seven",
+  "Eight",
+];
 
 // Destination country to prefill on the inquiry form. Only set for offices in
 // markets we ship *into* — `countryOfImport` is the buyer's destination, so
@@ -85,7 +99,9 @@ export default function CountryLanding({ slug }: { slug: string }) {
   const posts = config.blogSlugs
     .map((slug) => getPost(slug))
     .filter((p): p is NonNullable<typeof p> => Boolean(p));
-  const others = COUNTRY_PAGES.filter((c) => c.slug !== config.slug);
+  // Sourcing countries only, so Sri Lanka is never offered as an alternative
+  // place to buy. On the Sri Lanka page itself this is all seven of them.
+  const others = SOURCE_COUNTRY_PAGES.filter((c) => c.slug !== config.slug);
 
   return (
     <main className="min-h-screen bg-white text-black selection:bg-black/10 selection:text-black font-sans overflow-x-hidden">
@@ -761,7 +777,8 @@ export default function CountryLanding({ slug }: { slug: string }) {
               The rest of the network
             </p>
             <h2 className="text-3xl md:text-5xl font-bold tracking-tighter text-black mb-5">
-              Seven other countries. One landed price.
+              {COUNT_WORDS[others.length] ?? others.length} other countries. One
+              landed price.
             </h2>
             <p className="text-lg text-zinc-500 font-light max-w-2xl mx-auto">
               If {config.country} is not where your car lands cheapest, we will

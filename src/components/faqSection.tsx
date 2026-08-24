@@ -35,7 +35,7 @@ const FAQ_DATA = [
       },
       {
         q: "Which countries do you source vehicles from?",
-        a: "We buy directly in the eight countries where we have our own teams — the UK, Japan, the UAE, India, Thailand, Australia, New Zealand and Sri Lanka — and we source from many more markets besides. For any given specification we compare the total landed cost across every country that can supply it, then buy where it lands cheapest for you.",
+        a: "We buy directly in the seven countries where we have our own sourcing teams — the UK, Japan, the UAE, India, Thailand, Australia and New Zealand — and we source from many more markets besides. For any given specification we compare the total landed cost across every country that can supply it, then buy where it lands cheapest for you.",
       },
     ],
   },
