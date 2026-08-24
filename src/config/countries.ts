@@ -122,7 +122,7 @@ const japan: CountryPageConfig = {
     title:
       "Source Cars From Japan — Auction Floor to Your Door | Providence Auto",
     description:
-      "Providence Auto's Japan office buys direct from the graded auction network — Land Cruisers, Alphards, hybrids and JDM performance cars — inspected, deregistered and shipped by our own team. Full landed cost quoted before we bid.",
+      "Providence Auto's Japan team buys direct from the graded auction network — Land Cruisers, Alphards, hybrids and JDM performance cars — inspected, deregistered and shipped by our own team. Full landed cost quoted before we bid.",
     keywords: [
       "source cars from japan",
       "japanese car auction buying agent",
@@ -132,7 +132,7 @@ const japan: CountryPageConfig = {
     ],
   },
   hero: {
-    tagline: "Providence Auto · Japan Office",
+    tagline: "Providence Auto · Japan",
     title: "Japan.\nThe auction floor, in person.",
     subtitle:
       "Our Japan team stands on the auction floor every week, reads the original sheet in Japanese, and inspects the car before it is ever loaded. You get the grade, the photographs and one landed price before a single yen moves.",
@@ -292,7 +292,7 @@ const japan: CountryPageConfig = {
       a: "Because of how Japan treats old cars. The shaken roadworthiness test gets progressively more expensive as a car ages, so owners sell young and sell often, and more than 100,000 vehicles pass through independently graded auctions every week. That combination — low mileage, documented servicing and wholesale auction pricing — routinely lands a Japanese import below the local forecourt price for the same car, even after freight and taxes.",
     },
     {
-      q: "What does having an office in Japan actually change?",
+      q: "What does having our own team in Japan actually change?",
       a: "It removes the layer where most import problems start. Our own staff read the auction sheet in Japanese, stand in the hall when the car is bid on, physically inspect it afterwards, and file the export paperwork themselves. A broker working remotely from your country is relying on the same photographs you are.",
     },
     {
@@ -547,7 +547,7 @@ const australia: CountryPageConfig = {
     title:
       "Source Cars From Australia — Utes, 4x4s & Dry-Climate Stock | Providence Auto",
     description:
-      "Providence Auto's Australia office sources HiLux, Ranger, LandCruiser and Prado 4x4s, ADR-compliant right-hand-drive stock and Australian performance classics. Inspected, deregistered and shipped by our own team.",
+      "Providence Auto's Australia team sources HiLux, Ranger, LandCruiser and Prado 4x4s, ADR-compliant right-hand-drive stock and Australian performance classics. Inspected, deregistered and shipped by our own team.",
     keywords: [
       "source cars from australia",
       "import a car from australia",
@@ -557,7 +557,7 @@ const australia: CountryPageConfig = {
     ],
   },
   hero: {
-    tagline: "Providence Auto · Australia Office",
+    tagline: "Providence Auto · Australia",
     title: "Australia.\nBuilt for the worst roads on earth.",
     subtitle:
       "Nothing tests a vehicle like the Australian outback, and nothing is specified for it like an Australian-delivery 4x4. Our team buys the utes, wagons and touring rigs that were built to survive it — and checks every one against a national provenance register first.",
@@ -755,7 +755,7 @@ const newZealand: CountryPageConfig = {
     title:
       "Source Cars From New Zealand — Complied, Documented, Ready | Providence Auto",
     description:
-      "Providence Auto's New Zealand office sources ex-Japan and NZ-new right-hand-drive stock that has already passed entry certification, plus one of the world's densest supplies of used EVs and hybrids. Inspected and shipped by our own team.",
+      "Providence Auto's New Zealand team sources ex-Japan and NZ-new right-hand-drive stock that has already passed entry certification, plus one of the world's densest supplies of used EVs and hybrids. Inspected and shipped by our own team.",
     keywords: [
       "source cars from new zealand",
       "import a car from new zealand",
@@ -765,7 +765,7 @@ const newZealand: CountryPageConfig = {
     ],
   },
   hero: {
-    tagline: "Providence Auto · New Zealand Office",
+    tagline: "Providence Auto · New Zealand",
     title: "New Zealand.\nJapan's best cars, already vetted twice.",
     subtitle:
       "New Zealand imports more used Japanese cars per head than anywhere on earth, and puts every one through entry certification before it can be registered. Buying here means buying a car that has already survived somebody else's inspection regime.",
@@ -938,7 +938,7 @@ const newZealand: CountryPageConfig = {
     },
     {
       q: "Do you also import cars into New Zealand?",
-      a: "Yes — New Zealand is one of our busiest destination markets as well as a source. We source from Japan, Australia, the UK and elsewhere into New Zealand, arrange the biosecurity clean before departure, and handle entry certification, GST and registration on arrival through the same local office.",
+      a: "Yes — New Zealand is one of our busiest destination markets as well as a source. We source from Japan, Australia, the UK and elsewhere into New Zealand, arrange the biosecurity clean before departure, and handle entry certification, GST and registration on arrival through the same local team.",
     },
   ],
   blogSlugs: [
@@ -963,7 +963,7 @@ const uae: CountryPageConfig = {
     title:
       "Source Cars From the UAE — GCC-Spec Luxury & Free-Zone Export | Providence Auto",
     description:
-      "Providence Auto's UAE office sources low-mileage GCC-spec luxury SUVs and supercars — G-Class, LX, Land Cruiser, Patrol, Range Rover — and re-exports through Jebel Ali to Africa, Asia and the CIS. Inspected before shipment.",
+      "Providence Auto's UAE team sources low-mileage GCC-spec luxury SUVs and supercars — G-Class, LX, Land Cruiser, Patrol, Range Rover — and re-exports through Jebel Ali to Africa, Asia and the CIS. Inspected before shipment.",
     keywords: [
       "source cars from dubai",
       "uae car exporter",
@@ -973,7 +973,7 @@ const uae: CountryPageConfig = {
     ],
   },
   hero: {
-    tagline: "Providence Auto · UAE Office",
+    tagline: "Providence Auto · UAE",
     title: "The UAE.\nThe world's re-export crossroads.",
     subtitle:
       "Dubai turns over more used vehicles for export than any city on earth, and does it at the intersection of Africa, Asia and Europe. Our UAE team buys the low-mileage luxury stock the market is famous for, and moves it through the free zone without friction.",
@@ -1172,7 +1172,7 @@ const india: CountryPageConfig = {
     title:
       "Source Cars From India — Global Badges, Built for Less | Providence Auto",
     description:
-      "Providence Auto's India office sources India-built Suzuki, Toyota, Hyundai, Kia, Tata and Mahindra models through direct dealer relationships. Safety-inspected before export, full landed cost quoted up front.",
+      "Providence Auto's India team sources India-built Suzuki, Toyota, Hyundai, Kia, Tata and Mahindra models through direct dealer relationships. Safety-inspected before export, full landed cost quoted up front.",
     keywords: [
       "source cars from india",
       "import cars from india",
@@ -1182,7 +1182,7 @@ const india: CountryPageConfig = {
     ],
   },
   hero: {
-    tagline: "Providence Auto · India Office",
+    tagline: "Providence Auto · India",
     title: "India.\nThe same badge, engineered for less.",
     subtitle:
       "India builds global models on global platforms and exports them to some of the most demanding markets in the world. Our India team buys through direct dealer relationships and inspects every car before it leaves — because a lower price should never mean a lower standard.",
@@ -1384,7 +1384,7 @@ const thailand: CountryPageConfig = {
     title:
       "Source Cars From Thailand — The World's Pickup Capital | Providence Auto",
     description:
-      "Providence Auto's Thailand office sources Hilux Revo, Ranger, D-Max, Triton and Fortuner pickups and SUVs, plus Thai-assembled EVs, direct from the export market. Inspected, documented and shipped by our own team.",
+      "Providence Auto's Thailand team sources Hilux Revo, Ranger, D-Max, Triton and Fortuner pickups and SUVs, plus Thai-assembled EVs, direct from the export market. Inspected, documented and shipped by our own team.",
     keywords: [
       "source cars from thailand",
       "thailand pickup exporter",
@@ -1394,7 +1394,7 @@ const thailand: CountryPageConfig = {
     ],
   },
   hero: {
-    tagline: "Providence Auto · Thailand Office",
+    tagline: "Providence Auto · Thailand",
     title: "Thailand.\nWhere the world's pickups are built.",
     subtitle:
       "One in every few pickup trucks on earth was assembled in Thailand. Our team buys them where they are made — new export-specification double cabs and low-mileage used stock, both, with the accessory market that grew up around them.",
@@ -1591,7 +1591,7 @@ const sriLanka: CountryPageConfig = {
     title:
       "Providence Auto Sri Lanka — South Asia Operations & Vehicle Imports",
     description:
-      "Providence Auto's Sri Lanka office runs South Asia operations and handles vehicle imports into Colombo — hybrids, compact cars and SUVs sourced from Japan, Thailand, India and the UK, with permits, duty and clearance managed locally.",
+      "Providence Auto's Sri Lanka team runs South Asia operations and handles vehicle imports into Colombo — hybrids, compact cars and SUVs sourced from Japan, Thailand, India and the UK, with permits, duty and clearance managed locally.",
     keywords: [
       "import a car to sri lanka",
       "sri lanka vehicle import",
@@ -1601,7 +1601,7 @@ const sriLanka: CountryPageConfig = {
     ],
   },
   hero: {
-    tagline: "Providence Auto · Sri Lanka Office",
+    tagline: "Providence Auto · Sri Lanka",
     title: "Sri Lanka.\nWhere the paperwork decides the price.",
     subtitle:
       "Sri Lanka has one of the most complex vehicle import regimes in the world, and rules that move. Our Colombo team runs South Asia operations for the group and handles every import into the island end to end — permits, valuation, duty and clearance included.",
@@ -1617,16 +1617,16 @@ const sriLanka: CountryPageConfig = {
     text: "In most markets the car is the hard part and the paperwork is routine. In Sri Lanka it is the other way round: engine capacity, drivetrain, manufacture date, valuation method and permit status can move the final cost dramatically. Here, the customs file matters as much as the car.",
   },
   specialty: {
-    eyebrow: "What the Colombo office does",
+    eyebrow: "What the Colombo team does",
     title:
       "A regional operations base, and an import desk that knows the rules.",
     blurb:
-      "Sri Lanka is not a vehicle manufacturing country, and we will not pretend otherwise. The Colombo office exists for two reasons: it coordinates a large part of our South Asian operations, and it handles the island's notoriously demanding import process for our customers directly.",
+      "Sri Lanka is not a vehicle manufacturing country, and we will not pretend otherwise. The Colombo team exists for two reasons: it coordinates a large part of our South Asian operations, and it handles the island's notoriously demanding import process for our customers directly.",
     items: [
       {
         icon: Users,
         title: "South Asia operations",
-        desc: "Documentation, customer support and regional coordination for shipments moving between our Japan, India, Thailand and UAE offices and the wider Indian Ocean region.",
+        desc: "Documentation, customer support and regional coordination for shipments moving between our Japan, India, Thailand and UAE teams and the wider Indian Ocean region.",
       },
       {
         icon: FileCheck2,
@@ -1703,13 +1703,13 @@ const sriLanka: CountryPageConfig = {
     },
     {
       icon: Search,
-      title: "Sourced from four of our offices",
+      title: "Sourced from four of our source countries",
       desc: "Japan, Thailand, India and the UK all feed the Sri Lankan market. Rather than pushing you at one source, we compare the landed cost from each for the specification you want.",
     },
     {
       icon: ClipboardCheck,
       title: "Inspected before it sails",
-      desc: "Every vehicle is inspected at origin by the Providence office in that country, with the report and photographs sent to you before payment is released — because a car that fails inspection at Colombo is an expensive problem.",
+      desc: "Every vehicle is inspected at origin by the Providence team in that country, with the report and photographs sent to you before payment is released — because a car that fails inspection at Colombo is an expensive problem.",
     },
     {
       icon: Users,
@@ -1724,7 +1724,7 @@ const sriLanka: CountryPageConfig = {
     },
     {
       title: "We source it from the best origin",
-      desc: "We compare landed cost from our Japan, Thailand, India and UK offices for the same specification, and buy where the total lands cheapest. Inspection happens at origin, by our own people.",
+      desc: "We compare landed cost from our Japan, Thailand, India and UK teams for the same specification, and buy where the total lands cheapest. Inspection happens at origin, by our own people.",
     },
     {
       title: "We handle valuation and clearance",
@@ -1759,7 +1759,7 @@ const sriLanka: CountryPageConfig = {
   faqs: [
     {
       q: "Are cars manufactured in Sri Lanka?",
-      a: "No. Sri Lanka has assembly operations but is not a vehicle manufacturing country in any meaningful export sense. Our Colombo office exists as a South Asia operations hub and as an import desk — Sri Lanka is one of the most active destination markets we serve, and one of the hardest to get right without people on the ground.",
+      a: "No. Sri Lanka has assembly operations but is not a vehicle manufacturing country in any meaningful export sense. Our Colombo team exists as a South Asia operations hub and as an import desk — Sri Lanka is one of the most active destination markets we serve, and one of the hardest to get right without people on the ground.",
     },
     {
       q: "What actually drives the cost of importing a car to Sri Lanka?",
@@ -1775,7 +1775,7 @@ const sriLanka: CountryPageConfig = {
     },
     {
       q: "Can I deal with someone in person?",
-      a: "Yes, and for this market we would encourage it. The Colombo office handles clearance, valuation queries, registration and post-delivery support directly. For a process this document-heavy, being able to sit across a table from the person handling your file is the single biggest reduction in risk available to you.",
+      a: "Yes, and for this market we would encourage it. The Colombo team handles clearance, valuation queries, registration and post-delivery support directly. For a process this document-heavy, being able to speak directly to the person handling your file is the single biggest reduction in risk available to you.",
     },
   ],
   blogSlugs: [

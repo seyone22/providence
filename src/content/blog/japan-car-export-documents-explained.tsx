@@ -207,7 +207,7 @@ export default function Body() {
           what it really costs to import a car from Japan
         </InlineLink>
         , or see what our{" "}
-        <InlineLink href="/source-cars-from/japan">Japan office</InlineLink>{" "}
+        <InlineLink href="/source-cars-from/japan">Japan team</InlineLink>{" "}
         handles on your behalf.
       </P>
 

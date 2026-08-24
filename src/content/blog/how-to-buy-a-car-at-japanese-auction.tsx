@@ -66,7 +66,7 @@ export default function Body() {
       </P>
       <Callout title="Why we put staff in Japan" tone="sky">
         <p>
-          Our Japan office holds auction access directly and bids to your
+          Our Japan team holds auction access directly and bids to your
           instructions. Nobody in the chain is marking the car up before you see
           the price, and the person reading the sheet is reading it in Japanese
           rather than through a translation of a translation.

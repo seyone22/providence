@@ -235,7 +235,7 @@ export default function Body() {
         </InlineLink>
         , or what our{" "}
         <InlineLink href="/source-cars-from/new-zealand">
-          New Zealand office
+          New Zealand team
         </InlineLink>{" "}
         is sourcing.
       </P>

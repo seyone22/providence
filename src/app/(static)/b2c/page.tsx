@@ -119,7 +119,7 @@ export default function B2CLanding() {
             {
               icon: ShieldCheck,
               title: "15 Years of Heritage",
-              desc: "We aren't a startup guessing how to ship cars. Over a decade of established infrastructure and physical offices in the UK, Japan, the UAE, India, Thailand, Australia, New Zealand and Sri Lanka — with more opening as we grow.",
+              desc: "We aren't a startup guessing how to ship cars. Over a decade of established infrastructure and our own teams in the UK, Japan, the UAE, India, Thailand, Australia, New Zealand and Sri Lanka — with more markets added as we grow.",
               glowColor: "group-hover:bg-amber-500/15",
             },
           ].map((feature, index) => (

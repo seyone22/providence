@@ -207,7 +207,7 @@ export default function Body() {
         </InlineLink>
         , handled by our{" "}
         <InlineLink href="/source-cars-from/australia">
-          Australia office
+          Australia team
         </InlineLink>
         .
       </P>

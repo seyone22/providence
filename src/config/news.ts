@@ -198,7 +198,7 @@ export const NEWS_CATEGORIES: NewsCategoryMeta[] = [
     h1: "Providence Auto Company News",
     seoTitle: "Providence Auto Company News & Updates | Providence Auto",
     description:
-      "Company news from Providence Auto — new source markets, office openings, service changes and tooling updates.",
+      "Company news from Providence Auto — new source markets, market openings, service changes and tooling updates.",
     blurb: "What we are building, opening and changing.",
     keywords: ["providence auto news", "car import company news"],
   },

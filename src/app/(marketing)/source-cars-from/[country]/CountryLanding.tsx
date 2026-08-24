@@ -174,7 +174,7 @@ export default function CountryLanding({ slug }: { slug: string }) {
               className="inline-flex items-center justify-center gap-2 px-8 py-5 text-lg font-medium text-black bg-white/80 backdrop-blur border border-black/10 rounded-full hover:bg-black hover:text-white transition-colors"
             >
               <Building2 size={18} />
-              Our {config.shortName} office
+              Our {config.shortName} team
             </a>
           </Reveal>
         </div>
@@ -430,11 +430,11 @@ export default function CountryLanding({ slug }: { slug: string }) {
               On the ground
             </p>
             <h2 className="text-3xl md:text-5xl font-bold tracking-tighter text-black mb-5">
-              A real office. Real people. In {config.country}.
+              Real people, on the ground, in {config.country}.
             </h2>
             <p className="text-lg text-zinc-500 font-light">
               Sourcing a car from the other side of the world only works if
-              somebody is standing next to it. That is what this office is for.
+              somebody is standing next to it. That is what this team is for.
             </p>
           </Reveal>
 
@@ -761,7 +761,7 @@ export default function CountryLanding({ slug }: { slug: string }) {
               The rest of the network
             </p>
             <h2 className="text-3xl md:text-5xl font-bold tracking-tighter text-black mb-5">
-              Seven other offices. One landed price.
+              Seven other countries. One landed price.
             </h2>
             <p className="text-lg text-zinc-500 font-light max-w-2xl mx-auto">
               If {config.country} is not where your car lands cheapest, we will
@@ -794,7 +794,7 @@ export default function CountryLanding({ slug }: { slug: string }) {
                     </p>
                   </div>
                   <span className="mt-4 inline-flex items-center gap-1.5 text-xs font-bold text-sky-600">
-                    View office
+                    View country
                     <ArrowRight
                       size={12}
                       className="group-hover:translate-x-0.5 transition-transform"

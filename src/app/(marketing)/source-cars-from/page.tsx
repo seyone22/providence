@@ -11,16 +11,16 @@ import {
 
 const SITE = "https://www.providenceauto.co.uk";
 const TITLE =
-  "Our Global Network — Eight Offices, One Landed Price | Providence Auto";
-const DESCRIPTION = `Providence Auto operates physical offices in ${OFFICE_COUNTRIES_SENTENCE}, and sources vehicles from many more. Our own teams find, inspect and ship every car — see what each country does best.`;
+  "Our Global Network — Eight Countries, One Landed Price | Providence Auto";
+const DESCRIPTION = `Providence Auto has its own teams in ${OFFICE_COUNTRIES_SENTENCE}, and sources vehicles from many more. Our own teams find, inspect and ship every car — see what each country does best.`;
 
 export const metadata: Metadata = {
   title: { absolute: TITLE },
   description: DESCRIPTION,
   keywords: [
     "global car sourcing network",
-    "international vehicle sourcing offices",
-    "car exporter with global offices",
+    "international vehicle sourcing teams",
+    "car exporter with global teams",
     "source cars from japan uk uae india thailand",
     "vehicle sourcing company worldwide",
   ],
@@ -44,18 +44,18 @@ export const metadata: Metadata = {
 const PILLARS = [
   {
     icon: Building2,
-    title: "Eight offices, not eight agents",
+    title: "Eight countries, not eight agents",
     desc: "Every country on this page has Providence staff in it. They bid, they inspect, they file the export paperwork and they load the vessel. Nothing is subcontracted to an exporter you never speak to.",
   },
   {
     icon: Globe2,
     title: "We source far beyond them",
-    desc: "The offices are where we have people on the ground. We buy across many more markets than these eight, and we open new offices as the volume justifies it.",
+    desc: "These eight are where we have our own people on the ground. We buy across many more markets than these, and we add new ones as the volume justifies it.",
   },
   {
     icon: Users,
     title: "One team owns your car",
-    desc: "The office that buys your vehicle stays with it. Inspection reports, photographs and shipping milestones come from the people who physically handled it.",
+    desc: "The team that buys your vehicle stays with it. Inspection reports, photographs and shipping milestones come from the people who physically handled it.",
   },
   {
     icon: Ship,
@@ -157,7 +157,7 @@ export default function GlobalNetworkPage() {
             duration={0.6}
             className="text-xl md:text-2xl text-zinc-500 font-light max-w-3xl mx-auto"
           >
-            Providence Auto runs physical offices in{" "}
+            Providence Auto has its own teams in{" "}
             <span className="text-black font-medium">
               {OFFICE_COUNTRIES_SENTENCE}
             </span>
@@ -212,7 +212,7 @@ export default function GlobalNetworkPage() {
                       {c.cardBlurb}
                     </p>
                     <span className="mt-5 inline-flex items-center gap-1.5 text-sm font-bold text-sky-600">
-                      Visit the {c.shortName} office
+                      See the {c.shortName} team
                       <ArrowRight
                         size={14}
                         className="group-hover:translate-x-1 transition-transform"
@@ -237,7 +237,7 @@ export default function GlobalNetworkPage() {
                 Why it is built this way
               </p>
               <h2 className="text-3xl md:text-5xl font-bold tracking-tighter text-black mb-5">
-                An office beats an inbox.
+                People on the ground beat an inbox.
               </h2>
               <p className="text-lg text-zinc-500 font-light">
                 Almost everything that goes wrong with a vehicle import goes
@@ -277,9 +277,9 @@ export default function GlobalNetworkPage() {
               Not sure which country is cheapest?
             </h2>
             <p className="text-lg text-zinc-500 font-light mb-8">
-              Tell us the car. We will compare the landed cost from every office
-              that can supply it and come back with one all-in figure — before
-              you commit anything.
+              Tell us the car. We will compare the landed cost from every
+              country that can supply it and come back with one all-in figure —
+              before you commit anything.
             </p>
             <Link
               href="/request"

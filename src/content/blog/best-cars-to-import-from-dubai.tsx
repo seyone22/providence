@@ -179,8 +179,8 @@ export default function Body() {
           what it costs to import a car from the UAE
         </InlineLink>
         , or see what our{" "}
-        <InlineLink href="/source-cars-from/uae">UAE office</InlineLink> is
-        buying now.
+        <InlineLink href="/source-cars-from/uae">UAE team</InlineLink> is buying
+        now.
       </P>
 
       <Disclaimer>

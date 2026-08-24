@@ -125,7 +125,7 @@ export default function Body() {
           than optimistic ones.
         </CheckLI>
       </UL>
-      <Callout title="Why we have an office in India" tone="sky">
+      <Callout title="Why we have staff in India" tone="sky">
         <p>
           Relationships of this kind are built over years and in person. That is
           the whole argument for having staff in the country rather than
