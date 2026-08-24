@@ -168,7 +168,7 @@ export default function B2BLanding() {
               Teams On The Ground
             </h3>
             <p className="text-zinc-500 text-lg relative z-10 font-light">
-              Our own people in eight source countries — our buyers inspect
+              Our own people in seven source countries — our buyers inspect
               every unit in person.
             </p>
             <div className="absolute -bottom-20 -right-20 w-64 h-64 bg-black/5 rounded-full blur-[80px] group-hover:bg-blue-600/10 transition-colors duration-500" />

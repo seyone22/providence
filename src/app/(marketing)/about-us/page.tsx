@@ -24,8 +24,8 @@ import { Reveal } from "@/components/Reveal";
 import VoyageTrack, { type VoyageStage } from "@/components/VoyageTrack";
 import {
   COUNTRY_BASE_PATH,
-  COUNTRY_PAGES,
   OFFICE_COUNTRIES_SENTENCE,
+  SOURCE_COUNTRY_PAGES,
 } from "@/config/countries";
 
 const SITE = "https://www.providenceauto.co.uk";
@@ -294,16 +294,6 @@ const DESTINATION_REGIONS = [
     ],
   },
 ];
-
-// The "Where we source" column is deliberately not the raw registry: Sri Lanka
-// is a destination market and our South Asia operations base, not a country we
-// buy cars in, so listing it under sourcing overstates it. Same treatment the
-// footer office column already gives it — the /source-cars-from/sri-lanka page
-// still exists and is still reachable from "Explore the full network".
-const SOURCING_HIDDEN_SLUGS = new Set(["sri-lanka"]);
-const SOURCING_COUNTRIES = COUNTRY_PAGES.filter(
-  (country) => !SOURCING_HIDDEN_SLUGS.has(country.slug),
-);
 
 /**
  * Short gradient hairline that sits where the eyebrow label used to. Section
@@ -824,7 +814,7 @@ export default function AboutUsPage() {
                     Where we source
                   </p>
                   <ul className="flex flex-col divide-y divide-black/5 rounded-[1.5rem] border border-black/5 bg-white overflow-hidden">
-                    {SOURCING_COUNTRIES.map((c) => (
+                    {SOURCE_COUNTRY_PAGES.map((c) => (
                       <li key={c.slug}>
                         <Link
                           href={`${COUNTRY_BASE_PATH}/${c.slug}`}

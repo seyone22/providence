@@ -1802,6 +1802,25 @@ export const COUNTRY_PAGES: CountryPageConfig[] = [
 
 export const COUNTRY_BASE_PATH = "/source-cars-from";
 
+/**
+ * Countries we actually buy cars in.
+ *
+ * Sri Lanka stays in COUNTRY_PAGES — it has a team, a real remit and its own
+ * page — but it is a destination market and our South Asia operations base, not
+ * somewhere we source. Its own page says so outright. Every "where we source"
+ * surface must read from this list, not from COUNTRY_PAGES: the footer column,
+ * the /about-us source list, the /source-cars-from grid and its structured
+ * data, and the "other countries" rail on a country page.
+ *
+ * Use COUNTRY_PAGES only when you mean the whole registry — routing,
+ * getCountryPage, the sitemap.
+ */
+export const NON_SOURCING_SLUGS = new Set(["sri-lanka"]);
+
+export const SOURCE_COUNTRY_PAGES: CountryPageConfig[] = COUNTRY_PAGES.filter(
+  (c) => !NON_SOURCING_SLUGS.has(c.slug),
+);
+
 export function getCountryPage(slug: string): CountryPageConfig | undefined {
   return COUNTRY_PAGES.find((c) => c.slug === slug);
 }
@@ -1822,6 +1841,13 @@ export const OFFICE_COUNTRY_NAMES = [
   "Sri Lanka",
 ];
 
-/** "the UK, Japan, the UAE, India, Thailand, Australia, New Zealand and Sri Lanka" */
+/**
+ * The eight countries we have people in. This is a *presence* claim — it is the
+ * right list for "our own teams in…", and the wrong one for "where we buy".
+ */
 export const OFFICE_COUNTRIES_SENTENCE =
   "the UK, Japan, the UAE, India, Thailand, Australia, New Zealand and Sri Lanka";
+
+/** The seven we buy in — presence minus Sri Lanka. See NON_SOURCING_SLUGS. */
+export const SOURCE_COUNTRIES_SENTENCE =
+  "the UK, Japan, the UAE, India, Thailand, Australia and New Zealand";
