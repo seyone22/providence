@@ -186,8 +186,8 @@ export default function Body() {
         </CheckLI>
       </UL>
       <P>
-        We run both offices, so we have no reason to push you toward one. Tell
-        us the requirement and we compare the landed cost from each —{" "}
+        We have our own team in both, so we have no reason to push you toward
+        one. Tell us the requirement and we compare the landed cost from each —{" "}
         <InlineLink href="/source-cars-from/thailand">Thailand</InlineLink> and{" "}
         <InlineLink href="/source-cars-from/japan">Japan</InlineLink>.
       </P>

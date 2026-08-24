@@ -27,15 +27,15 @@ const FAQ_DATA = [
       },
       {
         q: "Is Providence Auto a registered and licensed business?",
-        a: "Yes. We are a registered vehicle sourcing and export group with over 15 years of trading history and physical offices across Europe, Asia, the Middle East and Oceania, operating under all applicable international trade and export regulations in every market where we buy and sell.",
+        a: "Yes. We are a registered vehicle sourcing and export group with over 15 years of trading history and our own teams across Europe, Asia, the Middle East and Oceania, operating under all applicable international trade and export regulations in every market where we buy and sell.",
       },
       {
-        q: "Can I visit your office or speak to someone in person?",
-        a: "Absolutely. We have physical offices and operations teams in the UK, Japan, the UAE, India, Thailand, Australia, New Zealand and Sri Lanka — and we're opening more as our volumes grow. You're welcome to visit any of them, or we can jump on a video call so you can put a face to the name. We're real people, not a faceless website.",
+        q: "Can I speak to someone in person?",
+        a: "Absolutely. Our head office is in London and you're welcome to arrange a visit, and we have our own operations teams in Japan, the UAE, India, Thailand, Australia, New Zealand and Sri Lanka — with more markets added as our volumes grow. Wherever your car is coming from, we can jump on a video call so you can put a face to the name. We're real people, not a faceless website.",
       },
       {
         q: "Which countries do you source vehicles from?",
-        a: "We buy directly in the eight countries where we have our own offices — the UK, Japan, the UAE, India, Thailand, Australia, New Zealand and Sri Lanka — and we source from many more markets besides. For any given specification we compare the total landed cost across every country that can supply it, then buy where it lands cheapest for you.",
+        a: "We buy directly in the eight countries where we have our own teams — the UK, Japan, the UAE, India, Thailand, Australia, New Zealand and Sri Lanka — and we source from many more markets besides. For any given specification we compare the total landed cost across every country that can supply it, then buy where it lands cheapest for you.",
       },
     ],
   },

@@ -138,7 +138,7 @@ export default function Body() {
       </UL>
       <P>
         We model which mechanism applies before recommending India over another
-        office — because occasionally the honest answer is that it does not suit
+        source — because occasionally the honest answer is that it does not suit
         your market.
       </P>
 
@@ -195,8 +195,8 @@ export default function Body() {
         </InlineLink>
         , where the car is 60% of the total and freight is smaller. Different
         problems, different levers — which is why the useful comparison is
-        always landed cost for the same requirement across offices, not headline
-        vehicle price.
+        always landed cost for the same requirement across source countries, not
+        headline vehicle price.
       </P>
       <P>
         For dealers running volume, the consolidation and cashflow arithmetic is

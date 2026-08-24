@@ -24,14 +24,14 @@ export const metadata: Metadata = {
     template: "%s | Providence Auto",
   },
   description:
-    "Source any car from 40+ global markets with Providence Auto. Physical offices and operations teams in the UK, Japan, the UAE, India, Thailand, Australia, New Zealand and Sri Lanka — tax-efficient vehicles delivered with zero logistical friction.",
+    "Source any car from 40+ global markets with Providence Auto. Our own operations teams in the UK, Japan, the UAE, India, Thailand, Australia, New Zealand and Sri Lanka — tax-efficient vehicles delivered with zero logistical friction.",
   keywords: [
     "Global car sourcing",
     "direct car import service",
     "tax-efficient vehicle procurement",
     "borderless car showroom",
     "international car exporter",
-    "car sourcing offices worldwide",
+    "car sourcing teams worldwide",
     "buy cars from overseas",
     "7-seater family SUVs",
     "luxury executive sedans",

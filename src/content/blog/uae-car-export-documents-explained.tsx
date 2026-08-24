@@ -206,7 +206,7 @@ export default function Body() {
         <InlineLink href="/blog/cost-to-import-a-car-from-the-uae">
           what it costs
         </InlineLink>
-        . Our <InlineLink href="/source-cars-from/uae">UAE office</InlineLink>{" "}
+        . Our <InlineLink href="/source-cars-from/uae">UAE team</InlineLink>{" "}
         handles the whole file locally.
       </P>
 

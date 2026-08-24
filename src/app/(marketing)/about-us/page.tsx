@@ -21,7 +21,7 @@ import MinimalHeader from "@/components/MinimalHeader";
 import OdometerCounter from "@/components/OdometerCounter";
 import RadialBurst from "@/components/RadialBurst";
 import { Reveal } from "@/components/Reveal";
-import VoyageTrack from "@/components/VoyageTrack";
+import VoyageTrack, { type VoyageStage } from "@/components/VoyageTrack";
 import {
   COUNTRY_BASE_PATH,
   COUNTRY_PAGES,
@@ -33,7 +33,7 @@ const PATH = "/about-us";
 const URL = `${SITE}${PATH}`;
 const TITLE = "About Providence Auto | Global Vehicle Sourcing Group";
 const DESCRIPTION =
-  "A global vehicle sourcing group with our own offices in eight countries. See how we source, verify and land cars worldwide.";
+  "A global vehicle sourcing group with our own people on the ground in eight countries. See how we source, verify and land cars worldwide.";
 // Cropped to the 1200×630 size link-preview crawlers (Facebook, LinkedIn,
 // X, Slack…) expect. Self-hosted so the preview can't break when a
 // third-party CDN rewrites a URL.
@@ -47,7 +47,7 @@ export const metadata: Metadata = {
     "global car sourcing company",
     "vehicle import company",
     "international car exporter",
-    "car sourcing group offices worldwide",
+    "car sourcing group worldwide",
   ],
   alternates: { canonical: PATH },
   openGraph: {
@@ -78,9 +78,9 @@ export const metadata: Metadata = {
 // ── Stats — real figures, shared by the hero row and the full grid below. ──
 const STATS = [
   { value: 15, suffix: "+", label: "Years trading history" },
-  { value: 8, label: "Countries with our own offices" },
+  { value: 8, label: "Countries with our own presence" },
   { value: 40, suffix: "+", label: "Retail sourcing markets" },
-  { value: 21, label: "Destination markets served" },
+  { value: 28, label: "Destination markets served" },
   { value: 100, suffix: "+", label: "Dealer sourcing markets" },
   { value: 24, suffix: " hrs", label: "To your first sourcing quote" },
 ];
@@ -91,14 +91,20 @@ const STATS = [
 // lg-only — below that these are a plain horizontal scroller.
 //
 // `lqip` is an 8×10 WebP of the photo, inlined as a data URL (60–160 bytes
-// each, ~700 bytes for the row). It is what the card paints while the real
-// photo is in flight. Measured on the deployed site, each optimised photo is
-// 60–90 KB and Cloudflare returns `cf-cache-status: DYNAMIC` for
-// `/_next/image`, so every request travels to Railway — around 0.5s from a
-// desktop and 1.5–2s from a phone on mobile data. Nothing in the card used to
-// paint before its photo landed, so the row read as blank white for exactly
-// that long while you swiped it. The blur needs no request, so the card now
-// has real pixels from the moment the HTML parses.
+// each, ~700 bytes for the row). It goes out as the `--fan-lqip` custom
+// property and the card paints it as a plain background-image, stretched to
+// cover, while the real photo is in flight. Measured on the deployed site,
+// each optimised photo is 60–90 KB and Cloudflare returns
+// `cf-cache-status: DYNAMIC` for `/_next/image`, so every request travels to
+// Railway — around 0.5s from a desktop and 1.5–2s from a phone on mobile
+// data. Nothing in the card used to paint before its photo landed, so the row
+// read as blank white for exactly that long while you swiped it. This needs no
+// request, so the card has real pixels from the moment the HTML parses.
+//
+// Pass it as a background, not through next/image's `placeholder="blur"`:
+// that ships the same thumbnail wrapped in an SVG carrying two chained
+// feGaussianBlur(20) filters, which has to be rasterised per card and is what
+// made the swipe itself judder.
 //
 // Regenerate with sharp if a photo is replaced:
 //   sharp(file).resize(8, 10, { fit: "cover" }).webp({ quality: 40 })
@@ -175,7 +181,7 @@ const VALUES = [
 const PILLARS = [
   {
     icon: Building2,
-    title: "Eight offices, not eight agents",
+    title: "Eight countries, not eight agents",
     desc: "Nothing is subcontracted to an exporter you never speak to.",
   },
   {
@@ -193,6 +199,19 @@ const PILLARS = [
     title: "One landed price",
     desc: "One number for the total cost, wherever the car comes from.",
   },
+];
+
+// ── How an import tracks ─────────────────────────────────────────────────────
+// VoyageTrack's own defaults end at "Customs cleared" → "Delivered". We contract
+// to the destination port, so the last two pips are stated at that level and the
+// handover after it is left unqualified rather than promised as a door delivery.
+const IMPORT_STAGES: VoyageStage[] = [
+  { label: "Sourcing", at: 0 },
+  { label: "Purchased", at: 0.18 },
+  { label: "At origin port", at: 0.36 },
+  { label: "At sea", at: 0.62 },
+  { label: "At destination port", at: 0.84 },
+  { label: "Handover", at: 1 },
 ];
 
 // ── Who we serve ─────────────────────────────────────────────────────────────
@@ -220,7 +239,7 @@ const AUDIENCES = [
   },
 ];
 
-// ── Where we deliver ─────────────────────────────────────────────────────────
+// ── Where we ship ────────────────────────────────────────────────────────────
 // Region grouping per the news-editorial-playbook.md destination-market
 // definition; country list matches the "destination" role entries in
 // src/config/globe.ts (globe.ts has no region field, so the grouping lives
@@ -228,9 +247,27 @@ const AUDIENCES = [
 const DESTINATION_REGIONS = [
   {
     region: "Europe",
-    countries: ["Ireland", "United Kingdom", "Malta", "Cyprus", "Jersey"],
+    countries: [
+      "Ireland",
+      "United Kingdom",
+      "Germany",
+      "Malta",
+      "Cyprus",
+      "Jersey",
+    ],
   },
-  { region: "Africa", countries: ["Kenya", "Uganda", "Zimbabwe"] },
+  {
+    region: "Africa",
+    countries: [
+      "Kenya",
+      "Uganda",
+      "Zimbabwe",
+      "Botswana",
+      "Tanzania",
+      "Mauritius",
+      "Seychelles",
+    ],
+  },
   {
     region: "Caribbean",
     countries: [
@@ -250,11 +287,23 @@ const DESTINATION_REGIONS = [
       "Malaysia",
       "Indonesia",
       "Thailand",
-      "Sri Lanka",
-      "Maldives",
+      "Pakistan",
+      "Bangladesh",
+      "Nepal",
+      "Singapore",
     ],
   },
 ];
+
+// The "Where we source" column is deliberately not the raw registry: Sri Lanka
+// is a destination market and our South Asia operations base, not a country we
+// buy cars in, so listing it under sourcing overstates it. Same treatment the
+// footer office column already gives it — the /source-cars-from/sri-lanka page
+// still exists and is still reachable from "Explore the full network".
+const SOURCING_HIDDEN_SLUGS = new Set(["sri-lanka"]);
+const SOURCING_COUNTRIES = COUNTRY_PAGES.filter(
+  (country) => !SOURCING_HIDDEN_SLUGS.has(country.slug),
+);
 
 /**
  * Short gradient hairline that sits where the eyebrow label used to. Section
@@ -295,7 +344,7 @@ export default function AboutUsPage() {
       url: `${SITE}/`,
       logo: { "@type": "ImageObject", url: `${SITE}/logo.png` },
       description:
-        "Providence Auto is a global vehicle sourcing and export group that buys, inspects and ships cars through its own offices in eight countries, delivering to 21+ destination markets worldwide.",
+        "Providence Auto is a global vehicle sourcing and export group that buys, inspects and ships cars through its own teams on the ground in eight countries, shipping to 21+ destination markets worldwide.",
       foundingLocation: "London, United Kingdom",
       areaServed: "Worldwide",
       sameAs: ["https://www.instagram.com/providenceautouk/"],
@@ -415,18 +464,22 @@ export default function AboutUsPage() {
                 tall instead of three rows deep, with the caption back inside
                 the photo.
 
-                This is deliberately the home page gallery strip and nothing
-                else — same flex scroller, same proximity snapping, same
-                overscroll containment, same in-flow photo. That strip is the
-                one horizontal scroller on this site that has never misbehaved
-                on an iPhone, so it is the pattern rather than a starting point.
-                Everything earlier attempts layered on top of it is gone: no
-                reveal wrapper around the scroller, no per-card z-index building
-                stacking contexts, no next/image `fill` putting the photo out of
-                flow, no scroll-driven focus animation dimming the cards, and no
-                mandatory snapping. Adding any of those back is what broke it
-                each time — the dimming one worst of all, since a card that is
-                merely off-centre renders at 45% opacity. */}
+                The scroller itself is deliberately the home page gallery strip
+                and nothing else — same flex container, same proximity snapping,
+                same overscroll containment, same in-flow photo. That strip is
+                the one horizontal scroller on this site that has never
+                misbehaved on an iPhone, so it is the pattern rather than a
+                starting point, and what earlier attempts layered on top of it
+                stays gone: no reveal wrapper around the scroller, no per-card
+                z-index below lg, no next/image `fill` putting the photo out of
+                flow, no opacity driven off scroll position, and no mandatory
+                snapping.
+
+                The deal-in the cards now do is a CSS view timeline, sampled by
+                the compositor rather than by an observer, and it moves nothing
+                but rotate/translate/scale. See the .pa-fan block in globals.css
+                for why that is the one kind of scroll motion this row can
+                safely carry. */}
               <div className="flex gap-4 overflow-x-auto overscroll-x-contain pb-6 -mx-6 px-6 snap-x snap-proximity scroll-px-6 lg:mx-0 lg:px-0 lg:gap-0 lg:scroll-px-0 lg:items-end lg:justify-center lg:overflow-visible lg:pb-0 lg:pt-8 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
                 {VALUES.map((v) => (
                   <div
@@ -436,34 +489,47 @@ export default function AboutUsPage() {
                         "--fan-rot": v.rot,
                         "--fan-y": v.y,
                         "--fan-z": v.z,
+                        // Quoted so the `;` in `data:image/webp;base64,` sits
+                        // inside a CSS string rather than ending the
+                        // declaration when this is parsed out of the style
+                        // attribute.
+                        "--fan-lqip": `url('${v.lqip}')`,
                       } as CSSProperties
                     }
                     className="pa-fan relative w-[240px] shrink-0 snap-start lg:-ml-16 lg:w-48 lg:first:ml-0 xl:w-56"
                   >
-                    <div className="relative aspect-[4/5] overflow-hidden rounded-[1.25rem] bg-zinc-900 lg:rounded-[1.5rem] lg:shadow-[0_30px_70px_-35px_rgba(0,0,0,0.6)]">
+                    {/* The card, not the <img>, carries the placeholder:
+                      .pa-fan-card paints --fan-lqip as a plain background, so
+                      there are real pixels here the moment the HTML parses and
+                      no filter to rasterise. */}
+                    <div className="pa-fan-card relative aspect-[4/5] overflow-hidden rounded-[1.25rem] lg:rounded-[1.5rem] lg:shadow-[0_30px_70px_-35px_rgba(0,0,0,0.6)]">
                       <Image
                         src={v.src}
                         alt={v.alt}
                         width={900}
                         height={1125}
                         sizes="(max-width: 1023px) 240px, 224px"
-                        // The blur is the whole point on mobile: it renders as
-                        // a background-image on the <img> itself, straight from
-                        // the HTML, so the card is never an empty box waiting
-                        // on the network. See the note on VALUES for the
-                        // measurements behind that.
-                        placeholder="blur"
-                        blurDataURL={v.lqip}
-                        // No `quality` prop here on purpose. Next 16 only
-                        // serves the qualities in `images.qualities`, which
-                        // defaults to [75]: a production build coerces the
-                        // prop back to 75 at render time, and requesting
+                        // No `placeholder="blur"`. It ships this same 8×10
+                        // thumbnail, but wrapped in an SVG carrying two
+                        // chained feGaussianBlur(20) filters over a 900×1125
+                        // viewBox, painted as a background on the <img>. That
+                        // filter graph is re-evaluated per card, six times, on
+                        // the raster path the scroller is already competing
+                        // for — it bought instant pixels at the cost of the
+                        // swipe being smooth. The card behind gives the same
+                        // first paint for one bitmap stretch.
+                        //
+                        // No `quality` prop either. Next 16 only serves the
+                        // qualities in `images.qualities`, which defaults to
+                        // [75]: a production build coerces the prop back to
+                        // 75 at render time, and requesting
                         // /_next/image?…&q=70 directly returns 400. It looks
                         // like it works in dev, where the optimiser answers
                         // any quality. Lowering it for real would mean adding
                         // the value to next.config.ts, which changes every
                         // image on the site — not worth it for ~5% on six
                         // decorative photos.
+                        //
                         // All six load the same way, exactly as the home page
                         // gallery strip does. `loading="eager"` makes Next.js
                         // inject a <link rel=preload> whose scanner width
@@ -486,6 +552,9 @@ export default function AboutUsPage() {
                         className="h-full w-full object-cover"
                       />
                       <div className="pa-fan-scrim absolute inset-0" />
+                      {/* The lit half of the hover cross-fade. lg-only, so a
+                        phone never paints it at all. */}
+                      <div className="pa-fan-scrim-open absolute inset-0 hidden lg:block" />
                       <div className="absolute inset-x-0 bottom-0 p-4">
                         <p className="text-[10px] font-bold uppercase tracking-[0.25em] text-white/45">
                           {v.n}
@@ -519,10 +588,10 @@ export default function AboutUsPage() {
               </p>
               <p className="text-lg text-zinc-700 font-light leading-relaxed">
                 Providence Auto is a global vehicle sourcing and export group.
-                We buy, inspect and ship cars through our own offices in eight
-                countries — Japan, the UK, the UAE, India, Thailand, Australia,
-                New Zealand and Sri Lanka — to 21+ right-hand-drive and luxury
-                left-hand-drive markets worldwide.
+                We buy, inspect and ship cars through our own teams on the
+                ground in eight countries — Japan, the UK, the UAE, India,
+                Thailand, Australia, New Zealand and Sri Lanka — to 21+
+                right-hand-drive and luxury left-hand-drive markets worldwide.
               </p>
             </Reveal>
           </section>
@@ -617,8 +686,9 @@ export default function AboutUsPage() {
                 <p className="text-lg text-zinc-500 font-light">
                   Providence Auto is the trading name of Providence Trading
                   Limited. For 15+ years we've bought, inspected and shipped
-                  every car ourselves — through our own offices, never a chain
-                  of intermediaries who never see the vehicle.
+                  every car ourselves — through our own people in the source
+                  country, never a chain of intermediaries who never see the
+                  vehicle.
                 </p>
               </Reveal>
             </div>
@@ -638,8 +708,9 @@ export default function AboutUsPage() {
                 </h2>
                 <p className="text-lg text-zinc-500 font-light">
                   Tell us the exact car — a full sourcing quote comes back in 24
-                  hours. We buy it through our own office, verify it, and get it
-                  moving. Every import tracks the same way:
+                  hours. We buy it through our own team in the source country,
+                  verify it, and get it moving. Every import tracks the same
+                  way:
                 </p>
               </Reveal>
 
@@ -662,7 +733,7 @@ export default function AboutUsPage() {
                 duration={0.6}
                 className="rounded-[2rem] bg-white border border-black/5 p-6 md:p-10"
               >
-                <VoyageTrack />
+                <VoyageTrack stages={IMPORT_STAGES} />
               </Reveal>
             </div>
           </section>
@@ -686,7 +757,7 @@ export default function AboutUsPage() {
               >
                 <SectionRule />
                 <h2 className="text-3xl md:text-5xl font-bold tracking-tighter text-white mb-5">
-                  The difference is that an office beats an inbox.
+                  The difference is that people on the ground beat an inbox.
                 </h2>
                 <p className="text-lg text-zinc-400 font-light">
                   Almost everything that goes wrong with a vehicle import goes
@@ -729,8 +800,8 @@ export default function AboutUsPage() {
               >
                 <SectionRule />
                 <h2 className="text-3xl md:text-5xl font-bold tracking-tighter text-black mb-5">
-                  Our network is eight offices, forty-plus markets and
-                  twenty-one destinations.
+                  Our network is eight bases, forty-plus sourcing markets and
+                  twenty-eight destinations.
                 </h2>
                 <p className="text-lg text-zinc-500 font-light">
                   Our own teams sit in eight countries and buy in many more.
@@ -753,7 +824,7 @@ export default function AboutUsPage() {
                     Where we source
                   </p>
                   <ul className="flex flex-col divide-y divide-black/5 rounded-[1.5rem] border border-black/5 bg-white overflow-hidden">
-                    {COUNTRY_PAGES.map((c) => (
+                    {SOURCING_COUNTRIES.map((c) => (
                       <li key={c.slug}>
                         <Link
                           href={`${COUNTRY_BASE_PATH}/${c.slug}`}
@@ -789,7 +860,7 @@ export default function AboutUsPage() {
 
                 <div>
                   <p className="text-xs font-bold tracking-[0.2em] text-sky-600 uppercase mb-4">
-                    Where we deliver
+                    Where we ship
                   </p>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     {DESTINATION_REGIONS.map((r) => (
@@ -890,13 +961,13 @@ export default function AboutUsPage() {
                   },
                   {
                     icon: Anchor,
-                    title: "Door-to-door marine insurance",
-                    desc: "Covered from the source country to your door.",
+                    title: "Marine cover on the voyage",
+                    desc: "Arranged from the source country to the port of arrival.",
                   },
                   {
                     icon: Users,
                     title: "One named consultant",
-                    desc: "The same person, first message to customs clearance.",
+                    desc: "The same person, from your first message to arrival.",
                   },
                 ].map((item, i) => (
                   <Reveal

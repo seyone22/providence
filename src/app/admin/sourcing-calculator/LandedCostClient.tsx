@@ -41,19 +41,25 @@ import { Separator } from "@/components/ui/separator";
 import { computeMarketStats, type NormalizedListing } from "@/lib/market-stats";
 import {
   AUCTION_FEE_RATE,
+  clampTargetMargin,
   computeLandedCost,
   DEFAULT_OCEAN_FREIGHT_JPY,
   DUTY_LABELS,
   fmtGBP,
   fmtPct,
   isNearIvaExemption,
+  ivaRequiredForAge,
   maxAuctionPriceForMargin,
   ORIGIN_COUNTRY_LABELS,
   ORIGIN_STATEMENT_COUNTRIES,
   type OriginCountry,
-  POST_BORDER_DEFAULTS,
-  POST_BORDER_IVA,
-  postBorderForAge,
+  POST_BORDER_BASE_ITEMS,
+  POST_BORDER_IVA_ITEMS,
+  POST_BORDER_LABELS,
+  type PostBorderBaseKey,
+  type PostBorderIvaKey,
+  RESALE_VAT_DIVISOR,
+  resaleExVat,
   resolveTaxTreatment,
   TARGET_MARGIN_PCT,
 } from "@/lib/uk-landed-cost";
@@ -386,43 +392,51 @@ export default function LandedCostClient({
   const dutyBasis = treatment.dutyBasis;
   const vatBasis = treatment.vatBasis;
 
-  // ── Post-border GBP costs (editable defaults) ───────────────────────────────
-  const [dvlaRegistration, setDvla] = useState(
-    String(POST_BORDER_DEFAULTS.dvlaRegistration),
+  // ── Post-border GBP costs (the desk's line items, editable per run) ─────────
+  // Base costs land on every car; the IVA block lands only when the car has to
+  // sit the approval test. Both come pre-filled from the desk's own figures.
+  const [baseCosts, setBaseCosts] = useState(
+    () =>
+      Object.fromEntries(
+        Object.entries(POST_BORDER_BASE_ITEMS).map(([k, v]) => [k, String(v)]),
+      ) as Record<PostBorderBaseKey, string>,
   );
-  const [numberPlates, setPlates] = useState(
-    String(POST_BORDER_DEFAULTS.numberPlates),
+  const [ivaCosts, setIvaCosts] = useState(
+    () =>
+      Object.fromEntries(
+        Object.entries(POST_BORDER_IVA_ITEMS).map(([k, v]) => [k, String(v)]),
+      ) as Record<PostBorderIvaKey, string>,
   );
-  const [approvalTest, setApproval] = useState(
-    String(POST_BORDER_DEFAULTS.approvalTest),
-  );
-  const [ivaModifications, setMods] = useState(
-    String(POST_BORDER_DEFAULTS.ivaModifications),
-  );
-  const [ukInlandTransport, setUkTransport] = useState(
-    String(POST_BORDER_DEFAULTS.ukInlandTransport),
-  );
-  // Default post-border is the age-based figure; the operator can switch to the
-  // itemised breakdown to override.
-  const [postBorderDetailed, setPostBorderDetailed] = useState(false);
-  // A car within a year of the 10-year IVA exemption usually clears and
-  // registers after its birthday, so the operator can drop the IVA allowance.
-  // Offered only in that window, and reset whenever the car leaves it.
-  const [waiveIva, setWaiveIva] = useState(false);
-  const ivaWaiverOffered = isNearIvaExemption(vehicleAgeYears);
-  useEffect(() => {
-    if (!ivaWaiverOffered) setWaiveIva(false);
-  }, [ivaWaiverOffered]);
 
-  const detailedPostBorder =
-    num(dvlaRegistration) +
-    num(numberPlates) +
-    num(approvalTest) +
-    num(ivaModifications) +
-    num(ukInlandTransport);
-  const postBorderTotal = postBorderDetailed
-    ? detailedPostBorder
-    : postBorderForAge(vehicleAgeYears, { waiveIva });
+  // Whether the IVA test applies. Derived from age (under 10 = yes, unknown =
+  // assume yes) until the operator says otherwise — from then on their answer
+  // sticks, because the real determinant is the clearance timeline, which only
+  // the person booking the shipment knows.
+  const [ivaRequired, setIvaRequired] = useState(true);
+  const [ivaManual, setIvaManual] = useState(false);
+  useEffect(() => {
+    if (!ivaManual) setIvaRequired(ivaRequiredForAge(vehicleAgeYears));
+  }, [vehicleAgeYears, ivaManual]);
+  // A car within a year of the exemption usually registers after its birthday,
+  // so the operator is prompted (never forced) to drop the IVA block.
+  const ivaWaiverOffered = isNearIvaExemption(vehicleAgeYears);
+
+  const baseCostTotal = Object.values(baseCosts).reduce(
+    (a, v) => a + num(v),
+    0,
+  );
+  const ivaCostTotal = Object.values(ivaCosts).reduce((a, v) => a + num(v), 0);
+  const postBorderTotal = baseCostTotal + (ivaRequired ? ivaCostTotal : 0);
+
+  // ── Minimum ROI ─────────────────────────────────────────────────────────────
+  // The desk minimum is 30% gross margin on landed cost, but it is a judgement
+  // the operator can move per run (a thin, risky car may need 35%). It drives
+  // the badge, the ceiling bid, the verdict policy and the PDF together.
+  const [targetMarginInput, setTargetMarginInput] = useState(
+    String(TARGET_MARGIN_PCT * 100),
+  );
+  const targetMarginPct = clampTargetMargin(num(targetMarginInput) / 100);
+  const targetLabel = `${Number((targetMarginPct * 100).toFixed(1))}%`;
 
   // GBP per 1 unit of currency, from the JPY-per-GBP the operator enters.
   const fxGbpPerUnit = num(fxRate) > 0 ? 1 / num(fxRate) : 0;
@@ -545,7 +559,11 @@ export default function LandedCostClient({
   );
 
   // Live margin, recomputed from the current listing set.
-  const liveMargin = liveStats.median - result.totalLanded;
+  // Scraped forecourt prices are VAT-inclusive; the landed cost above excludes
+  // import VAT because the importer reclaims it. Take the VAT back out of the
+  // resale side so both halves of the margin are net figures.
+  const medianExVat = resaleExVat(liveStats.median);
+  const liveMargin = medianExVat - result.totalLanded;
   const liveMarginPct =
     result.totalLanded > 0 ? liveMargin / result.totalLanded : 0;
 
@@ -555,8 +573,8 @@ export default function LandedCostClient({
   const maxBid = useMemo(
     () =>
       maxAuctionPriceForMargin({
-        targetMarginPct: TARGET_MARGIN_PCT,
-        resaleGbp: liveStats.median,
+        targetMarginPct,
+        resaleGbp: medianExVat,
         postBorderTotal,
         dutyRate: result.dutyRate,
         vatEffectiveRate: result.vatEffectiveRate,
@@ -569,7 +587,8 @@ export default function LandedCostClient({
         auctionFeeRate: feeManual ? 0 : AUCTION_FEE_RATE,
       }),
     [
-      liveStats.median,
+      medianExVat,
+      targetMarginPct,
       postBorderTotal,
       result.dutyRate,
       result.vatEffectiveRate,
@@ -615,6 +634,7 @@ export default function LandedCostClient({
           count: liveStats.count,
           min: liveStats.min,
           median: liveStats.median,
+          medianExVat,
           mean: liveStats.mean,
           max: liveStats.max,
           p25: liveStats.p25,
@@ -641,7 +661,7 @@ export default function LandedCostClient({
           ...verdict,
           grossMargin: liveMargin,
           marginPct: liveMarginPct,
-          targetMarginPct: TARGET_MARGIN_PCT,
+          targetMarginPct,
         },
         maxBid: {
           currency,
@@ -782,6 +802,9 @@ export default function LandedCostClient({
         vehicle: { make, model, edition, year, mileage },
         landedCostGbp: result.totalLanded,
         stats: liveStats,
+        // The net figure the margin is actually measured against.
+        resaleExVatGbp: medianExVat,
+        targetMarginPct,
         matchUsed: market.matchUsed,
         widened: liveStats.count < 5,
         maxBid: {
@@ -1237,103 +1260,86 @@ export default function LandedCostClient({
               <div className="rounded-lg border border-zinc-200 bg-zinc-50 p-3">
                 <div className="flex items-center justify-between">
                   <span className="text-sm text-zinc-600">
-                    {postBorderDetailed
-                      ? "Itemised total"
-                      : "Estimated clearance + registration"}
+                    Total UK costs
+                    {ivaRequired ? " (incl. IVA)" : " (no IVA)"}
                   </span>
                   <span className="text-lg font-bold text-zinc-900">
                     {fmtGBP(postBorderTotal)}
                   </span>
                 </div>
-                {!postBorderDetailed ? (
-                  <p className="text-[11px] text-zinc-400 mt-1">
-                    {vehicleAgeYears != null && vehicleAgeYears >= 10
-                      ? "10+ yrs: £800 clearance + registration (outside the IVA scheme)."
-                      : waiveIva
-                        ? "£800 clearance + registration — IVA allowance waived."
-                        : "Under 10 yrs: £800 clearance + £1,000 IVA allowance = £1,800."}
-                  </p>
-                ) : null}
-                <button
-                  type="button"
-                  onClick={() => setPostBorderDetailed((v) => !v)}
-                  className="mt-2 text-[11px] font-medium text-sky-600 hover:underline"
-                >
-                  {postBorderDetailed
-                    ? "Use the standard estimate"
-                    : "Itemise costs instead"}
-                </button>
+                <p className="text-[11px] text-zinc-400 mt-1">
+                  {fmtGBP(baseCostTotal)} base
+                  {ivaRequired ? ` + ${fmtGBP(ivaCostTotal)} IVA` : ""} · every
+                  line is editable
+                </p>
               </div>
 
-              {/* A car within a year of the 10-yr IVA exemption will usually be
-                  registered after its birthday, so the IVA cost never lands. */}
-              {ivaWaiverOffered && !postBorderDetailed ? (
-                <label className="flex items-start gap-3 rounded-lg border border-sky-200 bg-sky-50 p-3 cursor-pointer">
+              <div className="grid sm:grid-cols-2 gap-4">
+                {(Object.keys(baseCosts) as PostBorderBaseKey[]).map((k) => (
+                  <Field
+                    key={k}
+                    label={POST_BORDER_LABELS[k]}
+                    value={baseCosts[k]}
+                    onChange={(v) =>
+                      setBaseCosts((prev) => ({ ...prev, [k]: v }))
+                    }
+                    prefix="£"
+                  />
+                ))}
+              </div>
+
+              {/* The IVA block. Age sets the default; the operator owns the
+                  call, because it turns on the clearance timeline. */}
+              <div className="rounded-lg border border-zinc-200 p-3 space-y-3">
+                <label className="flex items-start gap-3 cursor-pointer">
                   <input
                     type="checkbox"
-                    checked={waiveIva}
-                    onChange={(e) => setWaiveIva(e.target.checked)}
+                    checked={ivaRequired}
+                    onChange={(e) => {
+                      setIvaManual(true);
+                      setIvaRequired(e.target.checked);
+                    }}
                     className="mt-0.5 size-4 shrink-0 accent-sky-600"
                   />
                   <span>
-                    <span className="block text-[12px] font-medium text-sky-900">
-                      Drop the £{POST_BORDER_IVA.toLocaleString()} IVA allowance
-                      — this car turns 10 before it clears
+                    <span className="block text-[13px] font-medium text-zinc-800">
+                      IVA test required — adds {fmtGBP(ivaCostTotal)}
                     </span>
-                    <span className="block text-[11px] text-sky-700 mt-0.5">
-                      It's {vehicleAgeYears} years old now. Shipping and
-                      clearance usually take long enough that registration falls
-                      after the 10-year mark, where an MOT replaces the IVA
-                      test. Your call — confirm the timeline before relying on
-                      it.
+                    <span className="block text-[11px] text-zinc-500 mt-0.5">
+                      {vehicleAgeYears == null
+                        ? "No year entered, so the IVA cost is assumed to apply."
+                        : vehicleAgeYears >= 10
+                          ? `${vehicleAgeYears} yrs old — outside the IVA scheme, an MOT does instead.`
+                          : `${vehicleAgeYears} yrs old — inside the IVA scheme.`}
                     </span>
                   </span>
                 </label>
-              ) : null}
 
-              {postBorderDetailed ? (
-                <>
-                  <div className="flex gap-2 rounded-lg border border-amber-200 bg-amber-50 p-3 text-[12px] text-amber-800">
-                    <span aria-hidden>⚠️</span>
-                    <p>
-                      Indicative placeholder figures — confirm each against your
-                      actual costs before relying on the landed-cost total.
-                    </p>
-                  </div>
+                {ivaWaiverOffered && ivaRequired ? (
+                  <p className="rounded-lg border border-sky-200 bg-sky-50 px-3 py-2 text-[11px] text-sky-800">
+                    This car turns 10 before it is likely to clear. Shipping and
+                    clearance usually take long enough that registration falls
+                    after the 10-year mark, where an MOT replaces the IVA test —
+                    untick above if the timeline supports it. Your call.
+                  </p>
+                ) : null}
+
+                {ivaRequired ? (
                   <div className="grid sm:grid-cols-2 gap-4">
-                    <Field
-                      label="DVLA registration"
-                      value={dvlaRegistration}
-                      onChange={setDvla}
-                      prefix="£"
-                    />
-                    <Field
-                      label="Number plates"
-                      value={numberPlates}
-                      onChange={setPlates}
-                      prefix="£"
-                    />
-                    <Field
-                      label="IVA / MOT test"
-                      value={approvalTest}
-                      onChange={setApproval}
-                      prefix="£"
-                    />
-                    <Field
-                      label="IVA modifications"
-                      value={ivaModifications}
-                      onChange={setMods}
-                      prefix="£"
-                    />
-                    <Field
-                      label="UK inland transport"
-                      value={ukInlandTransport}
-                      onChange={setUkTransport}
-                      prefix="£"
-                    />
+                    {(Object.keys(ivaCosts) as PostBorderIvaKey[]).map((k) => (
+                      <Field
+                        key={k}
+                        label={POST_BORDER_LABELS[k]}
+                        value={ivaCosts[k]}
+                        onChange={(v) =>
+                          setIvaCosts((prev) => ({ ...prev, [k]: v }))
+                        }
+                        prefix="£"
+                      />
+                    ))}
                   </div>
-                </>
-              ) : null}
+                ) : null}
+              </div>
             </CardContent>
           </Card>
         </div>
@@ -1371,14 +1377,12 @@ export default function LandedCostClient({
                 sub="Reclaimed by the importer — not a cost"
               />
               <BreakdownRow
-                label="Post-border fees"
+                label="UK costs"
                 value={fmtGBP(result.postBorderTotal)}
                 sub={
-                  postBorderDetailed
-                    ? "Itemised (DVLA, plates, IVA/MOT, mods, transport)"
-                    : waiveIva
-                      ? "Clearance + registration · IVA waived"
-                      : "Standard clearance + registration (by age)"
+                  ivaRequired
+                    ? `Clearance, transport, DVLA, VED, misc + ${fmtGBP(ivaCostTotal)} IVA`
+                    : "Clearance, transport, DVLA, VED, misc · no IVA"
                 }
               />
             </div>
@@ -1389,13 +1393,77 @@ export default function LandedCostClient({
               strong
             />
 
+            {/* The other half of the P&L: what the car earns net of VAT, and
+                what is left after every cost above. */}
+            {liveStats.count > 0 ? (
+              <div className="[&_p]:text-zinc-300 [&_.border-zinc-100]:border-zinc-700">
+                <BreakdownRow
+                  label="Median resale (ex VAT)"
+                  value={fmtGBP(medianExVat)}
+                  sub={`${fmtGBP(liveStats.median)} market median ÷ ${RESALE_VAT_DIVISOR}`}
+                />
+                <div className="flex items-start justify-between py-2">
+                  <div>
+                    <p className="text-sm font-semibold text-zinc-100">
+                      Profit after all costs
+                    </p>
+                    <p className="text-[11px] text-zinc-400 mt-0.5">
+                      {liveMarginPct >= targetMarginPct
+                        ? `Clears the ${targetLabel} minimum ROI`
+                        : `Below the ${targetLabel} minimum ROI`}
+                    </p>
+                  </div>
+                  <div className="text-right">
+                    <p
+                      className={`text-lg font-bold tabular-nums ${
+                        liveMarginPct >= targetMarginPct
+                          ? "text-emerald-400"
+                          : "text-red-400"
+                      }`}
+                    >
+                      {fmtGBP(liveMargin)}
+                    </p>
+                    <p
+                      className={`text-[11px] font-medium tabular-nums ${
+                        liveMarginPct >= targetMarginPct
+                          ? "text-emerald-400"
+                          : "text-red-400"
+                      }`}
+                    >
+                      {(liveMarginPct * 100).toFixed(1)}% ROI
+                    </p>
+                  </div>
+                </div>
+              </div>
+            ) : null}
+
+            {/* The policy knob. Moving it moves the badge, the ceiling bid and
+                the verdict together. */}
+            <div className="mt-3 flex items-center justify-between gap-3 rounded-lg border border-zinc-700 px-3 py-2">
+              <label
+                htmlFor="target-roi"
+                className="text-[11px] uppercase tracking-widest text-zinc-400"
+              >
+                Minimum ROI
+              </label>
+              <div className="flex items-center gap-1">
+                <Input
+                  id="target-roi"
+                  inputMode="decimal"
+                  value={targetMarginInput}
+                  onChange={(e) => setTargetMarginInput(e.target.value)}
+                  className="h-8 w-20 border-zinc-600 bg-zinc-800 text-right text-sm text-white tabular-nums"
+                />
+                <span className="text-sm text-zinc-400">%</span>
+              </div>
+            </div>
+
             {/* The ceiling bid — the single number a buyer needs in the room.
                 Only meaningful once there's a market median to work back from. */}
             {liveStats.count > 0 ? (
               <div className="mt-4 rounded-lg border border-zinc-700 bg-zinc-800/60 p-3">
                 <p className="text-[10px] uppercase tracking-widest text-zinc-400">
-                  Max auction bid for {(TARGET_MARGIN_PCT * 100).toFixed(0)}%
-                  margin
+                  Max auction bid for {targetLabel} ROI
                 </p>
                 {maxBid.achievable ? (
                   <>
@@ -1406,7 +1474,7 @@ export default function LandedCostClient({
                     <p className="text-[11px] text-zinc-400 mt-0.5">
                       ≈ {fmtGBP(maxBid.maxHammer * fxGbpPerUnit)} · lands at{" "}
                       {fmtGBP(maxBid.maxLandedGbp)} against a{" "}
-                      {fmtGBP(liveStats.median)} median
+                      {fmtGBP(medianExVat)} net resale
                     </p>
                     {num(hammerPrice) > 0 ? (
                       <p
@@ -1423,8 +1491,8 @@ export default function LandedCostClient({
                 ) : (
                   <p className="mt-1 text-sm font-semibold text-red-400">
                     Unreachable — freight, duty and UK costs alone exceed{" "}
-                    {fmtGBP(maxBid.maxLandedGbp)}. No bid clears{" "}
-                    {(TARGET_MARGIN_PCT * 100).toFixed(0)}% on this car.
+                    {fmtGBP(maxBid.maxLandedGbp)}. No bid clears {targetLabel}{" "}
+                    on this car.
                   </p>
                 )}
               </div>
@@ -1701,12 +1769,12 @@ export default function LandedCostClient({
                   <div className="flex flex-wrap items-center justify-between gap-3">
                     <div>
                       <p className="text-[11px] uppercase tracking-wide text-zinc-400">
-                        Gross margin at median resale
+                        Profit at median resale (ex VAT)
                       </p>
                       <div className="flex items-baseline gap-2">
                         <p
                           className={`text-2xl font-bold ${
-                            liveMarginPct >= TARGET_MARGIN_PCT
+                            liveMarginPct >= targetMarginPct
                               ? "text-emerald-600"
                               : "text-red-600"
                           }`}
@@ -1715,7 +1783,7 @@ export default function LandedCostClient({
                         </p>
                         <span
                           className={`text-lg font-bold tabular-nums ${
-                            liveMarginPct >= TARGET_MARGIN_PCT
+                            liveMarginPct >= targetMarginPct
                               ? "text-emerald-600"
                               : "text-red-600"
                           }`}
@@ -1724,23 +1792,24 @@ export default function LandedCostClient({
                         </span>
                         <Badge
                           className={`text-[10px] ${
-                            liveMarginPct >= TARGET_MARGIN_PCT
+                            liveMarginPct >= targetMarginPct
                               ? "bg-emerald-100 text-emerald-800"
                               : "bg-red-100 text-red-800"
                           }`}
                         >
-                          {liveMarginPct >= TARGET_MARGIN_PCT
-                            ? `clears the ${(TARGET_MARGIN_PCT * 100).toFixed(0)}% target`
-                            : `below the ${(TARGET_MARGIN_PCT * 100).toFixed(0)}% target`}
+                          {liveMarginPct >= targetMarginPct
+                            ? `clears the ${targetLabel} target`
+                            : `below the ${targetLabel} target`}
                         </Badge>
                       </div>
                       <p className="text-[11px] text-zinc-400">
-                        median {fmtGBP(liveStats.median)} − landed{" "}
-                        {fmtGBP(result.totalLanded)} · % of landed cost
+                        net resale {fmtGBP(medianExVat)} (median{" "}
+                        {fmtGBP(liveStats.median)} ÷ {RESALE_VAT_DIVISOR}) −
+                        landed {fmtGBP(result.totalLanded)} · % of landed cost
                       </p>
                       {maxBid.achievable ? (
                         <p className="text-[11px] text-zinc-500 mt-1">
-                          Max bid for {(TARGET_MARGIN_PCT * 100).toFixed(0)}%:{" "}
+                          Max bid for {targetLabel}:{" "}
                           <span className="font-semibold text-zinc-700 tabular-nums">
                             {currency === "JPY" ? "¥" : "$"}
                             {Math.round(maxBid.maxHammer).toLocaleString()}

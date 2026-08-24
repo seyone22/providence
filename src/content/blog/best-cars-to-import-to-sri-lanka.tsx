@@ -141,7 +141,7 @@ export default function Body() {
           conditions, with good local parts support and strong resale.
           Thai-built body-on-frame SUVs — the Fortuner and Pajero Sport — are
           the other realistic route, and can be supplied new from our{" "}
-          <a href="/source-cars-from/thailand">Thailand office</a>. Model the
+          <a href="/source-cars-from/thailand">Thailand team</a>. Model the
           landed cost on the specific engine before committing.
         </p>
       </Callout>

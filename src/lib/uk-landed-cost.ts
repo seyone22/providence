@@ -62,32 +62,57 @@ export const VAT_LABELS: Record<VatBasis, string> = {
   relief: "Relieved (ToR / Returned Goods / 0%)",
 };
 
-// ─── Post-border default costs (GBP) ─────────────────────────────────────────
-// These are incurred AFTER the customs border, so they are excluded from the
-// customs value but still form part of the true landed cost. Indicative figures
-// from the guide's registration pathway — all editable per run.
-export const POST_BORDER_DEFAULTS = {
-  dvlaRegistration: 55, // DVLA first registration
-  numberPlates: 25, // ~£25 for plates
-  approvalTest: 456, // IVA test (£200–£475 range) / MOT for 10yr+
-  ivaModifications: 250, // mph speedo, rear fog, beam-pattern adjustment
+// ─── Post-border UK costs (GBP) ──────────────────────────────────────────────
+// Incurred AFTER the customs border, so outside the customs value but inside the
+// true landed cost. The line items and the figures are the desk's own — they are
+// taken from the "JPY Imports Calculator" workbook, which is the operational
+// source of truth for what a car actually costs to land and register here.
+//
+// Two groups. The base costs land on every car; the IVA costs land only on a car
+// that has to sit the Individual Vehicle Approval test.
+export const POST_BORDER_BASE_ITEMS = {
+  clearanceAdmin: 600, // clearing agent + import admin
   ukInlandTransport: 300, // port → premises
+  dvlaRegistration: 55, // DVLA first registration
+  roadTax: 205, // first-year VED
+  miscellaneous: 200, // plates, valet, sundries
 } as const;
 
-// Simplified post-border default (business directive): every car carries £800 of
-// clearance + registration, and a car under 10 years old carries a further
-// £1,000 for the IVA test and the modifications it forces — £1,800 in total.
-// The detailed breakdown above is still available as an advanced override.
-export const POST_BORDER_BASE = 800; // clearance + registration, every car
-export const POST_BORDER_IVA = 1000; // IVA test + mods, under-10s only
+export const POST_BORDER_IVA_ITEMS = {
+  ivaInspection: 900, // the IVA test itself
+  ivaTransport: 300, // transport to and from the test centre
+} as const;
+
+export type PostBorderBaseKey = keyof typeof POST_BORDER_BASE_ITEMS;
+export type PostBorderIvaKey = keyof typeof POST_BORDER_IVA_ITEMS;
+
+const sumItems = (o: Record<string, number>) =>
+  Object.values(o).reduce((a, b) => a + b, 0);
+
+// £1,360 base; +£1,200 when the IVA test applies → £2,560 all-in.
+export const POST_BORDER_BASE = sumItems(POST_BORDER_BASE_ITEMS);
+export const POST_BORDER_IVA = sumItems(POST_BORDER_IVA_ITEMS);
+
+export const POST_BORDER_LABELS: Record<
+  PostBorderBaseKey | PostBorderIvaKey,
+  string
+> = {
+  clearanceAdmin: "Clearance / admin",
+  ukInlandTransport: "UK inland transport",
+  dvlaRegistration: "DVLA registration",
+  roadTax: "Road tax (first-year VED)",
+  miscellaneous: "Miscellaneous",
+  ivaInspection: "IVA inspection",
+  ivaTransport: "IVA transport",
+};
 
 // A vehicle 10 years or older is outside the IVA scheme — an MOT does instead.
 export const IVA_EXEMPT_AGE = 10;
 
 // A car bought at 9-and-a-bit years usually clears customs and is registered
 // after its 10th birthday, by which point the IVA requirement has fallen away.
-// From this age the operator gets an explicit waiver switch — it is a judgement
-// call about the clearance timeline, so it is never applied automatically.
+// From this age the operator gets an explicit prompt to drop it — it is a
+// judgement call about the clearance timeline, so it is never applied silently.
 export const IVA_WAIVER_FROM_AGE = 9;
 
 export function isNearIvaExemption(ageYears: number | null): boolean {
@@ -98,13 +123,10 @@ export function isNearIvaExemption(ageYears: number | null): boolean {
   );
 }
 
-export function postBorderForAge(
-  ageYears: number | null,
-  opts: { waiveIva?: boolean } = {},
-): number {
-  const exempt =
-    opts.waiveIva === true || (ageYears != null && ageYears >= IVA_EXEMPT_AGE);
-  return exempt ? POST_BORDER_BASE : POST_BORDER_BASE + POST_BORDER_IVA;
+// Does this car need an IVA test, on age alone? An unknown year assumes it does,
+// so the cost is never quietly dropped. The operator can override.
+export function ivaRequiredForAge(ageYears: number | null): boolean {
+  return ageYears == null || ageYears < IVA_EXEMPT_AGE;
 }
 
 // Customs valuation basis: duty is computed on the full CIF value, per the HMRC
@@ -123,6 +145,29 @@ export const AUCTION_FEE_RATE = 0.07;
 // Minimum gross margin, as a fraction of landed cost, that a car must clear for
 // the analyzer to call it worth sourcing (business directive).
 export const TARGET_MARGIN_PCT = 0.3;
+
+// The operator can raise or lower the target per run (a thinner car might be
+// worth 25%, a riskier one might need 35%), within sane bounds so a typo can't
+// silently make every car look like a buy.
+export const MIN_TARGET_MARGIN_PCT = 0;
+export const MAX_TARGET_MARGIN_PCT = 2; // 200%
+
+export function clampTargetMargin(pct: number): number {
+  if (!Number.isFinite(pct)) return TARGET_MARGIN_PCT;
+  return Math.min(MAX_TARGET_MARGIN_PCT, Math.max(MIN_TARGET_MARGIN_PCT, pct));
+}
+
+// ─── Resale price: taking the VAT back out ───────────────────────────────────
+// Scraped UK forecourt listings are advertised VAT-inclusive. The landed cost on
+// this page deliberately excludes import VAT (the importer reclaims it), so
+// comparing a gross asking price against a net cost would overstate every margin
+// by the VAT fraction. Divide the market price by 1 + VAT to get the net revenue
+// the sale actually earns, and compare like with like.
+export const RESALE_VAT_DIVISOR = 1 + STANDARD_VAT_RATE; // 1.2
+
+export function resaleExVat(grossGbp: number): number {
+  return grossGbp / RESALE_VAT_DIVISOR;
+}
 
 // ─── Formatters ──────────────────────────────────────────────────────────────
 export const fmtGBP = (n: number) =>

@@ -155,7 +155,7 @@ export default function Body() {
         If you want a <em>new</em> pickup, though, Thailand is the production
         source and will be cheaper —{" "}
         <InlineLink href="/source-cars-from/thailand">
-          see that office
+          see that country
         </InlineLink>
         .
       </P>
@@ -191,7 +191,7 @@ export default function Body() {
         </CheckLI>
       </UL>
       <P>
-        We run both offices and have no reason to steer you.{" "}
+        We have our own team in both, and no reason to steer you.{" "}
         <InlineLink href="/blog/cost-to-import-a-car-from-new-zealand">
           The New Zealand cost breakdown is here
         </InlineLink>

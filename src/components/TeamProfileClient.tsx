@@ -199,7 +199,7 @@ export default function TeamProfileClient({
               </Reveal>
               <p className="text-xs text-zinc-400 mt-5">
                 Backed by Providence Auto — a global vehicle sourcing &amp;
-                export group with our own offices in eight countries.
+                export group with our own teams in eight countries.
               </p>
             </div>
 

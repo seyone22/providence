@@ -194,11 +194,9 @@ export default function Body() {
       </UL>
       <P>
         Our{" "}
-        <InlineLink href="/source-cars-from/sri-lanka">
-          Colombo office
-        </InlineLink>{" "}
+        <InlineLink href="/source-cars-from/sri-lanka">Colombo team</InlineLink>{" "}
         confirms the current position before sourcing and compares the landed
-        figure across our Japan, Thailand, India and UK offices for the
+        figure across our Japan, Thailand, India and UK teams for the
         specification you want.
       </P>
 

@@ -186,8 +186,8 @@ export default function Body() {
       </P>
       <P>
         We run <InlineLink href="/source-cars-from/japan">both</InlineLink>{" "}
-        <InlineLink href="/source-cars-from/new-zealand">offices</InlineLink>,
-        so tell us the requirement and we will compare the landed cost from each
+        <InlineLink href="/source-cars-from/new-zealand">teams</InlineLink>, so
+        tell us the requirement and we will compare the landed cost from each
         rather than defending one.
       </P>
 
