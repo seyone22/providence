@@ -21,7 +21,7 @@ import MinimalHeader from "@/components/MinimalHeader";
 import OdometerCounter from "@/components/OdometerCounter";
 import RadialBurst from "@/components/RadialBurst";
 import { Reveal } from "@/components/Reveal";
-import VoyageTrack from "@/components/VoyageTrack";
+import VoyageTrack, { type VoyageStage } from "@/components/VoyageTrack";
 import {
   COUNTRY_BASE_PATH,
   COUNTRY_PAGES,
@@ -33,7 +33,7 @@ const PATH = "/about-us";
 const URL = `${SITE}${PATH}`;
 const TITLE = "About Providence Auto | Global Vehicle Sourcing Group";
 const DESCRIPTION =
-  "A global vehicle sourcing group with our own offices in eight countries. See how we source, verify and land cars worldwide.";
+  "A global vehicle sourcing group with our own people on the ground in eight countries. See how we source, verify and land cars worldwide.";
 // Cropped to the 1200×630 size link-preview crawlers (Facebook, LinkedIn,
 // X, Slack…) expect. Self-hosted so the preview can't break when a
 // third-party CDN rewrites a URL.
@@ -47,7 +47,7 @@ export const metadata: Metadata = {
     "global car sourcing company",
     "vehicle import company",
     "international car exporter",
-    "car sourcing group offices worldwide",
+    "car sourcing group worldwide",
   ],
   alternates: { canonical: PATH },
   openGraph: {
@@ -78,7 +78,7 @@ export const metadata: Metadata = {
 // ── Stats — real figures, shared by the hero row and the full grid below. ──
 const STATS = [
   { value: 15, suffix: "+", label: "Years trading history" },
-  { value: 8, label: "Countries with our own offices" },
+  { value: 8, label: "Countries with our own presence" },
   { value: 40, suffix: "+", label: "Retail sourcing markets" },
   { value: 26, label: "Destination markets served" },
   { value: 100, suffix: "+", label: "Dealer sourcing markets" },
@@ -181,7 +181,7 @@ const VALUES = [
 const PILLARS = [
   {
     icon: Building2,
-    title: "Eight offices, not eight agents",
+    title: "Eight countries, not eight agents",
     desc: "Nothing is subcontracted to an exporter you never speak to.",
   },
   {
@@ -199,6 +199,19 @@ const PILLARS = [
     title: "One landed price",
     desc: "One number for the total cost, wherever the car comes from.",
   },
+];
+
+// ── How an import tracks ─────────────────────────────────────────────────────
+// VoyageTrack's own defaults end at "Customs cleared" → "Delivered". We contract
+// to the destination port, so the last two pips are stated at that level and the
+// handover after it is left unqualified rather than promised as a door delivery.
+const IMPORT_STAGES: VoyageStage[] = [
+  { label: "Sourcing", at: 0 },
+  { label: "Purchased", at: 0.18 },
+  { label: "At origin port", at: 0.36 },
+  { label: "At sea", at: 0.62 },
+  { label: "At destination port", at: 0.84 },
+  { label: "Handover", at: 1 },
 ];
 
 // ── Who we serve ─────────────────────────────────────────────────────────────
@@ -226,7 +239,7 @@ const AUDIENCES = [
   },
 ];
 
-// ── Where we deliver ─────────────────────────────────────────────────────────
+// ── Where we ship ────────────────────────────────────────────────────────────
 // Region grouping per the news-editorial-playbook.md destination-market
 // definition; country list matches the "destination" role entries in
 // src/config/globe.ts (globe.ts has no region field, so the grouping lives
@@ -274,6 +287,16 @@ const DESTINATION_REGIONS = [
   },
 ];
 
+// The "Where we source" column is deliberately not the raw registry: Sri Lanka
+// is a destination market and our South Asia operations base, not a country we
+// buy cars in, so listing it under sourcing overstates it. Same treatment the
+// footer office column already gives it — the /source-cars-from/sri-lanka page
+// still exists and is still reachable from "Explore the full network".
+const SOURCING_HIDDEN_SLUGS = new Set(["sri-lanka"]);
+const SOURCING_COUNTRIES = COUNTRY_PAGES.filter(
+  (country) => !SOURCING_HIDDEN_SLUGS.has(country.slug),
+);
+
 /**
  * Short gradient hairline that sits where the eyebrow label used to. Section
  * headings now carry their own label inside the sentence (see CLAUDE.md,
@@ -313,7 +336,7 @@ export default function AboutUsPage() {
       url: `${SITE}/`,
       logo: { "@type": "ImageObject", url: `${SITE}/logo.png` },
       description:
-        "Providence Auto is a global vehicle sourcing and export group that buys, inspects and ships cars through its own offices in eight countries, delivering to 21+ destination markets worldwide.",
+        "Providence Auto is a global vehicle sourcing and export group that buys, inspects and ships cars through its own teams on the ground in eight countries, shipping to 21+ destination markets worldwide.",
       foundingLocation: "London, United Kingdom",
       areaServed: "Worldwide",
       sameAs: ["https://www.instagram.com/providenceautouk/"],
@@ -557,10 +580,10 @@ export default function AboutUsPage() {
               </p>
               <p className="text-lg text-zinc-700 font-light leading-relaxed">
                 Providence Auto is a global vehicle sourcing and export group.
-                We buy, inspect and ship cars through our own offices in eight
-                countries — Japan, the UK, the UAE, India, Thailand, Australia,
-                New Zealand and Sri Lanka — to 21+ right-hand-drive and luxury
-                left-hand-drive markets worldwide.
+                We buy, inspect and ship cars through our own teams on the
+                ground in eight countries — Japan, the UK, the UAE, India,
+                Thailand, Australia, New Zealand and Sri Lanka — to 21+
+                right-hand-drive and luxury left-hand-drive markets worldwide.
               </p>
             </Reveal>
           </section>
@@ -655,8 +678,9 @@ export default function AboutUsPage() {
                 <p className="text-lg text-zinc-500 font-light">
                   Providence Auto is the trading name of Providence Trading
                   Limited. For 15+ years we've bought, inspected and shipped
-                  every car ourselves — through our own offices, never a chain
-                  of intermediaries who never see the vehicle.
+                  every car ourselves — through our own people in the source
+                  country, never a chain of intermediaries who never see the
+                  vehicle.
                 </p>
               </Reveal>
             </div>
@@ -676,8 +700,9 @@ export default function AboutUsPage() {
                 </h2>
                 <p className="text-lg text-zinc-500 font-light">
                   Tell us the exact car — a full sourcing quote comes back in 24
-                  hours. We buy it through our own office, verify it, and get it
-                  moving. Every import tracks the same way:
+                  hours. We buy it through our own team in the source country,
+                  verify it, and get it moving. Every import tracks the same
+                  way:
                 </p>
               </Reveal>
 
@@ -700,7 +725,7 @@ export default function AboutUsPage() {
                 duration={0.6}
                 className="rounded-[2rem] bg-white border border-black/5 p-6 md:p-10"
               >
-                <VoyageTrack />
+                <VoyageTrack stages={IMPORT_STAGES} />
               </Reveal>
             </div>
           </section>
@@ -724,7 +749,7 @@ export default function AboutUsPage() {
               >
                 <SectionRule />
                 <h2 className="text-3xl md:text-5xl font-bold tracking-tighter text-white mb-5">
-                  The difference is that an office beats an inbox.
+                  The difference is that people on the ground beat an inbox.
                 </h2>
                 <p className="text-lg text-zinc-400 font-light">
                   Almost everything that goes wrong with a vehicle import goes
@@ -767,7 +792,7 @@ export default function AboutUsPage() {
               >
                 <SectionRule />
                 <h2 className="text-3xl md:text-5xl font-bold tracking-tighter text-black mb-5">
-                  Our network is eight offices, forty-plus markets and
+                  Our network is eight bases, forty-plus sourcing markets and
                   twenty-one destinations.
                 </h2>
                 <p className="text-lg text-zinc-500 font-light">
@@ -791,7 +816,7 @@ export default function AboutUsPage() {
                     Where we source
                   </p>
                   <ul className="flex flex-col divide-y divide-black/5 rounded-[1.5rem] border border-black/5 bg-white overflow-hidden">
-                    {COUNTRY_PAGES.map((c) => (
+                    {SOURCING_COUNTRIES.map((c) => (
                       <li key={c.slug}>
                         <Link
                           href={`${COUNTRY_BASE_PATH}/${c.slug}`}
@@ -827,7 +852,7 @@ export default function AboutUsPage() {
 
                 <div>
                   <p className="text-xs font-bold tracking-[0.2em] text-sky-600 uppercase mb-4">
-                    Where we deliver
+                    Where we ship
                   </p>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     {DESTINATION_REGIONS.map((r) => (
@@ -928,13 +953,13 @@ export default function AboutUsPage() {
                   },
                   {
                     icon: Anchor,
-                    title: "Door-to-door marine insurance",
-                    desc: "Covered from the source country to your door.",
+                    title: "Marine cover on the voyage",
+                    desc: "Arranged from the source country to the port of arrival.",
                   },
                   {
                     icon: Users,
                     title: "One named consultant",
-                    desc: "The same person, first message to customs clearance.",
+                    desc: "The same person, from your first message to arrival.",
                   },
                 ].map((item, i) => (
                   <Reveal
