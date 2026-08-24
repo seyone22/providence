@@ -527,7 +527,7 @@ const TOOLS: {
   {
     href: "/source-cars-from/japan",
     title: "Our source-country network",
-    body: "The eight countries where we have our own teams and buy directly. Each page covers what that market is genuinely good for.",
+    body: "The seven countries where we have our own teams and buy directly. Each page covers what that market is genuinely good for.",
     icon: Globe2,
   },
   {

@@ -5,14 +5,14 @@ import MinimalHeader from "@/components/MinimalHeader";
 import { Reveal } from "@/components/Reveal";
 import {
   COUNTRY_BASE_PATH,
-  COUNTRY_PAGES,
-  OFFICE_COUNTRIES_SENTENCE,
+  SOURCE_COUNTRIES_SENTENCE,
+  SOURCE_COUNTRY_PAGES,
 } from "@/config/countries";
 
 const SITE = "https://www.providenceauto.co.uk";
 const TITLE =
-  "Our Global Network — Eight Countries, One Landed Price | Providence Auto";
-const DESCRIPTION = `Providence Auto has its own teams in ${OFFICE_COUNTRIES_SENTENCE}, and sources vehicles from many more. Our own teams find, inspect and ship every car — see what each country does best.`;
+  "Our Global Network — Seven Countries, One Landed Price | Providence Auto";
+const DESCRIPTION = `Providence Auto buys directly in ${SOURCE_COUNTRIES_SENTENCE}, and sources vehicles from many more. Our own teams find, inspect and ship every car — see what each country does best.`;
 
 export const metadata: Metadata = {
   title: { absolute: TITLE },
@@ -44,13 +44,13 @@ export const metadata: Metadata = {
 const PILLARS = [
   {
     icon: Building2,
-    title: "Eight countries, not eight agents",
+    title: "Seven countries, not seven agents",
     desc: "Every country on this page has Providence staff in it. They bid, they inspect, they file the export paperwork and they load the vessel. Nothing is subcontracted to an exporter you never speak to.",
   },
   {
     icon: Globe2,
     title: "We source far beyond them",
-    desc: "These eight are where we have our own people on the ground. We buy across many more markets than these, and we add new ones as the volume justifies it.",
+    desc: "These seven are where we buy, with our own people on the ground. We source across many more markets than these, and we add new ones as the volume justifies it.",
   },
   {
     icon: Users,
@@ -88,7 +88,7 @@ export default function GlobalNetworkPage() {
     description:
       "Global vehicle sourcing and export group with physical offices across Europe, Asia, the Middle East and Oceania.",
     areaServed: "Worldwide",
-    subOrganization: COUNTRY_PAGES.map((c) => ({
+    subOrganization: SOURCE_COUNTRY_PAGES.map((c) => ({
       "@type": "LocalBusiness",
       name: `Providence Auto ${c.shortName}`,
       url: `${SITE}${COUNTRY_BASE_PATH}/${c.slug}`,
@@ -100,7 +100,7 @@ export default function GlobalNetworkPage() {
     "@context": "https://schema.org",
     "@type": "ItemList",
     name: "Providence Auto source countries",
-    itemListElement: COUNTRY_PAGES.map((c, i) => ({
+    itemListElement: SOURCE_COUNTRY_PAGES.map((c, i) => ({
       "@type": "ListItem",
       position: i + 1,
       name: c.shortName,
@@ -147,7 +147,7 @@ export default function GlobalNetworkPage() {
             duration={0.8}
             className="pa-headline-gradient text-4xl md:text-7xl font-bold tracking-tighter leading-[1.05] mb-6"
           >
-            Eight countries.
+            Seven countries.
             <br className="hidden md:block" /> One standard.
           </Reveal>
           <Reveal
@@ -157,9 +157,9 @@ export default function GlobalNetworkPage() {
             duration={0.6}
             className="text-xl md:text-2xl text-zinc-500 font-light max-w-3xl mx-auto"
           >
-            Providence Auto has its own teams in{" "}
+            Providence Auto buys directly in{" "}
             <span className="text-black font-medium">
-              {OFFICE_COUNTRIES_SENTENCE}
+              {SOURCE_COUNTRIES_SENTENCE}
             </span>
             , and sources vehicles from many more markets besides. Wherever your
             car comes from, it is our own people who find it, inspect it and put
@@ -170,7 +170,7 @@ export default function GlobalNetworkPage() {
         {/* ── OFFICE GRID ──────────────────────────── */}
         <section className="px-6 max-w-6xl mx-auto pb-8">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-            {COUNTRY_PAGES.map((c, i) => (
+            {SOURCE_COUNTRY_PAGES.map((c, i) => (
               <Reveal
                 as="div"
                 key={c.slug}
@@ -223,6 +223,18 @@ export default function GlobalNetworkPage() {
               </Reveal>
             ))}
           </div>
+
+          <p className="mt-8 text-center text-sm text-zinc-500 font-light">
+            Sri Lanka is a destination market and our South Asia operations base
+            rather than a country we buy in —{" "}
+            <Link
+              href={`${COUNTRY_BASE_PATH}/sri-lanka`}
+              className="font-bold text-black hover:text-sky-600 transition-colors"
+            >
+              see what the Colombo team handles
+            </Link>
+            .
+          </p>
         </section>
 
         {/* ── HOW THE NETWORK WORKS ────────────────── */}

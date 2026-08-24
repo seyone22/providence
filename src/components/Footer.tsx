@@ -4,17 +4,14 @@ import {
   GENERAL_WHATSAPP_LINK,
   GENERAL_WHATSAPP_NUMBER,
 } from "@/config/contact";
-import { COUNTRY_BASE_PATH, COUNTRY_PAGES } from "@/config/countries";
+import { COUNTRY_BASE_PATH, SOURCE_COUNTRY_PAGES } from "@/config/countries";
 import { NEWS_BASE_PATH } from "@/config/news";
 
-// The footer office list is deliberately not the raw registry: Sri Lanka is
-// hidden from the column (its /source-cars-from/sri-lanka page still exists and
-// is still reachable via "The whole network"), and the rest are listed A–Z.
-const FOOTER_OFFICE_HIDDEN_SLUGS = new Set(["sri-lanka"]);
-
-const FOOTER_OFFICES = COUNTRY_PAGES.filter(
-  (country) => !FOOTER_OFFICE_HIDDEN_SLUGS.has(country.slug),
-).sort((a, b) => a.shortName.localeCompare(b.shortName));
+// Sourcing countries only (SOURCE_COUNTRY_PAGES excludes Sri Lanka), listed A–Z.
+// The Sri Lanka page still exists and is reachable from "The whole network".
+const FOOTER_OFFICES = [...SOURCE_COUNTRY_PAGES].sort((a, b) =>
+  a.shortName.localeCompare(b.shortName),
+);
 
 export default function Footer() {
   const currentYear = new Date().getFullYear();
