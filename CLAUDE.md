@@ -80,7 +80,8 @@ The rules that most often trip people up:
 - **Numbers are computed, prose is generated.** Every figure comes from a pure function (`src/lib/uk-landed-cost.ts`, `src/lib/market-stats.ts`); Gemini only narrates finished numbers. Never let a model produce a price, rate or margin.
 - **Duty defaults to 10% MFN**; the only 0% route is Japan-built with a CEPA statement of origin, which is why the statement-of-origin question appears for Japan alone.
 - **Import VAT is excluded** from the analyzer's landed cost (the importer reclaims it), via `includeVat: false`. The VAT machinery stays in the engine for consumer-facing surfaces like `LandedCostBar`, which default to including it.
-- **30% gross margin on landed cost** (`TARGET_MARGIN_PCT`) is the desk minimum, enforced in code after the model answers — a car below target can never come back as "source".
+- **30% ROI on landed cost** (`TARGET_MARGIN_PCT`) is the desk minimum and the default, editable per run from the *Minimum ROI* field. Whatever it is set to is enforced in code after the model answers — a car below target can never come back as "source".
+- **Resale is compared net of VAT.** Scraped listings are VAT-inclusive; the landed cost is not. The market median is divided by 1.2 (`resaleExVat`) before any profit, ROI or ceiling-bid figure is derived. Never subtract a landed cost from a raw median.
 
 ### Vehicles: colours and upcoming models
 

@@ -233,7 +233,7 @@ export default function Home() {
                   looking for your dream car or a dealership wanting to scale
                   up, we provide the exact vehicle you desire. We source
                   vehicles from the most tax-efficient markets on earth — with
-                  our own offices and operations teams in{" "}
+                  our own people and operations teams in{" "}
                   <span className="text-black font-medium">
                     the UK, Japan, the UAE, India, Thailand, Australia, New
                     Zealand and Sri Lanka
@@ -245,7 +245,7 @@ export default function Home() {
                   href="/source-cars-from"
                   className="group mt-8 inline-flex items-center gap-2 text-base sm:text-lg font-medium text-black underline decoration-1 underline-offset-4 hover:decoration-2"
                 >
-                  Meet the eight offices behind every car
+                  Meet the eight countries behind every car
                   <ArrowRight
                     size={18}
                     className="group-hover:translate-x-1 transition-transform"
@@ -336,7 +336,7 @@ export default function Home() {
                     icon: (
                       <Globe className="text-sky-500 h-7 w-7 md:h-8 md:w-8 group-hover:text-white transition-colors duration-500" />
                     ),
-                    desc: "We search 40+ global markets to find your exact spec at the most tax-efficient price, buying through our own offices in eight of them. Currency, supply, and timing all factored in. You approve the quote. We handle everything from there.",
+                    desc: "We search 40+ global markets to find your exact spec at the most tax-efficient price, buying through our own teams in eight of them. Currency, supply, and timing all factored in. You approve the quote. We handle everything from there.",
                   },
                   {
                     step: "",

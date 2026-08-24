@@ -37,6 +37,9 @@ export interface SourcingPdfData {
     count: number;
     min: number;
     median: number;
+    // The median with VAT taken back out — the figure the margin is measured
+    // against, since the landed cost excludes reclaimable import VAT.
+    medianExVat: number;
     mean: number;
     max: number;
     p25: number;
@@ -276,7 +279,7 @@ const ReportPDF = ({
               </Text>
             </View>
             <View style={{ alignItems: "flex-end" }}>
-              <Text style={styles.totalLabel}>Gross margin (at median)</Text>
+              <Text style={styles.totalLabel}>Profit (at median, ex VAT)</Text>
               <Text
                 style={{
                   fontSize: 18,
@@ -322,7 +325,17 @@ const ReportPDF = ({
             value={fmtGBP(data.landed.totalLanded)}
           />
           <Row
-            label={`Max auction bid for ${targetLabel} margin`}
+            label="Median resale, net of VAT (median ÷ 1.2)"
+            value={fmtGBP(data.market.medianExVat)}
+          />
+          <Row
+            label="Profit after all costs"
+            value={`${fmtGBP(data.verdict.grossMargin)} · ${(
+              data.verdict.marginPct * 100
+            ).toFixed(1)}% ROI`}
+          />
+          <Row
+            label={`Max auction bid for ${targetLabel} ROI`}
             value={
               data.maxBid.achievable
                 ? `${bidCcy}${Math.round(data.maxBid.maxHammer).toLocaleString()} hammer`
@@ -339,7 +352,10 @@ const ReportPDF = ({
             )
           </Text>
           <Row label="Lowest" value={fmtGBP(data.market.min)} />
-          <Row label="Median" value={fmtGBP(data.market.median)} />
+          <Row
+            label="Median (VAT-inclusive asking price)"
+            value={fmtGBP(data.market.median)}
+          />
           <Row label="Mean" value={fmtGBP(data.market.mean)} />
           <Row label="Highest" value={fmtGBP(data.market.max)} />
           <Row

@@ -1,14 +1,18 @@
 import { describe, expect, it } from "vitest";
 import {
   AUCTION_FEE_RATE,
+  clampTargetMargin,
   computeLandedCost,
   DUTY_RATES,
   isNearIvaExemption,
+  ivaRequiredForAge,
   type LandedCostInput,
   maxAuctionPriceForMargin,
   POST_BORDER_BASE,
+  POST_BORDER_BASE_ITEMS,
   POST_BORDER_IVA,
-  postBorderForAge,
+  POST_BORDER_IVA_ITEMS,
+  resaleExVat,
   resolveTaxTreatment,
   TARGET_MARGIN_PCT,
 } from "@/lib/uk-landed-cost";
@@ -135,23 +139,128 @@ describe("resolveTaxTreatment", () => {
   });
 });
 
-describe("postBorderForAge", () => {
-  it("adds the IVA allowance for a car under 10 years old", () => {
-    expect(postBorderForAge(6)).toBe(POST_BORDER_BASE + POST_BORDER_IVA);
+describe("post-border cost items", () => {
+  it("totals the desk's own line items, not a rounded allowance", () => {
+    expect(POST_BORDER_BASE).toBe(1_360); // 600 + 300 + 55 + 205 + 200
+    expect(POST_BORDER_IVA).toBe(1_200); // 900 + 300
+    expect(POST_BORDER_BASE + POST_BORDER_IVA).toBe(2_560);
   });
 
-  it("drops the IVA allowance at 10 years and over", () => {
-    expect(postBorderForAge(10)).toBe(POST_BORDER_BASE);
-    expect(postBorderForAge(15)).toBe(POST_BORDER_BASE);
+  it("keeps the constants in step with the item maps", () => {
+    const total = (o: Record<string, number>) =>
+      Object.values(o).reduce((a, b) => a + b, 0);
+    expect(total(POST_BORDER_BASE_ITEMS)).toBe(POST_BORDER_BASE);
+    expect(total(POST_BORDER_IVA_ITEMS)).toBe(POST_BORDER_IVA);
+  });
+});
+
+describe("ivaRequiredForAge", () => {
+  it("applies under 10, falls away at 10, and assumes yes when unknown", () => {
+    expect(ivaRequiredForAge(6)).toBe(true);
+    expect(ivaRequiredForAge(9)).toBe(true);
+    expect(ivaRequiredForAge(10)).toBe(false);
+    expect(ivaRequiredForAge(null)).toBe(true);
+  });
+});
+
+describe("resaleExVat", () => {
+  it("takes VAT back out of a forecourt asking price", () => {
+    expect(resaleExVat(10_550)).toBeCloseTo(8_791.67, 2);
+    expect(resaleExVat(12_000)).toBe(10_000);
   });
 
-  it("lets the operator waive IVA on a car that will turn 10 in transit", () => {
-    expect(postBorderForAge(9, { waiveIva: true })).toBe(POST_BORDER_BASE);
-    expect(postBorderForAge(9)).toBe(POST_BORDER_BASE + POST_BORDER_IVA);
+  it("is the exact inverse of adding 20% VAT", () => {
+    expect(resaleExVat(9_000 * 1.2)).toBeCloseTo(9_000, 10);
+  });
+});
+
+describe("clampTargetMargin", () => {
+  it("passes a sane target straight through", () => {
+    expect(clampTargetMargin(0.35)).toBe(0.35);
+    expect(clampTargetMargin(0.3)).toBe(0.3);
   });
 
-  it("assumes IVA applies when the age is unknown", () => {
-    expect(postBorderForAge(null)).toBe(POST_BORDER_BASE + POST_BORDER_IVA);
+  it("holds the line at the bounds and on a junk entry", () => {
+    expect(clampTargetMargin(-0.5)).toBe(0);
+    expect(clampTargetMargin(50)).toBe(2);
+    expect(clampTargetMargin(Number.NaN)).toBe(TARGET_MARGIN_PCT);
+  });
+});
+
+// The desk's "JPY Imports Calculator" workbook is the operational source of
+// truth for these figures. This pins the engine to it end to end: a 600,000 JPY
+// hammer at 216.72 JPY/GBP, 400,000 freight, 10% duty, non-IVA UK costs, sold
+// against a 10,550 UK median.
+describe("workbook parity", () => {
+  const FX_PER_GBP = 216.72;
+  const fxRate = 1 / FX_PER_GBP;
+  const hammer = 600_000;
+  const postBorderTotal = POST_BORDER_BASE; // no IVA on this car
+
+  const landed = computeLandedCost({
+    currency: "JPY",
+    hammerPrice: hammer,
+    auctionExportFees: hammer * AUCTION_FEE_RATE,
+    inlandTransportOrigin: 0,
+    oceanFreight: 400_000,
+    marineInsurance: 0,
+    fxRate,
+    dutyBasis: "mfn",
+    vatBasis: "standard",
+    includeVat: false,
+    postBorderTotal,
+  });
+
+  it("reproduces the workbook's CIF, duty and total UK cost", () => {
+    expect(landed.cifOriginal).toBe(1_042_000); // 600,000 + 42,000 + 400,000
+    expect(Math.round(landed.cifGbp)).toBe(4_808);
+    expect(Math.round(landed.duty)).toBe(481);
+    expect(landed.vat).toBe(0); // reclaimed by the importer
+    expect(Math.round(landed.totalLanded)).toBe(6_649);
+  });
+
+  it("reproduces the workbook's PNL and ROI, net of VAT", () => {
+    const netResale = resaleExVat(10_550);
+    expect(Math.round(netResale)).toBe(8_792);
+    const pnl = netResale - landed.totalLanded;
+    expect(Math.round(pnl)).toBe(2_143);
+    expect(pnl / landed.totalLanded).toBeCloseTo(0.322, 3);
+  });
+
+  it("back-solves a ceiling bid that lands exactly on the target ROI", () => {
+    const r = maxAuctionPriceForMargin({
+      targetMarginPct: TARGET_MARGIN_PCT,
+      resaleGbp: resaleExVat(10_550),
+      postBorderTotal,
+      dutyRate: 0.1,
+      vatEffectiveRate: 0,
+      fxRate,
+      otherCifCosts: 400_000,
+      auctionFeeRate: AUCTION_FEE_RATE,
+    });
+    expect(r.achievable).toBe(true);
+    expect(Math.round(r.maxHammer)).toBe(620_985);
+
+    // The workbook's own 623,083 holds duty fixed at the actual car's duty
+    // instead of letting it fall with the bid, so it overshoots by ~0.3% and
+    // lands just under 30%. The solver here re-derives duty from the bid, so
+    // the round-trip is exact.
+    const back = computeLandedCost({
+      currency: "JPY",
+      hammerPrice: r.maxHammer,
+      auctionExportFees: r.maxHammer * AUCTION_FEE_RATE,
+      inlandTransportOrigin: 0,
+      oceanFreight: 400_000,
+      marineInsurance: 0,
+      fxRate,
+      dutyBasis: "mfn",
+      vatBasis: "standard",
+      includeVat: false,
+      postBorderTotal,
+    });
+    const marginPct =
+      (resaleExVat(10_550) - back.totalLanded) / back.totalLanded;
+    expect(marginPct).toBeCloseTo(TARGET_MARGIN_PCT, 10);
   });
 });
 

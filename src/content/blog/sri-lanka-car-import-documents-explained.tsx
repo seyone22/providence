@@ -146,7 +146,7 @@ export default function Body() {
 
       <H2 id="origin-docs">Source-country export documents</H2>
       <P>
-        Whichever office the vehicle comes from, it must arrive with proof that
+        Whichever country the vehicle comes from, it must arrive with proof that
         it was lawfully released for export in that country:
       </P>
       <UL>
@@ -188,7 +188,7 @@ export default function Body() {
       </P>
       <P>
         Separately, every vehicle we ship carries our own inspection report and
-        photographs from the origin office, whether or not one is legally
+        photographs from the origin team, whether or not one is legally
         required. On this route particularly, a car that fails on arrival is an
         expensive problem — so the evidence base is established before it sails.
       </P>
@@ -210,9 +210,7 @@ export default function Body() {
           importing a car to Sri Lanka
         </InlineLink>
         , handled by our{" "}
-        <InlineLink href="/source-cars-from/sri-lanka">
-          Colombo office
-        </InlineLink>
+        <InlineLink href="/source-cars-from/sri-lanka">Colombo team</InlineLink>
         .
       </P>
 

@@ -129,7 +129,7 @@ export default function Footer() {
         {/* Offices Column: the physical network, one link per source country */}
         <div className="flex flex-col gap-4">
           <h4 className="text-[10px] font-bold tracking-[0.2em] uppercase text-zinc-500">
-            Global Offices
+            Global Network
           </h4>
           <nav className="flex flex-col gap-2.5 text-sm font-light text-zinc-400">
             {FOOTER_OFFICES.map((country) => (

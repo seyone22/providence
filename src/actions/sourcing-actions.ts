@@ -15,7 +15,7 @@ import {
   selectTopComparables,
   tokenize,
 } from "@/lib/scrapers/matching";
-import { TARGET_MARGIN_PCT } from "@/lib/uk-landed-cost";
+import { clampTargetMargin, TARGET_MARGIN_PCT } from "@/lib/uk-landed-cost";
 import { auth } from "@/utils/auth";
 
 // Server actions for the admin Sourcing & Profit tool: live FX (JPY→GBP) for
@@ -548,6 +548,13 @@ export interface VerdictInput {
   };
   landedCostGbp: number;
   stats: MarketStats;
+  // Net resale revenue: the market median with VAT taken back out (÷1.2). The
+  // landed cost excludes import VAT, so the margin is measured net-against-net.
+  // Optional so an older saved payload still resolves — it falls back to the
+  // gross median, which is what the tool used before.
+  resaleExVatGbp?: number;
+  // The desk minimum for this run. Defaults to the standing 30% directive.
+  targetMarginPct?: number;
   matchUsed: string;
   widened: boolean;
   // The biggest hammer price that still clears the target margin, computed by
@@ -596,18 +603,22 @@ export async function getVerdict(input: VerdictInput): Promise<VerdictResult> {
   }
 
   const { stats, landedCostGbp } = input;
-  const grossMargin = stats.median - landedCostGbp;
+  const resaleExVat = input.resaleExVatGbp ?? stats.median;
+  const grossMargin = resaleExVat - landedCostGbp;
   const marginPct = landedCostGbp > 0 ? grossMargin / landedCostGbp : 0;
-  const targetPct = TARGET_MARGIN_PCT;
+  const targetPct = clampTargetMargin(
+    input.targetMarginPct ?? TARGET_MARGIN_PCT,
+  );
   const meetsTarget = marginPct >= targetPct;
-  const targetLabel = `${(targetPct * 100).toFixed(0)}%`;
+  const targetLabel = `${Number((targetPct * 100).toFixed(1))}%`;
 
   const facts = [
     `Vehicle: ${input.vehicle.year} ${input.vehicle.make} ${input.vehicle.model} ${input.vehicle.edition}, ${input.vehicle.mileage} miles.`,
     `Total UK landed cost (includes duty, shipping, fees and UK-side clearance; import VAT is excluded because the importer reclaims it): £${Math.round(landedCostGbp).toLocaleString()}.`,
     `Live UK market for comparable cars (${stats.count} listings${input.widened ? `, match auto-widened to "${input.matchUsed}" — fewer exact comparables, so lower confidence` : ""}):`,
     `  median £${Math.round(stats.median).toLocaleString()}, mean £${Math.round(stats.mean).toLocaleString()}, range £${Math.round(stats.min).toLocaleString()}–£${Math.round(stats.max).toLocaleString()}, interquartile £${Math.round(stats.p25).toLocaleString()}–£${Math.round(stats.p75).toLocaleString()}.`,
-    `Gross margin at median resale = £${Math.round(grossMargin).toLocaleString()} = ${(marginPct * 100).toFixed(1)}% of landed cost. The desk's minimum is ${targetLabel}, so this car ${meetsTarget ? "CLEARS" : "FALLS SHORT OF"} the threshold.`,
+    `Those asking prices are VAT-inclusive retail. Net of VAT the median sale earns £${Math.round(resaleExVat).toLocaleString()} (median ÷ 1.2), which is what the margin below is measured against — the landed cost is also net, because the importer reclaims import VAT.`,
+    `Profit at median resale = £${Math.round(grossMargin).toLocaleString()} = ${(marginPct * 100).toFixed(1)}% of landed cost. The desk's minimum is ${targetLabel}, so this car ${meetsTarget ? "CLEARS" : "FALLS SHORT OF"} the threshold.`,
     input.maxBid
       ? input.maxBid.achievable
         ? `Ceiling bid to still make ${targetLabel}: ${Math.round(input.maxBid.maxHammer).toLocaleString()} ${input.maxBid.currency} hammer.`

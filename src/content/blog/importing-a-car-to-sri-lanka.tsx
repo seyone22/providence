@@ -35,7 +35,7 @@ export default function Body() {
             <Strong>customs valuation, not your invoice</Strong>.
           </>,
           <>
-            Four of our offices supply this market — compare the{" "}
+            Four of our source countries supply this market — compare the{" "}
             <Strong>landed cost from each</Strong>.
           </>,
           <>
@@ -71,7 +71,7 @@ export default function Body() {
 
       <H2 id="source">Choosing a source country</H2>
       <P>
-        Sri Lanka is served by four of our offices, and the right one depends on
+        Sri Lanka is served by four of our source countries, and the right one
         what you want:
       </P>
       <UL>
@@ -186,9 +186,7 @@ export default function Body() {
           the best cars to import to Sri Lanka
         </InlineLink>
         , or talk to our{" "}
-        <InlineLink href="/source-cars-from/sri-lanka">
-          Colombo office
-        </InlineLink>{" "}
+        <InlineLink href="/source-cars-from/sri-lanka">Colombo team</InlineLink>{" "}
         directly.
       </P>
 

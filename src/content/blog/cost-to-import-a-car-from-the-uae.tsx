@@ -209,8 +209,8 @@ export default function Body() {
         </InlineLink>
         , where the car is a smaller share and freight a larger one. Same
         exercise, different shape — which is exactly why we compare landed cost
-        across offices for the same requirement rather than defaulting to one
-        source.
+        across source countries for the same requirement rather than defaulting
+        to one source.
       </P>
 
       <Disclaimer>

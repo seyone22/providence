@@ -199,7 +199,7 @@ export default function Body() {
           the cost breakdown
         </InlineLink>
         , or see what our{" "}
-        <InlineLink href="/source-cars-from/india">India office</InlineLink> is
+        <InlineLink href="/source-cars-from/india">India team</InlineLink> is
         sourcing now.
       </P>
 
