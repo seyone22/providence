@@ -95,6 +95,10 @@ export const LEAD_EXPORT_COLUMNS: LeadExportColumn[] = [
   },
   { header: "Country of import", value: (r) => text(r.countryOfImport) },
   { header: "Import timeline", value: (r) => text(r.importTimeline) },
+  // Amount and currency in their own columns so the sheet can sort and filter
+  // on the figure; the formatted string is for reading, not for maths.
+  { header: "Budget", value: (r) => text(r.budgetAmount) },
+  { header: "Budget currency", value: (r) => text(r.budgetCurrency) },
 
   // Vehicle
   { header: "Make", value: (r) => text(r.make) },

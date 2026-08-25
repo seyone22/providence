@@ -20,7 +20,7 @@ import {
   User,
 } from "lucide-react";
 import { usePathname, useSearchParams } from "next/navigation";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import {
   submitCarRequest,
   submitContactPreferences,
@@ -37,6 +37,15 @@ import {
   TIMEZONE_OPTIONS,
   timezoneForCountry,
 } from "@/lib/contactScheduling";
+import { COUNTRIES } from "@/lib/countries";
+import {
+  budgetDigits,
+  budgetDisplayValue,
+  currencyForCountry,
+  currencyOptions,
+  getCurrency,
+} from "@/lib/currencies";
+import { formatVehicleTitle } from "@/lib/vehicle";
 import {
   colorLabel,
   contrastInk,
@@ -168,251 +177,6 @@ const CAR_MAKES = [
   "Xpeng",
   "Zeekr",
 ].sort();
-
-const COUNTRIES = [
-  { n: "Afghanistan", c: "+93" },
-  { n: "Albania", c: "+355" },
-  { n: "Algeria", c: "+213" },
-  { n: "American Samoa", c: "+1-684" },
-  { n: "Andorra", c: "+376" },
-  { n: "Angola", c: "+244" },
-  { n: "Anguilla", c: "+1-264" },
-  { n: "Antarctica", c: "+672" },
-  { n: "Antigua and Barbuda", c: "+1-268" },
-  { n: "Argentina", c: "+54" },
-  { n: "Armenia", c: "+374" },
-  { n: "Aruba", c: "+297" },
-  { n: "Australia", c: "+61" },
-  { n: "Austria", c: "+43" },
-  { n: "Azerbaijan", c: "+994" },
-  { n: "Bahamas", c: "+1-242" },
-  { n: "Bahrain", c: "+973" },
-  { n: "Bangladesh", c: "+880" },
-  { n: "Barbados", c: "+1-246" },
-  { n: "Belarus", c: "+375" },
-  { n: "Belgium", c: "+32" },
-  { n: "Belize", c: "+501" },
-  { n: "Benin", c: "+229" },
-  { n: "Bermuda", c: "+1-441" },
-  { n: "Bhutan", c: "+975" },
-  { n: "Bolivia", c: "+591" },
-  { n: "Bosnia and Herzegovina", c: "+387" },
-  { n: "Botswana", c: "+267" },
-  { n: "Brazil", c: "+55" },
-  { n: "British Indian Ocean Territory", c: "+246" },
-  { n: "British Virgin Islands", c: "+1-284" },
-  { n: "Brunei", c: "+673" },
-  { n: "Bulgaria", c: "+359" },
-  { n: "Burkina Faso", c: "+226" },
-  { n: "Burundi", c: "+257" },
-  { n: "Cambodia", c: "+855" },
-  { n: "Cameroon", c: "+237" },
-  { n: "Canada", c: "+1" },
-  { n: "Cape Verde", c: "+238" },
-  { n: "Cayman Islands", c: "+1-345" },
-  { n: "Central African Republic", c: "+236" },
-  { n: "Chad", c: "+235" },
-  { n: "Chile", c: "+56" },
-  { n: "China", c: "+86" },
-  { n: "Christmas Island", c: "+61" },
-  { n: "Cocos (Keeling) Islands", c: "+61" },
-  { n: "Colombia", c: "+57" },
-  { n: "Comoros", c: "+269" },
-  { n: "Cook Islands", c: "+682" },
-  { n: "Costa Rica", c: "+506" },
-  { n: "Croatia", c: "+385" },
-  { n: "Cuba", c: "+53" },
-  { n: "Curacao", c: "+599" },
-  { n: "Cyprus", c: "+357" },
-  { n: "Czech Republic", c: "+420" },
-  { n: "Democratic Republic of the Congo", c: "+243" },
-  { n: "Denmark", c: "+45" },
-  { n: "Djibouti", c: "+253" },
-  { n: "Dominica", c: "+1-767" },
-  { n: "Dominican Republic", c: "+1-809" },
-  { n: "East Timor (Timor-Leste)", c: "+670" },
-  { n: "Ecuador", c: "+593" },
-  { n: "Egypt", c: "+20" },
-  { n: "El Salvador", c: "+503" },
-  { n: "Equatorial Guinea", c: "+240" },
-  { n: "Eritrea", c: "+291" },
-  { n: "Estonia", c: "+372" },
-  { n: "Eswatini (Swaziland)", c: "+268" },
-  { n: "Ethiopia", c: "+251" },
-  { n: "Falkland Islands", c: "+500" },
-  { n: "Faroe Islands", c: "+298" },
-  { n: "Fiji", c: "+679" },
-  { n: "Finland", c: "+358" },
-  { n: "France", c: "+33" },
-  { n: "French Polynesia", c: "+689" },
-  { n: "Gabon", c: "+241" },
-  { n: "Gambia", c: "+220" },
-  { n: "Georgia", c: "+995" },
-  { n: "Germany", c: "+49" },
-  { n: "Ghana", c: "+233" },
-  { n: "Gibraltar", c: "+350" },
-  { n: "Greece", c: "+30" },
-  { n: "Greenland", c: "+299" },
-  { n: "Grenada", c: "+1-473" },
-  { n: "Guam", c: "+1-671" },
-  { n: "Guatemala", c: "+502" },
-  { n: "Guernsey", c: "+44-1481" },
-  { n: "Guinea", c: "+224" },
-  { n: "Guinea-Bissau", c: "+245" },
-  { n: "Guyana", c: "+592" },
-  { n: "Haiti", c: "+509" },
-  { n: "Honduras", c: "+504" },
-  { n: "Hong Kong", c: "+852" },
-  { n: "Hungary", c: "+36" },
-  { n: "Iceland", c: "+354" },
-  { n: "India", c: "+91" },
-  { n: "Indonesia", c: "+62" },
-  { n: "Iran", c: "+98" },
-  { n: "Iraq", c: "+964" },
-  { n: "Ireland", c: "+353" },
-  { n: "Isle of Man", c: "+44-1624" },
-  { n: "Israel", c: "+972" },
-  { n: "Italy", c: "+39" },
-  { n: "Ivory Coast", c: "+225" },
-  { n: "Jamaica", c: "+1-876" },
-  { n: "Japan", c: "+81" },
-  { n: "Jersey", c: "+44-1534" },
-  { n: "Jordan", c: "+962" },
-  { n: "Kazakhstan", c: "+7" },
-  { n: "Kenya", c: "+254" },
-  { n: "Kiribati", c: "+686" },
-  { n: "Kosovo", c: "+383" },
-  { n: "Kuwait", c: "+965" },
-  { n: "Kyrgyzstan", c: "+996" },
-  { n: "Laos", c: "+856" },
-  { n: "Latvia", c: "+371" },
-  { n: "Lebanon", c: "+961" },
-  { n: "Lesotho", c: "+266" },
-  { n: "Liberia", c: "+231" },
-  { n: "Libya", c: "+218" },
-  { n: "Liechtenstein", c: "+423" },
-  { n: "Lithuania", c: "+370" },
-  { n: "Luxembourg", c: "+352" },
-  { n: "Macau", c: "+853" },
-  { n: "Macedonia", c: "+389" },
-  { n: "Madagascar", c: "+261" },
-  { n: "Malawi", c: "+265" },
-  { n: "Malaysia", c: "+60" },
-  { n: "Maldives", c: "+960" },
-  { n: "Mali", c: "+223" },
-  { n: "Malta", c: "+356" },
-  { n: "Marshall Islands", c: "+692" },
-  { n: "Mauritania", c: "+222" },
-  { n: "Mauritius", c: "+230" },
-  { n: "Mayotte", c: "+262" },
-  { n: "Mexico", c: "+52" },
-  { n: "Micronesia", c: "+691" },
-  { n: "Moldova", c: "+373" },
-  { n: "Monaco", c: "+377" },
-  { n: "Mongolia", c: "+976" },
-  { n: "Montenegro", c: "+382" },
-  { n: "Montserrat", c: "+1-664" },
-  { n: "Morocco", c: "+212" },
-  { n: "Mozambique", c: "+258" },
-  { n: "Myanmar", c: "+95" },
-  { n: "Namibia", c: "+264" },
-  { n: "Nauru", c: "+674" },
-  { n: "Nepal", c: "+977" },
-  { n: "Netherlands", c: "+31" },
-  { n: "Netherlands Antilles", c: "+599" },
-  { n: "New Caledonia", c: "+687" },
-  { n: "New Zealand", c: "+64" },
-  { n: "Nicaragua", c: "+505" },
-  { n: "Niger", c: "+227" },
-  { n: "Nigeria", c: "+234" },
-  { n: "Niue", c: "+683" },
-  { n: "Norfolk Island", c: "+672" },
-  { n: "North Korea", c: "+850" },
-  { n: "Northern Ireland", c: "+44" },
-  { n: "Northern Mariana Islands", c: "+1-670" },
-  { n: "Norway", c: "+47" },
-  { n: "Oman", c: "+968" },
-  { n: "Pakistan", c: "+92" },
-  { n: "Palau", c: "+680" },
-  { n: "Palestine", c: "+970" },
-  { n: "Panama", c: "+507" },
-  { n: "Papua New Guinea", c: "+675" },
-  { n: "Paraguay", c: "+595" },
-  { n: "Peru", c: "+51" },
-  { n: "Philippines", c: "+63" },
-  { n: "Pitcairn Islands", c: "+64" },
-  { n: "Poland", c: "+48" },
-  { n: "Portugal", c: "+351" },
-  { n: "Puerto Rico", c: "+1-787" },
-  { n: "Qatar", c: "+974" },
-  { n: "Republic of the Congo", c: "+242" },
-  { n: "Reunion", c: "+262" },
-  { n: "Romania", c: "+40" },
-  { n: "Russia", c: "+7" },
-  { n: "Rwanda", c: "+250" },
-  { n: "Saint Barthelemy", c: "+590" },
-  { n: "Saint Helena", c: "+290" },
-  { n: "Saint Kitts and Nevis", c: "+1-869" },
-  { n: "Saint Lucia", c: "+1-758" },
-  { n: "Saint Martin", c: "+590" },
-  { n: "Saint Pierre and Miquelon", c: "+508" },
-  { n: "Saint Vincent and the Grenadines", c: "+1-784" },
-  { n: "Samoa", c: "+685" },
-  { n: "San Marino", c: "+378" },
-  { n: "Sao Tome and Principe", c: "+239" },
-  { n: "Saudi Arabia", c: "+966" },
-  { n: "Senegal", c: "+221" },
-  { n: "Serbia", c: "+381" },
-  { n: "Seychelles", c: "+248" },
-  { n: "Sierra Leone", c: "+232" },
-  { n: "Singapore", c: "+65" },
-  { n: "Sint Maarten", c: "+1-721" },
-  { n: "Slovakia", c: "+421" },
-  { n: "Slovenia", c: "+386" },
-  { n: "Solomon Islands", c: "+677" },
-  { n: "Somalia", c: "+252" },
-  { n: "South Africa", c: "+27" },
-  { n: "South Korea", c: "+82" },
-  { n: "South Sudan", c: "+211" },
-  { n: "Spain", c: "+34" },
-  { n: "Sri Lanka", c: "+94" },
-  { n: "Sudan", c: "+249" },
-  { n: "Suriname", c: "+597" },
-  { n: "Svalbard and Jan Mayen", c: "+47" },
-  { n: "Sweden", c: "+46" },
-  { n: "Switzerland", c: "+41" },
-  { n: "Syria", c: "+963" },
-  { n: "Taiwan", c: "+886" },
-  { n: "Tajikistan", c: "+992" },
-  { n: "Tanzania", c: "+255" },
-  { n: "Thailand", c: "+66" },
-  { n: "Togo", c: "+228" },
-  { n: "Tokelau", c: "+690" },
-  { n: "Tonga", c: "+676" },
-  { n: "Trinidad and Tobago", c: "+1-868" },
-  { n: "Tunisia", c: "+216" },
-  { n: "Turkey", c: "+90" },
-  { n: "Turkmenistan", c: "+993" },
-  { n: "Turks and Caicos Islands", c: "+1-649" },
-  { n: "Tuvalu", c: "+688" },
-  { n: "U.S. Virgin Islands", c: "+1-340" },
-  { n: "Uganda", c: "+256" },
-  { n: "Ukraine", c: "+380" },
-  { n: "United Arab Emirates", c: "+971" },
-  { n: "United Kingdom", c: "+44" },
-  { n: "United States", c: "+1" },
-  { n: "Uruguay", c: "+598" },
-  { n: "Uzbekistan", c: "+998" },
-  { n: "Vanuatu", c: "+678" },
-  { n: "Vatican", c: "+379" },
-  { n: "Venezuela", c: "+58" },
-  { n: "Vietnam", c: "+84" },
-  { n: "Wallis and Futuna", c: "+681" },
-  { n: "Western Sahara", c: "+212" },
-  { n: "Yemen", c: "+967" },
-  { n: "Zambia", c: "+260" },
-  { n: "Zimbabwe", c: "+263" },
-].sort((a, b) => a.n.localeCompare(b.n));
 
 // Alpha-2 → dial code for defaultPhoneCountry prop
 const ALPHA2_TO_DIAL: Record<string, string> = {
@@ -852,6 +616,12 @@ const initialFormState = {
   phone: "",
   countryCode: "+1",
   countryOfImport: "",
+  // Budget. The amount is kept as the raw digit string the customer typed so
+  // the field can be formatted with separators while they type; it's parsed to
+  // a number only when the lead is created. The currency defaults from the
+  // destination country and is overridable.
+  budgetAmount: "",
+  budgetCurrency: "",
   importTimeline: "",
   // Set by the prefill when the inquiry comes off a coming-soon dossier.
   isUpcomingVehicle: false,
@@ -910,6 +680,9 @@ export default function RequestForm({
 
   const [countryCodeUpdated, setCountryCodeUpdated] = useState(false);
   const [updatedCountryCodeLabel, setUpdatedCountryCodeLabel] = useState("");
+  // Once the customer picks a currency themselves, changing the destination
+  // stops overwriting it.
+  const [budgetCurrencyTouched, setBudgetCurrencyTouched] = useState(false);
 
   const [formData, setFormData] = useState(() => ({
     ...initialFormState,
@@ -979,10 +752,18 @@ export default function RequestForm({
     }
     if (prefill.countryCode) syncedCountryCode = prefill.countryCode;
 
+    // A prefilled destination (the DestinationPicker, a country landing page)
+    // brings its currency with it, so the budget field lands pre-denominated.
+    const syncedCurrency =
+      prefill.budgetCurrency ||
+      currencyForCountry(prefill.countryOfImport) ||
+      "";
+
     setFormData((prev) => ({
       ...prev,
       ...prefill,
       countryCode: syncedCountryCode,
+      budgetCurrency: syncedCurrency || prev.budgetCurrency,
       // Honour an explicit condition from the prefill (e.g. a spec dossier
       // marked Brand New / Used); otherwise fall back to the legacy default
       // of assuming a make-prefilled inquiry is for a used vehicle.
@@ -1056,20 +837,41 @@ export default function RequestForm({
     if (errors[id]) setErrors((prev) => ({ ...prev, [id]: "" }));
   };
 
+  // Budget is digits only, held as a plain string so the field can show
+  // thousands separators while it's being typed without fighting the caret.
+  const handleBudgetAmountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const digits = budgetDigits(e.target.value);
+    setFormData((prev) => ({ ...prev, budgetAmount: digits }));
+    if (errors.budgetAmount)
+      setErrors((prev) => ({ ...prev, budgetAmount: "" }));
+  };
+
   const handleDropdownChange = (id: string, value: string) => {
     if (id === "countryOfImport") {
       const match = COUNTRIES.find((c) => c.n === value);
       const newCode = match ? match.c : formData.countryCode;
+      // The destination sets the budget currency too — but only until the
+      // customer picks one themselves. Plenty of people import to one country
+      // and hold their money in another, and re-deciding that for them every
+      // time they revisit the destination field would be wrong.
+      const destinationCurrency = currencyForCountry(value);
       setFormData((prev) => ({
         ...prev,
         countryOfImport: value,
         countryCode: newCode,
+        budgetCurrency:
+          budgetCurrencyTouched || !destinationCurrency
+            ? prev.budgetCurrency
+            : destinationCurrency,
       }));
       if (match && match.c !== formData.countryCode) {
         setUpdatedCountryCodeLabel(`${match.c} (${match.n})`);
         setCountryCodeUpdated(true);
         setTimeout(() => setCountryCodeUpdated(false), 4500);
       }
+    } else if (id === "budgetCurrency") {
+      setBudgetCurrencyTouched(true);
+      setFormData((prev) => ({ ...prev, budgetCurrency: value }));
     } else if (id === "make" && formData.make !== value) {
       setFormData((prev) => ({ ...prev, make: value, vehicle_model: "" }));
     } else {
@@ -1110,6 +912,10 @@ export default function RequestForm({
       }
       if (!formData.countryOfImport)
         newErrors.countryOfImport = "Destination country is required";
+      if (!formData.budgetAmount || Number(formData.budgetAmount) <= 0)
+        newErrors.budgetAmount = "Please enter your budget";
+      if (!formData.budgetCurrency)
+        newErrors.budgetCurrency = "Select a currency";
       if (!formData.importTimeline)
         newErrors.importTimeline =
           "Please select when you're planning to import";
@@ -1169,6 +975,10 @@ export default function RequestForm({
       countryCode: formData.countryCode,
       phone: formData.phone,
       countryOfImport: formData.countryOfImport,
+      budgetAmount: formData.budgetAmount
+        ? Number(formData.budgetAmount)
+        : undefined,
+      budgetCurrency: formData.budgetCurrency || undefined,
       importTimeline: formData.importTimeline || undefined,
       // Prefer ?ref= (set when the header button navigates here from another page)
       // so the lead is attributed to the originating page, not the form page itself.
@@ -1306,6 +1116,25 @@ export default function RequestForm({
     id: string,
   ) => `w-full font-sans bg-transparent border-b text-black placeholder:text-zinc-400 focus:outline-none transition-colors rounded-none px-0 py-3 text-lg
         ${errors[id] ? "border-red-500 focus:border-red-600" : "border-black/10 focus:border-sky-500"}`;
+
+  // --- Budget field derivations ---
+  // Separators as you type, so a six-figure budget is readable rather than a
+  // run of digits. The raw digits stay in state; only the display is grouped.
+  const budgetDisplay = budgetDisplayValue(formData.budgetAmount);
+  // The currency's symbol, shown inside the field. Currencies without a
+  // distinct symbol (most of them) rely on the picker beside it instead.
+  const budgetSymbol = getCurrency(formData.budgetCurrency)?.symbol ?? "";
+  // 160-odd entries, re-sorted per destination — not per keystroke, which is
+  // how often this form re-renders.
+  const budgetCurrencyChoices = useMemo(
+    () => currencyOptions(currencyForCountry(formData.countryOfImport)),
+    [formData.countryOfImport],
+  );
+  // Named in the budget warning so it reads as being about the car they picked
+  // rather than a generic disclaimer.
+  const budgetVehicleLabel =
+    formatVehicleTitle(formData.make, formData.vehicle_model) ||
+    "model you selected";
 
   return (
     <motion.div
@@ -1736,6 +1565,67 @@ export default function RequestForm({
                       onChange={handleDropdownChange}
                       error={errors.countryOfImport}
                     />
+                  </div>
+
+                  {/* Budget — amount and currency, the currency defaulted from
+                      the destination chosen above. Required: a lead without a
+                      figure can't be matched to stock. */}
+                  <div className="space-y-1">
+                    <label
+                      htmlFor="budgetAmount"
+                      className="text-[10px] font-bold text-[#4da8da] uppercase tracking-wider block"
+                    >
+                      What's your budget?{" "}
+                      <span className="text-red-500">*</span>
+                    </label>
+                    <div className="grid grid-cols-[1fr_130px] sm:grid-cols-[1fr_230px] gap-3 items-start">
+                      <div className="flex items-center gap-2 border-b border-black/10 focus-within:border-sky-500 transition-colors">
+                        {budgetSymbol && (
+                          <span className="text-lg text-zinc-400 shrink-0">
+                            {budgetSymbol}
+                          </span>
+                        )}
+                        <input
+                          id="budgetAmount"
+                          type="text"
+                          inputMode="numeric"
+                          autoComplete="off"
+                          value={budgetDisplay}
+                          onChange={handleBudgetAmountChange}
+                          placeholder="e.g. 45,000"
+                          aria-describedby="budget-note"
+                          className="w-full font-sans bg-transparent border-0 text-black placeholder:text-zinc-400 focus:outline-none rounded-none px-0 py-3 text-lg"
+                        />
+                      </div>
+                      <SelectDropdown
+                        id="budgetCurrency"
+                        placeholder="Currency..."
+                        options={budgetCurrencyChoices}
+                        value={formData.budgetCurrency}
+                        onChange={handleDropdownChange}
+                      />
+                    </div>
+                    {errors.budgetAmount || errors.budgetCurrency ? (
+                      <p className="text-[10px] font-bold text-red-500 flex items-center gap-1 pt-0.5">
+                        <AlertCircle size={10} />{" "}
+                        {errors.budgetAmount || errors.budgetCurrency}
+                      </p>
+                    ) : null}
+                    <p
+                      id="budget-note"
+                      className="text-[11px] text-amber-700 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2 mt-2 flex items-start gap-2"
+                    >
+                      <AlertCircle
+                        size={12}
+                        className="shrink-0 mt-0.5 text-amber-600"
+                      />
+                      <span>
+                        Give us the most you're ready to spend on the car. If it
+                        sits well below the market range for the{" "}
+                        <strong>{budgetVehicleLabel}</strong>, your inquiry may
+                        be disqualified — it can't be sourced under the range.
+                      </span>
+                    </p>
                   </div>
 
                   {/* Sync notification */}

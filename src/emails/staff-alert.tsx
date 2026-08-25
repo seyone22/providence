@@ -25,6 +25,11 @@ export const StaffAlertEmail = ({ data, requestId }: StaffAlertEmailProps) => {
           {data.email} | {data.countryCode} {data.phone}
         </Text>
         <Text style={valueStyle}>Importing to: {data.countryOfImport}</Text>
+        {data.budget && (
+          <Text style={{ ...valueStyle, fontWeight: "bold" }}>
+            Budget: {data.budget}
+          </Text>
+        )}
 
         <div style={{ margin: "20px 0", borderBottom: "1px solid #e4e4e7" }} />
 

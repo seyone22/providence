@@ -107,6 +107,11 @@ export const requests = pgTable("request", {
   countryCode: text("countryCode").notNull(),
   phone: text("phone").notNull(),
   countryOfImport: text("countryOfImport").notNull(),
+  // Budget from the inquiry form: the figure the customer entered plus the
+  // ISO 4217 code they entered it in, kept apart so leads stay sortable and
+  // comparable rather than being a formatted string.
+  budgetAmount: doublePrecision("budgetAmount"),
+  budgetCurrency: text("budgetCurrency"),
   importTimeline: text("importTimeline"),
   dossierIds: text("dossierIds").array().notNull().default([]),
   // Set when the inquiry came from a dossier flagged as an upcoming /
