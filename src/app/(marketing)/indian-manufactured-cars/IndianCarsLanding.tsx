@@ -484,7 +484,7 @@ export default function IndianCarsLanding() {
       {/* ── DESTINATION PANEL ────────────────────────── */}
       <DestinationPanel
         destination={destination}
-        emptyHeadline="We buy India-built cars at source and get them to your door, supporting you through customs clearance the whole way."
+        emptyHeadline="Buy India-built cars at source — inspected before your money moves, quoted as one landed price."
         emptyBody="Providence Auto buys direct from India's dealer and export network — the same plants that build for Suzuki, Hyundai, Kia, Toyota, Tata and Mahindra — at prices no forecourt in your country can match. You tell us the model and specification you want. We source it, inspect it before it ships, and quote one landed price that already includes the car, freight, marine insurance, duty and every local tax that applies at your destination. Choose your destination above and we will show you exactly how the rules, taxes and route work for your country."
       />
 

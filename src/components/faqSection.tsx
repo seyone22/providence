@@ -23,7 +23,7 @@ const FAQ_DATA = [
       },
       {
         q: "What happens if the car is damaged during shipping?",
-        a: "Every vehicle is covered by comprehensive marine insurance, door-to-door. In the unlikely event of transit damage, you're fully protected. We handle the entire claims process—zero paperwork for you.",
+        a: "Every vehicle is covered by marine insurance for the voyage. In the unlikely event of transit damage, we run the claim with the insurer and keep you updated — you are not left to chase it alone.",
       },
       {
         q: "Is Providence Auto a registered and licensed business?",
@@ -73,7 +73,7 @@ const FAQ_DATA = [
       },
       {
         q: "Do I need to handle any paperwork or customs forms?",
-        a: "No. We handle 100% of the documentation—Bill of Lading, export compliance, customs declarations, and HS codes. You do zero paperwork. Literally.",
+        a: "Very little, and never on your own. We prepare and file the export side ourselves — Bill of Lading, export compliance, HS codes and whatever pre-shipment inspection your country requires — and send you the completed file rather than a list of things to go and find. At your end, Ireland is the one market where we also make the customs declaration and handle VRT. Everywhere else the import entry is made in your name, and we prepare the documents, tell you exactly what happens at the port, and stay on it with you.",
       },
       {
         q: "Will the car be legal to drive in my country?",

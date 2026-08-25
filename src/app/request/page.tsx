@@ -35,8 +35,7 @@ export default function RequestCar() {
             duration={0.8}
             className="text-zinc-500 text-lg md:text-xl max-w-xl mx-auto font-light drop-shadow-[0_0_10px_rgba(255,255,255,1)]"
           >
-            Provide your exact specifications, and our concierge will handle the
-            rest.
+            Tell us the exact specification you want, and we will price it rest.
           </Reveal>
         </div>
 

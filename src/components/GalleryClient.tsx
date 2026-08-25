@@ -380,12 +380,12 @@ export default function GalleryClient({ dossiers }: { dossiers: Dossier[] }) {
                   desc: "Gain direct entry to global wholesale markets in Japan, the UK, and Europe. Stop paying domestic dealership markups and secure vehicles at their true international value.",
                 },
                 {
-                  title: "Mastery of Compliance",
-                  desc: "Import regulations are notoriously complex. Our team handles all homologation, emissions testing, and customs clearances to ensure full legal compliance in your country.",
+                  title: "Compliance, Confirmed First",
+                  desc: "Import rules differ on every route and are the usual reason an import goes wrong. We confirm what your country requires — homologation, emissions, age limits — before we buy, and prepare the documentation you need to clear and register it.",
                 },
                 {
-                  title: "White-Glove Logistics",
-                  desc: "From the moment of purchase to your driveway, your vehicle is fully insured and tracked. We utilize secure, enclosed container shipping to guarantee pristine condition upon arrival.",
+                  title: "Insured and Tracked, All the Way",
+                  desc: "From the moment of purchase to the port of arrival, your vehicle is under marine cover and trackable. Enclosed container shipping is available where the car warrants it.",
                 },
                 {
                   title: "Rigorous Quality Assurance",
@@ -459,7 +459,7 @@ export default function GalleryClient({ dossiers }: { dossiers: Dossier[] }) {
                 name: "Alexander R.",
                 date: "2 days ago",
                 title: "Flawless import of my G-Wagon",
-                desc: "The team at Providence handled everything. I saved nearly 20% compared to buying locally, and the car arrived in immaculate condition.",
+                desc: "I saw the inspection report and the full landed cost before I paid anything. I saved nearly 20% against buying locally, and the car arrived exactly as described.",
               },
               {
                 name: "Sarah M.",
@@ -476,8 +476,8 @@ export default function GalleryClient({ dossiers }: { dossiers: Dossier[] }) {
               {
                 name: "Michael H.",
                 date: "1 month ago",
-                title: "Seamless customs clearance",
-                desc: "I didn't have to fill out a single confusing form. They managed the entire tax and compliance process. True white-glove service.",
+                title: "The paperwork was never a mystery",
+                desc: "Every form came to me filled in and explained, and I knew the duty and tax figure before I committed. Nothing about the process was a surprise.",
               },
               {
                 name: "James L.",

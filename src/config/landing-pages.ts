@@ -75,7 +75,7 @@ export const lhdCampaignConfig: LandingPageConfig = {
     tagline: "Providence Auto · Left-Hand Drive Specialists",
     title: "Japanese Luxury,\nLeft-Hand Drive.",
     subtitle:
-      "Grade-verified LHD supercars and luxury saloons, sourced direct from Japan and landed at your door — no conversions, no compromise.",
+      "Buy grade-verified LHD supercars and luxury saloons direct from Japan's auctions and certified dealers — genuine factory left-hand drive, landed at your port. No conversions, no compromise.",
     backgroundImage:
       "https://images.unsplash.com/photo-1614162692292-7ac56d7f7f1e?q=80&w=3000&auto=format&fit=cover",
   },
@@ -101,14 +101,14 @@ export const lhdCampaignConfig: LandingPageConfig = {
       },
       {
         icon: Landmark,
-        title: "Tax & Compliance",
-        desc: "We navigate complex international tax codes and import duties so you don't have to.",
+        title: "Tax & Compliance, Mapped",
+        desc: "We map the duty, tax and registration position for your country before you commit — so you can see the real landed number and decide on it, rather than discovering it at the port.",
         glowColor: "group-hover:bg-indigo-500/15",
       },
       {
         icon: Ship,
-        title: "Global Logistics",
-        desc: "Curated specifically for export to countries that drive on the right side of the road across Europe, the Middle East, and the Americas.",
+        title: "Built for LHD Markets",
+        desc: "Sourcing curated specifically for export to countries that drive on the right, across Europe, the Middle East and the Americas — with the export paperwork prepared for each of them.",
         glowColor: "group-hover:bg-amber-500/15",
       },
     ],
@@ -134,8 +134,8 @@ export const lhdCampaignConfig: LandingPageConfig = {
       {
         name: "Daniel K.",
         date: "1 month ago",
-        title: "Handled the taxes and shipping end to end",
-        desc: "They quoted the full landed cost — car, freight, duty and VAT — up front, then handled customs clearance for me. My LHD Lexus LX arrived on schedule and well under the local dealer price.",
+        title: "One landed number, and it held",
+        desc: "They quoted the full landed cost — car, freight, duty and VAT — up front, and had the clearance paperwork ready before the ship docked. My LHD Lexus LX arrived on schedule and well under the local dealer price.",
         rating: 5,
       },
     ],
@@ -143,7 +143,7 @@ export const lhdCampaignConfig: LandingPageConfig = {
   featuredReview: {
     title: "Customer story:",
     carName: "Left-Hand Drive Import",
-    text: "I'd spent months trying to find a genuine left-hand drive example in Europe with no luck. Providence found one at a graded Japanese auction within a fortnight, sent me the full auction sheet and inspection report, and shipped it door-to-door with every tax handled. It arrived exactly as described.",
+    text: "I'd spent months trying to find a genuine left-hand drive example in Europe with no luck. Providence found one at a graded Japanese auction within a fortnight, sent me the full auction sheet and inspection report, and had the duty and tax position mapped out before I committed a penny. It arrived exactly as described.",
     rating: 5.0,
     image:
       "https://images.unsplash.com/photo-1503376780353-7e6692767b70?q=80&w=2940&auto=format&fit=crop",
@@ -183,7 +183,7 @@ export const lhdCampaignConfig: LandingPageConfig = {
           },
           {
             q: "Which countries can you deliver to?",
-            a: "We specialise in export to left-hand-drive markets across Europe, the Middle East, and the Americas. We arrange RoRo or container shipping door-to-port or door-to-door, and manage customs clearance and registration paperwork on your behalf.",
+            a: "We specialise in export to left-hand-drive markets across Europe, the Middle East, and the Americas. We arrange RoRo or container shipping to your port, prepare the customs and registration paperwork for your country, and support you through clearance at the other end.",
           },
           {
             q: "How long does the whole process take?",
@@ -191,7 +191,7 @@ export const lhdCampaignConfig: LandingPageConfig = {
           },
           {
             q: "Is my payment protected?",
-            a: "Yes. Funds are held securely until your vehicle is confirmed, inspected, and cleared for shipment, and every car is covered by comprehensive marine insurance door-to-door. Providence is an established international sourcing and export group with its own teams in the UK, Japan, the UAE, India, Thailand, Australia, New Zealand and Sri Lanka.",
+            a: "Yes. Funds are held securely until your vehicle is confirmed, inspected, and cleared for shipment, and every car is covered by marine insurance for the voyage. Providence is an established international sourcing and export group with its own teams in the UK, Japan, the UAE, India, Thailand, Australia, New Zealand and Sri Lanka.",
           },
         ],
       },
@@ -209,9 +209,9 @@ export const japanImportCampaignConfig: LandingPageConfig = {
   },
   hero: {
     tagline: "Providence Auto · Japan Import Specialists",
-    title: "We Buy Your Car at Japanese Auction\nand Deliver It to Your Door.",
+    title: "Now You Can Buy Your Dream Car\nDirect from Japanese Auction.",
     subtitle:
-      "Providence Auto sources cars from Japan's wholesale auctions, then handles shipping, customs clearance and registration in your country. You see the auction sheet and a single all-in landed price before we bid, and that price is what you pay.",
+      "Wherever you live, you can now buy from the same wholesale auction floor the trade buys on. You choose the car; we bid to your instruction, inspect it in person before your money moves, and give you the auction sheet, one all-in landed price and the paperwork support to import it with confidence.",
     // Self-hosted (unlike the other campaigns' remote heroes) so the hero has
     // no third-party dependency: a photograph of an FJ62 Land Cruiser, the
     // model that built Toyota's reputation in exactly the import markets this
@@ -241,8 +241,8 @@ export const japanImportCampaignConfig: LandingPageConfig = {
       },
       {
         icon: Compass,
-        title: "Your Country's Rules, Handled",
-        desc: "Every right-hand-drive market applies its own age limits, pre-export inspections, emissions rules and registration deadlines, and we have shipped through all of them. You choose the car, and we make sure it complies before it leaves Japan.",
+        title: "Your Country's Rules, Confirmed First",
+        desc: "Every right-hand-drive market applies its own age limits, pre-export inspections, emissions rules and registration deadlines, and we have shipped through all of them. We confirm the rules in force for your destination before you commit, and check the car against them before it leaves Japan — so you know it qualifies rather than hoping it does.",
         glowColor: "group-hover:bg-emerald-500/15",
       },
       {
@@ -253,8 +253,8 @@ export const japanImportCampaignConfig: LandingPageConfig = {
       },
       {
         icon: Ship,
-        title: "Door-to-Door Logistics",
-        desc: "We ship by RoRo or container from Japan's ports to yours, keep the car under marine insurance for the whole journey, and manage customs clearance and local registration at the other end. You get milestone updates from the auction hall to your driveway.",
+        title: "Shipping and Paperwork Support",
+        desc: "We book RoRo or container freight from Japan's ports to yours and keep the car under marine cover for the voyage. Your export file — certificate, inspection, bill of lading — is prepared and explained before it arrives, and our team supports you through clearance at your port. You get milestone updates the whole way.",
         glowColor: "group-hover:bg-amber-500/15",
       },
     ],
@@ -289,7 +289,7 @@ export const japanImportCampaignConfig: LandingPageConfig = {
   featuredReview: {
     title: "Customer story:",
     carName: "Japan Auction Import",
-    text: "I'd been burned before by an importer who promised one grade and delivered another. Providence sent me the original auction sheet, the translation, and the inspection photos before I paid anything — then the exact car in those photos turned up at my door. That's the whole difference.",
+    text: "I'd been burned before by an importer who promised one grade and delivered another. Providence sent me the original auction sheet, the translation, and the inspection photos before I paid anything — then the exact car in those photos is the one that arrived. That's the whole difference.",
     rating: 5.0,
     image:
       "https://images.unsplash.com/photo-1503376780353-7e6692767b70?q=80&w=2940&auto=format&fit=crop",
@@ -320,7 +320,7 @@ export const japanImportCampaignConfig: LandingPageConfig = {
           },
           {
             q: "How long does it take to import a car from Japan?",
-            a: "Typically 6–14 weeks door to door, depending on destination: 1–2 weeks to source and win the right car at auction, then roughly 3–5 weeks shipping to East African ports, 4–6 weeks to South Asia, or 6–8 weeks to the UK and Ireland, followed by customs clearance and local registration. You get live milestone updates the whole way.",
+            a: "Typically 6–14 weeks from bid to arrival, depending on destination: 1–2 weeks to source and win the right car at auction, then roughly 3–5 weeks shipping to East African ports, 4–6 weeks to South Asia, or 6–8 weeks to the UK and Ireland, followed by customs clearance and local registration. You get live milestone updates the whole way.",
           },
         ],
       },
@@ -333,7 +333,7 @@ export const japanImportCampaignConfig: LandingPageConfig = {
           },
           {
             q: "What does it cost to import a Japanese car to Ireland?",
-            a: "Three charges apply: customs duty — 0% for Japan-built cars under the EU–Japan Economic Partnership Agreement — VAT at 23% on the landed value, and VRT based on CO2 emissions, which runs as low as 7–14% for efficient Japanese hybrids. Every import must be registered at NCTS within 30 days of arrival. We calculate, declare and pay all of it on your behalf, quoted in full before you commit.",
+            a: "Three charges apply: customs duty — 0% for Japan-built cars under the EU–Japan Economic Partnership Agreement — VAT at 23% on the landed value, and VRT based on CO2 emissions, which runs as low as 7–14% for efficient Japanese hybrids. Every import must be registered at NCTS within 30 days of arrival. We calculate and declare all of it, quoted in full before you commit — registration taxes are charged to you as the registered owner, so those are paid in your name.",
           },
           {
             q: "What do I need to import a Japanese car to New Zealand?",
@@ -366,7 +366,7 @@ export const japanImportCampaignConfig: LandingPageConfig = {
           },
           {
             q: "Is my payment protected when buying a car from Japan?",
-            a: "Yes. Funds are held securely until your vehicle is confirmed, inspected and cleared for shipment, and every car is covered by comprehensive marine insurance door to door. Providence is an established international sourcing and export group with its own people in Japan and seven other countries — including a team on the ground at the auction — so you always know exactly where your car and your money are.",
+            a: "Yes. Funds are held securely until your vehicle is confirmed, inspected and cleared for shipment, and every car is covered by marine insurance for the voyage. Providence is an established international sourcing and export group with its own people in Japan and seven other countries — including a team on the ground at the auction — so you always know exactly where your car and your money are.",
           },
           {
             q: "Will my car ship by RoRo or container?",
@@ -393,7 +393,7 @@ export const indianCampaignConfig: LandingPageConfig = {
     tagline: "Providence Auto · India-Built Specialists",
     title: "Built in India,\nDriven by Value.",
     subtitle:
-      "The badges you already trust — Suzuki, Toyota, Kia, Nissan — built in India's most efficient factories for around 30% less, safety-inspected by our own team, and landed at your door.",
+      "Buy the badges you already trust — Suzuki, Toyota, Kia, Nissan — direct from India's most efficient factories for around 30% less. Safety-inspected by our own team before your money moves, and quoted as one landed price.",
     backgroundImage:
       "https://images.unsplash.com/photo-1663852408695-f57f4d75a536?q=80&w=3000&auto=format&fit=cover",
   },
@@ -425,8 +425,8 @@ export const indianCampaignConfig: LandingPageConfig = {
       },
       {
         icon: Ship,
-        title: "Faster, Safer Logistics",
-        desc: "From booking to delivery, we manage shipping, customs and paperwork end to end — with marine insurance door-to-door and live milestone updates the whole way.",
+        title: "Shipping and Paperwork Support",
+        desc: "We book the freight, keep the car under marine cover for the voyage, and prepare the export and clearance file for your destination — then walk you through it. Live milestone updates the whole way.",
         glowColor: "group-hover:bg-amber-500/15",
       },
     ],
@@ -509,7 +509,7 @@ export const indianCampaignConfig: LandingPageConfig = {
           },
           {
             q: "How long does delivery take, and is my payment protected?",
-            a: "Typically 6–10 weeks from confirmed order to delivery, depending on destination — sourcing and inspection first, then shipping, customs clearance and registration, with live milestone updates throughout. Funds are held securely until your car is confirmed, inspected and cleared to ship, and every car is covered by marine insurance door-to-door.",
+            a: "Typically 6–10 weeks from confirmed order to delivery, depending on destination — sourcing and inspection first, then shipping, customs clearance and registration, with live milestone updates throughout. Funds are held securely until your car is confirmed, inspected and cleared to ship, and every car is covered by marine insurance for the voyage.",
           },
         ],
       },
