@@ -272,7 +272,7 @@ const DESTINATIONS: Destination[] = [
     facts: [
       { icon: Gauge, label: "No import age limit" },
       { icon: ShieldCheck, label: "NOVA + DVLA registration handled" },
-      { icon: CalendarClock, label: "Typically 8–12 weeks door to door" },
+      { icon: CalendarClock, label: "Typically 8–12 weeks auction to arrival" },
       { icon: Anchor, label: "RoRo or container to UK ports" },
     ],
     popular:
@@ -305,7 +305,7 @@ const DESTINATIONS: Destination[] = [
     facts: [
       { icon: Gauge, label: "No customs duty on used cars" },
       { icon: ShieldCheck, label: "GST + entry certification handled" },
-      { icon: CalendarClock, label: "Typically 6–10 weeks door to door" },
+      { icon: CalendarClock, label: "Typically 6–10 weeks auction to arrival" },
       { icon: Anchor, label: "MPI biosecurity clean arranged in Japan" },
     ],
     popular:
@@ -324,7 +324,7 @@ const DESTINATIONS: Destination[] = [
     facts: [
       { icon: Gauge, label: "8-year age rule — compliant stock only" },
       { icon: ShieldCheck, label: "Pre-export inspection arranged in Japan" },
-      { icon: CalendarClock, label: "Typically 6–10 weeks door to door" },
+      { icon: CalendarClock, label: "Typically 6–10 weeks auction to arrival" },
       { icon: Anchor, label: "Clearance support at Mombasa" },
     ],
     popular:
@@ -341,7 +341,7 @@ const DESTINATIONS: Destination[] = [
     facts: [
       { icon: Gauge, label: "No age ban — excise built into quote" },
       { icon: ShieldCheck, label: "Pre-shipment inspection arranged" },
-      { icon: CalendarClock, label: "Typically 6–10 weeks door to door" },
+      { icon: CalendarClock, label: "Typically 6–10 weeks auction to arrival" },
       { icon: Anchor, label: "Clearance support at Dar es Salaam" },
     ],
     popular:
@@ -358,7 +358,7 @@ const DESTINATIONS: Destination[] = [
     facts: [
       { icon: Gauge, label: "15-year rule — sweet spot sourced" },
       { icon: ShieldCheck, label: "URA taxes in your up-front quote" },
-      { icon: CalendarClock, label: "Typically 7–11 weeks door to door" },
+      { icon: CalendarClock, label: "Typically 7–11 weeks auction to arrival" },
       { icon: Anchor, label: "Bonded transit Mombasa → Kampala" },
     ],
     popular:

@@ -134,8 +134,8 @@ export const lhdCampaignConfig: LandingPageConfig = {
       {
         name: "Daniel K.",
         date: "1 month ago",
-        title: "Handled the taxes and shipping end to end",
-        desc: "They quoted the full landed cost — car, freight, duty and VAT — up front, then handled customs clearance for me. My LHD Lexus LX arrived on schedule and well under the local dealer price.",
+        title: "One landed number, and it held",
+        desc: "They quoted the full landed cost — car, freight, duty and VAT — up front, and had the clearance paperwork ready before the ship docked. My LHD Lexus LX arrived on schedule and well under the local dealer price.",
         rating: 5,
       },
     ],
@@ -143,7 +143,7 @@ export const lhdCampaignConfig: LandingPageConfig = {
   featuredReview: {
     title: "Customer story:",
     carName: "Left-Hand Drive Import",
-    text: "I'd spent months trying to find a genuine left-hand drive example in Europe with no luck. Providence found one at a graded Japanese auction within a fortnight, sent me the full auction sheet and inspection report, and shipped it door-to-door with every tax handled. It arrived exactly as described.",
+    text: "I'd spent months trying to find a genuine left-hand drive example in Europe with no luck. Providence found one at a graded Japanese auction within a fortnight, sent me the full auction sheet and inspection report, and had the duty and tax position mapped out before I committed a penny. It arrived exactly as described.",
     rating: 5.0,
     image:
       "https://images.unsplash.com/photo-1503376780353-7e6692767b70?q=80&w=2940&auto=format&fit=crop",
@@ -289,7 +289,7 @@ export const japanImportCampaignConfig: LandingPageConfig = {
   featuredReview: {
     title: "Customer story:",
     carName: "Japan Auction Import",
-    text: "I'd been burned before by an importer who promised one grade and delivered another. Providence sent me the original auction sheet, the translation, and the inspection photos before I paid anything — then the exact car in those photos turned up at my door. That's the whole difference.",
+    text: "I'd been burned before by an importer who promised one grade and delivered another. Providence sent me the original auction sheet, the translation, and the inspection photos before I paid anything — then the exact car in those photos is the one that arrived. That's the whole difference.",
     rating: 5.0,
     image:
       "https://images.unsplash.com/photo-1503376780353-7e6692767b70?q=80&w=2940&auto=format&fit=crop",
@@ -320,7 +320,7 @@ export const japanImportCampaignConfig: LandingPageConfig = {
           },
           {
             q: "How long does it take to import a car from Japan?",
-            a: "Typically 6–14 weeks door to door, depending on destination: 1–2 weeks to source and win the right car at auction, then roughly 3–5 weeks shipping to East African ports, 4–6 weeks to South Asia, or 6–8 weeks to the UK and Ireland, followed by customs clearance and local registration. You get live milestone updates the whole way.",
+            a: "Typically 6–14 weeks from bid to arrival, depending on destination: 1–2 weeks to source and win the right car at auction, then roughly 3–5 weeks shipping to East African ports, 4–6 weeks to South Asia, or 6–8 weeks to the UK and Ireland, followed by customs clearance and local registration. You get live milestone updates the whole way.",
           },
         ],
       },
