@@ -183,7 +183,7 @@ const DESTINATIONS: Destination[] = [
       { icon: Wrench, label: "Factory right-hand drive" },
       { icon: ShieldCheck, label: "Current tax regime confirmed per model" },
       { icon: Boxes, label: "Parts and servicing already local" },
-      { icon: Anchor, label: "Shipped and cleared to Colombo" },
+      { icon: Anchor, label: "Clearance support into Colombo" },
     ],
     popular:
       "Most requested for Sri Lanka: the Suzuki Alto, WagonR and Swift, the Toyota Etios, and Hyundai's India-built small cars.",
@@ -200,7 +200,7 @@ const DESTINATIONS: Destination[] = [
       { icon: Gauge, label: "8-year age rule — compliant stock only" },
       { icon: Wrench, label: "Factory right-hand drive" },
       { icon: ShieldCheck, label: "Pre-export inspection arranged in India" },
-      { icon: Anchor, label: "Cleared through Mombasa for you" },
+      { icon: Anchor, label: "Clearance support at Mombasa" },
     ],
     popular:
       "Most requested for Kenya: India-built Suzuki and Toyota small cars, plus Mahindra and Tata pickups and 4x4s.",
@@ -213,12 +213,12 @@ const DESTINATIONS: Destination[] = [
     formCountry: "Tanzania",
     headline:
       "Tanzania has no age limit, but older cars carry extra excise duty.",
-    body: "Tanzania takes a wider range of imports than its neighbours: there is no outright age ban, though cars over 10 years old carry extra excise — which we build into your landed quote so the number never moves after you agree it. Pre-shipment inspection is arranged in India, and your car clears through Dar es Salaam with our team on it the whole way.",
+    body: "Tanzania takes a wider range of imports than its neighbours: there is no outright age ban, though cars over 10 years old carry extra excise — which we build into your landed quote so the number never moves after you agree it. Pre-shipment inspection is arranged in India, and we support your car's clearance through Dar es Salaam, with our team on it the whole way.",
     facts: [
       { icon: Gauge, label: "No age ban — excise built into quote" },
       { icon: Wrench, label: "Factory right-hand drive" },
       { icon: ShieldCheck, label: "Pre-shipment inspection arranged" },
-      { icon: Anchor, label: "Cleared through Dar es Salaam" },
+      { icon: Anchor, label: "Clearance support at Dar es Salaam" },
     ],
     popular:
       "Most requested for Tanzania: India-built Toyota and Suzuki hatchbacks, and Mahindra's tougher 4x4 range.",
@@ -230,7 +230,7 @@ const DESTINATIONS: Destination[] = [
     label: "Uganda",
     formCountry: "Uganda",
     headline:
-      "Uganda is landlocked, so we clear at Mombasa and run overland to Kampala.",
+      "Uganda is landlocked, so we support clearance at Mombasa and run overland to Kampala.",
     body: "Your car lands at Mombasa and travels overland to Kampala under a bonded transit we arrange — one quote, one team, no handoffs at the border. Uganda's 15-year age ban and environmental levy make a newer India-built car the sensible buy, and that is exactly what our dealer network supplies, with URA taxes included in the single price you approve up front.",
     facts: [
       { icon: Gauge, label: "15-year rule — compliant stock sourced" },
@@ -257,7 +257,7 @@ const DESTINATIONS: Destination[] = [
         icon: ShieldCheck,
         label: "Import permit rules confirmed before we buy",
       },
-      { icon: Anchor, label: "Cleared through Port Louis" },
+      { icon: Anchor, label: "Clearance support at Port Louis" },
     ],
     popular:
       "Most requested for Mauritius: India-built Suzuki and Hyundai small cars, and the compact SUVs that sit in the lower excise bands.",
@@ -275,7 +275,7 @@ const DESTINATIONS: Destination[] = [
       { icon: ShieldCheck, label: "Used-import concessions checked for you" },
       { icon: Boxes, label: "Bought new, to your specification" },
       { icon: Wrench, label: "Factory right-hand drive" },
-      { icon: Anchor, label: "Cleared through Port Victoria" },
+      { icon: Anchor, label: "Clearance support at Port Victoria" },
     ],
     popular:
       "Most requested for Seychelles: new India-built Suzuki, Hyundai and Toyota small cars and compact SUVs.",
@@ -293,7 +293,7 @@ const DESTINATIONS: Destination[] = [
       { icon: Gauge, label: "Eight-year age rule for private cars" },
       { icon: ShieldCheck, label: "Import licence arranged before shipping" },
       { icon: Wrench, label: "Factory right-hand drive" },
-      { icon: Anchor, label: "Cleared through Port of Spain" },
+      { icon: Anchor, label: "Clearance support at Port of Spain" },
     ],
     popular:
       "Most requested for Trinidad & Tobago: India-built Suzuki and Hyundai hatchbacks, plus Mahindra and Tata pickups.",
@@ -306,12 +306,12 @@ const DESTINATIONS: Destination[] = [
     formCountry: "Jamaica",
     headline:
       "Jamaica caps motor cars at six years, and wants the licence first.",
-    body: "The Trade Board import licence has to be in hand before the car ships, motor cars and station wagons must be no more than six years old, and every used import needs a pre-shipment inspection certificate from the country of export. All three are ours to handle: age-compliant stock sourced through our Indian dealer network, the inspection booked in India before loading, and the car cleared into Kingston with duty and GCT already inside the price you approved.",
+    body: "The Trade Board import licence has to be in hand before the car ships, motor cars and station wagons must be no more than six years old, and every used import needs a pre-shipment inspection certificate from the country of export. All three are ours to handle: age-compliant stock sourced through our Indian dealer network, the inspection booked in India before loading, and clearance into Kingston supported by our team, with duty and GCT already inside the price you approved.",
     facts: [
       { icon: Gauge, label: "Six-year rule for motor cars" },
       { icon: ShieldCheck, label: "Trade Board licence arranged first" },
       { icon: Wrench, label: "Factory right-hand drive" },
-      { icon: Anchor, label: "Cleared through Kingston" },
+      { icon: Anchor, label: "Clearance support at Kingston" },
     ],
     popular:
       "Most requested for Jamaica: India-built Suzuki, Toyota and Nissan small cars, and compact SUVs for family use.",
@@ -329,7 +329,7 @@ const DESTINATIONS: Destination[] = [
       { icon: Gauge, label: "Environmental levy rises with vehicle age" },
       { icon: ShieldCheck, label: "Current rules confirmed with Customs" },
       { icon: Wrench, label: "Factory right-hand drive" },
-      { icon: Anchor, label: "Cleared through St George's" },
+      { icon: Anchor, label: "Clearance support at St George's" },
     ],
     popular:
       "Most requested for Grenada: India-built Suzuki and Hyundai hatchbacks, and Mahindra and Tata 4x4s.",
@@ -484,7 +484,7 @@ export default function IndianCarsLanding() {
       {/* ── DESTINATION PANEL ────────────────────────── */}
       <DestinationPanel
         destination={destination}
-        emptyHeadline="We buy India-built cars at source and deliver them, fully cleared, to your country."
+        emptyHeadline="We buy India-built cars at source and get them to your door, supporting you through customs clearance the whole way."
         emptyBody="Providence Auto buys direct from India's dealer and export network — the same plants that build for Suzuki, Hyundai, Kia, Toyota, Tata and Mahindra — at prices no forecourt in your country can match. You tell us the model and specification you want. We source it, inspect it before it ships, and quote one landed price that already includes the car, freight, marine insurance, duty and every local tax that applies at your destination. Choose your destination above and we will show you exactly how the rules, taxes and route work for your country."
       />
 
