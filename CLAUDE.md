@@ -2,6 +2,8 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+**Before writing or editing any customer-facing copy** — marketing pages, campaign pages, car pages, blog posts, news articles, sales-profile content, or any claim about what Providence Auto does, where it operates, or what it delivers — read `business-context.md` at the repo root first. It is the central source of truth for the business itself (identity, the presence/source/destination geography split, the customs-clearance and CNF-delivery boundaries, values, offers, voice rules) as distinct from this file, which documents the codebase. It also indexes every other standing doc (sourcing analyzer, news editorial playbook, SEO/AEO guide, sales-profile spec).
+
 ## Commands
 
 ```bash
