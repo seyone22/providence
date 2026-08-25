@@ -2,11 +2,36 @@
 
 import { ArrowRight, Compass, Landmark, ShieldCheck, Ship } from "lucide-react";
 import { Suspense } from "react";
+import DotGlobe, { GLOBE_PALETTE_LIGHT } from "@/components/DotGlobe";
 import FAQSection from "@/components/faqSection";
 import GradientMesh from "@/components/GradientMesh";
 import MinimalHeader from "@/components/MinimalHeader";
+import OdometerCounter from "@/components/OdometerCounter";
 import { Reveal } from "@/components/Reveal";
 import RequestForm from "@/components/requestForm";
+import VoyageTrack, { type VoyageStage } from "@/components/VoyageTrack";
+
+// The hero counters. Same figures as /about-us, and the same reason for being
+// here: they are the scale that makes "any market" credible rather than a
+// slogan. Kept to four so the row stays one line on desktop.
+const STATS = [
+  { value: 40, suffix: "+", label: "Sourcing markets" },
+  { value: 7, label: "Countries we buy in" },
+  { value: 28, label: "Destinations we ship to" },
+  { value: 24, suffix: " hrs", label: "To your first quote" },
+];
+
+// The buyer-side view of an import. VoyageTrack's own defaults end at "Customs
+// cleared" → "Delivered"; we contract CNF to the destination port, so the last
+// two pips are stated at that level. Same treatment as /about-us.
+const IMPORT_STAGES: VoyageStage[] = [
+  { label: "You choose", at: 0 },
+  { label: "We bid", at: 0.18 },
+  { label: "Inspected", at: 0.36 },
+  { label: "At sea", at: 0.62 },
+  { label: "At your port", at: 0.84 },
+  { label: "Yours", at: 1 },
+];
 
 export default function B2CLanding() {
   return (
@@ -36,9 +61,8 @@ export default function B2CLanding() {
             duration={1}
             className="pa-headline-gradient text-4xl md:text-8xl lg:text-12xl font-bold tracking-tighter mb-6 leading-[1.1] drop-shadow-[0_0_15px_rgba(255,255,255,1)]"
           >
-            The Global
-            <br /> Shortcut to <br />
-            Your Dream Car.
+            Buy Your Dream Car
+            <br /> from Any Market.
           </Reveal>
           <Reveal
             immediate
@@ -48,7 +72,8 @@ export default function B2CLanding() {
             duration={0.8}
             className="text-xl md:text-3xl text-zinc-600 font-medium tracking-tight mb-12 max-w-2xl drop-shadow-[0_0_10px_rgba(255,255,255,1)]"
           >
-            Don't settle for what's on the lot.
+            Wherever you live, you can now buy direct from the markets the trade
+            buys in — and keep the dealership's margin for yourself.
           </Reveal>
           <Reveal immediate y={20} delay={0.6} duration={0.8}>
             <a
@@ -63,6 +88,29 @@ export default function B2CLanding() {
                 />
               </span>
             </a>
+          </Reveal>
+
+          <Reveal
+            y={20}
+            delay={0.7}
+            duration={0.6}
+            className="mt-14 grid grid-cols-2 md:grid-cols-4 gap-3 w-full max-w-3xl"
+          >
+            {STATS.map((s) => (
+              <div
+                key={s.label}
+                className="rounded-2xl border border-black/5 bg-white/85 px-4 py-5 sm:bg-white/70 sm:backdrop-blur-sm"
+              >
+                <div className="flex justify-center">
+                  <OdometerCounter
+                    value={s.value}
+                    suffix={s.suffix}
+                    label={s.label}
+                    className="text-2xl md:text-3xl font-bold tracking-tight text-center"
+                  />
+                </div>
+              </div>
+            ))}
           </Reveal>
         </div>
       </section>
@@ -84,15 +132,69 @@ export default function B2CLanding() {
         </div>
       </section>
 
+      {/* ── ANY MARKET: the globe ─────────────────────────── */}
+      <section className="py-24 md:py-32 px-6 bg-[#FAFAFA] border-y border-black/5 relative z-10">
+        <div className="max-w-6xl mx-auto">
+          <Reveal
+            y={30}
+            duration={0.7}
+            className="text-center mb-12 max-w-3xl mx-auto"
+          >
+            <h2 className="text-4xl md:text-6xl font-bold tracking-tighter text-black mb-5">
+              Any market you can name, and the route to get it home.
+            </h2>
+            <p className="text-lg text-zinc-500 font-light">
+              Every arc below is a real shipping lane we run, not a claim — drag
+              to spin it.
+            </p>
+          </Reveal>
+
+          <Reveal
+            y={20}
+            duration={0.6}
+            className="mx-auto max-w-xl rounded-[2rem] border border-black/5 bg-white p-4 md:p-6"
+          >
+            <DotGlobe palette={GLOBE_PALETTE_LIGHT} />
+          </Reveal>
+        </div>
+      </section>
+
+      {/* ── HOW IT WORKS: the process rail ────────────────── */}
+      <section className="py-24 md:py-32 px-6 relative z-10">
+        <div className="max-w-5xl mx-auto">
+          <Reveal
+            y={30}
+            duration={0.7}
+            className="text-center mb-12 max-w-2xl mx-auto"
+          >
+            <h2 className="text-4xl md:text-6xl font-bold tracking-tighter text-black mb-5">
+              You pick the car, and you can see exactly where it is.
+            </h2>
+            <p className="text-lg text-zinc-500 font-light">
+              Nothing is bid on until you have the inspection and the full
+              landed price. After that, every import tracks the same way:
+            </p>
+          </Reveal>
+
+          <Reveal
+            y={20}
+            duration={0.6}
+            className="rounded-[2rem] bg-white border border-black/5 p-6 md:p-10 shadow-[0_20px_40px_rgba(0,0,0,0.03)]"
+          >
+            <VoyageTrack stages={IMPORT_STAGES} />
+          </Reveal>
+        </div>
+      </section>
+
       <section className="py-32 px-6 max-w-7xl mx-auto bg-white relative z-10">
         <Reveal y={40} duration={0.8} className="text-center mb-24">
           <h2 className="text-4xl md:text-6xl font-bold tracking-tighter text-black mb-6">
             Never compromise again.
           </h2>
           <p className="text-xl text-zinc-500 max-w-2xl mx-auto font-light">
-            We are industry experts with our own people in eight source
-            countries. We know exactly where to find your desired vehicle for
-            the cheapest price, with the exact specifications you demand.
+            We buy in seven countries and source across forty more, so we know
+            where your exact specification lands cheapest — and we show you the
+            comparison rather than asking you to take our word for it.
           </p>
         </Reveal>
 
@@ -100,20 +202,20 @@ export default function B2CLanding() {
           {[
             {
               icon: Compass,
-              title: "Currency & Market Optimization",
-              desc: "We don't just find the car; we analyze global markets to optimize currency conversions, ensuring you buy from the most financially efficient country at that exact moment.",
+              title: "Buy Where It Is Cheapest, Today",
+              desc: "The same car has a different price in every market, and the exchange rate moves it again. We price your exact specification across all of them and show you the comparison, so you buy from the country that is cheapest the week you buy — not the one we happen to prefer.",
               glowColor: "group-hover:bg-blue-500/15",
             },
             {
               icon: Landmark,
-              title: "Mastery of Tax Law",
-              desc: "Importing luxury vehicles requires navigating complex tax codes. We know every loophole, tariff, and regulation to legally minimize your import duties.",
+              title: "The Tax Position, Before You Commit",
+              desc: "Duty, VAT and registration tax are what turn a good price into a bad one, and they differ on every route. We work out what your country charges on your exact car and put it in the quote, so the number you agree is the number you pay.",
               glowColor: "group-hover:bg-emerald-500/15",
             },
             {
               icon: Ship,
-              title: "White-Glove Logistics",
-              desc: "From an auction hall in Japan or a dealer forecourt in Dubai to your driveway. Our own teams in eight countries handle every form, marine insurance policy and freight mile for you. Zero friction.",
+              title: "Shipping and Paperwork Support",
+              desc: "From an auction hall in Japan or a dealer forecourt in Dubai to your port. Our own teams prepare every form, arrange the marine cover and book the freight — and show you each step as it happens.",
               glowColor: "group-hover:bg-indigo-500/15",
             },
             {

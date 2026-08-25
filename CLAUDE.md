@@ -2,7 +2,17 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
-**Before writing or editing any customer-facing copy** — marketing pages, campaign pages, car pages, blog posts, news articles, sales-profile content, or any claim about what Providence Auto does, where it operates, or what it delivers — read `business-context.md` at the repo root first. It is the central source of truth for the business itself (identity, the presence/source/destination geography split, the customs-clearance and CNF-delivery boundaries, values, offers, voice rules) as distinct from this file, which documents the codebase. It also indexes every other standing doc (sourcing analyzer, news editorial playbook, SEO/AEO guide, sales-profile spec).
+**Before writing or editing any customer-facing copy** — marketing pages, campaign pages, car pages, blog posts, news articles, sales-profile content, or any claim about what Providence Auto does, where it operates, or what it delivers — read these three at the repo root first:
+
+- `business-context.md` — the central source of truth for the business itself (identity, the presence/source/destination geography split, the customs-clearance and CNF-delivery boundaries, values, offers). It also indexes every other standing doc.
+- `brand-position.md` — the position: Providence gives you **direct access** to the world's auctions plus the tools, documentation and people to use it. **You buy the car; we make it possible.** Not a concierge, not "we handle everything".
+- `writing-angle.md` — how to phrase it: the customer is the subject of the sentence. Bans "so you don't have to", "we handle everything", "hassle-free", blanket "door-to-door".
+
+These are about *what the site should say*; this file is about *how the site is built*.
+
+**Read all three every time — not "when in doubt".** The August 2026 repositioning had to be done twice because the first pass swept seven files and left the retired vocabulary standing on `/b2c`, `/b2b`, `/request` and the gallery.
+
+**Never change a source-of-truth document on your own authority.** That means these three plus `news-editorial-playbook.md`, `sourcing-analyzer-methodology.md`, `seo-aeo-optimization-guide.md` and `sales-profile-spec.md`. When work shows one of them is wrong, incomplete or self-contradictory, raise it as a numbered question with a recommendation, log it in `brand-position.md` §11.3, and **keep re-raising it until answered** — a pending documented-truth change is carried into the next session, never quietly closed. This is narrow: ordinary suggestions about the site are raised once and dropped if not taken up. Full rule: `brand-position.md` §11.2.
 
 ## Commands
 

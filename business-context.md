@@ -10,8 +10,8 @@ It was assembled from the codebase (the copy that is actually live, the
 `config/` registries that drive it, and the standing docs below) and from the
 precision corrections made across this account's working sessions — several of
 which exist specifically because a claim on the site had drifted ahead of
-what the business actually does. Section 5 makes that list explicit so the
-same drift doesn't happen twice.
+what the business actually does. Section 11 logs those corrections and their
+reasoning so the same drift doesn't happen twice.
 
 This doc is **prose and facts**, not a copy-paste source. Don't lift sentences
 from here directly into a page; write the page in that page's own voice
@@ -29,9 +29,18 @@ never speaks to.
 
 Registered head office: 468 Church Lane, Kingsbury, London NW9 8UA, UK.
 
-**The pitch, in one sentence:** tell us the exact car, we search 40+ sourcing
-markets for the most tax-efficient price, our own people inspect it before you
-pay, and you get one landed number — before you commit.
+**The position, in one sentence:** Providence Auto gives you direct access to
+the world's car auctions and dealer networks — plus the tools, documentation
+and people on the ground to use that access with confidence. **You buy the
+car; we make it possible.**
+
+This is a deliberate move away from the concierge framing the site used until
+August 2026 ("we buy your car and deliver it to your door"), for two reasons:
+that framing promised more than the operation delivers (§4), and it made
+Providence the hero of a transaction that belongs to the customer. The full
+reasoning, the four pillars and the competitive frame are in
+**`brand-position.md`**; the sentence-level rules for writing it are in
+**`writing-angle.md`**. Read both before writing customer-facing copy.
 
 ## 2. How the business actually operates
 
@@ -70,13 +79,18 @@ buy", "offices"). They must not be used interchangeably.
 |---|---|---|---|
 | **Presence** | 8 | Countries where Providence has its own people/operations teams. Includes Sri Lanka. | `OFFICE_COUNTRIES_SENTENCE`, `COUNTRY_PAGES` in `src/config/countries.ts` |
 | **Source** | 7 | Countries Providence actually **buys cars in**. Presence minus Sri Lanka. | `SOURCE_COUNTRIES_SENTENCE`, `SOURCE_COUNTRY_PAGES` in `src/config/countries.ts` |
-| **Destination** | 28 (as of 2026-08-25) | Markets Providence ships **to**. Includes Sri Lanka (it is a destination market and the South-Asia operations base, not a manufacturing country). | `DESTINATION_REGIONS` in `/about-us` (`src/app/(marketing)/about-us/page.tsx`) |
+| **Destination** | 29 (as of 2026-08-25) | Markets Providence ships **to**. Includes Sri Lanka — it is both a destination market and the South-Asia operations base, and a country can be in more than one of these lists (Australia, New Zealand, Thailand and the UK are each in two). | `DESTINATION_REGIONS` in `/about-us` (`src/app/(marketing)/about-us/page.tsx`) |
 
 **Sri Lanka specifically:** the Colombo team runs South Asia operations and
-handles Sri Lanka's own (notoriously complex) import process, but Sri Lanka
-is not a vehicle-manufacturing country and Providence does not buy cars there.
-It belongs in the presence list and the destination list, never the source
-list.
+handles Sri Lanka's own (notoriously complex) import process, and we ship into
+the market — but Sri Lanka is not a vehicle-manufacturing country and
+Providence does not buy cars there. It belongs in the **presence** list and the
+**destination** list, never the source list. Added to `DESTINATION_REGIONS` on
+2026-08-25, taking the count to 29.
+
+> **Sri Lanka has a market-specific channel policy — see §14.** Read it before
+> planning any campaign, ad targeting, focus list or outreach that involves
+> Sri Lanka. It is a decision input and never becomes public copy.
 
 **"Office" language is a presence claim, not a real-estate claim.** The site
 does not have a walk-in office the public can visit in all eight presence
@@ -84,8 +98,8 @@ countries — only **London** is a registered, visitable head office. Public
 copy should say "our own people/teams", not "our offices", except for the UK.
 See §5.1.
 
-**Destination-market count is a moving number.** 28 is the count on
-`/about-us` as of the Botswana/Germany addition (2026-08-25). It is a literal
+**Destination-market count is a moving number.** 29 is the count on
+`/about-us` as of the Sri Lanka addition (2026-08-25). It is a literal
 count of `DESTINATION_REGIONS` — the page derives its own headline and stat
 tile from `.length`, so they can't silently disagree with each other again.
 Two other lists have **not** been reconciled to that count and are known
@@ -99,8 +113,9 @@ more than the business actually delivers. This is the standing rule now:
 ### 4.1 Customs clearance: Ireland only
 
 **Providence directly clears customs in exactly one country: Ireland.**
-Ireland's own pages say so plainly ("We source, ship, clear customs, and
-deliver to your door") and that is accurate — leave it as-is.
+Ireland's own pages say so plainly — "Ireland is the one market where we take
+it the whole way" — and that is accurate. Note the boundary in §4.2 though:
+clearing customs is not the same as paying the registration tax.
 
 Everywhere else, the correct claim is **clearance support**, not direct
 execution: "clearance support at Mombasa", "we support your car's clearance
@@ -116,7 +131,22 @@ for *export* in Japan, the UK, Australia, India and Thailand (§2, step 3).
 The distinction is direction: export clearance in the country we buy from is
 real; import clearance in the country we ship to is Ireland-only.
 
-### 4.2 Delivery: CNF, not door-to-door
+### 4.2 Registration taxes are the owner's to pay
+
+**Providence does not pay a customer's registration or import taxes.** VRT,
+VAT and duty are charged to the *registered owner*, so the payment is made in
+the customer's name — Revenue and its equivalents bill the person the car is
+registered to, not the agent.
+
+What we actually do, and what the copy may say: calculate the figure before
+the customer commits, prepare and file the declarations, book the NCTS (or
+equivalent) appointment, and hand over a completed, checked document pack.
+
+Corrected across the Ireland pages on 2026-08-25, where the copy had said "we
+calculate, declare and pay all three on your behalf", "VRT payment. You do
+nothing", "Zero forms for you — not one" and "VRT paid".
+
+### 4.3 Delivery: CNF, not door-to-door
 
 Providence quotes and delivers **CNF (Cost and Freight) — to the destination
 port**, not door-to-door. The last-mile handover, local registration
@@ -130,7 +160,7 @@ same person, from your first message to arrival", "At destination port →
 Handover" (not "Delivered"). Avoid "door-to-door" as a blanket claim outside
 the specific pages where it's contractually true.
 
-### 4.3 Presence vs. visitable office
+### 4.4 Presence vs. visitable office
 
 Don't say "you're welcome to visit any of our eight offices." Say Providence
 has its own people/teams in eight countries, and that **London** specifically
@@ -162,6 +192,15 @@ Current, correct wording (`src/components/faqSection.tsx`):
 > website."
 
 ## 6. What Providence sells — the offers
+
+**B2B and B2C open on the same proposition.** Both audiences are told, first:
+*you can source cars directly from the market they come from and ship them to
+your own country, and we give you the access, tools and documentation support
+to do it.* Only the second line differs — B2C adds the price advantage of
+cutting the dealership out (you buy at the price a dealer buys at); B2B adds
+stock you don't have to floor-plan. Never open B2C with relief or B2B with
+outsourcing. Full treatment in `brand-position.md` §5.
+
 
 | Offer | Route | Who it's for |
 |---|---|---|
@@ -287,6 +326,15 @@ don't just fix the copy silently.
 | 2026-08-24 | Sri Lanka removed from the `/source-cars-from` sourcing hub, its structured data, and every "we buy in eight countries" sentence; corrected to seven | Sri Lanka is a destination/operations market, not somewhere Providence buys cars. The exclusion had been hand-written per call site and was missing from the hub itself — now centralised as `SOURCE_COUNTRY_PAGES` in `src/config/countries.ts`. |
 | 2026-08-25 | Botswana and Germany added to the destinations list; destination count moved 26 → 28 | Both markets are already quoted (request-form dialling codes, admin destination list); the public list was behind reality. |
 | 2026-08-25 | Nine destinations on the Japan and India campaign pages, plus each page's empty-state headline, changed from "cleared through X for you" / "fully cleared" to "clearance support at X" | Providence clears customs directly in Ireland only. Elsewhere the business supports the local clearance process; it doesn't execute it. |
+| 2026-08-25 | Repositioned from concierge to direct access; `brand-position.md` and `writing-angle.md` created | "We handle everything" kept generating over-claims because the frame requires them. "You buy, we enable" makes the CNF and Ireland-only boundaries features rather than footnotes. |
+| 2026-08-25 | Every "we pay your VRT / VRT payment / zero forms / nothing more to do" claim removed from the Ireland pages | VRT and import charges are levied on the **registered owner**, so they are paid in the customer's name. Providence calculates them up front, prepares and files the declarations and books the NCTS appointment — but cannot pay them on the customer's behalf. |
+| 2026-08-25 | Second, wider repositioning sweep: /b2c ("White-Glove Logistics", "Mastery of Tax Law"), /b2b ("We Handle the Hard Stuff"), /request ("our concierge will handle"), the gallery ("Our team handles all … customs clearances", "True white-glove service") and the home page ("It arrives cleared") | The first pass swept seven files and missed the rest, so the repositioning did not visibly land. This is why `brand-position.md` §11.1 now says to read the docs every time rather than when in doubt. |
+| 2026-08-25 | B2B and B2C fixed to open on one shared value proposition, with the audience-specific advantage second | Splitting the message at the top produced two different brands on one site. |
+| 2026-08-25 | /b2c headline changed to "Buy Your Dream Car from Any Market" and given the globe, process rail and odometer counters | The page asserted global reach in prose but showed none of it; the animated elements are the proof, and the headline generalises the Japan page's unlock to every source market. |
+| 2026-08-25 | `news-editorial-playbook.md` §1.1 reconciled: 21 → 28 destinations, source markets restated as seven with presence stated separately as eight, and the "eight countries" claims in §3 and §4.1 corrected to seven | It is a source of truth for the news desk and was still carrying the pre-correction geography. The destination table now names `DESTINATION_REGIONS` as canonical so the two cannot drift apart silently. |
+| 2026-08-25 | Sri Lanka added to `DESTINATION_REGIONS` (28 → 29 destinations) | It is demonstrably a market we ship into — its own country page calls it "primarily a destination market for us", and both the Japan and India campaign pickers route there. `ca58b48` had removed it on the reasoning that it is a presence country, but presence and destination are not mutually exclusive. Resolves the contradiction logged in `brand-position.md` §11.3. |
+| 2026-08-25 | Sri Lanka's channel policy recorded here in §14, not in a separate untracked file | "Not public" means it never becomes landing-page copy, an ad or a chat reply — not that it is withheld from the team. Keeping it in the one source-of-truth document is what makes it usable when a targeting decision comes up. Note the repo is public (`github.com/seyone22/providence`), so this section is readable on GitHub. |
+| 2026-08-25 | The persist-until-answered rule narrowed to **source-of-truth documents only** | As first written it covered any recommendation, which is not what was asked and would have turned every passing suggestion into a standing obligation. Ordinary suggestions are raised once and dropped if not taken up; only a pending change to a documented truth persists. |
 
 ## 12. Known documentation to reconcile
 
@@ -311,12 +359,72 @@ find-and-replace:
 |---|---|
 | `CLAUDE.md` | Codebase architecture, commands, route structure, data layer — read this for *how the site is built*. |
 | **`business-context.md`** (this file) | What the business is, does, and claims — read this for *what the site should say*. |
+| `brand-position.md` | The position itself: access-plus-capability, the four pillars, what we are not, the competitive frame, boilerplate. Read for *what we stand for*. |
+| `writing-angle.md` | The sentence-level rules that carry the position: the subject test, banned concierge phrasing, rewrite patterns, the pre-publish check. Read for *how to phrase it*. |
 | `sourcing-analyzer-methodology.md` | The admin Sourcing & Profit Analyzer: landed-cost formula, market-comparable pipeline, margin/verdict logic. |
 | `news-editorial-playbook.md` | `/latest-news` — market/reader definitions, the relevance gate, the seven landed-cost lenses, "The Landed Desk" voice, SEO/AEO spec, fact-checking protocol, the weekly 20-story slate. |
 | `seo-aeo-optimization-guide.md` | The SEO/AEO process every new page runs through, Phase 1–5, plus the pre-publish checklist. |
 | `sales-profile-spec.md` | `/team/[slug]` sales-profile pages — data model, lead assignment, admin editor. |
 | `indian-manufactured-cars-content-pack.md` | The `/indian-manufactured-cars` campaign page and its companion blog post, as a worked content-pack example. |
 | `~/.claude/.../memory/*.md` (this account's persistent memory) | Narrower, dated operational lessons — deploy verification gotchas, formula sources, feedback on how this user likes to work. Several are linked inline above where directly relevant; browse the index (`MEMORY.md`) for the rest. |
+
+---
+
+## 14. Channel policy — internal, and never public copy
+
+**"Internal" here means it never becomes a sentence on the website, in an ad,
+in an email or in a chat reply.** It does not mean hidden from the team — this
+is a decision input, and it lives in this document precisely so decisions get
+made against it.
+
+### 14.1 Sri Lanka is a dealer-channel market
+
+**Public, and already on the site:** we ship into Sri Lanka, our Colombo team
+runs South Asia operations, and we do not source vehicles there.
+
+**Internal:**
+
+- **Sri Lanka is served through the dealer channel. We do not run B2C
+  acquisition into it.** We hold strong B2B relationships with Sri Lankan
+  dealers, and selling direct to consumers there would compete with the
+  customers who already buy volume from us.
+- **Do not put this on a page.** Not as "dealer enquiries only", not as a note
+  on the country page, not in a chat reply. Simply don't target; say nothing.
+- **But we rank for Sri Lanka deliberately.** Japan-built and India-built cars
+  ship there in volume, and a meaningful share of Sri Lankan buyers are one-
+  or two-person dealer operations who search like consumers. The country page,
+  the blog cluster and the campaign destination panels all stay, and stay
+  optimised. Organic is the acquisition route.
+
+| Decision | Sri Lanka |
+|---|---|
+| Paid B2C acquisition (consumer campaigns) | **No.** Do not target. |
+| Paid B2B / dealer acquisition | Yes. |
+| Organic SEO — country page, blog cluster, news | **Yes, actively maintain.** |
+| A *limited* or *focus* country list | **No** — see §14.2. |
+| A *complete* list (all destinations, globe, flag strip) | Yes. It is a real destination. |
+| Inbound Sri Lankan leads | Handle normally; many will be small dealers. |
+
+### 14.2 The focus-list rule
+
+**When a surface can only carry a limited number of countries** — a hero list,
+a "top markets" strip, a campaign's featured destinations, an ad's targeting
+set, a deck slide — **Sri Lanka does not take one of the slots.** Those slots
+belong to markets we are actively acquiring in.
+
+This is about emphasis, not erasure: Sri Lanka stays in complete lists, keeps
+its page and keeps its SEO.
+
+**Checked 2026-08-25, all compliant, no change needed:** the `/import-japanese-cars`
+picker (7 entries, absent), the `/indian-manufactured-cars` picker (12 entries,
+present and correct — India-built cars are exactly what ships there), the home
+flag strip and the `/about-us` destination grid (both complete lists).
+
+### 14.3 The test before writing anything
+
+**Would a Sri Lankan dealer, or a competitor, learn something from this
+sentence that we would not say to their face?** If yes, it stays in this
+section and off the website.
 
 ---
 

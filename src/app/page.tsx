@@ -336,7 +336,7 @@ export default function Home() {
                     icon: (
                       <Globe className="text-sky-500 h-7 w-7 md:h-8 md:w-8 group-hover:text-white transition-colors duration-500" />
                     ),
-                    desc: "We search 40+ global markets to find your exact spec at the most tax-efficient price, buying through our own teams in seven of them. Currency, supply, and timing all factored in. You approve the quote. We handle everything from there.",
+                    desc: "We search 40+ global markets to find your exact spec at the most tax-efficient price, buying through our own teams in seven of them. Currency, supply, and timing all factored in. You see the comparison and approve the quote — nothing moves until you do.",
                   },
                   {
                     step: "",
@@ -345,7 +345,7 @@ export default function Home() {
                     icon: (
                       <Ship className="text-sky-500 h-7 w-7 md:h-8 md:w-8 group-hover:text-white transition-colors duration-500" />
                     ),
-                    desc: "Your car is purchased, quality checked, fully documented, and shipped. You get real-time updates at every stage. It arrives cleared, compliant, and ready to register.",
+                    desc: "Your car is purchased, quality checked, fully documented and shipped, with real-time updates at every stage. It arrives with the complete document pack and our team behind you through clearance and registration.",
                   },
                 ].map((item, index) => (
                   <Reveal
