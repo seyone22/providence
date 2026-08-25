@@ -79,13 +79,20 @@ buy", "offices"). They must not be used interchangeably.
 |---|---|---|---|
 | **Presence** | 8 | Countries where Providence has its own people/operations teams. Includes Sri Lanka. | `OFFICE_COUNTRIES_SENTENCE`, `COUNTRY_PAGES` in `src/config/countries.ts` |
 | **Source** | 7 | Countries Providence actually **buys cars in**. Presence minus Sri Lanka. | `SOURCE_COUNTRIES_SENTENCE`, `SOURCE_COUNTRY_PAGES` in `src/config/countries.ts` |
-| **Destination** | 28 (as of 2026-08-25) | Markets Providence ships **to**. Includes Sri Lanka (it is a destination market and the South-Asia operations base, not a manufacturing country). | `DESTINATION_REGIONS` in `/about-us` (`src/app/(marketing)/about-us/page.tsx`) |
+| **Destination** | 29 (as of 2026-08-25) | Markets Providence ships **to**. Includes Sri Lanka — it is both a destination market and the South-Asia operations base, and a country can be in more than one of these lists (Australia, New Zealand, Thailand and the UK are each in two). | `DESTINATION_REGIONS` in `/about-us` (`src/app/(marketing)/about-us/page.tsx`) |
 
 **Sri Lanka specifically:** the Colombo team runs South Asia operations and
-handles Sri Lanka's own (notoriously complex) import process, but Sri Lanka
-is not a vehicle-manufacturing country and Providence does not buy cars there.
-It belongs in the presence list and the destination list, never the source
-list.
+handles Sri Lanka's own (notoriously complex) import process, and we ship into
+the market — but Sri Lanka is not a vehicle-manufacturing country and
+Providence does not buy cars there. It belongs in the **presence** list and the
+**destination** list, never the source list. Added to `DESTINATION_REGIONS` on
+2026-08-25, taking the count to 29.
+
+> **Sri Lanka has a market-specific channel policy that is not public.** It is
+> recorded in `business-context.private.md` (untracked — see §14). Read that
+> file before planning any campaign, ad targeting, focus list or outreach that
+> involves Sri Lanka. Nothing in it is ever quoted or paraphrased into public
+> copy.
 
 **"Office" language is a presence claim, not a real-estate claim.** The site
 does not have a walk-in office the public can visit in all eight presence
@@ -93,8 +100,8 @@ countries — only **London** is a registered, visitable head office. Public
 copy should say "our own people/teams", not "our offices", except for the UK.
 See §5.1.
 
-**Destination-market count is a moving number.** 28 is the count on
-`/about-us` as of the Botswana/Germany addition (2026-08-25). It is a literal
+**Destination-market count is a moving number.** 29 is the count on
+`/about-us` as of the Sri Lanka addition (2026-08-25). It is a literal
 count of `DESTINATION_REGIONS` — the page derives its own headline and stat
 tile from `.length`, so they can't silently disagree with each other again.
 Two other lists have **not** been reconciled to that count and are known
@@ -327,6 +334,8 @@ don't just fix the copy silently.
 | 2026-08-25 | B2B and B2C fixed to open on one shared value proposition, with the audience-specific advantage second | Splitting the message at the top produced two different brands on one site. |
 | 2026-08-25 | /b2c headline changed to "Buy Your Dream Car from Any Market" and given the globe, process rail and odometer counters | The page asserted global reach in prose but showed none of it; the animated elements are the proof, and the headline generalises the Japan page's unlock to every source market. |
 | 2026-08-25 | `news-editorial-playbook.md` §1.1 reconciled: 21 → 28 destinations, source markets restated as seven with presence stated separately as eight, and the "eight countries" claims in §3 and §4.1 corrected to seven | It is a source of truth for the news desk and was still carrying the pre-correction geography. The destination table now names `DESTINATION_REGIONS` as canonical so the two cannot drift apart silently. |
+| 2026-08-25 | Sri Lanka added to `DESTINATION_REGIONS` (28 → 29 destinations) | It is demonstrably a market we ship into — its own country page calls it "primarily a destination market for us", and both the Japan and India campaign pickers route there. `ca58b48` had removed it on the reasoning that it is a presence country, but presence and destination are not mutually exclusive. Resolves the contradiction logged in `brand-position.md` §11.3. |
+| 2026-08-25 | Sri Lanka's channel policy recorded in `business-context.private.md` (untracked) rather than here | The repository is public. The policy concerns dealer relationships, and publishing it would be visible to the dealers it concerns and to competitors. |
 | 2026-08-25 | The persist-until-answered rule narrowed to **source-of-truth documents only** | As first written it covered any recommendation, which is not what was asked and would have turned every passing suggestion into a standing obligation. Ordinary suggestions are raised once and dropped if not taken up; only a pending change to a documented truth persists. |
 
 ## 12. Known documentation to reconcile
@@ -360,6 +369,27 @@ find-and-replace:
 | `sales-profile-spec.md` | `/team/[slug]` sales-profile pages — data model, lead assignment, admin editor. |
 | `indian-manufactured-cars-content-pack.md` | The `/indian-manufactured-cars` campaign page and its companion blog post, as a worked content-pack example. |
 | `~/.claude/.../memory/*.md` (this account's persistent memory) | Narrower, dated operational lessons — deploy verification gotchas, formula sources, feedback on how this user likes to work. Several are linked inline above where directly relevant; browse the index (`MEMORY.md`) for the rest. |
+
+---
+
+## 14. Private context — and why this file is not the place for it
+
+**This repository is public** (`github.com/seyone22/providence`). Everything
+in this document is readable by customers, dealers and competitors, so it
+carries only what we are content to have them read.
+
+Commercial reasoning that would damage a relationship or hand a competitor an
+advantage lives in **`business-context.private.md`**, which is untracked via
+`.gitignore` and never committed. It currently holds the Sri Lanka channel
+policy and the focus-list rule that follows from it.
+
+**Read the private file before** planning a campaign, choosing ad targeting,
+building any list of "focus" or "top" markets, or answering a question about
+which markets we sell to and how. Its contents are decision inputs only —
+they never become a sentence in public copy, an ad, an email or a chat reply.
+
+If it is missing (a fresh clone will not have it), the same content is in this
+account's Claude Code memory under `sri-lanka-dealer-channel-only`.
 
 ---
 

@@ -80,7 +80,7 @@ const STATS = [
   { value: 15, suffix: "+", label: "Years trading history" },
   { value: 8, label: "Countries with our own presence" },
   { value: 40, suffix: "+", label: "Retail sourcing markets" },
-  { value: 28, label: "Destination markets served" },
+  { value: 29, label: "Destination markets served" },
   { value: 100, suffix: "+", label: "Dealer sourcing markets" },
   { value: 24, suffix: " hrs", label: "To your first sourcing quote" },
 ];
@@ -291,6 +291,7 @@ const DESTINATION_REGIONS = [
       "Bangladesh",
       "Nepal",
       "Singapore",
+      "Sri Lanka",
     ],
   },
 ];
@@ -791,7 +792,7 @@ export default function AboutUsPage() {
                 <SectionRule />
                 <h2 className="text-3xl md:text-5xl font-bold tracking-tighter text-black mb-5">
                   Our network is eight bases, forty-plus sourcing markets and
-                  twenty-eight destinations.
+                  twenty-nine destinations.
                 </h2>
                 <p className="text-lg text-zinc-500 font-light">
                   Our own teams sit in eight countries and buy in many more.

@@ -45,3 +45,6 @@ next-env.d.ts
 
 # Claude Code internal worktrees (nested checkouts — never commit)
 .claude/worktrees/
+
+# Private business context — the repo is public, this must never be committed
+business-context.private.md

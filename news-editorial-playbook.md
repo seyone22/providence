@@ -12,16 +12,20 @@ This is the reference document. The repeatable weekly run that turns it into 20 
 
 **Destination markets — where the cars land.** Every right-hand-drive country on earth, plus left-hand-drive markets *for luxury vehicles only*.
 
-The 28 destinations we already hold country assets for, and therefore our priority list. This table mirrors `DESTINATION_REGIONS` in `src/app/(marketing)/about-us/page.tsx`, which is canonical — if the two ever disagree, the code is right and this needs updating.
+The 29 destinations we already hold country assets for, and therefore our priority list. This table mirrors `DESTINATION_REGIONS` in `src/app/(marketing)/about-us/page.tsx`, which is canonical — if the two ever disagree, the code is right and this needs updating.
 
 | Region | Markets |
 |---|---|
 | Europe | Ireland, United Kingdom, Germany, Malta, Cyprus, Jersey |
 | Africa | Kenya, Uganda, Zimbabwe, Botswana, Tanzania, Mauritius, Seychelles |
 | Caribbean | Jamaica, Trinidad and Tobago, Barbados, Guyana, Bahamas |
-| Asia-Pacific | Australia, New Zealand, Hong Kong, Malaysia, Indonesia, Thailand, Pakistan, Bangladesh, Nepal, Singapore |
+| Asia-Pacific | Australia, New Zealand, Hong Kong, Malaysia, Indonesia, Thailand, Pakistan, Bangladesh, Nepal, Singapore, Sri Lanka |
 
-Germany is a destination for **luxury LHD only**, per the exception below. Sri Lanka is a market we ship into and holds a full blog cluster and country page, but is currently absent from the canonical list — that discrepancy is logged as a pending source-of-truth question in `brand-position.md` §11.3, so treat Sri Lanka as in-scope for reader-side stories until it resolves.
+Germany is a destination for **luxury LHD only**, per the exception below.
+
+**Sri Lanka is in scope and should be covered actively** — it has a full blog cluster, a country page and one of the most volatile import regimes we track, which makes it high-value editorial. Write it for both readers per §1.2, and lean on the multi-unit angle at least as hard as the single-car one.
+
+Some markets carry commercial policy that shapes what we promote there without changing what we cover. That policy lives in `business-context.private.md` (untracked, internal) — check it before planning campaign-adjacent coverage, and never restate any of it in an article.
 
 **LHD exception.** We serve left-hand-drive markets only where the vehicle is luxury — this is the `/japanese-luxury-cars-lhd` proposition. A story about a mainstream LHD hatchback in Germany is out of scope. A story about LHD-market allocation of a Lexus LX or a G-Class is in scope.
 

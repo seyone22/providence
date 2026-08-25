@@ -159,6 +159,12 @@ Lines retired in this repositioning:
 These three documents — `business-context.md`, `brand-position.md` and
 `writing-angle.md` — are the source of truth. Two standing rules govern them.
 
+**There is also a fourth, private file.** `business-context.private.md` is
+untracked (the repository is public) and holds market-specific commercial
+policy — currently Sri Lanka's channel position and the focus-list rule.
+Read it before planning a campaign, ad targeting, or any limited list of
+markets. Never quote or paraphrase it into public copy.
+
 ### 11.1 Read before you write
 
 **Read all three before writing or changing any public copy, any outbound
@@ -199,7 +205,7 @@ assumption and flag it — the rule protects the document, not the schedule.
 | Raised | Document | Question | Recommendation | Status |
 |---|---|---|---|---|
 | 2026-08-25 | `news-editorial-playbook.md` | §1.1 said "21 destinations" and framed source markets as the eight-country presence set. | Reconcile to the 28-destination / seven-source position. | **Answered 2026-08-25 — update.** Applied. |
-| 2026-08-25 | `business-context.md` | §3 says the destination list "Includes Sri Lanka", but the canonical `DESTINATION_REGIONS` list of 28 does not contain it — while Sri Lanka's own country page calls it "primarily a destination market for us", and the Japan and India campaign pickers both ship there. One of the two is wrong. | Add Sri Lanka to `DESTINATION_REGIONS` (making it 29) — it is demonstrably a market we ship into. `ca58b48` removed it on the reasoning that it is a presence country, but presence and destination are not mutually exclusive; Australia, New Zealand, Thailand and the UK are all in both lists already. | **Open** |
+| 2026-08-25 | `business-context.md` | §3 said the destination list "Includes Sri Lanka" while the canonical `DESTINATION_REGIONS` list did not contain it. | Add Sri Lanka to `DESTINATION_REGIONS` (29). | **Answered 2026-08-25 — add it.** Applied; count now 29. Sri Lanka's channel policy went to `business-context.private.md` (untracked) because the repo is public. |
 
 Resolved and closed:
 
