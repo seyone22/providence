@@ -333,7 +333,7 @@ export const japanImportCampaignConfig: LandingPageConfig = {
           },
           {
             q: "What does it cost to import a Japanese car to Ireland?",
-            a: "Three charges apply: customs duty — 0% for Japan-built cars under the EU–Japan Economic Partnership Agreement — VAT at 23% on the landed value, and VRT based on CO2 emissions, which runs as low as 7–14% for efficient Japanese hybrids. Every import must be registered at NCTS within 30 days of arrival. We calculate, declare and pay all of it on your behalf, quoted in full before you commit.",
+            a: "Three charges apply: customs duty — 0% for Japan-built cars under the EU–Japan Economic Partnership Agreement — VAT at 23% on the landed value, and VRT based on CO2 emissions, which runs as low as 7–14% for efficient Japanese hybrids. Every import must be registered at NCTS within 30 days of arrival. We calculate and declare all of it, quoted in full before you commit — registration taxes are charged to you as the registered owner, so those are paid in your name.",
           },
           {
             q: "What do I need to import a Japanese car to New Zealand?",

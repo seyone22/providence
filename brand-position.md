@@ -66,7 +66,31 @@ Every landing page should carry all four. They are the whole offer.
 | **3. Documentation support** | The paperwork is the hard part and the part that goes wrong. We prepare, verify and explain it: export certificates, pre-shipment inspections, the rules of your destination confirmed before we buy. | Export clearance in every source country; per-destination rule guides; clearance support at the port. |
 | **4. People on the ground** | Someone physically stands next to your car before your money moves, and one named consultant owns your file. | Own teams in eight countries; inspection before payment; a named consultant, not a shared inbox. |
 
-## 5. Who this is for
+## 5. One proposition, two audiences
+
+**B2B and B2C open on the same promise.** The headline value proposition does
+not change between a private buyer and a dealership:
+
+> **You can source cars directly from the market they come from, and ship them
+> to your own country. We give you the access, the tools and the documentation
+> support to do it.**
+
+Say that first on both. A dealer and a private buyer are both being sold the
+removal of the same obstacle — the wholesale market was closed to them, and
+now it is not. Splitting the message at the top ("concierge for consumers,
+platform for dealers") is what produced two different brands on one site.
+
+**The difference is what comes second, and only second:**
+
+| | The second line |
+|---|---|
+| **Direct buyer (B2C)** | **Plus the price advantage of cutting the dealership out.** You are buying at the price a dealer buys at, so the margin that used to sit on a forecourt stays with you. This is B2C's differentiator and it belongs to B2C alone — a dealer *is* the margin, so the argument reverses. |
+| **Dealer (B2B)** | Plus stock you don't have to floor-plan. You sell from a global inventory without owning it, and the sourcing desk, landed maths and shipping sit behind your own brand. |
+
+**Never** lead B2C with "we handle it for you" or B2B with "outsource it to
+us". Both are the retired concierge frame wearing different clothes.
+
+## 6. Who this is for
 
 Unchanged from `business-context.md` §7 — but the emphasis shifts.
 
@@ -80,7 +104,7 @@ Unchanged from `business-context.md` §7 — but the emphasis shifts.
   the Sourcing & Profit Analyzer does internally — the dealer proposition is
   that capability pointed outward.
 
-## 6. What we are not
+## 7. What we are not
 
 - **Not a marketplace.** We don't list other people's stock and take a cut.
 - **Not a broker network.** Nothing is subcontracted to an exporter you never
@@ -90,7 +114,7 @@ Unchanged from `business-context.md` §7 — but the emphasis shifts.
 - **Not a shipping company.** Freight is a step in the process, not the product.
 - **Not your customs agent** — except in Ireland, where we are.
 
-## 7. Competitive frame
+## 8. Competitive frame
 
 | They say | We say |
 |---|---|
@@ -101,7 +125,7 @@ Unchanged from `business-context.md` §7 — but the emphasis shifts.
 
 The differentiator is **verifiability**. Anyone can promise. We show.
 
-## 8. Boilerplate
+## 9. Boilerplate
 
 **One line:**
 > Providence Auto gives you direct access to the world's car auctions — with the tools, documentation and people on the ground to buy from them with confidence.
@@ -112,7 +136,7 @@ The differentiator is **verifiability**. Anyone can promise. We show.
 **Proof line:**
 > 15+ years trading. Our own teams in eight countries. 40+ sourcing markets, 28 destinations, one landed price quoted before you commit.
 
-## 9. Tagline inventory
+## 10. Tagline inventory
 
 Existing lines, kept — they already read as access rather than concierge:
 
@@ -130,6 +154,53 @@ Lines retired in this repositioning:
 
 ---
 
-**Maintaining this document.** If a new proposition can't be expressed
-through one of the four pillars in §4, either it isn't ours or the pillars
-need revisiting — say which, in a PR, rather than quietly widening the claim.
+## 11. Keeping these documents current
+
+These three documents — `business-context.md`, `brand-position.md` and
+`writing-angle.md` — are the source of truth. Two standing rules govern them.
+
+### 11.1 Read before you write
+
+**Read all three before writing or changing any public copy, any outbound
+message, or building any page, campaign or component that carries copy.** Not
+"when in doubt" — every time. The August 2026 repositioning had to be done
+twice because the first pass swept seven files and left the retired
+vocabulary standing on /b2c, /b2b, /request and the gallery. Checking the
+docs is cheaper than the second pass.
+
+### 11.2 Propose, ask, and keep asking
+
+When work surfaces something these documents should say — a claim that turns
+out to be wrong, a new offer, a phrase that keeps recurring, a boundary
+nobody has written down — **do not silently adopt it and do not silently drop
+it.**
+
+1. **Raise it with the owner explicitly**, as a numbered question with a
+   recommendation attached. A question with no recommendation is work handed
+   back.
+2. **Log it in §11.3 below** the moment it is raised, with the date.
+3. **Keep asking.** An unanswered question is carried into the next session
+   and re-raised at the end of the next piece of work that touches the same
+   area. It stays in §11.3 until it is answered — it is never quietly closed
+   because time passed or the conversation moved on.
+4. **Only then update the document**, and record the decision in
+   `business-context.md` §11 so the reasoning survives.
+
+Unanswered does not mean blocked: do the work under the stated assumption and
+flag it. The rule is about the question not disappearing, not about stopping.
+
+### 11.3 Open questions
+
+Questions raised and not yet answered. Re-raise these until they are.
+
+| Raised | Question | Recommendation | Status |
+|---|---|---|---|
+| 2026-08-25 | The gallery, campaign and country-page testimonials are written placeholders. Should they be replaced with real Trustpilot quotes before the next campaign push, or rewritten as clearly-labelled illustrative copy? | Replace with real quotes — placeholder testimonials making service claims is the risk that produced the door-to-door and customs-clearance corrections. | **Open** |
+| 2026-08-25 | `news-editorial-playbook.md` §1.1 still says "21 destinations" and frames source markets as the eight-country presence set. It needs reconciling to the 28-destination / seven-source position. | Update it in a dedicated pass, since it also governs the news voice and slate. | **Open** |
+| 2026-08-25 | The site-wide `AutoDealer` JSON-LD in `layout.tsx` still describes "physical offices" in eight countries, per the standing "leave the structured data" instruction. Structured data and visible copy now disagree. | Align it with the visible copy, or confirm the divergence is deliberate. | **Open** |
+
+---
+
+**A closing test.** If a new proposition can't be expressed through one of the
+four pillars in §4, either it isn't ours or the pillars need revisiting — say
+which, and raise it under §11.2, rather than quietly widening the claim.

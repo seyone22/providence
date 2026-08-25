@@ -113,8 +113,7 @@ export default function B2BLanding() {
               Sell Beyond Your Lot
             </h3>
             <p className="text-zinc-500 text-lg relative z-10 font-light">
-              We allow you to sell cars you don't physically have. Borderless
-              inventory.
+              You sell cars you don't physically have. Borderless inventory.
             </p>
             <div className="absolute -bottom-20 -right-20 w-64 h-64 bg-black/5 rounded-full blur-[80px] group-hover:bg-blue-600/10 transition-colors duration-500" />
           </Reveal>
@@ -129,10 +128,11 @@ export default function B2BLanding() {
               <ShieldCheck className="text-black h-6 w-6 group-hover:text-white transition-colors duration-500" />
             </div>
             <h3 className="text-2xl font-bold text-black mb-2 relative z-10">
-              We Handle the Hard Stuff
+              The Hard Part, Prepared
             </h3>
             <p className="text-zinc-500 text-lg relative z-10 font-light">
-              Bill of Lading, HS Codes, and Marine Insurance? Entirely done.
+              Bill of Lading, HS codes and marine cover — prepared, filed and
+              explained.
             </p>
             <div className="absolute -bottom-20 -right-20 w-64 h-64 bg-black/5 rounded-full blur-[80px] group-hover:bg-blue-600/10 transition-colors duration-500" />
           </Reveal>

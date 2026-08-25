@@ -76,7 +76,24 @@ Worked examples. The left column is real copy that was on the site.
 | "Our own teams in eight countries handle every form, marine insurance policy and freight mile for you. Zero friction." | "Our own teams prepare every form, arrange the marine cover and book the freight — and show you each step as it happens." | "for you / zero friction" → "prepare and show you". Also corrects eight → the actual claim. |
 | "We handle the entire claims process—zero paperwork for you." | "We run the claim with the insurer and keep you updated — you don't chase it alone." | Denying paperwork → naming who does the chasing. |
 
-## 5. What does *not* change
+## 5. B2B and B2C open the same way
+
+The first thing a dealer reads and the first thing a private buyer reads is
+the **same sentence**: you can source cars directly from the market they come
+from and ship them to your own country, and we give you the access, tools and
+documentation support to do it. See `brand-position.md` §5.
+
+Only the *second* line differs:
+
+- **B2C** adds the price advantage of cutting the dealership out — you buy at
+  the price a dealer buys at, and that margin stays with you.
+- **B2B** adds stock you don't have to floor-plan — a global inventory sold
+  under your own brand, without owning it.
+
+Do not open B2C with relief ("we'll handle it") or B2B with outsourcing
+("leave the sourcing to us"). Both are the retired concierge frame.
+
+## 6. What does *not* change
 
 Do not sand the edges off things that are already true and specific.
 
@@ -91,7 +108,7 @@ Do not sand the edges off things that are already true and specific.
 - **Numbers stay.** One landed price, the grade, the age rule, the ROI
   target. Precision is the brand.
 
-## 6. Interaction with the existing rules
+## 7. Interaction with the existing rules
 
 This document adds to, and does not override:
 
@@ -107,9 +124,14 @@ This document adds to, and does not override:
   angle raises the stakes here rather than lowering them — copy that hands
   the reader numbers to decide on must have those numbers right.
 
-## 7. Pre-publish check
+## 8. Pre-publish check
 
-Four questions for any customer-facing page:
+**Read `business-context.md`, `brand-position.md` and this document before
+writing or changing any public copy, any outbound message, or building
+anything that carries copy.** Every time — see `brand-position.md` §11.1 for
+why that is stated so bluntly.
+
+Five questions for any customer-facing page:
 
 1. **Subject test.** In the hero and the value props, is the reader doing the
    verbs, or watching us do them?
@@ -117,5 +139,12 @@ Four questions for any customer-facing page:
    to\|handle everything\|door-to-door\|hassle-free"`)
 3. **Pillar coverage.** Are all four pillars from `brand-position.md` §4
    present — access, tools, documentation, people?
-4. **Scope honesty.** Does any claim promise clearance outside Ireland, or
-   delivery past the destination port? (`business-context.md` §4)
+4. **Scope honesty.** Does any claim promise clearance outside Ireland,
+   delivery past the destination port, or that we pay a tax that is charged to
+   the registered owner? (`business-context.md` §4)
+5. **Opening line.** Do B2B and B2C open on the same proposition, with the
+   audience-specific advantage second rather than first? (§5)
+
+If the work surfaces something these documents should say, raise it, log it in
+`brand-position.md` §11.3, and keep raising it until it is answered
+(`brand-position.md` §11.2). Do not adopt it silently and do not drop it.

@@ -10,6 +10,10 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 These are about *what the site should say*; this file is about *how the site is built*.
 
+**Read all three every time — not "when in doubt".** The August 2026 repositioning had to be done twice because the first pass swept seven files and left the retired vocabulary standing on `/b2c`, `/b2b`, `/request` and the gallery.
+
+**When work surfaces something these documents should say** — a claim that turns out to be wrong, a new offer, a boundary nobody has written down — do not adopt it silently and do not drop it. Raise it with the owner as a numbered question with a recommendation, log it in `brand-position.md` §11.3, and **keep re-raising it until it is answered**. Unanswered questions are carried into the next session, not quietly closed. Full rule: `brand-position.md` §11.
+
 ## Commands
 
 ```bash

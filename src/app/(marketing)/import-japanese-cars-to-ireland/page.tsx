@@ -33,7 +33,7 @@ const IRELAND_FAQS: LandingPageConfig["faqs"] = {
       items: [
         {
           q: "What taxes do I pay when importing a car to Ireland?",
-          a: "Three charges apply: (1) Customs Duty — 0% for Japan-built cars under the EU–Japan EPA since February 2026. (2) VAT at 23%, charged once on the car's landed value. (3) VRT (Vehicle Registration Tax) — 7% to 14% for low-CO2 hybrids and efficient petrols. We calculate, declare, and pay all three on your behalf.",
+          a: "Three charges apply: (1) Customs Duty — 0% for Japan-built cars under the EU–Japan EPA since February 2026. (2) VAT at 23%, charged once on the car's landed value. (3) VRT (Vehicle Registration Tax) — 7% to 14% for low-CO2 hybrids and efficient petrols. We calculate all three before you commit and prepare and file the declarations, but they are charged to you as the registered owner — Revenue collects VRT from the person the car is registered to, so the payment is made in your name.",
         },
         {
           q: "What is VRT and how is it calculated?",
@@ -62,15 +62,15 @@ const IRELAND_FAQS: LandingPageConfig["faqs"] = {
         },
         {
           q: "What is NCTS and do I need to do anything for it?",
-          a: "The National Car Testing Service (NCTS) is where imported vehicles are registered in Ireland and VRT is assessed. Every imported vehicle must be registered within 30 days of arrival, with an NCTS appointment booked within the first 7 days. We handle this entirely — booking, documentation, VRT payment. You do nothing.",
+          a: "The National Car Testing Service (NCTS) is where imported vehicles are registered in Ireland and VRT is assessed. Every imported vehicle must be registered within 30 days of arrival, with an NCTS appointment booked within the first 7 days. We book the appointment and prepare every document it needs, and we tell you the VRT figure long before you get there. The registration and the VRT payment are made in your name, because Revenue charges the registered owner — we take you through it rather than leaving you to work it out.",
         },
         {
           q: "Do I need to be present for any part of the process?",
-          a: "No. From the moment you submit your inquiry to the moment the car arrives at your door, Providence manages every step. You receive updates and full documentation throughout, but zero physical presence is required.",
+          a: "Almost none. We source, ship and clear the car and prepare every document, and you receive updates throughout. The one part that has to be yours is registration: the car is registered in your name and VRT is charged to you as the owner, so the NCTS appointment and the payment happen under your name. We book it, hand you the completed file and walk you through it.",
         },
         {
           q: "What documentation will I receive with my car?",
-          a: "You receive the original Japanese auction sheet with independent condition grading, full vehicle history, Certificate of Conformity with WLTP CO2 and NOx data, Bill of Lading, customs clearance certificates, and the VRT receipt. Everything needed for registration and ownership.",
+          a: "You receive the original Japanese auction sheet with independent condition grading, full vehicle history, Certificate of Conformity with WLTP CO2 and NOx data, Bill of Lading and customs clearance certificates — everything the NCTS appointment and your registration require, prepared and checked before you need it.",
         },
         {
           q: "Can I track my car during shipping?",
@@ -146,13 +146,13 @@ const PROCESS_STEPS = [
     number: "03",
     icon: Landmark,
     title: "Clear",
-    desc: "We handle 100% of the paperwork: customs declarations, VRT payment at NCTS, and all registration requirements. Zero forms for you — not one.",
+    desc: "We make the customs declaration, prepare the full NCTS pack and book the appointment. VRT and registration are charged to you as the owner, so that part is signed in your name — with every form filled in and checked before you sign it.",
   },
   {
     number: "04",
     icon: MapPin,
     title: "Deliver",
-    desc: "Your fully registered, road-legal car arrives at your door in Ireland. Keys handed over, all documents provided. Nothing more to do.",
+    desc: "Your car is delivered to you in Ireland, registered and road-legal, with the complete document pack — auction sheet, inspection, clearance and registration — handed over with the keys.",
   },
 ];
 
@@ -285,7 +285,7 @@ function getTimeLeft() {
 const TRUST_BADGES = [
   "15+ Years Trading",
   "0% Customs Duty (Japan)",
-  "Full VRT & NCTS Handling",
+  "VRT Calculated Up Front",
   "Marine Insurance Included",
   "Door-to-Door Delivery",
 ];
@@ -414,7 +414,7 @@ export default function ImportJapaneseCarsIreland() {
             You choose the car from Japan's auction floor. Ireland is the one
             market where we take it the whole way —
             <br className="hidden md:block" /> sourced, shipped, customs
-            cleared, VRT paid and delivered to your door.
+            cleared, VRT calculated and the car delivered to your door.
           </Reveal>
 
           <Reveal

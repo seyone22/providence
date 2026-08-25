@@ -10,8 +10,8 @@ It was assembled from the codebase (the copy that is actually live, the
 `config/` registries that drive it, and the standing docs below) and from the
 precision corrections made across this account's working sessions — several of
 which exist specifically because a claim on the site had drifted ahead of
-what the business actually does. Section 5 makes that list explicit so the
-same drift doesn't happen twice.
+what the business actually does. Section 11 logs those corrections and their
+reasoning so the same drift doesn't happen twice.
 
 This doc is **prose and facts**, not a copy-paste source. Don't lift sentences
 from here directly into a page; write the page in that page's own voice
@@ -108,8 +108,9 @@ more than the business actually delivers. This is the standing rule now:
 ### 4.1 Customs clearance: Ireland only
 
 **Providence directly clears customs in exactly one country: Ireland.**
-Ireland's own pages say so plainly ("We source, ship, clear customs, and
-deliver to your door") and that is accurate — leave it as-is.
+Ireland's own pages say so plainly — "Ireland is the one market where we take
+it the whole way" — and that is accurate. Note the boundary in §4.2 though:
+clearing customs is not the same as paying the registration tax.
 
 Everywhere else, the correct claim is **clearance support**, not direct
 execution: "clearance support at Mombasa", "we support your car's clearance
@@ -125,7 +126,22 @@ for *export* in Japan, the UK, Australia, India and Thailand (§2, step 3).
 The distinction is direction: export clearance in the country we buy from is
 real; import clearance in the country we ship to is Ireland-only.
 
-### 4.2 Delivery: CNF, not door-to-door
+### 4.2 Registration taxes are the owner's to pay
+
+**Providence does not pay a customer's registration or import taxes.** VRT,
+VAT and duty are charged to the *registered owner*, so the payment is made in
+the customer's name — Revenue and its equivalents bill the person the car is
+registered to, not the agent.
+
+What we actually do, and what the copy may say: calculate the figure before
+the customer commits, prepare and file the declarations, book the NCTS (or
+equivalent) appointment, and hand over a completed, checked document pack.
+
+Corrected across the Ireland pages on 2026-08-25, where the copy had said "we
+calculate, declare and pay all three on your behalf", "VRT payment. You do
+nothing", "Zero forms for you — not one" and "VRT paid".
+
+### 4.3 Delivery: CNF, not door-to-door
 
 Providence quotes and delivers **CNF (Cost and Freight) — to the destination
 port**, not door-to-door. The last-mile handover, local registration
@@ -139,7 +155,7 @@ same person, from your first message to arrival", "At destination port →
 Handover" (not "Delivered"). Avoid "door-to-door" as a blanket claim outside
 the specific pages where it's contractually true.
 
-### 4.3 Presence vs. visitable office
+### 4.4 Presence vs. visitable office
 
 Don't say "you're welcome to visit any of our eight offices." Say Providence
 has its own people/teams in eight countries, and that **London** specifically
@@ -171,6 +187,15 @@ Current, correct wording (`src/components/faqSection.tsx`):
 > website."
 
 ## 6. What Providence sells — the offers
+
+**B2B and B2C open on the same proposition.** Both audiences are told, first:
+*you can source cars directly from the market they come from and ship them to
+your own country, and we give you the access, tools and documentation support
+to do it.* Only the second line differs — B2C adds the price advantage of
+cutting the dealership out (you buy at the price a dealer buys at); B2B adds
+stock you don't have to floor-plan. Never open B2C with relief or B2B with
+outsourcing. Full treatment in `brand-position.md` §5.
+
 
 | Offer | Route | Who it's for |
 |---|---|---|
@@ -296,6 +321,11 @@ don't just fix the copy silently.
 | 2026-08-24 | Sri Lanka removed from the `/source-cars-from` sourcing hub, its structured data, and every "we buy in eight countries" sentence; corrected to seven | Sri Lanka is a destination/operations market, not somewhere Providence buys cars. The exclusion had been hand-written per call site and was missing from the hub itself — now centralised as `SOURCE_COUNTRY_PAGES` in `src/config/countries.ts`. |
 | 2026-08-25 | Botswana and Germany added to the destinations list; destination count moved 26 → 28 | Both markets are already quoted (request-form dialling codes, admin destination list); the public list was behind reality. |
 | 2026-08-25 | Nine destinations on the Japan and India campaign pages, plus each page's empty-state headline, changed from "cleared through X for you" / "fully cleared" to "clearance support at X" | Providence clears customs directly in Ireland only. Elsewhere the business supports the local clearance process; it doesn't execute it. |
+| 2026-08-25 | Repositioned from concierge to direct access; `brand-position.md` and `writing-angle.md` created | "We handle everything" kept generating over-claims because the frame requires them. "You buy, we enable" makes the CNF and Ireland-only boundaries features rather than footnotes. |
+| 2026-08-25 | Every "we pay your VRT / VRT payment / zero forms / nothing more to do" claim removed from the Ireland pages | VRT and import charges are levied on the **registered owner**, so they are paid in the customer's name. Providence calculates them up front, prepares and files the declarations and books the NCTS appointment — but cannot pay them on the customer's behalf. |
+| 2026-08-25 | Second, wider repositioning sweep: /b2c ("White-Glove Logistics", "Mastery of Tax Law"), /b2b ("We Handle the Hard Stuff"), /request ("our concierge will handle"), the gallery ("Our team handles all … customs clearances", "True white-glove service") and the home page ("It arrives cleared") | The first pass swept seven files and missed the rest, so the repositioning did not visibly land. This is why `brand-position.md` §11.1 now says to read the docs every time rather than when in doubt. |
+| 2026-08-25 | B2B and B2C fixed to open on one shared value proposition, with the audience-specific advantage second | Splitting the message at the top produced two different brands on one site. |
+| 2026-08-25 | /b2c headline changed to "Buy Your Dream Car from Any Market" and given the globe, process rail and odometer counters | The page asserted global reach in prose but showed none of it; the animated elements are the proof, and the headline generalises the Japan page's unlock to every source market. |
 
 ## 12. Known documentation to reconcile
 

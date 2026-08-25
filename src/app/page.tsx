@@ -345,7 +345,7 @@ export default function Home() {
                     icon: (
                       <Ship className="text-sky-500 h-7 w-7 md:h-8 md:w-8 group-hover:text-white transition-colors duration-500" />
                     ),
-                    desc: "Your car is purchased, quality checked, fully documented, and shipped. You get real-time updates at every stage. It arrives cleared, compliant, and ready to register.",
+                    desc: "Your car is purchased, quality checked, fully documented and shipped, with real-time updates at every stage. It arrives with the complete document pack and our team behind you through clearance and registration.",
                   },
                 ].map((item, index) => (
                   <Reveal
