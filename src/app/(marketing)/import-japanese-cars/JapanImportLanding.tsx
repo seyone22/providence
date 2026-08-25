@@ -509,8 +509,8 @@ export default function JapanImportLanding() {
       {/* ── DESTINATION PANEL ────────────────────────── */}
       <DestinationPanel
         destination={destination}
-        emptyHeadline="We buy cars at Japanese auction and get them to your door, supporting you through customs clearance the whole way."
-        emptyBody="Providence Auto bids on your behalf at Japan's wholesale vehicle auctions, where more than 100,000 independently graded cars are sold every week at prices no retail forecourt can match. You tell us the model and specification you want. We find it, send you the original auction sheet and our own inspection findings before we bid, and quote one landed price that already includes the car, shipping, marine insurance, duty, VAT or GST and local registration. Choose your destination above and we will show you exactly how the rules, taxes and timeline work for your country."
+        emptyHeadline="Buy direct from Japan's auction floor — with the auction sheet, the landed number and the paperwork support to do it with confidence."
+        emptyBody="Japan's wholesale auctions sell more than 100,000 independently graded cars every week, at prices no retail forecourt can match — and until now you needed a licence and a buyer in the hall to reach them. You tell us the model and specification you want. We find it, send you the original auction sheet and our own inspection findings before we bid, and quote one landed price covering the car, shipping, marine cover, duty and the taxes that apply at your destination. Choose your destination above and we will show you exactly how the rules, taxes and timeline work for your country."
       />
 
       {/* ── MODEL CARDS, BY CATEGORY ─────────────────── */}

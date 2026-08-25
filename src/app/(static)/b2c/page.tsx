@@ -90,9 +90,9 @@ export default function B2CLanding() {
             Never compromise again.
           </h2>
           <p className="text-xl text-zinc-500 max-w-2xl mx-auto font-light">
-            We are industry experts with our own people in eight source
-            countries. We know exactly where to find your desired vehicle for
-            the cheapest price, with the exact specifications you demand.
+            We buy in seven countries and source across forty more, so we know
+            where your exact specification lands cheapest — and we show you the
+            comparison rather than asking you to take our word for it.
           </p>
         </Reveal>
 
@@ -113,7 +113,7 @@ export default function B2CLanding() {
             {
               icon: Ship,
               title: "White-Glove Logistics",
-              desc: "From an auction hall in Japan or a dealer forecourt in Dubai to your driveway. Our own teams in eight countries handle every form, marine insurance policy and freight mile for you. Zero friction.",
+              desc: "From an auction hall in Japan or a dealer forecourt in Dubai to your port. Our own teams prepare every form, arrange the marine cover and book the freight — and show you each step as it happens.",
               glowColor: "group-hover:bg-indigo-500/15",
             },
             {

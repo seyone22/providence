@@ -411,9 +411,10 @@ export default function ImportJapaneseCarsIreland() {
             duration={0.8}
             className="text-xl md:text-2xl text-zinc-600 font-medium tracking-tight mb-10 max-w-2xl drop-shadow-[0_0_10px_rgba(255,255,255,1)]"
           >
-            We source, ship, clear customs, and deliver to your door.
-            <br className="hidden md:block" /> You choose the car. We handle
-            everything else.
+            You choose the car from Japan's auction floor. Ireland is the one
+            market where we take it the whole way —
+            <br className="hidden md:block" /> sourced, shipped, customs
+            cleared, VRT paid and delivered to your door.
           </Reveal>
 
           <Reveal
@@ -563,8 +564,8 @@ export default function ImportJapaneseCarsIreland() {
               Source. Ship. Clear. Deliver.
             </h2>
             <p className="text-xl text-zinc-500 max-w-2xl mx-auto font-light">
-              Every single step handled by Providence. Zero paperwork on your
-              end.
+              Ireland is the one market where we make the customs declaration
+              and handle VRT ourselves.
             </p>
           </Reveal>
 

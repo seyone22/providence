@@ -1511,7 +1511,7 @@ export default function ImportCarsToIrelandPage() {
               point={
                 <>
                   The right market depends on the car, not the other way round.
-                  We buy directly in eight countries and compare the{" "}
+                  We buy directly in seven countries and compare the{" "}
                   <strong>total landed cost across every one</strong> that can
                   supply your specification — then buy where it lands cheapest,
                   which is not always where you expected.

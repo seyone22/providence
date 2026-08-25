@@ -29,9 +29,18 @@ never speaks to.
 
 Registered head office: 468 Church Lane, Kingsbury, London NW9 8UA, UK.
 
-**The pitch, in one sentence:** tell us the exact car, we search 40+ sourcing
-markets for the most tax-efficient price, our own people inspect it before you
-pay, and you get one landed number — before you commit.
+**The position, in one sentence:** Providence Auto gives you direct access to
+the world's car auctions and dealer networks — plus the tools, documentation
+and people on the ground to use that access with confidence. **You buy the
+car; we make it possible.**
+
+This is a deliberate move away from the concierge framing the site used until
+August 2026 ("we buy your car and deliver it to your door"), for two reasons:
+that framing promised more than the operation delivers (§4), and it made
+Providence the hero of a transaction that belongs to the customer. The full
+reasoning, the four pillars and the competitive frame are in
+**`brand-position.md`**; the sentence-level rules for writing it are in
+**`writing-angle.md`**. Read both before writing customer-facing copy.
 
 ## 2. How the business actually operates
 
@@ -311,6 +320,8 @@ find-and-replace:
 |---|---|
 | `CLAUDE.md` | Codebase architecture, commands, route structure, data layer — read this for *how the site is built*. |
 | **`business-context.md`** (this file) | What the business is, does, and claims — read this for *what the site should say*. |
+| `brand-position.md` | The position itself: access-plus-capability, the four pillars, what we are not, the competitive frame, boilerplate. Read for *what we stand for*. |
+| `writing-angle.md` | The sentence-level rules that carry the position: the subject test, banned concierge phrasing, rewrite patterns, the pre-publish check. Read for *how to phrase it*. |
 | `sourcing-analyzer-methodology.md` | The admin Sourcing & Profit Analyzer: landed-cost formula, market-comparable pipeline, margin/verdict logic. |
 | `news-editorial-playbook.md` | `/latest-news` — market/reader definitions, the relevance gate, the seven landed-cost lenses, "The Landed Desk" voice, SEO/AEO spec, fact-checking protocol, the weekly 20-story slate. |
 | `seo-aeo-optimization-guide.md` | The SEO/AEO process every new page runs through, Phase 1–5, plus the pre-publish checklist. |
