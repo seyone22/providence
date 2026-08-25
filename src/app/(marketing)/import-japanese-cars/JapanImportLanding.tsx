@@ -325,7 +325,7 @@ const DESTINATIONS: Destination[] = [
       { icon: Gauge, label: "8-year age rule — compliant stock only" },
       { icon: ShieldCheck, label: "Pre-export inspection arranged in Japan" },
       { icon: CalendarClock, label: "Typically 6–10 weeks door to door" },
-      { icon: Anchor, label: "Cleared through Mombasa for you" },
+      { icon: Anchor, label: "Clearance support at Mombasa" },
     ],
     popular:
       "Most requested for Kenya: the Toyota Harrier, Fielder, Vitz, Probox and Land Cruiser Prado.",
@@ -337,12 +337,12 @@ const DESTINATIONS: Destination[] = [
     formCountry: "Tanzania",
     headline:
       "Tanzania has no age limit, but older cars carry extra excise duty.",
-    body: "Tanzania welcomes a wider range of Japanese imports than its neighbours: there's no outright age limit, though cars over 10 years old carry extra excise — which we build into your landed quote so the number never moves. Pre-shipment inspection is arranged in Japan, and your car clears through Dar es Salaam with our team on it the whole way.",
+    body: "Tanzania welcomes a wider range of Japanese imports than its neighbours: there's no outright age limit, though cars over 10 years old carry extra excise — which we build into your landed quote so the number never moves. Pre-shipment inspection is arranged in Japan, and we support your car's clearance through Dar es Salaam, with our team on it the whole way.",
     facts: [
       { icon: Gauge, label: "No age ban — excise built into quote" },
       { icon: ShieldCheck, label: "Pre-shipment inspection arranged" },
       { icon: CalendarClock, label: "Typically 6–10 weeks door to door" },
-      { icon: Anchor, label: "Cleared through Dar es Salaam" },
+      { icon: Anchor, label: "Clearance support at Dar es Salaam" },
     ],
     popular:
       "Most requested for Tanzania: the Toyota IST, Harrier, Noah, Raum and Land Cruiser.",
@@ -353,7 +353,7 @@ const DESTINATIONS: Destination[] = [
     label: "Uganda",
     formCountry: "Uganda",
     headline:
-      "Uganda is landlocked, so we clear at Mombasa and run overland to Kampala.",
+      "Uganda is landlocked, so we support clearance at Mombasa and run overland to Kampala.",
     body: "Your car lands at Mombasa and travels overland to Kampala under a bonded transit we arrange — one quote, one team, no handoffs at the border. Uganda's 15-year age ban and environmental levy make a 5–9 year-old Japanese car the sweet spot, and we source exactly that, with URA taxes included in the single price you approve up front.",
     facts: [
       { icon: Gauge, label: "15-year rule — sweet spot sourced" },
@@ -509,7 +509,7 @@ export default function JapanImportLanding() {
       {/* ── DESTINATION PANEL ────────────────────────── */}
       <DestinationPanel
         destination={destination}
-        emptyHeadline="We buy cars at Japanese auction and deliver them, fully cleared, to your country."
+        emptyHeadline="We buy cars at Japanese auction and get them to your door, supporting you through customs clearance the whole way."
         emptyBody="Providence Auto bids on your behalf at Japan's wholesale vehicle auctions, where more than 100,000 independently graded cars are sold every week at prices no retail forecourt can match. You tell us the model and specification you want. We find it, send you the original auction sheet and our own inspection findings before we bid, and quote one landed price that already includes the car, shipping, marine insurance, duty, VAT or GST and local registration. Choose your destination above and we will show you exactly how the rules, taxes and timeline work for your country."
       />
 
