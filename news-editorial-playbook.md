@@ -25,7 +25,7 @@ Germany is a destination for **luxury LHD only**, per the exception below.
 
 **Sri Lanka is in scope and should be covered actively** — it has a full blog cluster, a country page and one of the most volatile import regimes we track, which makes it high-value editorial. Write it for both readers per §1.2, and lean on the multi-unit angle at least as hard as the single-car one.
 
-Some markets carry commercial policy that shapes what we promote there without changing what we cover. That policy lives in `business-context.private.md` (untracked, internal) — check it before planning campaign-adjacent coverage, and never restate any of it in an article.
+Some markets carry commercial policy that shapes what we promote there without changing what we cover. That policy is in `business-context.md` §14 — check it before planning campaign-adjacent coverage, and never restate any of it in an article.
 
 **LHD exception.** We serve left-hand-drive markets only where the vehicle is luxury — this is the `/japanese-luxury-cars-lhd` proposition. A story about a mainstream LHD hatchback in Germany is out of scope. A story about LHD-market allocation of a Lexus LX or a G-Class is in scope.
 

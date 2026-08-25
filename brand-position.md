@@ -159,11 +159,11 @@ Lines retired in this repositioning:
 These three documents — `business-context.md`, `brand-position.md` and
 `writing-angle.md` — are the source of truth. Two standing rules govern them.
 
-**There is also a fourth, private file.** `business-context.private.md` is
-untracked (the repository is public) and holds market-specific commercial
-policy — currently Sri Lanka's channel position and the focus-list rule.
+**Market channel policy lives in `business-context.md` §14.** It covers which
+markets we do and do not acquire in, and the focus-list rule that follows.
 Read it before planning a campaign, ad targeting, or any limited list of
-markets. Never quote or paraphrase it into public copy.
+markets. It is a decision input — never quote or paraphrase it into public
+copy.
 
 ### 11.1 Read before you write
 
@@ -205,7 +205,7 @@ assumption and flag it — the rule protects the document, not the schedule.
 | Raised | Document | Question | Recommendation | Status |
 |---|---|---|---|---|
 | 2026-08-25 | `news-editorial-playbook.md` | §1.1 said "21 destinations" and framed source markets as the eight-country presence set. | Reconcile to the 28-destination / seven-source position. | **Answered 2026-08-25 — update.** Applied. |
-| 2026-08-25 | `business-context.md` | §3 said the destination list "Includes Sri Lanka" while the canonical `DESTINATION_REGIONS` list did not contain it. | Add Sri Lanka to `DESTINATION_REGIONS` (29). | **Answered 2026-08-25 — add it.** Applied; count now 29. Sri Lanka's channel policy went to `business-context.private.md` (untracked) because the repo is public. |
+| 2026-08-25 | `business-context.md` | §3 said the destination list "Includes Sri Lanka" while the canonical `DESTINATION_REGIONS` list did not contain it. | Add Sri Lanka to `DESTINATION_REGIONS` (29). | **Answered 2026-08-25 — add it.** Applied; count now 29. Sri Lanka's channel policy is recorded in `business-context.md` §14. |
 
 Resolved and closed:
 

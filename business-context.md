@@ -88,11 +88,9 @@ Providence does not buy cars there. It belongs in the **presence** list and the
 **destination** list, never the source list. Added to `DESTINATION_REGIONS` on
 2026-08-25, taking the count to 29.
 
-> **Sri Lanka has a market-specific channel policy that is not public.** It is
-> recorded in `business-context.private.md` (untracked — see §14). Read that
-> file before planning any campaign, ad targeting, focus list or outreach that
-> involves Sri Lanka. Nothing in it is ever quoted or paraphrased into public
-> copy.
+> **Sri Lanka has a market-specific channel policy — see §14.** Read it before
+> planning any campaign, ad targeting, focus list or outreach that involves
+> Sri Lanka. It is a decision input and never becomes public copy.
 
 **"Office" language is a presence claim, not a real-estate claim.** The site
 does not have a walk-in office the public can visit in all eight presence
@@ -335,7 +333,7 @@ don't just fix the copy silently.
 | 2026-08-25 | /b2c headline changed to "Buy Your Dream Car from Any Market" and given the globe, process rail and odometer counters | The page asserted global reach in prose but showed none of it; the animated elements are the proof, and the headline generalises the Japan page's unlock to every source market. |
 | 2026-08-25 | `news-editorial-playbook.md` §1.1 reconciled: 21 → 28 destinations, source markets restated as seven with presence stated separately as eight, and the "eight countries" claims in §3 and §4.1 corrected to seven | It is a source of truth for the news desk and was still carrying the pre-correction geography. The destination table now names `DESTINATION_REGIONS` as canonical so the two cannot drift apart silently. |
 | 2026-08-25 | Sri Lanka added to `DESTINATION_REGIONS` (28 → 29 destinations) | It is demonstrably a market we ship into — its own country page calls it "primarily a destination market for us", and both the Japan and India campaign pickers route there. `ca58b48` had removed it on the reasoning that it is a presence country, but presence and destination are not mutually exclusive. Resolves the contradiction logged in `brand-position.md` §11.3. |
-| 2026-08-25 | Sri Lanka's channel policy recorded in `business-context.private.md` (untracked) rather than here | The repository is public. The policy concerns dealer relationships, and publishing it would be visible to the dealers it concerns and to competitors. |
+| 2026-08-25 | Sri Lanka's channel policy recorded here in §14, not in a separate untracked file | "Not public" means it never becomes landing-page copy, an ad or a chat reply — not that it is withheld from the team. Keeping it in the one source-of-truth document is what makes it usable when a targeting decision comes up. Note the repo is public (`github.com/seyone22/providence`), so this section is readable on GitHub. |
 | 2026-08-25 | The persist-until-answered rule narrowed to **source-of-truth documents only** | As first written it covered any recommendation, which is not what was asked and would have turned every passing suggestion into a standing obligation. Ordinary suggestions are raised once and dropped if not taken up; only a pending change to a documented truth persists. |
 
 ## 12. Known documentation to reconcile
@@ -372,24 +370,61 @@ find-and-replace:
 
 ---
 
-## 14. Private context — and why this file is not the place for it
+## 14. Channel policy — internal, and never public copy
 
-**This repository is public** (`github.com/seyone22/providence`). Everything
-in this document is readable by customers, dealers and competitors, so it
-carries only what we are content to have them read.
+**"Internal" here means it never becomes a sentence on the website, in an ad,
+in an email or in a chat reply.** It does not mean hidden from the team — this
+is a decision input, and it lives in this document precisely so decisions get
+made against it.
 
-Commercial reasoning that would damage a relationship or hand a competitor an
-advantage lives in **`business-context.private.md`**, which is untracked via
-`.gitignore` and never committed. It currently holds the Sri Lanka channel
-policy and the focus-list rule that follows from it.
+### 14.1 Sri Lanka is a dealer-channel market
 
-**Read the private file before** planning a campaign, choosing ad targeting,
-building any list of "focus" or "top" markets, or answering a question about
-which markets we sell to and how. Its contents are decision inputs only —
-they never become a sentence in public copy, an ad, an email or a chat reply.
+**Public, and already on the site:** we ship into Sri Lanka, our Colombo team
+runs South Asia operations, and we do not source vehicles there.
 
-If it is missing (a fresh clone will not have it), the same content is in this
-account's Claude Code memory under `sri-lanka-dealer-channel-only`.
+**Internal:**
+
+- **Sri Lanka is served through the dealer channel. We do not run B2C
+  acquisition into it.** We hold strong B2B relationships with Sri Lankan
+  dealers, and selling direct to consumers there would compete with the
+  customers who already buy volume from us.
+- **Do not put this on a page.** Not as "dealer enquiries only", not as a note
+  on the country page, not in a chat reply. Simply don't target; say nothing.
+- **But we rank for Sri Lanka deliberately.** Japan-built and India-built cars
+  ship there in volume, and a meaningful share of Sri Lankan buyers are one-
+  or two-person dealer operations who search like consumers. The country page,
+  the blog cluster and the campaign destination panels all stay, and stay
+  optimised. Organic is the acquisition route.
+
+| Decision | Sri Lanka |
+|---|---|
+| Paid B2C acquisition (consumer campaigns) | **No.** Do not target. |
+| Paid B2B / dealer acquisition | Yes. |
+| Organic SEO — country page, blog cluster, news | **Yes, actively maintain.** |
+| A *limited* or *focus* country list | **No** — see §14.2. |
+| A *complete* list (all destinations, globe, flag strip) | Yes. It is a real destination. |
+| Inbound Sri Lankan leads | Handle normally; many will be small dealers. |
+
+### 14.2 The focus-list rule
+
+**When a surface can only carry a limited number of countries** — a hero list,
+a "top markets" strip, a campaign's featured destinations, an ad's targeting
+set, a deck slide — **Sri Lanka does not take one of the slots.** Those slots
+belong to markets we are actively acquiring in.
+
+This is about emphasis, not erasure: Sri Lanka stays in complete lists, keeps
+its page and keeps its SEO.
+
+**Checked 2026-08-25, all compliant, no change needed:** the `/import-japanese-cars`
+picker (7 entries, absent), the `/indian-manufactured-cars` picker (12 entries,
+present and correct — India-built cars are exactly what ships there), the home
+flag strip and the `/about-us` destination grid (both complete lists).
+
+### 14.3 The test before writing anything
+
+**Would a Sri Lankan dealer, or a competitor, learn something from this
+sentence that we would not say to their face?** If yes, it stays in this
+section and off the website.
 
 ---
 
