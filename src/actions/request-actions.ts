@@ -2,16 +2,7 @@
 "use server";
 
 import crypto from "node:crypto";
-import {
-  and,
-  asc,
-  desc,
-  eq,
-  ilike,
-  ne,
-  notInArray,
-  sql,
-} from "drizzle-orm";
+import { and, asc, desc, eq, ilike, ne, notInArray, sql } from "drizzle-orm";
 import { BLOG_BASE_PATH, getSuggestedPosts } from "@/config/blog";
 import { db, requests, users } from "@/db";
 import {
@@ -19,6 +10,7 @@ import {
   formatInIST,
   TIME_WINDOWS,
 } from "@/lib/contactScheduling";
+import { formatBudget } from "@/lib/currencies";
 import { emailService } from "@/lib/email";
 import connectToDatabase from "@/lib/mongoose";
 
@@ -75,6 +67,9 @@ export async function submitCarRequest(data: {
   countryCode: string;
   phone: string;
   countryOfImport: string;
+  // Budget the customer entered, plus the ISO 4217 code they entered it in.
+  budgetAmount?: number;
+  budgetCurrency?: string;
   importTimeline?: string;
   source?: string;
   // When set, the inquiry came through a sales member's personal profile page
@@ -111,6 +106,10 @@ export async function submitCarRequest(data: {
           countryCode: data.countryCode,
           phone: data.phone,
           countryOfImport: data.countryOfImport,
+          budgetAmount: Number.isFinite(data.budgetAmount)
+            ? (data.budgetAmount as number)
+            : null,
+          budgetCurrency: data.budgetCurrency || null,
           importTimeline: data.importTimeline || null,
           updatedAt: new Date(),
         })
@@ -285,6 +284,10 @@ export async function submitCarRequest(data: {
         countryCode: requestData.countryCode,
         phone: requestData.phone,
         countryOfImport: requestData.countryOfImport,
+        budgetAmount: Number.isFinite(requestData.budgetAmount)
+          ? (requestData.budgetAmount as number)
+          : null,
+        budgetCurrency: requestData.budgetCurrency || null,
         importTimeline: requestData.importTimeline || null,
         source: requestData.source || null,
         gclid: requestData.gclid || null,
@@ -461,6 +464,10 @@ export async function submitContactPreferences(input: {
           countryCode: request.countryCode,
           phone: request.phone,
           countryOfImport: request.countryOfImport,
+          budget: formatBudget(
+            request.budgetAmount,
+            request.budgetCurrency ?? undefined,
+          ),
           importTimeline: request.importTimeline || undefined,
           contactMethods: input.contactMethods,
           contactDays: input.contactDays,
