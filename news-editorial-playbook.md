@@ -12,18 +12,22 @@ This is the reference document. The repeatable weekly run that turns it into 20 
 
 **Destination markets — where the cars land.** Every right-hand-drive country on earth, plus left-hand-drive markets *for luxury vehicles only*.
 
-The 21 destinations we already hold country assets for, and therefore our priority list:
+The 28 destinations we already hold country assets for, and therefore our priority list. This table mirrors `DESTINATION_REGIONS` in `src/app/(marketing)/about-us/page.tsx`, which is canonical — if the two ever disagree, the code is right and this needs updating.
 
 | Region | Markets |
 |---|---|
-| Europe (RHD) | Ireland, United Kingdom, Malta, Cyprus, Jersey |
-| Africa | Kenya, Uganda, Zimbabwe |
+| Europe | Ireland, United Kingdom, Germany, Malta, Cyprus, Jersey |
+| Africa | Kenya, Uganda, Zimbabwe, Botswana, Tanzania, Mauritius, Seychelles |
 | Caribbean | Jamaica, Trinidad and Tobago, Barbados, Guyana, Bahamas |
-| Asia-Pacific | Australia, New Zealand, Hong Kong, Malaysia, Indonesia, Thailand, Sri Lanka, Maldives |
+| Asia-Pacific | Australia, New Zealand, Hong Kong, Malaysia, Indonesia, Thailand, Pakistan, Bangladesh, Nepal, Singapore |
+
+Germany is a destination for **luxury LHD only**, per the exception below. Sri Lanka is a market we ship into and holds a full blog cluster and country page, but is currently absent from the canonical list — that discrepancy is logged as a pending source-of-truth question in `brand-position.md` §11.3, so treat Sri Lanka as in-scope for reader-side stories until it resolves.
 
 **LHD exception.** We serve left-hand-drive markets only where the vehicle is luxury — this is the `/japanese-luxury-cars-lhd` proposition. A story about a mainstream LHD hatchback in Germany is out of scope. A story about LHD-market allocation of a Lexus LX or a G-Class is in scope.
 
-**Source markets — where we buy.** Own offices and operations teams in **Japan, the United Kingdom, the UAE, India, Thailand, Australia, New Zealand and Sri Lanka**, with reach into 40+ (retail) / 100+ (dealer) markets. Our structural advantage is that when one source market closes, we can price the same car out of another. That advantage should be visible in the copy.
+**Source markets — where we buy.** We buy in **seven** countries — Japan, the United Kingdom, the UAE, India, Thailand, Australia and New Zealand — with reach into 40+ (retail) / 100+ (dealer) markets. Our structural advantage is that when one source market closes, we can price the same car out of another. That advantage should be visible in the copy.
+
+**Presence is a different list from sourcing, and the two must not be swapped.** We have our own people in **eight** countries — the seven above plus **Sri Lanka**, which is a South Asia operations base and a destination market, not somewhere we buy cars. Say "our own teams in eight countries" for presence and "we buy in seven countries" for sourcing. Note also that presence is *not* a claim to a visitable office: only London is that. See `business-context.md` §3.
 
 ### 1.2 The two readers
 
@@ -167,7 +171,7 @@ Peg arrangements do change. Verify the regime before publishing, and date the ch
 These are reliable, repeatable, and nobody else in our space writes them properly:
 
 1. **The corridor read.** "The yen just hit ¥X — here is what it does to a Land Cruiser landed in Nairobi." One car, one corridor, both currencies, a worked number.
-2. **The monthly cross-market read.** All eight source currencies against the main destination currencies, with the cheapest corridor named. Highly repeatable, ages into an archive that ranks.
+2. **The monthly cross-market read.** All seven source currencies against the main destination currencies, with the cheapest corridor named. Highly repeatable, ages into an archive that ranks.
 3. **The destination-weakness story.** For readers in Kenya, Uganda, Sri Lanka, Jamaica, Guyana — what a falling home currency does to an import already on the water.
 4. **The pass-through story.** Why the currency discount did not reach your invoice.
 5. **The customs-rate explainer.** Why the rate on your duty bill is not the rate on your banking app.
@@ -276,7 +280,7 @@ Doubt 5 is not decoration. It is the single most trust-building habit available 
 
 Articles are bylined **Providence Auto** and the editorial voice is **The Landed Desk**.
 
-**We do not invent a fictional journalist.** No fake name, no fake headshot, no fabricated bio. Inventing a person to carry authority is a fabrication, it is an E-E-A-T liability if discovered, and it contradicts everything else in this document. The desk is institutional, and its authority comes from a verifiable claim: *we buy cars at auction every week in eight countries.* That is real, and it is stronger than a persona.
+**We do not invent a fictional journalist.** No fake name, no fake headshot, no fabricated bio. Inventing a person to carry authority is a fabrication, it is an E-E-A-T liability if discovered, and it contradicts everything else in this document. The desk is institutional, and its authority comes from a verifiable claim: *we buy cars at auction every week in seven countries.* That is real, and it is stronger than a persona.
 
 Where a specific human contributed genuine expertise — a buyer in Japan, an ops lead in the UAE — attribute it plainly and only if that person actually exists and has agreed.
 

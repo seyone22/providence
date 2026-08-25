@@ -168,36 +168,45 @@ twice because the first pass swept seven files and left the retired
 vocabulary standing on /b2c, /b2b, /request and the gallery. Checking the
 docs is cheaper than the second pass.
 
-### 11.2 Propose, ask, and keep asking
+### 11.2 Never change a source-of-truth document without an answer
 
-When work surfaces something these documents should say — a claim that turns
-out to be wrong, a new offer, a phrase that keeps recurring, a boundary
-nobody has written down — **do not silently adopt it and do not silently drop
-it.**
+**This rule is narrow and it is about these documents only.** It is not a
+mandate to chase every recommendation about the site — ordinary suggestions
+are raised once, and dropped if they are not taken up.
 
-1. **Raise it with the owner explicitly**, as a numbered question with a
-   recommendation attached. A question with no recommendation is work handed
-   back.
-2. **Log it in §11.3 below** the moment it is raised, with the date.
-3. **Keep asking.** An unanswered question is carried into the next session
-   and re-raised at the end of the next piece of work that touches the same
-   area. It stays in §11.3 until it is answered — it is never quietly closed
-   because time passed or the conversation moved on.
-4. **Only then update the document**, and record the decision in
-   `business-context.md` §11 so the reasoning survives.
+What persists is a **pending change to a source of truth**: these three
+documents, plus `news-editorial-playbook.md`,
+`sourcing-analyzer-methodology.md`, `seo-aeo-optimization-guide.md` and
+`sales-profile-spec.md`. When work surfaces that one of them is wrong,
+incomplete or contradicts another:
 
-Unanswered does not mean blocked: do the work under the stated assumption and
-flag it. The rule is about the question not disappearing, not about stopping.
+1. **Do not edit it on your own authority.** A source of truth that can be
+   silently rewritten is not one.
+2. **Raise it as a numbered question with a recommendation attached**, and
+   log it in §11.3 the moment it is raised.
+3. **Keep asking until answered.** A pending documented-truth change is
+   carried into the next session and re-raised — it is never closed because
+   time passed or the conversation moved on. Answers may of course be "leave
+   it"; that closes the item.
+4. **Then apply the answer**, and record the decision in
+   `business-context.md` §11 so the reasoning survives the edit.
 
-### 11.3 Open questions
+Unanswered does not mean blocked. Do the surrounding work under a stated
+assumption and flag it — the rule protects the document, not the schedule.
 
-Questions raised and not yet answered. Re-raise these until they are.
+### 11.3 Pending source-of-truth changes
 
-| Raised | Question | Recommendation | Status |
-|---|---|---|---|
-| 2026-08-25 | The gallery, campaign and country-page testimonials are written placeholders. Should they be replaced with real Trustpilot quotes before the next campaign push, or rewritten as clearly-labelled illustrative copy? | Replace with real quotes — placeholder testimonials making service claims is the risk that produced the door-to-door and customs-clearance corrections. | **Open** |
-| 2026-08-25 | `news-editorial-playbook.md` §1.1 still says "21 destinations" and frames source markets as the eight-country presence set. It needs reconciling to the 28-destination / seven-source position. | Update it in a dedicated pass, since it also governs the news voice and slate. | **Open** |
-| 2026-08-25 | The site-wide `AutoDealer` JSON-LD in `layout.tsx` still describes "physical offices" in eight countries, per the standing "leave the structured data" instruction. Structured data and visible copy now disagree. | Align it with the visible copy, or confirm the divergence is deliberate. | **Open** |
+| Raised | Document | Question | Recommendation | Status |
+|---|---|---|---|---|
+| 2026-08-25 | `news-editorial-playbook.md` | §1.1 said "21 destinations" and framed source markets as the eight-country presence set. | Reconcile to the 28-destination / seven-source position. | **Answered 2026-08-25 — update.** Applied. |
+| 2026-08-25 | `business-context.md` | §3 says the destination list "Includes Sri Lanka", but the canonical `DESTINATION_REGIONS` list of 28 does not contain it — while Sri Lanka's own country page calls it "primarily a destination market for us", and the Japan and India campaign pickers both ship there. One of the two is wrong. | Add Sri Lanka to `DESTINATION_REGIONS` (making it 29) — it is demonstrably a market we ship into. `ca58b48` removed it on the reasoning that it is a presence country, but presence and destination are not mutually exclusive; Australia, New Zealand, Thailand and the UK are all in both lists already. | **Open** |
+
+Resolved and closed:
+
+- *Placeholder testimonials* (raised 2026-08-25) — **leave as-is.** Not a
+  source-of-truth change; a content decision, closed.
+- *`layout.tsx` `AutoDealer` JSON-LD still says "physical offices"*
+  (raised 2026-08-25) — **leave as-is**, deliberate divergence.
 
 ---
 

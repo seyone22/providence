@@ -12,7 +12,7 @@ These are about *what the site should say*; this file is about *how the site is 
 
 **Read all three every time — not "when in doubt".** The August 2026 repositioning had to be done twice because the first pass swept seven files and left the retired vocabulary standing on `/b2c`, `/b2b`, `/request` and the gallery.
 
-**When work surfaces something these documents should say** — a claim that turns out to be wrong, a new offer, a boundary nobody has written down — do not adopt it silently and do not drop it. Raise it with the owner as a numbered question with a recommendation, log it in `brand-position.md` §11.3, and **keep re-raising it until it is answered**. Unanswered questions are carried into the next session, not quietly closed. Full rule: `brand-position.md` §11.
+**Never change a source-of-truth document on your own authority.** That means these three plus `news-editorial-playbook.md`, `sourcing-analyzer-methodology.md`, `seo-aeo-optimization-guide.md` and `sales-profile-spec.md`. When work shows one of them is wrong, incomplete or self-contradictory, raise it as a numbered question with a recommendation, log it in `brand-position.md` §11.3, and **keep re-raising it until answered** — a pending documented-truth change is carried into the next session, never quietly closed. This is narrow: ordinary suggestions about the site are raised once and dropped if not taken up. Full rule: `brand-position.md` §11.2.
 
 ## Commands
 

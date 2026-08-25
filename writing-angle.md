@@ -145,6 +145,6 @@ Five questions for any customer-facing page:
 5. **Opening line.** Do B2B and B2C open on the same proposition, with the
    audience-specific advantage second rather than first? (§5)
 
-If the work surfaces something these documents should say, raise it, log it in
-`brand-position.md` §11.3, and keep raising it until it is answered
-(`brand-position.md` §11.2). Do not adopt it silently and do not drop it.
+If the work shows a source-of-truth document is wrong or contradicts another,
+do not edit it on your own authority: raise it, log it in `brand-position.md`
+§11.3, and keep raising it until answered (`brand-position.md` §11.2).
