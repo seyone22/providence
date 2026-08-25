@@ -39,6 +39,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { formatBudget } from "@/lib/currencies";
 import { isLhdLead, pathnameToSource } from "@/lib/leadSource";
 import { type PageSize, paginate } from "@/lib/pagination";
 
@@ -369,6 +370,12 @@ export default function RequestTableClient({
                       <div className="text-[10px] text-zinc-400 mt-0.5">
                         Timeline:{" "}
                         {req.importTimeline || (
+                          <span className="text-zinc-300">—</span>
+                        )}
+                      </div>
+                      <div className="text-[10px] text-zinc-400 mt-0.5">
+                        Budget:{" "}
+                        {formatBudget(req.budgetAmount, req.budgetCurrency) || (
                           <span className="text-zinc-300">—</span>
                         )}
                       </div>
