@@ -2,6 +2,7 @@ import { Clock } from "lucide-react";
 import type { ReactNode } from "react";
 import FAQSection from "@/components/faqSection";
 import MinimalHeader from "@/components/MinimalHeader";
+import PreferredSourceCallout from "@/components/PreferredSourceCallout";
 import { Reveal } from "@/components/Reveal";
 import type { BlogPost } from "@/config/blog";
 import { BLOG_BASE_PATH } from "@/config/blog";
@@ -117,6 +118,7 @@ export default function ArticleShell({
       {/* ── RELATED + CTA ──────────────────────────────── */}
       <div className="px-6 pb-20 max-w-3xl mx-auto">
         <RelatedPosts slug={post.slug} />
+        <PreferredSourceCallout className="mt-12" />
         <BlogCTA href={post.ctaHref} />
       </div>
     </main>

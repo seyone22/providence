@@ -6,6 +6,7 @@ import Breadcrumbs from "@/components/blog/Breadcrumbs";
 import TableOfContents from "@/components/blog/TableOfContents";
 import FAQSection from "@/components/faqSection";
 import MinimalHeader from "@/components/MinimalHeader";
+import PreferredSourceCallout from "@/components/PreferredSourceCallout";
 import { Reveal } from "@/components/Reveal";
 import { BLOG_BASE_PATH, getPost } from "@/config/blog";
 import type { NewsArticle } from "@/config/news";
@@ -162,6 +163,8 @@ export default function NewsShell({
             {children}
 
             <NewsSources sources={article.sources} />
+
+            <PreferredSourceCallout className="mt-12" />
 
             <div id="faqs" />
           </article>

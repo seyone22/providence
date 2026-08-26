@@ -3,6 +3,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import BlogCTA from "@/components/blog/BlogCTA";
 import MinimalHeader from "@/components/MinimalHeader";
+import PreferredSourceCallout from "@/components/PreferredSourceCallout";
 import { Reveal } from "@/components/Reveal";
 import {
   BLOG_BASE_PATH,
@@ -255,6 +256,7 @@ export default function BlogIndexPage() {
 
         {/* ── CTA ──────────────────────────────────── */}
         <div className="px-6 pb-20 max-w-3xl mx-auto">
+          <PreferredSourceCallout className="mt-4 mb-2" />
           <BlogCTA />
         </div>
       </main>

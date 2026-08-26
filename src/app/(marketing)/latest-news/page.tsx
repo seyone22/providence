@@ -8,6 +8,7 @@ import NewsCard from "@/components/news/NewsCard";
 import UpcomingCarCard, {
   type UpcomingCar,
 } from "@/components/news/UpcomingCarCard";
+import PreferredSourceCallout from "@/components/PreferredSourceCallout";
 import { Reveal } from "@/components/Reveal";
 import { BLOG_BASE_PATH } from "@/config/blog";
 import {
@@ -451,9 +452,10 @@ export default async function LatestNewsIndexPage() {
           </Reveal>
         </section>
 
-        {/* ── FEED LINK ────────────────────────────── */}
-        <section className="px-6 max-w-5xl mx-auto pb-8 text-center">
-          <p className="text-xs text-zinc-400 font-light">
+        {/* ── FOLLOW: PREFERRED SOURCE + FEED ──────── */}
+        <section className="px-6 max-w-3xl mx-auto pb-8">
+          <PreferredSourceCallout />
+          <p className="mt-6 text-center text-xs text-zinc-400 font-light">
             <Clock size={11} className="inline mr-1.5 -mt-0.5" />
             Updated as stories break.{" "}
             <a

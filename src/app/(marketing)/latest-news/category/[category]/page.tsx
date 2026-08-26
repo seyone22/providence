@@ -6,6 +6,7 @@ import BlogCTA from "@/components/blog/BlogCTA";
 import Breadcrumbs from "@/components/blog/Breadcrumbs";
 import MinimalHeader from "@/components/MinimalHeader";
 import NewsCard from "@/components/news/NewsCard";
+import PreferredSourceCallout from "@/components/PreferredSourceCallout";
 import { Reveal } from "@/components/Reveal";
 import {
   getCategoryMeta,
@@ -236,6 +237,7 @@ export default async function NewsCategoryPage({
         )}
 
         <div className="px-6 pb-20 max-w-3xl mx-auto">
+          <PreferredSourceCallout className="mt-12" />
           <BlogCTA />
         </div>
       </main>

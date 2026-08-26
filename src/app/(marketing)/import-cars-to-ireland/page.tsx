@@ -13,6 +13,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { Suspense } from "react";
 import MinimalHeader from "@/components/MinimalHeader";
+import PreferredSourceCallout from "@/components/PreferredSourceCallout";
 import RequestForm from "@/components/requestForm";
 import { BLOG_BASE_PATH, type BlogPost, getPost } from "@/config/blog";
 
@@ -1919,6 +1920,11 @@ export default function ImportCarsToIrelandPage() {
               before committing money. This page is general information, not tax
               advice.
             </p>
+          </section>
+
+          {/* ── PREFERRED SOURCE ───────────────────────────────────────── */}
+          <section className="py-12">
+            <PreferredSourceCallout />
           </section>
         </div>
 
