@@ -1805,15 +1805,25 @@ export const COUNTRY_BASE_PATH = "/source-cars-from";
 /**
  * Countries we actually buy cars in.
  *
- * Sri Lanka stays in COUNTRY_PAGES — it has a team, a real remit and its own
- * page — but it is a destination market and our South Asia operations base, not
- * somewhere we source. Its own page says so outright. Every "where we source"
- * surface must read from this list, not from COUNTRY_PAGES: the footer column,
- * the /about-us source list, the /source-cars-from grid and its structured
- * data, and the "other countries" rail on a country page.
+ * Sri Lanka stays in COUNTRY_PAGES because that list is the **presence**
+ * registry — the eight countries we have our own people in, which
+ * `business-context.md` §3 names as the source of that claim. It is a
+ * destination market and our South Asia operations base, not somewhere we
+ * source.
  *
- * Use COUNTRY_PAGES only when you mean the whole registry — routing,
- * getCountryPage, the sitemap.
+ * What it no longer has is a page. `/source-cars-from/sri-lanka` was removed
+ * and 301s to the hub (see `next.config.ts`): the URL prefix asserts we source
+ * there, which is not true. So a non-sourcing entry here is **data without a
+ * route** — keep it for the presence claim, and never link to
+ * `${COUNTRY_BASE_PATH}/${slug}` for one.
+ *
+ * Every "where we source" surface reads from SOURCE_COUNTRY_PAGES, not from
+ * COUNTRY_PAGES: the footer column, the /about-us source list, the
+ * /source-cars-from grid and its structured data, the "other countries" rail,
+ * the sitemap and the route's own static params.
+ *
+ * Use COUNTRY_PAGES only when you mean the whole presence registry — the
+ * office count, and `getCountryPage` as a data lookup.
  */
 export const NON_SOURCING_SLUGS = new Set(["sri-lanka"]);
 
@@ -1825,8 +1835,21 @@ export function getCountryPage(slug: string): CountryPageConfig | undefined {
   return COUNTRY_PAGES.find((c) => c.slug === slug);
 }
 
+/**
+ * Slugs that have a real page under COUNTRY_BASE_PATH.
+ *
+ * Sourcing countries only — a non-sourcing office is presence data with no
+ * route, so routing and the sitemap must not generate one for it.
+ */
 export function getCountrySlugs(): string[] {
-  return COUNTRY_PAGES.map((c) => c.slug);
+  return SOURCE_COUNTRY_PAGES.map((c) => c.slug);
+}
+
+/** Does this slug have a page? False for presence-only offices. */
+export function hasCountryPage(slug: string): boolean {
+  return (
+    !NON_SOURCING_SLUGS.has(slug) && COUNTRY_PAGES.some((c) => c.slug === slug)
+  );
 }
 
 /** Plain-English office list used in copy, e.g. the global FAQ answer. */

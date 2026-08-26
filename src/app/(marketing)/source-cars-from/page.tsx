@@ -225,16 +225,13 @@ export default function GlobalNetworkPage() {
             ))}
           </div>
 
+          {/* Why the grid shows seven when we have eight offices. The sentence
+              stays; the link to /source-cars-from/sri-lanka does not, because
+              that page was removed — a sourcing URL for a country we don't buy
+              in asserted something untrue. See NON_SOURCING_SLUGS. */}
           <p className="mt-8 text-center text-sm text-zinc-500 font-light">
             Sri Lanka is a destination market and our South Asia operations base
-            rather than a country we buy in —{" "}
-            <Link
-              href={`${COUNTRY_BASE_PATH}/sri-lanka`}
-              className="font-bold text-black hover:text-sky-600 transition-colors"
-            >
-              see what the Colombo team handles
-            </Link>
-            .
+            rather than a country we buy in.
           </p>
         </section>
 

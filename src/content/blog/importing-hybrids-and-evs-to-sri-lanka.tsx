@@ -193,11 +193,9 @@ export default function Body() {
         </CheckLI>
       </UL>
       <P>
-        Our{" "}
-        <InlineLink href="/source-cars-from/sri-lanka">Colombo team</InlineLink>{" "}
-        confirms the current position before sourcing and compares the landed
-        figure across our Japan, Thailand, India and UK teams for the
-        specification you want.
+        Our <InlineLink href="/team">Colombo team</InlineLink> confirms the
+        current position before sourcing and compares the landed figure across
+        our Japan, Thailand, India and UK teams for the specification you want.
       </P>
 
       <Disclaimer>

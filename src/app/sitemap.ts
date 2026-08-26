@@ -3,7 +3,7 @@ import { listPublishedProfileSlugs } from "@/actions/sales-profile-actions";
 // Import your DB logic or Action
 import { getAllSpecDossiers } from "@/actions/spec-actions";
 import { BLOG_BASE_PATH, BLOG_POSTS } from "@/config/blog";
-import { COUNTRY_BASE_PATH, COUNTRY_PAGES } from "@/config/countries";
+import { COUNTRY_BASE_PATH, SOURCE_COUNTRY_PAGES } from "@/config/countries";
 import {
   getPopulatedCategories,
   NEWS_ARTICLES,
@@ -57,8 +57,9 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     priority: 1,
   }));
 
-  // 1a. Source-country landing pages (one per physical office)
-  const countryRoutes = COUNTRY_PAGES.map((country) => ({
+  // 1a. Source-country landing pages. SOURCE_COUNTRY_PAGES, not COUNTRY_PAGES:
+  // a presence-only office (Sri Lanka) has no page, and its old URL 301s.
+  const countryRoutes = SOURCE_COUNTRY_PAGES.map((country) => ({
     url: `${baseUrl}${COUNTRY_BASE_PATH}/${country.slug}`,
     lastModified: new Date(),
     changeFrequency: "weekly" as const,

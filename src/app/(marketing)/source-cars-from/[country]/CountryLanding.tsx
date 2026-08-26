@@ -51,8 +51,9 @@ const COUNT_WORDS = [
 // Destination country to prefill on the inquiry form. Only set for offices in
 // markets we ship *into* — `countryOfImport` is the buyer's destination, so
 // prefilling it with a source country would be wrong.
+// (Sri Lanka had an entry here until its page was removed — a presence-only
+// office never reaches this component, so it would be unreachable config.)
 const FORM_DESTINATION: Record<string, string> = {
-  "sri-lanka": "Sri Lanka",
   "new-zealand": "New Zealand",
   "united-kingdom": "United Kingdom",
 };

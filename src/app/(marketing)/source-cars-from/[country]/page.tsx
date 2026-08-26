@@ -4,6 +4,7 @@ import {
   COUNTRY_BASE_PATH,
   getCountryPage,
   getCountrySlugs,
+  hasCountryPage,
 } from "@/config/countries";
 import CountryLanding from "./CountryLanding";
 
@@ -19,7 +20,10 @@ export async function generateMetadata({
   params: Promise<{ country: string }>;
 }): Promise<Metadata> {
   const { country } = await params;
-  const config = getCountryPage(country);
+  // hasCountryPage, not just getCountryPage: a presence-only office (Sri Lanka)
+  // still resolves as data but has no route. next.config.ts 301s it, and this
+  // is the backstop if that redirect is ever removed.
+  const config = hasCountryPage(country) ? getCountryPage(country) : undefined;
   if (!config) return {};
 
   const path = `${COUNTRY_BASE_PATH}/${config.slug}`;
@@ -70,7 +74,7 @@ export default async function SourceCountryPage({
   params: Promise<{ country: string }>;
 }) {
   const { country } = await params;
-  const config = getCountryPage(country);
+  const config = hasCountryPage(country) ? getCountryPage(country) : undefined;
   if (!config) notFound();
 
   const path = `${COUNTRY_BASE_PATH}/${config.slug}`;
