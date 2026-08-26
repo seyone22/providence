@@ -57,8 +57,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     priority: 1,
   }));
 
-  // 1a. Source-country landing pages. SOURCE_COUNTRY_PAGES, not COUNTRY_PAGES:
-  // a presence-only office (Sri Lanka) has no page, and its old URL 301s.
+  // 1a. Source-country landing pages (one per country we buy in).
   const countryRoutes = SOURCE_COUNTRY_PAGES.map((country) => ({
     url: `${baseUrl}${COUNTRY_BASE_PATH}/${country.slug}`,
     lastModified: new Date(),

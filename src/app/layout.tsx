@@ -88,10 +88,10 @@ export default function RootLayout({
   // country config pulls in lucide icon references it does not need here. Keep
   // the two in sync when an office is added or its country changes.
   //
-  // `slug` is null for a presence-only office: it has a team and belongs in
-  // the eight-office claim, but no page under /source-cars-from. Sri Lanka is
-  // a destination market rather than one we buy in, so that page was removed
-  // and 301s — emitting its URL here would put a redirect in our own schema.
+  // `slug` is null for an office with no page under /source-cars-from. Sri
+  // Lanka has a team and belongs in the eight-office claim, but we do not buy
+  // cars there, so it has no sourcing page — and emitting a URL for one would
+  // put a redirect in our own structured data.
   const offices = [
     { name: "United Kingdom", region: "Europe", slug: "united-kingdom" },
     { name: "Japan", region: "East Asia", slug: "japan" },

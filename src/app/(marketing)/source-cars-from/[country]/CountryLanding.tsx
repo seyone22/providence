@@ -35,7 +35,7 @@ const HEAD_OFFICE = {
 };
 
 // Spelled-out counts for the "rest of the network" heading, which changes with
-// the length of `others` (six from a sourcing country, seven from Sri Lanka).
+// the length of `others` (always six — the other countries we buy in).
 const COUNT_WORDS = [
   "No",
   "One",
@@ -51,8 +51,6 @@ const COUNT_WORDS = [
 // Destination country to prefill on the inquiry form. Only set for offices in
 // markets we ship *into* — `countryOfImport` is the buyer's destination, so
 // prefilling it with a source country would be wrong.
-// (Sri Lanka had an entry here until its page was removed — a presence-only
-// office never reaches this component, so it would be unreachable config.)
 const FORM_DESTINATION: Record<string, string> = {
   "new-zealand": "New Zealand",
   "united-kingdom": "United Kingdom",
@@ -101,8 +99,7 @@ export default function CountryLanding({ slug }: { slug: string }) {
   const posts = config.blogSlugs
     .map((slug) => getPost(slug))
     .filter((p): p is NonNullable<typeof p> => Boolean(p));
-  // Sourcing countries only, so Sri Lanka is never offered as an alternative
-  // place to buy. On the Sri Lanka page itself this is all seven of them.
+  // The other countries we buy in.
   const others = SOURCE_COUNTRY_PAGES.filter((c) => c.slug !== config.slug);
 
   return (

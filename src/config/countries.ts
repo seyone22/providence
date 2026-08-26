@@ -1,8 +1,10 @@
 // ─────────────────────────────────────────────────────────────────────────────
-// Providence Auto — global office & source-country registry.
+// Providence Auto — source-country registry.
 //
-// Single source of truth for the eight countries where we operate a physical
-// office. Drives:
+// Single source of truth for the seven countries we buy cars in and publish a
+// page for. NOT the office list: we have people in eight countries and source
+// in seven of them, so the presence claim lives in OFFICE_COUNTRY_NAMES /
+// OFFICE_COUNTRIES_SENTENCE at the foot of this file. Drives:
 //   • /source-cars-from            (network hub page)
 //   • /source-cars-from/[country]  (per-country landing page)
 //   • the footer office list, the Organization JSON-LD, and the global FAQ
@@ -26,7 +28,6 @@ import {
   Handshake,
   Landmark,
   Mountain,
-  Search,
   ShieldCheck,
   Ship,
   Snowflake,
@@ -1578,215 +1579,6 @@ const thailand: CountryPageConfig = {
   ],
 };
 
-// ── SRI LANKA ────────────────────────────────────────────────────────────────
-const sriLanka: CountryPageConfig = {
-  slug: "sri-lanka",
-  country: "Sri Lanka",
-  shortName: "Sri Lanka",
-  region: "South Asia",
-  role: "hub",
-  cardBlurb:
-    "Our South Asia operations hub — and one of the most demanding import markets we serve, where the paperwork decides everything.",
-  meta: {
-    title:
-      "Providence Auto Sri Lanka — South Asia Operations & Vehicle Imports",
-    description:
-      "Providence Auto's Sri Lanka team runs South Asia operations and handles vehicle imports into Colombo — hybrids, compact cars and SUVs sourced from Japan, Thailand, India and the UK, with permits, duty and clearance managed locally.",
-    keywords: [
-      "import a car to sri lanka",
-      "sri lanka vehicle import",
-      "car importers colombo",
-      "sri lanka car import taxes",
-      "hybrid car import sri lanka",
-    ],
-  },
-  hero: {
-    tagline: "Providence Auto · Sri Lanka",
-    title: "Sri Lanka.\nWhere the paperwork decides the price.",
-    subtitle:
-      "Sri Lanka has one of the most complex vehicle import regimes in the world, and rules that move. Our Colombo team runs South Asia operations for the group and handles every import into the island end to end — permits, valuation, duty and clearance included.",
-    backgroundImage: UNSPLASH("1715526575128-88b04cb67556"),
-  },
-  stats: [
-    { value: "CIF", label: "Duty is assessed on landed value, not invoice" },
-    { value: "Local", label: "Clearance handled by our own Colombo team" },
-    { value: "Hybrid", label: "The market's dominant drivetrain" },
-  ],
-  intro: {
-    highlight: "Here, the customs file matters as much as the car.",
-    text: "In most markets the car is the hard part and the paperwork is routine. In Sri Lanka it is the other way round: engine capacity, drivetrain, manufacture date, valuation method and permit status can move the final cost dramatically. Here, the customs file matters as much as the car.",
-  },
-  specialty: {
-    eyebrow: "What the Colombo team does",
-    title:
-      "A regional operations base, and an import desk that knows the rules.",
-    blurb:
-      "Sri Lanka is not a vehicle manufacturing country, and we will not pretend otherwise. The Colombo team exists for two reasons: it coordinates a large part of our South Asian operations, and it handles the island's notoriously demanding import process for our customers directly.",
-    items: [
-      {
-        icon: Users,
-        title: "South Asia operations",
-        desc: "Documentation, customer support and regional coordination for shipments moving between our Japan, India, Thailand and UAE teams and the wider Indian Ocean region.",
-      },
-      {
-        icon: FileCheck2,
-        title: "Import clearance, done locally",
-        desc: "Customs valuation, duty and excise assessment, permits and registration are handled by people in Colombo who deal with the authorities in person, not by a broker in another time zone.",
-      },
-      {
-        icon: Gauge,
-        title: "A hybrid-first market",
-        desc: "Sri Lanka's duty structure has long pushed buyers toward small-capacity hybrids, which is why the Aqua, Prius, Axio, Fit and Vezel dominate the roads. We source them at the specification the duty bands actually reward.",
-      },
-      {
-        icon: BadgeCheck,
-        title: "Advice before commitment",
-        desc: "Import rules and duty rates in Sri Lanka change more often than in any market we operate in. We confirm the current position with Sri Lanka Customs for your specific vehicle before you commit — never from last year's rate card.",
-      },
-    ],
-  },
-  signature: [
-    {
-      make: "Toyota",
-      model: "Aqua",
-      note: "The island's default hybrid",
-      image: LOCAL("aqua"),
-    },
-    {
-      make: "Toyota",
-      model: "Prius",
-      note: "Proven at high mileage",
-      image: LOCAL("prius"),
-    },
-    {
-      make: "Honda",
-      model: "Fit",
-      note: "Compact hybrid supply",
-      image: LOCAL("fit"),
-    },
-    {
-      make: "Honda",
-      model: "Vezel",
-      note: "Crossover demand",
-      image: LOCAL("vezel"),
-    },
-    {
-      make: "Suzuki",
-      model: "Swift",
-      note: "Low duty band",
-      image: LOCAL("swift"),
-    },
-    {
-      make: "Toyota",
-      model: "Prado",
-      note: "Premium SUV segment",
-      image: LOCAL("prado"),
-    },
-    {
-      make: "Nissan",
-      model: "Leaf",
-      note: "Electric, where duty favours it",
-      image: LOCAL("note"),
-    },
-    {
-      make: "Toyota",
-      model: "Alphard",
-      note: "Executive transport",
-      image: LOCAL("alphard"),
-    },
-  ],
-  advantages: [
-    {
-      icon: Landmark,
-      title: "The duty calculation, before you buy",
-      desc: "Sri Lankan duty and excise depend on engine capacity, drivetrain, manufacture date and customs valuation — not on what you paid. We model the full landed figure against the current tariff before you commit a rupee.",
-    },
-    {
-      icon: Search,
-      title: "Sourced from four of our source countries",
-      desc: "Japan, Thailand, India and the UK all feed the Sri Lankan market. Rather than pushing you at one source, we compare the landed cost from each for the specification you want.",
-    },
-    {
-      icon: ClipboardCheck,
-      title: "Inspected before it sails",
-      desc: "Every vehicle is inspected at origin by the Providence team in that country, with the report and photographs sent to you before payment is released — because a car that fails inspection at Colombo is an expensive problem.",
-    },
-    {
-      icon: Users,
-      title: "A local team you can visit",
-      desc: "Clearance queries, registration, and post-delivery support are handled by people you can sit down with. For a process this document-heavy, that is worth more than any online tracker.",
-    },
-  ],
-  process: [
-    {
-      title: "We confirm the rules for your vehicle",
-      desc: "Before anything is sourced, the Colombo team checks the current import position for that exact specification — eligibility, engine capacity band, drivetrain treatment, age limits and permit requirements — against the authorities as they stand today.",
-    },
-    {
-      title: "We source it from the best origin",
-      desc: "We compare landed cost from our Japan, Thailand, India and UK teams for the same specification, and buy where the total lands cheapest. Inspection happens at origin, by our own people.",
-    },
-    {
-      title: "We handle valuation and clearance",
-      desc: "Customs valuation, duty and excise assessment, permit documentation and port clearance are managed locally, with the assessment explained to you line by line rather than presented as a total.",
-    },
-    {
-      title: "We register and hand over",
-      desc: "Registration paperwork, plating and handover in Colombo, with the local team available afterwards for anything the process throws up.",
-    },
-  ],
-  office: {
-    // ── FILL IN: Sri Lanka office details ──
-    city: "",
-    addressLines: [],
-    phone: "",
-    email: "",
-    hours: "",
-    remit: [
-      "South Asia operations, documentation and customer support",
-      "Current-rule verification with Sri Lanka Customs before purchase",
-      "Customs valuation, duty assessment, permits and port clearance",
-      "Registration, plating and post-delivery support in Colombo",
-    ],
-  },
-  logistics: {
-    ports: ["Colombo", "Hambantota"],
-    shipsTo:
-      "Sri Lanka is primarily a destination market for us; Colombo also acts as a transhipment point for the Maldives and the wider Indian Ocean",
-    transit:
-      "Roughly 2–4 weeks from Japan and Thailand, 1–2 weeks from India and the Gulf",
-  },
-  faqs: [
-    {
-      q: "Are cars manufactured in Sri Lanka?",
-      a: "No. Sri Lanka has assembly operations but is not a vehicle manufacturing country in any meaningful export sense. Our Colombo team exists as a South Asia operations hub and as an import desk — Sri Lanka is one of the most active destination markets we serve, and one of the hardest to get right without people on the ground.",
-    },
-    {
-      q: "What actually drives the cost of importing a car to Sri Lanka?",
-      a: "The tax structure, far more than the car. Duty and excise are assessed on the customs valuation of the vehicle rather than your invoice, and the rate depends on engine capacity, drivetrain type and the vehicle's age. Two cars with the same purchase price can land at very different totals. That is why we model the full landed cost against the current tariff before anything is bought.",
-    },
-    {
-      q: "Why are hybrids so dominant on Sri Lankan roads?",
-      a: "Because the duty structure has historically favoured small-capacity and hybrid vehicles, which pushed the market decisively toward the Toyota Aqua, Prius and Axio and the Honda Fit and Vezel. Fuel prices reinforce it. The practical effect is deep local parts availability and strong resale for exactly those models.",
-    },
-    {
-      q: "How current is your information on Sri Lankan import rules?",
-      a: "We verify it per shipment. Sri Lanka's vehicle import policy has changed substantially and repeatedly in recent years, including extended restrictions and phased reopenings, so anything published as a fixed rate card goes out of date quickly. Our Colombo team confirms the current position with Sri Lanka Customs for your specific vehicle before you commit, and you should treat any figure you read online — including ours — as indicative until then.",
-    },
-    {
-      q: "Can I deal with someone in person?",
-      a: "Yes, and for this market we would encourage it. The Colombo team handles clearance, valuation queries, registration and post-delivery support directly. For a process this document-heavy, being able to speak directly to the person handling your file is the single biggest reduction in risk available to you.",
-    },
-  ],
-  blogSlugs: [
-    "importing-a-car-to-sri-lanka",
-    "sri-lanka-vehicle-import-taxes-explained",
-    "best-cars-to-import-to-sri-lanka",
-    "sri-lanka-car-import-documents-explained",
-    "importing-hybrids-and-evs-to-sri-lanka",
-  ],
-};
-
 // ── REGISTRY ─────────────────────────────────────────────────────────────────
 
 export const COUNTRY_PAGES: CountryPageConfig[] = [
@@ -1797,59 +1589,40 @@ export const COUNTRY_PAGES: CountryPageConfig[] = [
   thailand,
   australia,
   newZealand,
-  sriLanka,
 ];
 
 export const COUNTRY_BASE_PATH = "/source-cars-from";
 
 /**
- * Countries we actually buy cars in.
+ * COUNTRY_PAGES is the list of countries we buy cars in and publish a
+ * `/source-cars-from` page for. Every entry has a page; there are no
+ * exceptions in it.
  *
- * Sri Lanka stays in COUNTRY_PAGES because that list is the **presence**
- * registry — the eight countries we have our own people in, which
- * `business-context.md` §3 names as the source of that claim. It is a
- * destination market and our South Asia operations base, not somewhere we
- * source.
+ * There used to be one. Sri Lanka sat here as a presence-only entry, filtered
+ * out of the sourcing surfaces by a `NON_SOURCING_SLUGS` set. Both it and its
+ * page were removed on 2026-08-26: we do not buy cars in Sri Lanka, so a
+ * `/source-cars-from` page for it asserted something untrue in the URL alone,
+ * and the SEO argument for keeping it did not survive contact with the channel
+ * — that market is served through dealers, not consumer organic search, so
+ * there was no consumer ranking worth protecting. The old URL 301s (see
+ * `next.config.ts`).
  *
- * What it no longer has is a page. `/source-cars-from/sri-lanka` was removed
- * and 301s to the hub (see `next.config.ts`): the URL prefix asserts we source
- * there, which is not true. So a non-sourcing entry here is **data without a
- * route** — keep it for the presence claim, and never link to
- * `${COUNTRY_BASE_PATH}/${slug}` for one.
+ * **Presence is a different list.** We have our own people in eight countries
+ * and buy cars in seven of them. The eight-office claim lives in
+ * OFFICE_COUNTRY_NAMES / OFFICE_COUNTRIES_SENTENCE below and still includes
+ * Sri Lanka. Never derive an office count from COUNTRY_PAGES.
  *
- * Every "where we source" surface reads from SOURCE_COUNTRY_PAGES, not from
- * COUNTRY_PAGES: the footer column, the /about-us source list, the
- * /source-cars-from grid and its structured data, the "other countries" rail,
- * the sitemap and the route's own static params.
- *
- * Use COUNTRY_PAGES only when you mean the whole presence registry — the
- * office count, and `getCountryPage` as a data lookup.
+ * If a presence-only country is ever added, it does **not** go in
+ * COUNTRY_PAGES — that would generate a sourcing page for it.
  */
-export const NON_SOURCING_SLUGS = new Set(["sri-lanka"]);
-
-export const SOURCE_COUNTRY_PAGES: CountryPageConfig[] = COUNTRY_PAGES.filter(
-  (c) => !NON_SOURCING_SLUGS.has(c.slug),
-);
+export const SOURCE_COUNTRY_PAGES: CountryPageConfig[] = COUNTRY_PAGES;
 
 export function getCountryPage(slug: string): CountryPageConfig | undefined {
   return COUNTRY_PAGES.find((c) => c.slug === slug);
 }
 
-/**
- * Slugs that have a real page under COUNTRY_BASE_PATH.
- *
- * Sourcing countries only — a non-sourcing office is presence data with no
- * route, so routing and the sitemap must not generate one for it.
- */
 export function getCountrySlugs(): string[] {
-  return SOURCE_COUNTRY_PAGES.map((c) => c.slug);
-}
-
-/** Does this slug have a page? False for presence-only offices. */
-export function hasCountryPage(slug: string): boolean {
-  return (
-    !NON_SOURCING_SLUGS.has(slug) && COUNTRY_PAGES.some((c) => c.slug === slug)
-  );
+  return COUNTRY_PAGES.map((c) => c.slug);
 }
 
 /** Plain-English office list used in copy, e.g. the global FAQ answer. */
@@ -1871,6 +1644,6 @@ export const OFFICE_COUNTRY_NAMES = [
 export const OFFICE_COUNTRIES_SENTENCE =
   "the UK, Japan, the UAE, India, Thailand, Australia, New Zealand and Sri Lanka";
 
-/** The seven we buy in — presence minus Sri Lanka. See NON_SOURCING_SLUGS. */
+/** The seven we buy in — presence minus Sri Lanka, which we ship to but never source from. */
 export const SOURCE_COUNTRIES_SENTENCE =
   "the UK, Japan, the UAE, India, Thailand, Australia and New Zealand";
