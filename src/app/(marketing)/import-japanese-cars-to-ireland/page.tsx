@@ -17,6 +17,7 @@ import { Suspense, useEffect, useMemo, useState } from "react";
 import FAQSection from "@/components/faqSection";
 import GradientMesh from "@/components/GradientMesh";
 import MinimalHeader from "@/components/MinimalHeader";
+import PreferredSourceCallout from "@/components/PreferredSourceCallout";
 import { Reveal } from "@/components/Reveal";
 import RequestForm from "@/components/requestForm";
 import type { LandingPageConfig } from "@/config/landing-pages";
@@ -952,6 +953,11 @@ export default function ImportJapaneseCarsIreland() {
         <FAQSection data={IRELAND_FAQS} />
 
         <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-[800px] h-[400px] bg-black/5 blur-[120px] rounded-full pointer-events-none" />
+      </section>
+
+      {/* ── PREFERRED SOURCE ─────────────────────────── */}
+      <section className="px-6 py-20 max-w-4xl mx-auto">
+        <PreferredSourceCallout />
       </section>
     </main>
   );

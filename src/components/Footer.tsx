@@ -7,8 +7,7 @@ import {
 import { COUNTRY_BASE_PATH, SOURCE_COUNTRY_PAGES } from "@/config/countries";
 import { NEWS_BASE_PATH } from "@/config/news";
 
-// Sourcing countries only (SOURCE_COUNTRY_PAGES excludes Sri Lanka), listed A–Z.
-// The Sri Lanka page still exists and is reachable from "The whole network".
+// The countries we buy in, listed A–Z. Every one has a page.
 const FOOTER_OFFICES = [...SOURCE_COUNTRY_PAGES].sort((a, b) =>
   a.shortName.localeCompare(b.shortName),
 );

@@ -77,8 +77,8 @@ buy", "offices"). They must not be used interchangeably.
 
 | List | Count | What it actually means | Canonical source |
 |---|---|---|---|
-| **Presence** | 8 | Countries where Providence has its own people/operations teams. Includes Sri Lanka. | `OFFICE_COUNTRIES_SENTENCE`, `COUNTRY_PAGES` in `src/config/countries.ts` |
-| **Source** | 7 | Countries Providence actually **buys cars in**. Presence minus Sri Lanka. | `SOURCE_COUNTRIES_SENTENCE`, `SOURCE_COUNTRY_PAGES` in `src/config/countries.ts` |
+| **Presence** | 8 | Countries where Providence has its own people/operations teams. Includes Sri Lanka. | `OFFICE_COUNTRY_NAMES`, `OFFICE_COUNTRIES_SENTENCE` in `src/config/countries.ts`. **Not** `COUNTRY_PAGES` — that is the source list, and holds seven. |
+| **Source** | 7 | Countries Providence actually **buys cars in**. Presence minus Sri Lanka. | `SOURCE_COUNTRIES_SENTENCE`, `COUNTRY_PAGES` / `SOURCE_COUNTRY_PAGES` in `src/config/countries.ts` |
 | **Destination** | 29 (as of 2026-08-25) | Markets Providence ships **to**. Includes Sri Lanka — it is both a destination market and the South-Asia operations base, and a country can be in more than one of these lists (Australia, New Zealand, Thailand and the UK are each in two). | `DESTINATION_REGIONS` in `/about-us` (`src/app/(marketing)/about-us/page.tsx`) |
 
 **Sri Lanka specifically:** the Colombo team runs South Asia operations and
@@ -412,8 +412,8 @@ a "top markets" strip, a campaign's featured destinations, an ad's targeting
 set, a deck slide — **Sri Lanka does not take one of the slots.** Those slots
 belong to markets we are actively acquiring in.
 
-This is about emphasis, not erasure: Sri Lanka stays in complete lists, keeps
-its page and keeps its SEO.
+This is about emphasis, not erasure: Sri Lanka stays in complete lists and
+keeps its SEO.
 
 **Checked 2026-08-25, all compliant, no change needed:** the `/import-japanese-cars`
 picker (7 entries, absent), the `/indian-manufactured-cars` picker (12 entries,

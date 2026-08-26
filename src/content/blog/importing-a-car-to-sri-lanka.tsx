@@ -185,8 +185,7 @@ export default function Body() {
         <InlineLink href="/blog/best-cars-to-import-to-sri-lanka">
           the best cars to import to Sri Lanka
         </InlineLink>
-        , or talk to our{" "}
-        <InlineLink href="/source-cars-from/sri-lanka">Colombo team</InlineLink>{" "}
+        , or talk to our <InlineLink href="/team">Colombo team</InlineLink>{" "}
         directly.
       </P>
 

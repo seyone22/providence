@@ -15,6 +15,19 @@ const nextConfig: NextConfig = {
         destination: "/japanese-luxury-cars-lhd",
         permanent: true,
       },
+      // Sri Lanka is a destination market and our South Asia operations base,
+      // not a country we buy in — so a page under /source-cars-from asserted
+      // something untrue in the URL itself. Removed 2026-08-26. 301 to the hub
+      // rather than a 404 so the accumulated equity lands somewhere real.
+      //
+      // Sri Lanka remains a presence country everywhere else (COUNTRY_PAGES,
+      // the office count, the destination lists, the blog cluster). Only the
+      // sourcing page is gone.
+      {
+        source: "/source-cars-from/sri-lanka",
+        destination: "/source-cars-from",
+        permanent: true,
+      },
     ];
   },
 };
