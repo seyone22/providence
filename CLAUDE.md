@@ -157,6 +157,35 @@ The rules:
 This governs every marketing page, campaign page, car page, blog post and news
 article written from now on, not just the page where it was introduced.
 
+### Secondary CTAs: one style, and always below the primary
+
+A page has **one primary CTA** — the thing it exists to drive. On editorial
+and campaign pages that is the black block (`BlogCTA` and its per-page
+equivalents) or the inquiry form. Everything else that asks the reader to act
+— the Google preferred-source opt-in, RSS, a newsletter, "browse the guides"
+— is a **secondary CTA**, and there is exactly one treatment for it.
+
+**Use `<SecondaryCTA>`** (`src/components/SecondaryCTA.tsx`), which applies the
+`.pa-cta-secondary` surface defined in `globals.css`: a sky→violet accent bar,
+a tinted wash and a coloured lift shadow. Do not hand-roll another bordered
+`bg-zinc-50` panel — that is what the surrounding prose cards already look
+like, so a secondary CTA built that way reads as body content and is skipped.
+That is the exact failure this style was introduced to fix.
+
+The rules:
+
+- **Never place a secondary CTA above the primary one.** Nothing competes with
+  the main CTA. In practice that means after `<BlogCTA />`, after the inquiry
+  section, at the foot of the page — not between the article and the CTA, and
+  not immediately above a form.
+- **One secondary CTA per page.** Two of them is a menu, and a menu converts
+  worse than either option alone.
+- **It stays light.** The primary CTA owns black. A secondary CTA that also
+  went dark would compete with it, which defeats the point.
+- **The heading rule above still applies** — `title` is one full sentence, no
+  eyebrow label above it, and `body` (optional) carries a real fact rather
+  than restating the heading.
+
 ### SEO & AEO: standing requirement for every new page
 
 **Before creating or publishing any new page** — marketing/campaign page, car page (spec dossier), blog post, or news article — read `seo-aeo-optimization-guide.md` at the repo root. It is the canonical SEO/AEO playbook: user-intent identification, keyword/entity research, on-page copywriting (title tags, meta descriptions, header hierarchy), the technical SEO checklist, JSON-LD structured-data selection, and AEO/LLM optimization (featured-snippet answers, tables/lists, E-E-A-T). Run every new page through its Phase 1–5 process and the final pre-publishing checklist before treating the page as done.

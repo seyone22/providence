@@ -452,10 +452,9 @@ export default async function LatestNewsIndexPage() {
           </Reveal>
         </section>
 
-        {/* ── FOLLOW: PREFERRED SOURCE + FEED ──────── */}
+        {/* ── FEED ─────────────────────────────────── */}
         <section className="px-6 max-w-3xl mx-auto pb-8">
-          <PreferredSourceCallout />
-          <p className="mt-6 text-center text-xs text-zinc-400 font-light">
+          <p className="text-center text-xs text-zinc-400 font-light">
             <Clock size={11} className="inline mr-1.5 -mt-0.5" />
             Updated as stories break.{" "}
             <a
@@ -471,6 +470,8 @@ export default async function LatestNewsIndexPage() {
         {/* ── CTA ──────────────────────────────────── */}
         <div className="px-6 pb-20 max-w-3xl mx-auto">
           <BlogCTA />
+          {/* Below the primary CTA on purpose — see CLAUDE.md, secondary CTAs. */}
+          <PreferredSourceCallout />
         </div>
       </main>
     </>

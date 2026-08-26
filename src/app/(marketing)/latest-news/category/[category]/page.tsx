@@ -237,8 +237,9 @@ export default async function NewsCategoryPage({
         )}
 
         <div className="px-6 pb-20 max-w-3xl mx-auto">
-          <PreferredSourceCallout className="mt-12" />
           <BlogCTA />
+          {/* Below the primary CTA on purpose — see CLAUDE.md, secondary CTAs. */}
+          <PreferredSourceCallout />
         </div>
       </main>
     </>

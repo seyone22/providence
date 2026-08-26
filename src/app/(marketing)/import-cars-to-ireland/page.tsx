@@ -1921,11 +1921,6 @@ export default function ImportCarsToIrelandPage() {
               advice.
             </p>
           </section>
-
-          {/* ── PREFERRED SOURCE ───────────────────────────────────────── */}
-          <section className="py-12">
-            <PreferredSourceCallout />
-          </section>
         </div>
 
         {/* ── INQUIRY ──────────────────────────────────────────────────── */}
@@ -1960,6 +1955,13 @@ export default function ImportCarsToIrelandPage() {
               />
             </Suspense>
           </div>
+        </section>
+
+        {/* ── PREFERRED SOURCE ─────────────────────────────────────────────
+            Below the inquiry form on purpose: nothing competes with the
+            page's primary CTA. */}
+        <section className="px-6 py-16 max-w-4xl mx-auto">
+          <PreferredSourceCallout />
         </section>
       </main>
     </>

@@ -114,7 +114,10 @@ export default function PreferredSourceButton({
         data-analytics-id="preferred-source"
         className={
           className ??
-          "group inline-flex items-center justify-center gap-2 rounded-full border border-black/10 bg-white px-6 py-3 text-sm font-bold text-black transition-all duration-300 hover:border-sky-500/30 hover:shadow-[0_10px_30px_rgba(0,0,0,0.06)]"
+          // Sits on .pa-cta-secondary's tinted wash, so it needs a solid white
+          // ground and a sky edge to read as an action rather than a chip —
+          // but stays light, because the black pill is the primary CTA.
+          "group inline-flex items-center justify-center gap-2 rounded-full border border-sky-500/25 bg-white px-6 py-3.5 text-sm font-bold text-black shadow-[0_6px_18px_-8px_rgba(14,165,233,0.5)] transition-all duration-300 hover:-translate-y-0.5 hover:border-sky-500/50 hover:shadow-[0_12px_28px_-10px_rgba(14,165,233,0.55)]"
         }
       >
         <Star

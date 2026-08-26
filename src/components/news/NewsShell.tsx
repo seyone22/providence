@@ -164,8 +164,6 @@ export default function NewsShell({
 
             <NewsSources sources={article.sources} />
 
-            <PreferredSourceCallout className="mt-12" />
-
             <div id="faqs" />
           </article>
         </div>
@@ -251,6 +249,8 @@ export default function NewsShell({
           </section>
         )}
         <BlogCTA />
+        {/* Below the primary CTA on purpose — see CLAUDE.md, secondary CTAs. */}
+        <PreferredSourceCallout />
       </div>
     </main>
   );
