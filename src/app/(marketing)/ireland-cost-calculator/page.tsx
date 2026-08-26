@@ -20,6 +20,7 @@ import {
   getExchangeRates,
 } from "@/actions/calculator-actions";
 import MinimalHeader from "@/components/MinimalHeader";
+import PreferredSourceCallout from "@/components/PreferredSourceCallout";
 import { Reveal } from "@/components/Reveal";
 import {
   ageInMonths,
@@ -1803,6 +1804,13 @@ export default function IrelandCostCalculator() {
               </Link>
             ))}
           </div>
+        </div>
+      </section>
+
+      {/* ── Preferred source ─────────────────────────────────────────────── */}
+      <section className="pb-4 px-6 bg-white">
+        <div className="max-w-4xl mx-auto">
+          <PreferredSourceCallout />
         </div>
       </section>
 

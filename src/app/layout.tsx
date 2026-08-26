@@ -87,6 +87,11 @@ export default function RootLayout({
   // is the ROOT layout, so every page pays for whatever it imports, and the
   // country config pulls in lucide icon references it does not need here. Keep
   // the two in sync when an office is added or its country changes.
+  //
+  // `slug` is null for an office with no page under /source-cars-from. Sri
+  // Lanka has a team and belongs in the eight-office claim, but we do not buy
+  // cars there, so it has no sourcing page — and emitting a URL for one would
+  // put a redirect in our own structured data.
   const offices = [
     { name: "United Kingdom", region: "Europe", slug: "united-kingdom" },
     { name: "Japan", region: "East Asia", slug: "japan" },
@@ -95,7 +100,7 @@ export default function RootLayout({
     { name: "Thailand", region: "South-East Asia", slug: "thailand" },
     { name: "Australia", region: "Oceania", slug: "australia" },
     { name: "New Zealand", region: "Oceania", slug: "new-zealand" },
-    { name: "Sri Lanka", region: "South Asia", slug: "sri-lanka" },
+    { name: "Sri Lanka", region: "South Asia", slug: null },
   ];
 
   const organizationSchema = {
@@ -118,7 +123,11 @@ export default function RootLayout({
     subOrganization: offices.map((office) => ({
       "@type": "LocalBusiness",
       name: `Providence Auto ${office.name}`,
-      url: `https://www.providenceauto.co.uk/source-cars-from/${office.slug}`,
+      ...(office.slug
+        ? {
+            url: `https://www.providenceauto.co.uk/source-cars-from/${office.slug}`,
+          }
+        : {}),
       areaServed: office.region,
     })),
     hasOfferCatalog: {

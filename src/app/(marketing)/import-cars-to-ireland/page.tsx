@@ -13,6 +13,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { Suspense } from "react";
 import MinimalHeader from "@/components/MinimalHeader";
+import PreferredSourceCallout from "@/components/PreferredSourceCallout";
 import RequestForm from "@/components/requestForm";
 import { BLOG_BASE_PATH, type BlogPost, getPost } from "@/config/blog";
 
@@ -1954,6 +1955,13 @@ export default function ImportCarsToIrelandPage() {
               />
             </Suspense>
           </div>
+        </section>
+
+        {/* ── PREFERRED SOURCE ─────────────────────────────────────────────
+            Below the inquiry form on purpose: nothing competes with the
+            page's primary CTA. */}
+        <section className="px-6 py-16 max-w-4xl mx-auto">
+          <PreferredSourceCallout />
         </section>
       </main>
     </>

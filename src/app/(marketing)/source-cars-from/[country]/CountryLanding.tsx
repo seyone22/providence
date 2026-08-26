@@ -17,6 +17,7 @@ import FAQSection from "@/components/faqSection";
 import GalleryPreview from "@/components/GalleryPreview";
 import GradientMesh from "@/components/GradientMesh";
 import MinimalHeader from "@/components/MinimalHeader";
+import PreferredSourceCallout from "@/components/PreferredSourceCallout";
 import { Reveal } from "@/components/Reveal";
 import RequestForm from "@/components/requestForm";
 import { BLOG_BASE_PATH, getPost } from "@/config/blog";
@@ -34,7 +35,7 @@ const HEAD_OFFICE = {
 };
 
 // Spelled-out counts for the "rest of the network" heading, which changes with
-// the length of `others` (six from a sourcing country, seven from Sri Lanka).
+// the length of `others` (always six — the other countries we buy in).
 const COUNT_WORDS = [
   "No",
   "One",
@@ -51,7 +52,6 @@ const COUNT_WORDS = [
 // markets we ship *into* — `countryOfImport` is the buyer's destination, so
 // prefilling it with a source country would be wrong.
 const FORM_DESTINATION: Record<string, string> = {
-  "sri-lanka": "Sri Lanka",
   "new-zealand": "New Zealand",
   "united-kingdom": "United Kingdom",
 };
@@ -99,8 +99,7 @@ export default function CountryLanding({ slug }: { slug: string }) {
   const posts = config.blogSlugs
     .map((slug) => getPost(slug))
     .filter((p): p is NonNullable<typeof p> => Boolean(p));
-  // Sourcing countries only, so Sri Lanka is never offered as an alternative
-  // place to buy. On the Sri Lanka page itself this is all seven of them.
+  // The other countries we buy in.
   const others = SOURCE_COUNTRY_PAGES.filter((c) => c.slug !== config.slug);
 
   return (
@@ -832,6 +831,11 @@ export default function CountryLanding({ slug }: { slug: string }) {
             </Link>
           </Reveal>
         </div>
+      </section>
+
+      {/* ── PREFERRED SOURCE ─────────────────────────── */}
+      <section className="px-6 pb-20 max-w-4xl mx-auto">
+        <PreferredSourceCallout />
       </section>
     </main>
   );

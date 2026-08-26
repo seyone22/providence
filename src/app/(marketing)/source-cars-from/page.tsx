@@ -2,6 +2,7 @@ import { ArrowRight, Building2, Globe2, Ship, Users } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
 import MinimalHeader from "@/components/MinimalHeader";
+import PreferredSourceCallout from "@/components/PreferredSourceCallout";
 import { Reveal } from "@/components/Reveal";
 import {
   COUNTRY_BASE_PATH,
@@ -223,18 +224,6 @@ export default function GlobalNetworkPage() {
               </Reveal>
             ))}
           </div>
-
-          <p className="mt-8 text-center text-sm text-zinc-500 font-light">
-            Sri Lanka is a destination market and our South Asia operations base
-            rather than a country we buy in —{" "}
-            <Link
-              href={`${COUNTRY_BASE_PATH}/sri-lanka`}
-              className="font-bold text-black hover:text-sky-600 transition-colors"
-            >
-              see what the Colombo team handles
-            </Link>
-            .
-          </p>
         </section>
 
         {/* ── HOW THE NETWORK WORKS ────────────────── */}
@@ -304,6 +293,11 @@ export default function GlobalNetworkPage() {
               />
             </Link>
           </Reveal>
+        </section>
+
+        {/* ── PREFERRED SOURCE ─────────────────────────── */}
+        <section className="px-6 pb-20 max-w-4xl mx-auto">
+          <PreferredSourceCallout />
         </section>
       </main>
     </>
