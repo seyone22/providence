@@ -30,6 +30,7 @@ import GalleryPreview from "@/components/GalleryPreview";
 import GlobalPartnersStrip from "@/components/GlobalPartnersStrip";
 import GradientMesh from "@/components/GradientMesh";
 import MinimalHeader from "@/components/MinimalHeader";
+import PreferredSourceCallout from "@/components/PreferredSourceCallout";
 import { Reveal } from "@/components/Reveal";
 import RequestForm from "@/components/requestForm";
 import { indianCampaignConfig } from "@/config/landing-pages";
@@ -931,6 +932,11 @@ export default function IndianCarsLanding() {
       {/* ── PARTNERS / AFFILIATES ────────────────────── */}
       <section className="py-24 md:py-32 px-6 bg-white">
         <GlobalPartnersStrip className="mt-0" />
+      </section>
+
+      {/* ── PREFERRED SOURCE ─────────────────────────── */}
+      <section className="px-6 pb-20 max-w-4xl mx-auto">
+        <PreferredSourceCallout />
       </section>
 
       <style jsx global>{`

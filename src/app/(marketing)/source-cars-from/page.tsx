@@ -2,6 +2,7 @@ import { ArrowRight, Building2, Globe2, Ship, Users } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
 import MinimalHeader from "@/components/MinimalHeader";
+import PreferredSourceCallout from "@/components/PreferredSourceCallout";
 import { Reveal } from "@/components/Reveal";
 import {
   COUNTRY_BASE_PATH,
@@ -304,6 +305,11 @@ export default function GlobalNetworkPage() {
               />
             </Link>
           </Reveal>
+        </section>
+
+        {/* ── PREFERRED SOURCE ─────────────────────────── */}
+        <section className="px-6 pb-20 max-w-4xl mx-auto">
+          <PreferredSourceCallout />
         </section>
       </main>
     </>

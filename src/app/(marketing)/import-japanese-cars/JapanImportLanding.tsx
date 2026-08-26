@@ -23,6 +23,7 @@ import GalleryPreview from "@/components/GalleryPreview";
 import GlobalPartnersStrip from "@/components/GlobalPartnersStrip";
 import GradientMesh from "@/components/GradientMesh";
 import MinimalHeader from "@/components/MinimalHeader";
+import PreferredSourceCallout from "@/components/PreferredSourceCallout";
 import { Reveal } from "@/components/Reveal";
 import RequestForm from "@/components/requestForm";
 import { japanImportCampaignConfig } from "@/config/landing-pages";
@@ -952,6 +953,11 @@ export default function JapanImportLanding() {
               home page's partner strip, so the two read as one brand. */}
           <GlobalPartnersStrip />
         </div>
+      </section>
+
+      {/* ── PREFERRED SOURCE ─────────────────────────── */}
+      <section className="px-6 pb-20 max-w-4xl mx-auto">
+        <PreferredSourceCallout />
       </section>
 
       <style jsx global>{`

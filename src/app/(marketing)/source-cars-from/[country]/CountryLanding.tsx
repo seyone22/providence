@@ -17,6 +17,7 @@ import FAQSection from "@/components/faqSection";
 import GalleryPreview from "@/components/GalleryPreview";
 import GradientMesh from "@/components/GradientMesh";
 import MinimalHeader from "@/components/MinimalHeader";
+import PreferredSourceCallout from "@/components/PreferredSourceCallout";
 import { Reveal } from "@/components/Reveal";
 import RequestForm from "@/components/requestForm";
 import { BLOG_BASE_PATH, getPost } from "@/config/blog";
@@ -832,6 +833,11 @@ export default function CountryLanding({ slug }: { slug: string }) {
             </Link>
           </Reveal>
         </div>
+      </section>
+
+      {/* ── PREFERRED SOURCE ─────────────────────────── */}
+      <section className="px-6 pb-20 max-w-4xl mx-auto">
+        <PreferredSourceCallout />
       </section>
     </main>
   );
