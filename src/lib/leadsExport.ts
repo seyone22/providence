@@ -103,6 +103,8 @@ export const LEAD_EXPORT_COLUMNS: LeadExportColumn[] = [
   // Vehicle
   { header: "Make", value: (r) => text(r.make) },
   { header: "Model", value: (r) => text(r.vehicle_model ?? r.vehicleModel) },
+  { header: "Grade", value: (r) => text(r.grade) },
+  { header: "Steering", value: (r) => text(r.steering) },
   { header: "Condition", value: (r) => text(r.condition) },
   { header: "Year from", value: (r) => text(r.yearFrom) },
   { header: "Year to", value: (r) => text(r.yearTo) },

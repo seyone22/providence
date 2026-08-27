@@ -123,6 +123,12 @@ export const requests = pgTable("request", {
   // lead stays readable even if the dossier's palette is later edited.
   exteriorColor: text("exteriorColor"),
   interiorColor: text("interiorColor"),
+  // The grade/variant the customer picked on the car page ("Ti-L Reserve"),
+  // and the hand the car has to be built in. Both are stored as the display
+  // label rather than a dossier reference, for the same reason the colours
+  // are: the lead has to stay readable after the dossier is edited.
+  grade: text("grade"),
+  steering: text("steering"),
   contactMethods: text("contactMethods").array().notNull().default([]),
   contactDays: text("contactDays").array().notNull().default([]),
   contactTimeWindow: text("contactTimeWindow"),
@@ -186,6 +192,10 @@ export const specDossiers = pgTable("specdossier", {
   transmission: text("transmission").default("").notNull(),
   fuelSystem: text("fuelSystem").default("Petrol").notNull(),
   steering: text("steering").default("RHD").notNull(),
+  // Every hand this model can be sourced in. Empty falls back to the single
+  // `steering` value above, which is what every pre-existing dossier has —
+  // read it through parseSteeringOptions rather than directly.
+  steeringOptions: text("steeringOptions").array().notNull().default([]),
   emissions: text("emissions").default("").notNull(),
   pricing: jsonb("pricing").notNull().default([]),
   // Colour palettes offered for this model. Each entry is
@@ -193,6 +203,11 @@ export const specDossiers = pgTable("specdossier", {
   // isDualTone is true (e.g. a contrast roof, or a two-tone cabin).
   exteriorColors: jsonb("exteriorColors").notNull().default([]),
   interiorColors: jsonb("interiorColors").notNull().default([]),
+  // Grades / variants of this one model — Ti, Ti-L, Ti-L Reserve. Each entry
+  // stores only what it *changes* off the base spec above, so the ladder is
+  // cheap to author and the page can show the reader the real differences.
+  // Shape and inheritance rules live in src/lib/vehicle-grades.ts.
+  grades: jsonb("grades").notNull().default([]),
   upholstery: text("upholstery").default("").notNull(),
   infotainment: text("infotainment").default("").notNull(),
   features: text("features").array().notNull().default([]),

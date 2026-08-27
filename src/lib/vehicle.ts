@@ -79,3 +79,64 @@ export function formatLeadPrice(pricing?: PriceEntry[]): string | null {
   const symbol = CURRENCY_SYMBOLS[lead.currency] || `${lead.currency} `;
   return `From ${symbol}${Math.round(lead.amount).toLocaleString()}`;
 }
+
+// --- Steering configuration ------------------------------------------------
+//
+// A model is frequently built in both hands — the Patrol is sold RHD in
+// Australia and LHD across the Gulf — and the destination country decides
+// which one the customer needs. Rather than publishing the same car twice,
+// a dossier declares which hands it can be sourced in and the reader picks.
+//
+// `steeringOptions` is the list; the legacy single `steering` column stays as
+// the fallback (and as the primary, for the PDF and anything that can only
+// show one value), so every dossier written before this existed keeps working.
+
+export type SteeringCode = "RHD" | "LHD";
+
+/** Both hands, in the order they are offered on the page. */
+export const STEERING_CODES: SteeringCode[] = ["RHD", "LHD"];
+
+const STEERING_LABELS: Record<SteeringCode, string> = {
+  RHD: "Right-hand drive (RHD)",
+  LHD: "Left-hand drive (LHD)",
+};
+
+/** The full spelt-out label, for a spec row or a lead. */
+export function steeringLabel(code: string | undefined): string {
+  const normalized = normalizeSteering(code);
+  return normalized ? STEERING_LABELS[normalized] : "";
+}
+
+/** "RHD"/"LHD" from anything hand-ish, or null when it isn't one of the two. */
+export function normalizeSteering(value: unknown): SteeringCode | null {
+  const raw = String(value ?? "")
+    .trim()
+    .toUpperCase();
+  if (raw === "RHD" || raw.startsWith("RIGHT")) return "RHD";
+  if (raw === "LHD" || raw.startsWith("LEFT")) return "LHD";
+  return null;
+}
+
+/**
+ * The hands a dossier can be sourced in.
+ *
+ * Falls back to the single `steering` column when the list is empty, which is
+ * every dossier authored before this column existed — and then to RHD, which
+ * is the default the schema has always carried. The result is never empty, so
+ * callers never have to handle "a car that comes in no hand at all".
+ */
+export function parseSteeringOptions(
+  options: unknown,
+  fallback?: string,
+): SteeringCode[] {
+  const listed = Array.isArray(options)
+    ? options
+        .map(normalizeSteering)
+        .filter((c): c is SteeringCode => c !== null)
+    : [];
+
+  const deduped = STEERING_CODES.filter((code) => listed.includes(code));
+  if (deduped.length > 0) return deduped;
+
+  return [normalizeSteering(fallback) ?? "RHD"];
+}

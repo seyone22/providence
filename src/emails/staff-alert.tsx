@@ -36,7 +36,11 @@ export const StaffAlertEmail = ({ data, requestId }: StaffAlertEmailProps) => {
         <Text style={labelStyle}>Vehicle Specs</Text>
         <Text style={valueStyle}>
           {data.condition} {data.make} {data.vehicle_model}
+          {data.grade ? ` · ${data.grade}` : ""}
         </Text>
+        {data.steering && (
+          <Text style={valueStyle}>Steering: {data.steering}</Text>
+        )}
         {data.condition === "Used" && (
           <Text style={valueStyle}>
             Years: {data.yearFrom} - {data.yearTo} | Max Mileage: {data.mileage}

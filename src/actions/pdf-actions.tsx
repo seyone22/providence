@@ -195,7 +195,12 @@ const DossierPDF = ({ data }: { data: any }) => (
             </View>
             <View style={styles.row}>
               <Text style={styles.colLabel}>Steering</Text>
-              <Text style={styles.colValue}>{data.steering || "-"}</Text>
+              <Text style={styles.colValue}>
+                {Array.isArray(data.steeringOptions) &&
+                data.steeringOptions.length > 0
+                  ? data.steeringOptions.join(" / ")
+                  : data.steering || "-"}
+              </Text>
             </View>
             <View style={styles.row}>
               <Text style={styles.colLabel}>Emissions</Text>
@@ -260,6 +265,43 @@ const DossierPDF = ({ data }: { data: any }) => (
             </View>
           </View>
         </View>
+
+        {/* Grade ladder. Only what each grade changes, which is what makes
+            the blueprint useful next to a quote. */}
+        {Array.isArray(data.grades) && data.grades.length > 0 && (
+          <View style={{ marginTop: 20 }}>
+            <Text
+              style={{
+                fontSize: 14,
+                fontFamily: "Helvetica-Bold",
+                marginBottom: 8,
+              }}
+            >
+              GRADES
+            </Text>
+            {data.grades.map((grade: any, i: number) => (
+              <View key={i} style={{ marginBottom: 10 }} wrap={false}>
+                <Text style={{ fontSize: 11, fontFamily: "Helvetica-Bold" }}>
+                  {grade.name}
+                </Text>
+                {grade.summary ? (
+                  <Text style={{ fontSize: 9, color: "#71717a", marginTop: 2 }}>
+                    {grade.summary}
+                  </Text>
+                ) : null}
+                {Array.isArray(grade.highlights) &&
+                  grade.highlights.map((highlight: string, h: number) => (
+                    <Text
+                      key={h}
+                      style={{ fontSize: 9, color: "#3f3f46", marginTop: 2 }}
+                    >
+                      • {highlight}
+                    </Text>
+                  ))}
+              </View>
+            ))}
+          </View>
+        )}
 
         {/* Features */}
         {data.features && data.features.length > 0 && (

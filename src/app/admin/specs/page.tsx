@@ -8,6 +8,7 @@ import {
   Globe,
   Hash,
   Info,
+  Layers,
   Link2,
   Loader2,
   Newspaper,
@@ -26,6 +27,7 @@ import { Suspense, useEffect, useRef, useState } from "react";
 import { generateDossierPdfAction } from "@/actions/pdf-actions";
 // Actions & Components
 import { getSpecDossierById, saveSpecDossier } from "@/actions/spec-actions";
+import { GradeEditor, SteeringOptionsEditor } from "@/components/GradeEditor";
 import { SpecSection } from "@/components/SpecSection";
 import { Badge } from "@/components/ui/badge";
 // UI Components
@@ -42,7 +44,11 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 import { getPresignedUrls } from "@/lib/file-actions";
 import { CAR_MAKES, getLogoFilename } from "@/lib/logo-utils";
-import { galleryPathForDossier, isLiveStatus } from "@/lib/vehicle";
+import {
+  galleryPathForDossier,
+  isLiveStatus,
+  parseSteeringOptions,
+} from "@/lib/vehicle";
 import {
   colorLabel,
   emptyColor,
@@ -50,6 +56,12 @@ import {
   swatchStyle,
   type VehicleColor,
 } from "@/lib/vehicle-colors";
+import {
+  cleanGradesForSave,
+  emptyGrade,
+  parseGrades,
+  type VehicleGrade,
+} from "@/lib/vehicle-grades";
 
 // Full Country List for the Datalist
 const COUNTRIES = [
@@ -579,6 +591,12 @@ function SpecBuilderContent() {
   const [exteriorColors, setExteriorColors] = useState<VehicleColor[]>([]);
   const [interiorColors, setInteriorColors] = useState<VehicleColor[]>([]);
 
+  // Grade ladder and the hands this model can be sourced in. Both are kept
+  // out of specData because they are lists edited in place, like the colour
+  // palettes above, rather than single scalar fields.
+  const [grades, setGrades] = useState<VehicleGrade[]>([]);
+  const [steeringOptions, setSteeringOptions] = useState<string[]>(["RHD"]);
+
   // Image Management State
   const [existingImages, setExistingImages] = useState<string[]>([]);
   const [pendingFiles, setPendingFiles] = useState<File[]>([]);
@@ -626,6 +644,12 @@ function SpecBuilderContent() {
             setExistingImages(res.data.images || []);
             setExteriorColors(parseColors(res.data.exteriorColors));
             setInteriorColors(parseColors(res.data.interiorColors));
+            setGrades(parseGrades(res.data.grades));
+            // Falls back to the single `steering` column for every dossier
+            // authored before this list existed.
+            setSteeringOptions(
+              parseSteeringOptions(res.data.steeringOptions, res.data.steering),
+            );
           } else {
             alert("Dossier not found or error fetching.");
           }
@@ -764,6 +788,42 @@ function SpecBuilderContent() {
     setter((prev) => prev.filter((_, i) => i !== index));
   };
 
+  const updateGrade = (index: number, patch: Partial<VehicleGrade>) => {
+    setIsDirty(true);
+    setGrades((prev) =>
+      prev.map((g, i) => {
+        if (i !== index) {
+          // Marking one grade as the default un-marks the rest — the car page
+          // opens on exactly one, so two ticks is not a state to save.
+          return patch.isDefault === true ? { ...g, isDefault: false } : g;
+        }
+        return { ...g, ...patch };
+      }),
+    );
+  };
+
+  const addGrade = () => {
+    setIsDirty(true);
+    setGrades((prev) => [...prev, emptyGrade()]);
+  };
+
+  const removeGrade = (index: number) => {
+    setIsDirty(true);
+    setGrades((prev) => prev.filter((_, i) => i !== index));
+  };
+
+  /** Reorder a grade. The list order is the ladder order on the car page. */
+  const moveGrade = (index: number, direction: -1 | 1) => {
+    const target = index + direction;
+    setGrades((prev) => {
+      if (target < 0 || target >= prev.length) return prev;
+      const next = [...prev];
+      [next[index], next[target]] = [next[target], next[index]];
+      return next;
+    });
+    setIsDirty(true);
+  };
+
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files) {
       const filesArray = Array.from(e.target.files);
@@ -885,6 +945,11 @@ function SpecBuilderContent() {
         pricing,
         exteriorColors: namedColors(exteriorColors),
         interiorColors: namedColors(interiorColors),
+        grades: cleanGradesForSave(grades, finalImageUrls.length),
+        steeringOptions,
+        // The legacy single-value column stays the primary hand, so the PDF
+        // and anything else reading `steering` keeps working unchanged.
+        steering: steeringOptions[0] || "RHD",
       };
       let result = await saveSpecDossier(payload);
 
@@ -1038,18 +1103,13 @@ function SpecBuilderContent() {
                 <Label className="text-[10px] font-black uppercase text-zinc-400">
                   Steering Configuration
                 </Label>
-                <Select
-                  value={specData.steering}
-                  onValueChange={(v) => handleInputChange("steering", v)}
-                >
-                  <SelectTrigger className="rounded-xl h-11">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="RHD">Right Hand (RHD)</SelectItem>
-                    <SelectItem value="LHD">Left Hand (LHD)</SelectItem>
-                  </SelectContent>
-                </Select>
+                <SteeringOptionsEditor
+                  value={steeringOptions}
+                  onChange={(next) => {
+                    setIsDirty(true);
+                    setSteeringOptions(next);
+                  }}
+                />
               </div>
               <div className="space-y-2">
                 <Label className="text-[10px] font-black uppercase text-zinc-400">
@@ -1567,6 +1627,42 @@ function SpecBuilderContent() {
                 </Select>
               </div>
             </div>
+          </div>
+
+          {/* Grades / Variants Section */}
+          <div className="bg-white border border-black/5 rounded-[3rem] p-10 shadow-sm">
+            <div className="flex items-center gap-4 mb-8">
+              <div className="bg-violet-50 text-violet-600 p-4 rounded-2xl">
+                <Layers size={28} />
+              </div>
+              <div>
+                <h3 className="text-2xl font-bold">Grades &amp; Variants</h3>
+                <p className="text-sm text-zinc-500 mt-1">
+                  One page, the whole ladder. Each grade you add becomes a
+                  selectable variant on the car page and an option on the
+                  inquiry form, and the customer&rsquo;s choice lands on the
+                  lead next to the make and model.
+                </p>
+              </div>
+            </div>
+
+            <GradeEditor
+              grades={grades}
+              baseSpecs={{
+                engineConfig: specData.engineConfig,
+                displacement: specData.displacement,
+                maxPower: specData.maxPower,
+                maxTorque: specData.maxTorque,
+                transmission: specData.transmission,
+                fuelSystem: specData.fuelSystem,
+                emissions: specData.emissions,
+              }}
+              images={existingImages}
+              onChange={updateGrade}
+              onAdd={addGrade}
+              onRemove={removeGrade}
+              onMove={moveGrade}
+            />
           </div>
 
           {/* Tags & Features Section */}

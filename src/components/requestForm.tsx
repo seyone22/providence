@@ -45,7 +45,7 @@ import {
   currencyOptions,
   getCurrency,
 } from "@/lib/currencies";
-import { formatVehicleTitle } from "@/lib/vehicle";
+import { formatVehicleTitle, steeringLabel } from "@/lib/vehicle";
 import {
   colorLabel,
   contrastInk,
@@ -420,6 +420,98 @@ const DualRangeSlider = ({
  * Either way the value written to the lead is a human-readable string, which
  * is what a sales agent actually needs to act on.
  */
+/**
+ * A row of chips for a short, closed list of options — the grade ladder, the
+ * steering hands. Deliberately the same shape as ColorChoiceField below
+ * (optional, clearable by re-clicking the active chip, an "Other" escape
+ * hatch) so the whole specification step behaves consistently.
+ *
+ * The value written to the lead is the label itself, which is what a sales
+ * agent needs to read off the row.
+ */
+function ChipChoiceField({
+  label,
+  options,
+  optionLabel,
+  value,
+  onChange,
+}: {
+  label: string;
+  options: string[];
+  /** Display transform; the stored value is still the raw option. */
+  optionLabel?: (option: string) => string;
+  value: string;
+  onChange: (value: string) => void;
+}) {
+  const render = optionLabel ?? ((option: string) => option);
+  const isCustom = value.length > 0 && !options.includes(value);
+  const [showCustom, setShowCustom] = useState(isCustom);
+  const fieldId = `chip-${label.toLowerCase().replace(/[^a-z0-9]+/g, "-")}`;
+
+  return (
+    <div>
+      <p className="text-[10px] font-bold text-[#4da8da] uppercase tracking-wider mb-3">
+        {label}
+      </p>
+
+      <div className="flex flex-wrap items-center gap-2.5">
+        {options.map((option) => {
+          const isSelected = value === option && !showCustom;
+          return (
+            <button
+              key={option}
+              type="button"
+              aria-pressed={isSelected}
+              onClick={() => {
+                setShowCustom(false);
+                // Clicking the active chip clears it — the field is optional.
+                onChange(isSelected ? "" : option);
+              }}
+              className={`inline-flex items-center gap-1.5 px-4 py-2.5 rounded-full text-sm font-medium border transition-all ${
+                isSelected
+                  ? "bg-[#4da8da] text-white border-[#4da8da] shadow-md"
+                  : "bg-transparent text-zinc-500 border-black/10 hover:border-[#4da8da]/40"
+              }`}
+            >
+              {isSelected && <Check size={14} strokeWidth={3} />}
+              {render(option)}
+            </button>
+          );
+        })}
+
+        <button
+          type="button"
+          aria-pressed={showCustom}
+          onClick={() => {
+            const next = !showCustom;
+            setShowCustom(next);
+            if (!next) onChange("");
+            else if (!isCustom) onChange("");
+          }}
+          className={`px-4 py-2.5 rounded-full text-sm font-medium border transition-all ${
+            showCustom
+              ? "bg-[#4da8da] text-white border-[#4da8da] shadow-md"
+              : "bg-transparent text-zinc-500 border-black/10 hover:border-[#4da8da]/40"
+          }`}
+        >
+          Other
+        </button>
+      </div>
+
+      {showCustom && (
+        <input
+          id={fieldId}
+          aria-label={`${label} — other`}
+          value={isCustom ? value : ""}
+          onChange={(e) => onChange(e.target.value)}
+          placeholder={`Tell us which ${label.toLowerCase()} you want`}
+          className="mt-4 w-full font-sans bg-transparent border-b border-black/10 focus:border-sky-500 text-black placeholder:text-zinc-400 focus:outline-none transition-colors rounded-none px-0 py-3 text-lg"
+        />
+      )}
+    </div>
+  );
+}
+
 function ColorChoiceField({
   label,
   options,
@@ -502,7 +594,7 @@ function ColorChoiceField({
           const isSelected = value === optionLabel && !showCustom;
           return (
             <button
-              key={`${color.name}-${color.hex}`}
+              key={`${optionLabel}-${color.hex}`}
               type="button"
               title={optionLabel}
               aria-label={optionLabel}
@@ -605,6 +697,10 @@ const initialFormState = {
   yearRange: YEAR_PRESETS[0].label,
   mileageMin: MILEAGE_MIN,
   mileageMax: MILEAGE_MAX,
+  // Grade/variant and steering hand, prefilled from the car page's own
+  // selectors and stored as the display label, same as the colours below.
+  grade: "",
+  steering: "",
   specs: "",
   // Colour choices. Stored as the rendered label ("Sonic Grey / Black roof")
   // rather than an index into the dossier palette, so the lead stays readable
@@ -646,6 +742,10 @@ export default function RequestForm({
   assignedAgentId,
   exteriorColorOptions = [],
   interiorColorOptions = [],
+  gradeOptions = [],
+  selectedGrade,
+  steeringOptions = [],
+  selectedSteering,
 }: {
   prefill?: Partial<typeof initialFormState>;
   defaultPhoneCountry?: string;
@@ -656,6 +756,19 @@ export default function RequestForm({
   // generic /request page, where the colour fields fall back to free text.
   exteriorColorOptions?: VehicleColor[];
   interiorColorOptions?: VehicleColor[];
+  // The dossier's grade ladder and the hands it can be sourced in. Empty on
+  // the generic /request page, where neither field is shown at all.
+  gradeOptions?: string[];
+  steeringOptions?: string[];
+  /**
+   * The car page's current selections. These arrive as their own props rather
+   * than through `prefill` on purpose: `prefill` replaces the entire form
+   * state when its identity changes, so routing a selector through it would
+   * wipe whatever the customer had already typed every time they compared a
+   * grade.
+   */
+  selectedGrade?: string;
+  selectedSteering?: string;
 }) {
   const searchParams = useSearchParams();
   const pathname = usePathname();
@@ -770,6 +883,26 @@ export default function RequestForm({
       condition: prefill.condition ?? (prefill.make ? "Used" : prev.condition),
     }));
   }, [prefill, defaultPhoneCountry]);
+
+  // The car page's grade and steering pills write straight into their own two
+  // fields. Kept out of the prefill effect above on purpose: that one replaces
+  // the whole form state, so comparing grades mid-inquiry would otherwise
+  // discard everything the customer had already typed.
+  useEffect(() => {
+    if (selectedGrade === undefined) return;
+    setFormData((prev) =>
+      prev.grade === selectedGrade ? prev : { ...prev, grade: selectedGrade },
+    );
+  }, [selectedGrade]);
+
+  useEffect(() => {
+    if (selectedSteering === undefined) return;
+    setFormData((prev) =>
+      prev.steering === selectedSteering
+        ? prev
+        : { ...prev, steering: selectedSteering },
+    );
+  }, [selectedSteering]);
 
   useEffect(() => {
     if (!formData.make) {
@@ -967,6 +1100,8 @@ export default function RequestForm({
           ? mileageRangeLabel(formData.mileageMin, formData.mileageMax)
           : undefined,
       specs: formData.specs,
+      grade: formData.grade.trim() || undefined,
+      steering: formData.steering.trim() || undefined,
       exteriorColor: formData.exteriorColor.trim() || undefined,
       interiorColor: formData.interiorColor.trim() || undefined,
       isUpcomingVehicle: formData.isUpcomingVehicle === true,
@@ -1476,6 +1611,36 @@ export default function RequestForm({
                       </motion.p>
                     )}
                   </div>
+
+                  {/* Grade and steering. Both are autofilled from the car
+                      page's selectors, and both stay editable here — a
+                      customer who came in on one grade and changed their mind
+                      shouldn't have to scroll back up to say so. */}
+                  {(gradeOptions.length > 0 || steeringOptions.length > 0) && (
+                    <div className="mt-10 space-y-8">
+                      {gradeOptions.length > 0 && (
+                        <ChipChoiceField
+                          label="Grade"
+                          options={gradeOptions}
+                          value={formData.grade}
+                          onChange={(v) =>
+                            setFormData((prev) => ({ ...prev, grade: v }))
+                          }
+                        />
+                      )}
+                      {steeringOptions.length > 0 && (
+                        <ChipChoiceField
+                          label="Steering"
+                          options={steeringOptions}
+                          optionLabel={steeringLabel}
+                          value={formData.steering}
+                          onChange={(v) =>
+                            setFormData((prev) => ({ ...prev, steering: v }))
+                          }
+                        />
+                      )}
+                    </div>
+                  )}
 
                   {/* Colours */}
                   <div className="mt-10 space-y-8">
