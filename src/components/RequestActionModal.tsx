@@ -472,8 +472,37 @@ export default function RequestActionModal({
                     {modal.request.make} {modal.request.vehicle_model}
                   </span>
                 </div>
-                {/* Colour choices. Shown whether or not the customer made one
-                    — "N/A" is an answer, a missing row is just a gap. */}
+                {/* Grade, steering and colour. All shown whether or not the
+                    customer made a choice — "N/A" is an answer, a missing row
+                    is just a gap. */}
+                <div>
+                  <span className="block text-zinc-400 text-[10px] uppercase tracking-widest font-bold mb-1">
+                    Grade
+                  </span>
+                  <span
+                    className={
+                      modal.request.grade
+                        ? "font-medium text-black"
+                        : "font-medium text-zinc-400"
+                    }
+                  >
+                    {modal.request.grade || "N/A"}
+                  </span>
+                </div>
+                <div>
+                  <span className="block text-zinc-400 text-[10px] uppercase tracking-widest font-bold mb-1">
+                    Steering
+                  </span>
+                  <span
+                    className={
+                      modal.request.steering
+                        ? "font-medium text-black"
+                        : "font-medium text-zinc-400"
+                    }
+                  >
+                    {modal.request.steering || "N/A"}
+                  </span>
+                </div>
                 <div>
                   <span className="block text-zinc-400 text-[10px] uppercase tracking-widest font-bold mb-1">
                     Exterior Colour

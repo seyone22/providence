@@ -72,7 +72,7 @@ Ask before downloading images from the internet, and confirm the licence covers 
 
 ## Phase 3 — Write the brief
 
-A brief is a JSON file. Put it wherever is convenient (a scratch directory is fine — briefs aren't committed).
+A brief is a JSON file. A one-off can live in a scratch directory. A page that is meant to exist on staging and production too belongs in `scripts/briefs/` and gets committed — a car page is a database row, so that brief is the only way to recreate it in another environment without retyping it into the admin builder.
 
 ```json
 {
@@ -83,7 +83,7 @@ A brief is a JSON file. Put it wherever is convenient (a scratch directory is fi
   "slug": "toyota-gr-yaris-circuit-pack",
   "condition": "New",
   "countryOfOrigin": "Japan",
-  "steering": "RHD",
+  "steeringOptions": ["RHD", "LHD"],
   "fuelSystem": "Petrol",
   "engineConfig": "1.6L turbocharged inline-3",
   "displacement": "1618 cc",
@@ -97,6 +97,15 @@ A brief is a JSON file. Put it wherever is convenient (a scratch directory is fi
   "searchTags": ["gr-yaris", "hot-hatch", "japan"],
   "exteriorColors": [{ "name": "Platinum White Pearl", "hex": "#f2f2f0" }],
   "interiorColors": [{ "name": "Black Suede", "hex": "#1c1c1c" }],
+  "grades": [
+    {
+      "name": "Circuit Pack",
+      "isDefault": true,
+      "summary": "The one built to be driven on a circuit rather than to a showroom.",
+      "highlights": ["Front and rear Torsen limited-slip differentials", "BBS forged 18-inch wheels"],
+      "maxPower": "296 hp @ 6500 rpm"
+    }
+  ],
   "valuePoints": [
     { "title": "Homologation special", "description": "Built to make a rally car legal, not to fill a showroom." }
   ],
@@ -110,6 +119,47 @@ A brief is a JSON file. Put it wherever is convenient (a scratch directory is fi
 ```
 
 Only `make` and `model` are required. `slug` is derived from make + model + trim if omitted.
+
+### Grades
+
+When a model is sold in a ladder — Ti, Ti+, Ti-L, Ti-L Reserve — put the whole
+ladder on **one page** via `grades`. Do not build a page per grade: four
+near-duplicate pages compete for the same keyword and give you four galleries
+to keep in step.
+
+The authoring rule is that **a grade stores only what it changes.** Every spec
+field on a grade (`engineConfig`, `displacement`, `maxPower`, `maxTorque`,
+`transmission`, `fuelSystem`, `emissions`) is optional, and leaving one out
+means "same as the base car". So write the car once at the top level, then give
+each grade only its differences.
+
+Per grade:
+
+- `name` — the manufacturer's own name for it. Required; everything else is optional.
+- `highlights` — what this grade adds over the one below it. **This is the point of the feature**: it is the comparison the reader opened four tabs to make. Quote the manufacturer's own wording rather than paraphrasing, and list only the differences, not the whole car.
+- `summary` — one line on what the grade is for.
+- `isDefault` — the grade the page opens on. At most one; the first listed wins otherwise.
+- `features` — grade-only equipment, merged with the dossier's standard features.
+- `pricing` — a per-grade matrix, if the grades are priced differently. Empty falls back to the dossier's own.
+- `imageIndex` — index into `images` of the shot for this grade, so selecting it swaps the gallery.
+
+Selecting a grade re-resolves the spec table, feature list, pricing and photo,
+prefills the inquiry form's **Grade** field, and writes the grade onto the lead
+beside the make and model.
+
+If a manufacturer's grade lists are cumulative (each grade "adds" to the one
+below), that maps straight onto `highlights` — copy them across as they stand.
+
+### Steering
+
+`steeringOptions` lists every hand the model can be sourced in. List both when
+that is true: the page then offers a **Steering** selector, the inquiry form
+grows an RHD/LHD field, and the customer's choice lands on the lead and drives
+the admin table's LHD badge. Omitting it falls back to the single `steering`
+value, which defaults to RHD.
+
+Don't publish the same model twice to cover both hands — that is the same
+duplicate-page problem as grades.
 
 ### Upcoming cars
 
@@ -152,6 +202,16 @@ Review the draft at `/admin/specs`, then publish:
 node --env-file=.env.local scripts/create-car-page.mjs path/to/brief.json --publish
 ```
 
+The page is now live — **on one environment only**. Each of dev, staging and
+production has its own database, so a car page published on dev does not exist
+on the others and no code deploy will carry it across. For a page that is meant
+to exist everywhere, keep the brief in `scripts/briefs/` and re-run it per
+environment:
+
+```bash
+node --env-file=.env.local scripts/create-car-page.mjs scripts/briefs/my-car.json --env staging --publish
+```
+
 The script **upserts by slug**, so re-running an edited brief updates the same page rather than creating a duplicate. That's the intended edit loop.
 
 Default to leaving the page as a Draft and telling the user it's ready for review. Only pass `--publish` when they've asked for it — publishing puts the page in the public gallery, the sitemap and Google's index.
@@ -159,6 +219,8 @@ Default to leaving the page as a Draft and telling the user it's ready for revie
 ## Phase 5 — Check it
 
 - Open `/b2c/gallery/<slug>` and confirm the hero, the colour swatches (two-tone ones should render as a hard diagonal split, not a gradient), and the inquiry form's colour picker.
+- If the model has `grades`, click through every one: the spec table, feature chips and *What the … adds* list should all change, and the inquiry form's **Grade** field should follow. Type something into the form's specification box first — it must survive a grade change.
+- If `steeringOptions` lists both hands, confirm the **Steering** selector appears and that the spec row follows it.
 - If `isUpcoming`, confirm the Coming Soon badge, the *Register Interest* framing, and that the car shows on `/latest-news`.
 - If `newsSlug` is set, confirm both directions of the link resolve.
 

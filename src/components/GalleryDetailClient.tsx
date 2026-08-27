@@ -4,10 +4,13 @@ import {
   ArrowLeft,
   ArrowRight,
   CalendarClock,
+  CarFront,
+  Check,
   ChevronDown,
   FileText,
   Globe,
   Images,
+  Layers,
   Loader2,
   Mail,
   Palette,
@@ -21,12 +24,21 @@ import MinimalHeader from "@/components/MinimalHeader";
 import { Reveal } from "@/components/Reveal";
 import RequestForm, { mileageToPrefillRange } from "@/components/requestForm";
 import { getLogoFilename } from "@/lib/logo-utils";
+import { parseSteeringOptions, steeringLabel } from "@/lib/vehicle";
 import {
   colorLabel,
   parseColors,
   swatchStyle,
   type VehicleColor,
 } from "@/lib/vehicle-colors";
+import {
+  findGrade,
+  gradeFeatures,
+  gradePricing,
+  gradeSpec,
+  parseGrades,
+  type VehicleGrade,
+} from "@/lib/vehicle-grades";
 
 // Updated Type to include Pricing Matrix
 type PriceEntry = {
@@ -83,6 +95,10 @@ type Dossier = {
   // Colour palettes (raw jsonb — run through parseColors before use)
   exteriorColors?: unknown;
   interiorColors?: unknown;
+  // Grade ladder (raw jsonb — run through parseGrades before use)
+  grades?: unknown;
+  // Every hand this model can be sourced in; empty falls back to `steering`
+  steeringOptions?: string[];
 };
 
 const FALLBACK_IMAGE =
@@ -92,6 +108,7 @@ const FALLBACK_IMAGE =
 // A spec dossier can carry 20+ custom rows and a dozen features; rendering all
 // of it up front is what made this page an endless scroll.
 const LIMITS = {
+  gradeHighlights: 6,
   specs: 8,
   features: 8,
   advantages: 3,
@@ -159,6 +176,57 @@ export default function GalleryDetailClient({ car }: { car: Dossier }) {
     [car.interiorColors],
   );
 
+  // --- Grade and steering, the two choices that change the page ----------
+  const grades = useMemo(() => parseGrades(car.grades), [car.grades]);
+  const [selectedGradeId, setSelectedGradeId] = useState<string | null>(null);
+  // findGrade falls back to the dossier's default rather than to nothing, so
+  // this is undefined only for a model with no grades at all.
+  const selectedGrade = findGrade(grades, selectedGradeId);
+
+  const steeringOptions = useMemo(
+    () => parseSteeringOptions(car.steeringOptions, car.steering),
+    [car.steeringOptions, car.steering],
+  );
+  const [selectedSteering, setSelectedSteering] = useState(steeringOptions[0]);
+  // A dossier edited from RHD-only to LHD-only would otherwise leave the page
+  // holding a hand the car no longer comes in.
+  const activeSteering = steeringOptions.includes(selectedSteering)
+    ? selectedSteering
+    : steeringOptions[0];
+
+  // Every spec the selected grade touches, resolved against the base car.
+  // Blank on a grade means "same as the dossier", so this is the single place
+  // the inheritance rule is applied on the public side.
+  const specs = useMemo(() => {
+    const base = {
+      engineConfig: car.engineConfig,
+      displacement: car.displacement,
+      maxPower: car.maxPower,
+      maxTorque: car.maxTorque,
+      transmission: car.transmission,
+      fuelSystem: car.fuelSystem,
+      emissions: car.emissions,
+    };
+    return {
+      engineConfig: gradeSpec(base, selectedGrade, "engineConfig"),
+      displacement: gradeSpec(base, selectedGrade, "displacement"),
+      maxPower: gradeSpec(base, selectedGrade, "maxPower"),
+      maxTorque: gradeSpec(base, selectedGrade, "maxTorque"),
+      transmission: gradeSpec(base, selectedGrade, "transmission"),
+      fuelSystem: gradeSpec(base, selectedGrade, "fuelSystem"),
+      emissions: gradeSpec(base, selectedGrade, "emissions"),
+    };
+  }, [
+    car.engineConfig,
+    car.displacement,
+    car.maxPower,
+    car.maxTorque,
+    car.transmission,
+    car.fuelSystem,
+    car.emissions,
+    selectedGrade,
+  ]);
+
   // Memoised because RequestForm re-applies `prefill` whenever its identity
   // changes: without this, clicking a gallery thumbnail (which re-renders this
   // component) would rebuild the object and wipe whatever the customer had
@@ -176,7 +244,7 @@ export default function GalleryDetailClient({ car }: { car: Dossier }) {
       // A coming-soon dossier produces a pre-order lead, not a live quote —
       // flagged here so the pipeline can tell the two apart.
       isUpcomingVehicle: car.isUpcoming === true,
-      specs: `Inquiry for ${car.year} ${car.make} ${car.model} (${car.trim}). Features: ${car.features?.join(", ")}`,
+      specs: `Inquiry for ${car.year} ${car.make} ${car.model}${car.trim ? ` (${car.trim})` : ""}.`,
     }),
     [
       car.make,
@@ -225,6 +293,20 @@ export default function GalleryDetailClient({ car }: { car: Dossier }) {
     (c) => linkedImage(c) !== undefined,
   );
 
+  const pickGrade = (id: string) => {
+    setSelectedGradeId(id);
+    const grade = grades.find((g) => g.id === id);
+    // A grade with its own photograph swaps the gallery to it; one without
+    // leaves the gallery alone rather than jumping to an unrelated shot.
+    if (
+      grade &&
+      typeof grade.imageIndex === "number" &&
+      grade.imageIndex < displayImages.length
+    ) {
+      setActiveImage(grade.imageIndex);
+    }
+  };
+
   const handleDownloadPdf = async () => {
     setIsGeneratingPdf(true);
     try {
@@ -254,15 +336,23 @@ export default function GalleryDetailClient({ car }: { car: Dossier }) {
   // Base spec rows and the dossier's custom rows share one table and one
   // collapse, so the reader sees a single "Technical Specifications" list.
   const specRows = [
-    { label: "Variant / Trim", value: car.trim },
+    // The grade replaces the static trim row when the model has a ladder —
+    // showing both puts two contradictory answers to the same question next
+    // to each other.
+    selectedGrade
+      ? { label: "Grade", value: selectedGrade.name }
+      : { label: "Variant / Trim", value: car.trim },
     { label: "Origin", value: car.countryOfOrigin },
     {
       label: "Engine",
-      value: `${car.displacement || ""} ${car.engineConfig || ""}`.trim(),
+      value: `${specs.displacement} ${specs.engineConfig}`.trim(),
     },
-    { label: "Transmission", value: car.transmission },
-    { label: "Fuel System", value: car.fuelSystem },
-    { label: "Steering", value: car.steering },
+    { label: "Max Power", value: specs.maxPower },
+    { label: "Max Torque", value: specs.maxTorque },
+    { label: "Transmission", value: specs.transmission },
+    { label: "Fuel System", value: specs.fuelSystem },
+    { label: "Steering", value: steeringLabel(activeSteering) },
+    { label: "Emissions", value: specs.emissions },
     ...(car.customData ?? []).map((c) => ({
       label: c.label,
       value: c.value,
@@ -270,7 +360,8 @@ export default function GalleryDetailClient({ car }: { car: Dossier }) {
   ].filter((row) => row.value);
 
   const visibleSpecs = specsOpen ? specRows : specRows.slice(0, LIMITS.specs);
-  const features = car.features ?? [];
+  const features = gradeFeatures(car.features, selectedGrade);
+  const pricing = gradePricing(car.pricing, selectedGrade);
   const visibleFeatures = featuresOpen
     ? features
     : features.slice(0, LIMITS.features);
@@ -368,6 +459,99 @@ export default function GalleryDetailClient({ car }: { car: Dossier }) {
                   >
                     {descriptionOpen ? "Show less" : "Read more"}
                   </button>
+                )}
+              </div>
+            )}
+
+            {/* Grade and steering — the two choices that change what gets
+                quoted, so they sit above the CTA rather than below it. */}
+            {(grades.length > 0 || steeringOptions.length > 1) && (
+              <div className="mt-6 rounded-2xl border border-black/5 bg-white p-5 shadow-[0_12px_28px_rgba(0,0,0,0.03)]">
+                {grades.length > 0 && (
+                  <div>
+                    <div className="flex items-center gap-2 mb-3">
+                      <Layers size={17} className="text-zinc-400" />
+                      <p className="text-xs font-bold tracking-[0.2em] text-zinc-500 uppercase">
+                        Grade
+                      </p>
+                    </div>
+
+                    <div className="flex flex-wrap gap-2">
+                      {grades.map((grade) => {
+                        const isActive = selectedGrade?.id === grade.id;
+                        return (
+                          <button
+                            key={grade.id}
+                            type="button"
+                            onClick={() => pickGrade(grade.id)}
+                            aria-pressed={isActive}
+                            className={`inline-flex items-center gap-1.5 px-4 py-2.5 rounded-full text-sm font-bold border transition-all ${
+                              isActive
+                                ? "bg-black text-white border-black shadow-md"
+                                : "bg-white text-zinc-600 border-black/10 hover:border-black/40"
+                            }`}
+                          >
+                            {isActive && <Check size={14} strokeWidth={3} />}
+                            {grade.name}
+                          </button>
+                        );
+                      })}
+                    </div>
+
+                    {selectedGrade?.summary && (
+                      <p className="mt-3.5 text-sm text-zinc-600 font-light leading-relaxed">
+                        {selectedGrade.summary}
+                      </p>
+                    )}
+
+                    {selectedGrade && selectedGrade.highlights.length > 0 && (
+                      <GradeHighlights grade={selectedGrade} />
+                    )}
+                  </div>
+                )}
+
+                {steeringOptions.length > 1 && (
+                  <div
+                    className={
+                      grades.length > 0
+                        ? "mt-5 pt-5 border-t border-black/5"
+                        : ""
+                    }
+                  >
+                    <div className="flex items-center gap-2 mb-3">
+                      <CarFront size={17} className="text-zinc-400" />
+                      <p className="text-xs font-bold tracking-[0.2em] text-zinc-500 uppercase">
+                        Steering
+                      </p>
+                    </div>
+
+                    <div className="flex flex-wrap gap-2">
+                      {steeringOptions.map((option) => {
+                        const isActive = activeSteering === option;
+                        return (
+                          <button
+                            key={option}
+                            type="button"
+                            onClick={() => setSelectedSteering(option)}
+                            aria-pressed={isActive}
+                            className={`inline-flex items-center gap-1.5 px-4 py-2.5 rounded-full text-sm font-bold border transition-all ${
+                              isActive
+                                ? "bg-black text-white border-black shadow-md"
+                                : "bg-white text-zinc-600 border-black/10 hover:border-black/40"
+                            }`}
+                          >
+                            {isActive && <Check size={14} strokeWidth={3} />}
+                            {steeringLabel(option)}
+                          </button>
+                        );
+                      })}
+                    </div>
+
+                    <p className="mt-3 text-[11px] text-zinc-400 font-light leading-relaxed">
+                      Your destination country decides which hand you can
+                      register, and we source this model in both.
+                    </p>
+                  </div>
                 )}
               </div>
             )}
@@ -493,14 +677,19 @@ export default function GalleryDetailClient({ car }: { car: Dossier }) {
       <section className="mt-16 lg:mt-24 px-6 max-w-[1400px] mx-auto">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12">
           <div className="lg:col-span-6 flex flex-col">
-            {car.pricing && car.pricing.length > 0 && (
+            {pricing.length > 0 && (
               <div className="mb-8">
                 <h3 className="text-lg font-bold text-black mb-4 flex items-center gap-2">
                   <Globe size={18} className="text-[#4da8da]" /> Landed Pricing
                   Estimate
+                  {selectedGrade && (
+                    <span className="text-xs font-bold uppercase tracking-wider text-zinc-400">
+                      {selectedGrade.name}
+                    </span>
+                  )}
                 </h3>
                 <div className="space-y-2.5">
-                  {car.pricing.map((p, i) => (
+                  {pricing.map((p, i) => (
                     <div
                       key={i}
                       className="flex justify-between items-center p-3.5 bg-white rounded-xl border border-black/5 shadow-sm"
@@ -650,6 +839,10 @@ export default function GalleryDetailClient({ car }: { car: Dossier }) {
               prefill={prefillData}
               exteriorColorOptions={exteriorColors}
               interiorColorOptions={interiorColors}
+              gradeOptions={grades.map((g) => g.name)}
+              selectedGrade={selectedGrade?.name ?? ""}
+              steeringOptions={steeringOptions}
+              selectedSteering={activeSteering}
             />
           </div>
         </div>
@@ -657,6 +850,48 @@ export default function GalleryDetailClient({ car }: { car: Dossier }) {
 
       <FAQSection />
     </main>
+  );
+}
+
+/**
+ * What the selected grade adds over the one below it. This is the comparison
+ * the reader opened four browser tabs to make, so it renders inline against
+ * the selected grade rather than in a table the reader has to go and find.
+ */
+function GradeHighlights({ grade }: { grade: VehicleGrade }) {
+  const [open, setOpen] = useState(false);
+  const visible = open
+    ? grade.highlights
+    : grade.highlights.slice(0, LIMITS.gradeHighlights);
+
+  return (
+    <div className="mt-4 border-t border-black/5 pt-4">
+      <p className="text-[10px] font-bold tracking-[0.25em] text-zinc-400 uppercase mb-3">
+        What the {grade.name} adds
+      </p>
+      <ul className="space-y-2">
+        {visible.map((highlight) => (
+          <li
+            key={highlight}
+            className="flex gap-2.5 text-sm text-zinc-600 font-light leading-snug"
+          >
+            <Check
+              size={14}
+              strokeWidth={3}
+              className="mt-0.5 shrink-0 text-[#4da8da]"
+              aria-hidden="true"
+            />
+            {highlight}
+          </li>
+        ))}
+      </ul>
+      <MoreButton
+        expanded={open}
+        hiddenCount={grade.highlights.length - LIMITS.gradeHighlights}
+        noun="difference"
+        onClick={() => setOpen((v) => !v)}
+      />
+    </div>
   );
 }
 
@@ -713,7 +948,7 @@ function ColorGroup({
           );
 
           return (
-            <li key={`${color.name}-${color.hex}`} className="w-20">
+            <li key={`${fullLabel}-${color.hex}`} className="w-20">
               {isLinked && onPick ? (
                 <button
                   type="button"

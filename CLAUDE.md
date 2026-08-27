@@ -79,7 +79,9 @@ Plus the Better-Auth tables (`users`, `sessions`, `accounts`, `verifications`). 
 
 - `scripts/migrate-mongo-to-pg.js` — one-off backfill copying documents from the old MongoDB into Postgres.
 - `scripts/migrate.mjs` — runs the generated `drizzle/` SQL migrations against `DATABASE_URL` (SSL configured for the Railway pool).
-- `scripts/create-car-page.mjs` — upserts a spec dossier (a public car page) from a JSON brief, uploading any local images to R2. Supports `--dry-run` and `--publish`; upserts by slug so re-running an edited brief updates the same page. Driven by the `car-landing-page` skill (`/car-landing-page`).
+- `scripts/create-car-page.mjs` — upserts a spec dossier (a public car page) from a JSON brief, uploading any local images to R2. Supports `--dry-run`, `--publish` and `--env dev|staging|production`; upserts by slug so re-running an edited brief updates the same page. Driven by the `car-landing-page` skill (`/car-landing-page`). Briefs for pages that are meant to exist in every environment are kept in `scripts/briefs/` so the same page can be recreated on staging and production — **a car page is a database row, so a code deploy never carries one between environments; re-run the brief with `--env` against each.**
+- `scripts/optimize-car-images.mjs` — re-encodes a folder of car photographs to WebP at a display width. Car images under `public/` are served as plain `<img>` tags, so nothing resizes them at request time; run this before committing manufacturer JPEGs.
+- `scripts/apply-grade-columns.mjs` — adds the grade/steering columns (`drizzle/0004_grade_columns.sql`) to one environment. Read-only until `--apply`.
 
 ### Sourcing & Profit Analyzer
 
@@ -95,12 +97,14 @@ The rules that most often trip people up:
 - **30% ROI on landed cost** (`TARGET_MARGIN_PCT`) is the desk minimum and the default, editable per run from the *Minimum ROI* field. Whatever it is set to is enforced in code after the model answers — a car below target can never come back as "source".
 - **Resale is compared net of VAT.** Scraped listings are VAT-inclusive; the landed cost is not. The market median is divided by 1.2 (`resaleExVat`) before any profit, ROI or ceiling-bid figure is derived. Never subtract a landed cost from a raw median.
 
-### Vehicles: colours and upcoming models
+### Vehicles: grades, steering, colours and upcoming models
 
 Car pages are **database rows, not files** — they can't be added by committing code. Create them in `/admin/specs` or via `scripts/create-car-page.mjs`.
 
 - **Colours** — `exteriorColors` / `interiorColors` on a dossier are arrays of `{ name, hex, hex2?, isDualTone?, secondaryName? }`. Shared helpers live in `src/lib/vehicle-colors.ts` (`parseColors`, `colorLabel`, `swatchStyle`); use them rather than reading the jsonb directly. A dossier's palette becomes the colour picker on that car's inquiry form, and the customer's choice is written onto the lead as a display label ("Emotional Red / Black roof"). No palette → the form falls back to a free-text colour field.
 - **Upcoming cars** — `isUpcoming` on a dossier is orthogonal to `status`: the car is still Active with a real public page, it just sells a pre-order. It adds a Coming Soon badge, reframes the inquiry section, lists the car in the upcoming rail on `/latest-news`, and flags every lead off the page with `isUpcomingVehicle` (shown as an *Upcoming Car* badge in the admin leads table).
+- **Grades** — `grades` on a dossier is the model's ladder (Ti, Ti+, Ti-L, Ti-L Reserve) rather than four near-duplicate pages competing for one keyword. **A grade stores only what it changes**: every spec field is optional and blank means "inherit from the dossier", so authoring a ladder is four short lists of differences. Helpers live in `src/lib/vehicle-grades.ts` (`parseGrades`, `gradeSpec`, `gradeFeatures`, `gradePricing`, `cleanGradesForSave`) — use them rather than reading the jsonb. Selecting a grade on the car page re-resolves the spec table, feature list, pricing and gallery photo, prefills the inquiry form's Grade field, and writes the grade onto the lead beside the make and model. The admin editor is `src/components/GradeEditor.tsx`.
+- **Steering** — `steeringOptions` on a dossier lists every hand the model can be sourced in; the legacy single `steering` column stays as the primary and as the fallback for every dossier written before the list existed. Always read it through `parseSteeringOptions` (`src/lib/vehicle.ts`), which never returns an empty list. Offering both puts a Steering selector on the car page and an RHD/LHD field on the inquiry form, and the choice lands on the lead — where it now drives the admin table's LHD badge and the dashboard's LHD filter in preference to inferring the hand from the landing page the lead arrived through.
 - **Car ↔ news linking** is two-way and either side can author it: a dossier's `newsSlug`, or an article's `linkedVehicleSlugs` in `src/config/news.ts`. `getCarsForNewsArticle` unions both and only returns Active dossiers, so unresolved slugs are skipped rather than breaking the article.
 
 ### CI/CD

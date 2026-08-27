@@ -24,6 +24,7 @@ import {
   getLeadPrice,
   type PriceEntry,
 } from "@/lib/vehicle";
+import { parseGrades } from "@/lib/vehicle-grades";
 
 // Updated to perfectly match your Blueprint Schema
 type Dossier = {
@@ -45,6 +46,8 @@ type Dossier = {
   createdAt?: string;
   isUpcoming?: boolean;
   expectedAvailability?: string;
+  // Grade ladder (raw jsonb — run through parseGrades before use)
+  grades?: unknown;
 };
 
 type SortKey = "newest" | "price-asc" | "price-desc";
@@ -57,6 +60,16 @@ function formatLeadPrice(car: Dossier): string | null {
 // Avoids titles like "Lexus Lexus LX500d" when the model already includes the make.
 function formatTitle(car: Dossier): string {
   return formatVehicleTitle(car.make, car.model);
+}
+
+/**
+ * The grade ladder as one line, or null for a model that has none — in which
+ * case the card falls back to the dossier's single trim string.
+ */
+function gradeNames(car: Dossier): string | null {
+  const grades = parseGrades(car.grades);
+  if (grades.length === 0) return null;
+  return grades.map((g) => g.name).join(" · ");
 }
 
 function isNewArrival(car: Dossier): boolean {
@@ -302,7 +315,9 @@ export default function GalleryClient({ dossiers }: { dossiers: Dossier[] }) {
                         {formatTitle(car)}
                       </h2>
                       <p className="text-zinc-500 font-light line-clamp-1">
-                        {car.trim || "Standard Specification"}
+                        {gradeNames(car) ||
+                          car.trim ||
+                          "Standard Specification"}
                       </p>
                       {car.isUpcoming && car.expectedAvailability && (
                         <p className="mt-2 inline-flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wider text-sky-600">

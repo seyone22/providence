@@ -59,6 +59,11 @@ export async function submitCarRequest(data: {
   // (e.g. "Sonic Grey Pearl / Black roof").
   exteriorColor?: string;
   interiorColor?: string;
+  // The grade/variant the customer asked for ("Ti-L Reserve") and the hand
+  // the car has to be built in ("RHD"). Both come from the car page's own
+  // selectors, or are typed free-hand on the generic request form.
+  grade?: string;
+  steering?: string;
   // True when the inquiry came off a dossier flagged as coming soon, so the
   // pipeline can separate pre-orders from cars we can quote today.
   isUpcomingVehicle?: boolean;
@@ -100,6 +105,8 @@ export async function submitCarRequest(data: {
           specs: data.specs || null,
           exteriorColor: data.exteriorColor || null,
           interiorColor: data.interiorColor || null,
+          grade: data.grade || null,
+          steering: data.steering || null,
           isUpcomingVehicle: data.isUpcomingVehicle === true,
           name: data.name,
           email: data.email,
@@ -278,6 +285,8 @@ export async function submitCarRequest(data: {
         specs: requestData.specs || null,
         exteriorColor: requestData.exteriorColor || null,
         interiorColor: requestData.interiorColor || null,
+        grade: requestData.grade || null,
+        steering: requestData.steering || null,
         isUpcomingVehicle: requestData.isUpcomingVehicle === true,
         name: requestData.name,
         email: requestData.email,
@@ -459,6 +468,10 @@ export async function submitContactPreferences(input: {
         {
           make: request.make,
           vehicle_model: request.vehicleModel,
+          // The grade and hand change which car the agent is quoting, so
+          // they belong in the alert rather than only in the admin table.
+          grade: request.grade || undefined,
+          steering: request.steering || undefined,
           name: request.name,
           email: request.email,
           countryCode: request.countryCode,
