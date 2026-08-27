@@ -43,10 +43,12 @@ const specDossiers = pgTable("specdossier", {
   transmission: text("transmission").default("").notNull(),
   fuelSystem: text("fuelSystem").default("Petrol").notNull(),
   steering: text("steering").default("RHD").notNull(),
+  steeringOptions: text("steeringOptions").array().notNull().default([]),
   emissions: text("emissions").default("").notNull(),
   pricing: jsonb("pricing").notNull().default([]),
   exteriorColors: jsonb("exteriorColors").notNull().default([]),
   interiorColors: jsonb("interiorColors").notNull().default([]),
+  grades: jsonb("grades").notNull().default([]),
   upholstery: text("upholstery").default("").notNull(),
   infotainment: text("infotainment").default("").notNull(),
   features: text("features").array().notNull().default([]),
@@ -119,6 +121,98 @@ function normalizeColors(value, label) {
       hex2: normalizeHex(c.hex2 ?? "#f5f5f5"),
       isDualTone: c.isDualTone === true,
       secondaryName: c.secondaryName ? String(c.secondaryName).trim() : "",
+      ...(hasImage ? { imageIndex } : {}),
+    };
+  });
+}
+
+/**
+ * The hands the model can be sourced in. A brief that says nothing falls back
+ * to whatever `steering` is, which keeps every pre-existing brief valid.
+ */
+function normalizeSteeringOptions(value, fallback) {
+  const raw = Array.isArray(value) ? value : [];
+  const codes = raw
+    .map((v) =>
+      String(v || "")
+        .trim()
+        .toUpperCase(),
+    )
+    .filter((v) => v === "RHD" || v === "LHD");
+  const deduped = ["RHD", "LHD"].filter((c) => codes.includes(c));
+  if (deduped.length > 0) return deduped;
+  const single = String(fallback || "RHD")
+    .trim()
+    .toUpperCase();
+  return [single === "LHD" ? "LHD" : "RHD"];
+}
+
+/**
+ * The grade ladder. Every spec field is optional — blank means "same as the
+ * base spec on the dossier" — so a brief only states what each grade changes.
+ * Mirrors parseGrades/cleanGradesForSave in src/lib/vehicle-grades.ts.
+ */
+function normalizeGrades(value, imageCount) {
+  if (value === undefined) return [];
+  if (!Array.isArray(value)) fail('"grades" must be an array.');
+
+  const seen = new Set();
+  let defaultTaken = false;
+
+  return value.map((g, i) => {
+    if (!g || typeof g !== "object" || !g.name) {
+      fail(`"grades[${i}]" needs at least a "name".`);
+    }
+    const name = String(g.name).trim();
+
+    let id =
+      name
+        .toLowerCase()
+        .replace(/\+/g, "-plus")
+        .replace(/\s+/g, "-")
+        .replace(/[^a-z0-9-]/g, "")
+        .replace(/-+/g, "-")
+        .replace(/^-|-$/g, "") || `grade-${i + 1}`;
+    while (seen.has(id)) id = `${id}-${i + 1}`;
+    seen.add(id);
+
+    // At most one default; the first one wins, as in the admin builder.
+    const isDefault = g.isDefault === true && !defaultTaken;
+    if (isDefault) defaultTaken = true;
+
+    const imageIndex = Number(g.imageIndex);
+    const hasImage =
+      g.imageIndex !== undefined &&
+      g.imageIndex !== null &&
+      Number.isInteger(imageIndex) &&
+      imageIndex >= 0 &&
+      imageIndex < imageCount;
+
+    const optional = (key) =>
+      g[key] === undefined || String(g[key]).trim() === ""
+        ? {}
+        : { [key]: String(g[key]).trim() };
+
+    const strings = (key) =>
+      Array.isArray(g[key])
+        ? g[key].map((s) => String(s).trim()).filter(Boolean)
+        : [];
+
+    return {
+      id,
+      name,
+      ...(g.summary ? { summary: String(g.summary).trim() } : {}),
+      isDefault,
+      ...optional("engineConfig"),
+      ...optional("displacement"),
+      ...optional("maxPower"),
+      ...optional("maxTorque"),
+      ...optional("transmission"),
+      ...optional("fuelSystem"),
+      ...optional("emissions"),
+      highlights: strings("highlights"),
+      features: strings("features"),
+      pricing: normalizePricing(g.pricing),
       ...(hasImage ? { imageIndex } : {}),
     };
   });
@@ -304,11 +398,21 @@ async function run() {
     maxTorque: String(brief.maxTorque ?? ""),
     transmission: String(brief.transmission ?? ""),
     fuelSystem: String(brief.fuelSystem ?? "Petrol"),
-    steering: String(brief.steering ?? "RHD"),
+    // The single column stays the primary hand, so the PDF and anything else
+    // reading `steering` keeps working; steeringOptions is the full list.
+    steering: normalizeSteeringOptions(
+      brief.steeringOptions,
+      brief.steering,
+    )[0],
+    steeringOptions: normalizeSteeringOptions(
+      brief.steeringOptions,
+      brief.steering,
+    ),
     emissions: String(brief.emissions ?? ""),
     pricing: normalizePricing(brief.pricing),
     exteriorColors: normalizeColors(brief.exteriorColors, "exteriorColors"),
     interiorColors: normalizeColors(brief.interiorColors, "interiorColors"),
+    grades: normalizeGrades(brief.grades, images.length),
     upholstery: String(brief.upholstery ?? ""),
     infotainment: String(brief.infotainment ?? ""),
     features: Array.isArray(brief.features) ? brief.features.map(String) : [],

@@ -175,9 +175,12 @@ export default function DashboardClient({
           sourceFilter === "All" ||
           normalizeSource(req.source || "") === sourceFilter;
 
-        // "LHD" quick toggle — only leads that came through the Japanese
-        // left-hand-drive landing page (same rule as the table's LHD badge).
-        const matchesLhd = !lhdOnly || isLhdLead(req.source);
+        // "LHD" quick toggle — the customer's own choice on a car page wins,
+        // and leads without one still fall back to the Japanese left-hand-drive
+        // landing page (same rule as the table's LHD badge).
+        const matchesLhd =
+          !lhdOnly ||
+          (req.steering ? req.steering === "LHD" : isLhdLead(req.source));
 
         const matchesContactDue =
           contactDueFilter === "All" ||

@@ -388,11 +388,29 @@ export default function RequestTableClient({
                       <span className="font-bold text-black text-sm">
                         {req.make} {req.vehicle_model}
                       </span>
+                      {/* The grade the customer picked, beside the model —
+                          a Ti and a Ti-L Reserve are different quotes, and
+                          the agent has to see which one before they call. */}
+                      {req.grade && (
+                        <span className="ml-1.5 inline-flex items-center px-1.5 py-0.5 bg-violet-100 text-violet-700 border border-violet-200 rounded text-[10px] font-bold tracking-wide align-middle">
+                          {req.grade}
+                        </span>
+                      )}
                       <br />
                       <div className="flex flex-wrap gap-1 mt-1.5">
-                        {isLhdLead(req.source) && (
+                        {/* Prefer what the customer actually selected on the
+                            car page; fall back to inferring it from the
+                            landing page they arrived through. */}
+                        {(req.steering
+                          ? req.steering === "LHD"
+                          : isLhdLead(req.source)) && (
                           <span className="px-1.5 py-0.5 bg-red-600 text-white rounded text-[10px] font-bold tracking-wide">
                             LHD
+                          </span>
+                        )}
+                        {req.steering === "RHD" && (
+                          <span className="px-1.5 py-0.5 bg-zinc-800 text-white rounded text-[10px] font-bold tracking-wide">
+                            RHD
                           </span>
                         )}
                         {/* Pre-order rather than a car we can quote today —
