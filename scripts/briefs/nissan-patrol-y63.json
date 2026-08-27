@@ -1,5 +1,5 @@
 {
-  "_comment": "Nissan Patrol Y63, Australian spec, right-hand drive. Coming soon. Re-run this brief against staging/production to recreate the page there: node --env-file=.env.local scripts/create-car-page.mjs scripts/briefs/nissan-patrol-y63.json --publish. Sources: nissan.com.au all-new-patrol (grade equipment, colours, engine, towing), CarExpert (Australian launch timing). Images are Nissan Australia press shots of a pre-production car, stored under public/cars/nissan-patrol-y63/.",
+  "_comment": "Nissan Patrol Y63, Australian spec, right-hand drive. Coming soon. Each environment has its own database, so publishing this page on one does not create it on the others. Recreate it with: node --env-file=.env.local scripts/create-car-page.mjs scripts/briefs/nissan-patrol-y63.json --env staging --publish (or --env production). Sources: nissan.com.au all-new-patrol (grade equipment, colours, engine, towing), CarExpert (Australian launch timing). Images are Nissan Australia press shots of a pre-production car, stored under public/cars/nissan-patrol-y63/.",
 
   "make": "Nissan",
   "model": "Patrol",

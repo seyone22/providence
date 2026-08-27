@@ -7,11 +7,16 @@
 //   node --env-file=.env.local scripts/create-car-page.mjs briefs/gr-yaris.json
 //   node --env-file=.env.local scripts/create-car-page.mjs brief.json --dry-run
 //   node --env-file=.env.local scripts/create-car-page.mjs brief.json --publish
+//   node --env-file=.env.local scripts/create-car-page.mjs brief.json --env staging --publish
 //
 // Flags:
 //   --dry-run   validate and print the resolved record; touch nothing.
 //   --publish   save with status "Active" (default is "Draft", so a page is
 //               reviewed before it goes live).
+//   --env       which environment's database to write to: dev (default),
+//               staging or production. Each has its own Postgres, so a page
+//               published on dev does not exist anywhere else until this is
+//               run again against that environment.
 //
 // The brief format is documented in .claude/skills/car-landing-page/SKILL.md.
 
@@ -75,6 +80,54 @@ const IMAGE_CONTENT_TYPES = {
   ".avif": "image/avif",
   ".gif": "image/gif",
 };
+
+// Which connection string each environment answers to. Same mapping as
+// scripts/apply-grade-columns.mjs — keep the two in step.
+const ENVS = {
+  dev: "DATABASE_URL",
+  staging: "DATABASE_URL_STAGING",
+  production: "DATABASE_URL_PRODUCTION",
+};
+
+/**
+ * Reads `--env <name>` (or `--env=<name>`) and returns the environment plus
+ * its resolved connection string.
+ *
+ * Also returns the index of the value token so the caller can keep it out of
+ * the positional arguments — otherwise `--env staging` would make "staging"
+ * look like the brief path.
+ */
+function resolveEnv(args) {
+  let name = "dev";
+  let valueIndex = -1;
+
+  const inline = args.find((a) => a.startsWith("--env="));
+  const flagIndex = args.indexOf("--env");
+
+  if (inline) {
+    name = inline.slice("--env=".length);
+  } else if (flagIndex !== -1) {
+    name = args[flagIndex + 1];
+    valueIndex = flagIndex + 1;
+  }
+
+  if (!name || !ENVS[name]) {
+    fail(
+      `Unknown --env "${name ?? ""}". Expected one of: ${Object.keys(ENVS).join(", ")}.`,
+    );
+  }
+
+  const varName = ENVS[name];
+  const connectionString = process.env[varName];
+  if (!connectionString) {
+    fail(
+      `${varName} is not set, so --env ${name} has nothing to connect to.\n` +
+        "  Add it to .env.local (or export it).",
+    );
+  }
+
+  return { name, varName, connectionString, valueIndex };
+}
 
 function fail(message) {
   console.error(`\n✖ ${message}\n`);
@@ -342,15 +395,31 @@ async function resolveImages(brief, briefDir) {
 
 async function run() {
   const args = process.argv.slice(2);
-  const briefPath = args.find((a) => !a.startsWith("--"));
   const dryRun = args.includes("--dry-run");
   const publish = args.includes("--publish");
 
+  // Resolved before anything else so a bad --env fails immediately, and so a
+  // --dry-run still proves the connection string for that environment exists
+  // rather than only discovering it on the real run.
+  const target = resolveEnv(args);
+
+  const briefPath = args.find(
+    (a, i) => !a.startsWith("--") && i !== target.valueIndex,
+  );
+
   if (!briefPath) {
     fail(
-      "Usage: node --env-file=.env.local scripts/create-car-page.mjs <brief.json> [--dry-run] [--publish]",
+      "Usage: node --env-file=.env.local scripts/create-car-page.mjs <brief.json> [--env dev|staging|production] [--dry-run] [--publish]",
     );
   }
+
+  // Say which database is about to be written to, before doing it. This is
+  // the guard against publishing to production while thinking you're on dev —
+  // the environments differ by one word on the command line and by nothing at
+  // all in the brief.
+  const host = target.connectionString.replace(/^.*@/, "").replace(/\/.*$/, "");
+  console.log(`\nEnvironment : ${target.name}  (${target.varName})`);
+  console.log(`Host        : ${host}`);
 
   const absBrief = path.resolve(process.cwd(), briefPath);
   const raw = await fs
@@ -449,8 +518,7 @@ async function run() {
     return;
   }
 
-  const databaseUrl = process.env.DATABASE_URL;
-  if (!databaseUrl) fail("Missing DATABASE_URL.");
+  const databaseUrl = target.connectionString;
 
   const pool = new pg.Pool({
     connectionString: databaseUrl,
