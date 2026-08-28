@@ -499,7 +499,147 @@ const IRELAND_POSTS: BlogPost[] = [
 // Everything the blog renders: the Ireland hub plus the per-source-country
 // clusters. Order matters only for the ItemList schema; the index page groups
 // by cluster via CLUSTER_ORDER.
-export const BLOG_POSTS: BlogPost[] = [...IRELAND_POSTS, ...COUNTRY_BLOG_POSTS];
+// ── Model guides ─────────────────────────────────────────────────────────────
+// Evergreen, model-level guides. Deliberately separate from the source-country
+// clusters: a Patrol can be bought out of four different corridors, so the
+// guide belongs to the car rather than to any one office. Dated reporting on
+// the same model lives in /latest-news, not here.
+const MODEL_POSTS: BlogPost[] = [
+  {
+    slug: "how-to-import-a-nissan-patrol",
+    title: "How to Import a Nissan Patrol: Corridors, Costs and Approvals",
+    h1: "How to Import a Nissan Patrol",
+    seoTitle: "How to Import a Nissan Patrol: Costs, Rules & Corridors",
+    description:
+      "How to import a Nissan Patrol: the four source corridors, the seven-part landed-cost stack, age limits, individual vehicle approval and the documents needed.",
+    excerpt:
+      "Gulf Patrols are left-hand drive, Australian and Japanese ones are not, and none are sold new in Ireland or the UK. That decides your corridor before the price does.",
+    cluster: "Guides",
+    primaryKeyword: "how to import a nissan patrol",
+    keywords: [
+      "how to import a nissan patrol",
+      "import nissan patrol",
+      "nissan patrol import cost",
+      "nissan patrol right hand drive import",
+      "can you import a nissan patrol to ireland",
+      "where to buy a nissan patrol for export",
+      "nissan patrol import age limit",
+    ],
+    author: AUTHOR,
+    publishDate: "2026-08-28",
+    updatedDate: "2026-08-28",
+    readingTimeMins: 11,
+    heroImage: "/cars/nissan-patrol-y63/black-front.webp",
+    heroAlt: "Nissan Patrol Y63 photographed front three-quarter",
+    related: [
+      "nissan-patrol-y63-grades-explained",
+      "importing-a-ute-or-4x4-from-australia",
+      "how-to-import-a-car-from-australia",
+    ],
+    faqs: [
+      {
+        q: "Can you import a Nissan Patrol to Ireland or the UK?",
+        a: "You can buy and ship one, but registering it is the hard part. The Patrol is not sold new in Ireland or the United Kingdom, so there is no EU or UK type approval attached to the car. Registration runs through individual vehicle approval — in Ireland an NSAI Individual Vehicle Approval assessed against Irish legislation and inspected at an approved test centre. Revenue will not register a new vehicle without a valid Certificate of Conformity, an EU IVA or an Irish national IVA.",
+      },
+      {
+        q: "Which country is best to import a Nissan Patrol from?",
+        a: "It depends on which side of the road your country drives on. Australia and Japan supply right-hand-drive Patrols; the United Arab Emirates supplies left-hand drive. For a right-hand-drive destination the realistic choice is between Australia and Japan, and the deciding factors are usually freight frequency and what specification is available, not the purchase price.",
+      },
+      {
+        q: "Is a Nissan Patrol expensive to import?",
+        a: "The purchase price is only part of it. A Patrol is large and tall, so it is expensive on both container and roll-on roll-off freight, and its petrol V6 or V8 sits at or near the top of every CO₂ band and engine-capacity band that exists. In markets that tax by emissions or engine size, the engine costs more over time than the specification does.",
+      },
+      {
+        q: "Do age limits stop you importing a used Nissan Patrol?",
+        a: "In several markets, yes. Kenya's eight-year rule is the best known, and similar caps apply elsewhere. A new Patrol clears every age limit by definition; a used Y61 or Y62 may not, depending on its year of first registration and your destination. Confirm the current rule with the destination revenue or transport authority before bidding, because it is a hard gate that condition and specification do not override.",
+      },
+      {
+        q: "What documents are needed to import a Nissan Patrol?",
+        a: "Proof of ownership and de-registration in the source market, an export certificate, an invoice matching the money actually paid, a bill of lading, and any pre-shipment inspection certificate the destination requires. Pre-shipment inspection is the one that catches importers out: several markets require an inspection carried out in the source country before loading, and a car that sails without it can be refused or penalised on arrival.",
+      },
+      {
+        q: "Can you import a modified Nissan Patrol?",
+        a: "Sometimes, and it has to be established before purchase. Bull bars, lift kits, long-range tanks, aftermarket seats, snorkels, roof racks and winches are common on Australian Patrols, and each one is a registration question in the destination market. Some are accepted, some need engineering certification, and some must be removed before shipment.",
+      },
+    ],
+    toc: [
+      { id: "which-patrol", label: "Which Patrol are you buying?" },
+      { id: "corridors", label: "The four corridors" },
+      { id: "cost-stack", label: "What makes up the landed cost" },
+      { id: "engine-tax", label: "Why the engine is the expensive decision" },
+      { id: "admissibility", label: "Can it be registered?" },
+      { id: "documents", label: "The documents" },
+      { id: "timeline", label: "How long it takes" },
+    ],
+  },
+  {
+    slug: "nissan-patrol-y63-grades-explained",
+    title: "Nissan Patrol Y63 Grades Explained: Ti to Ti-L Reserve",
+    h1: "Nissan Patrol Y63 Grades Explained",
+    seoTitle: "Nissan Patrol Y63 Grades Explained: Ti to Ti-L Reserve",
+    description:
+      "All six Nissan Patrol Y63 grades compared — Ti, Ti+, Ti-L, Ti-L+, PRO-4X and Ti-L Reserve — what each adds, and which one is worth importing.",
+    excerpt:
+      "Every grade shares the same engine and the same four-wheel-drive hardware. What separates them is suspension, wheels and screens — and two of those cost you money forever.",
+    cluster: "Guides",
+    primaryKeyword: "nissan patrol y63 grades",
+    keywords: [
+      "nissan patrol y63 grades",
+      "nissan patrol ti vs ti-l",
+      "nissan patrol ti-l reserve",
+      "nissan patrol pro-4x",
+      "which nissan patrol grade should i buy",
+      "nissan patrol y63 specifications",
+      "nissan patrol grade differences",
+    ],
+    author: AUTHOR,
+    publishDate: "2026-08-28",
+    updatedDate: "2026-08-28",
+    readingTimeMins: 9,
+    heroImage: "/cars/nissan-patrol-y63/interior-dashboard.webp",
+    heroAlt: "Nissan Patrol Y63 dashboard with dual widescreen displays",
+    related: [
+      "how-to-import-a-nissan-patrol",
+      "best-cars-to-import-from-australia",
+      "importing-a-ute-or-4x4-from-australia",
+    ],
+    faqs: [
+      {
+        q: "What are the Nissan Patrol Y63 grades?",
+        a: "In Australia the Y63 Patrol is sold in six grades: Ti, Ti+, Ti-L, Ti-L+, PRO-4X and Ti-L Reserve. All six share the same 3.5-litre twin-turbo V6 producing 317 kW and 700 Nm, the same nine-speed automatic and the same dual-range four-wheel-drive hardware. Grade structures differ by market — the Australian ladder is not the Japanese, Gulf or New Zealand one.",
+      },
+      {
+        q: "What is the difference between the Patrol Ti and Ti-L?",
+        a: "The Ti-L adds dual 14.3-inch displays in place of the Ti's 12.3-inch pair, a 12-speaker Klipsch audio system, a head-up display, e-Damper electric shock absorbers and 20-inch wheels in place of 18-inch. It does not add off-road capability: the dual-range transfer case, terrain modes and locking rear differential are already standard on the Ti.",
+      },
+      {
+        q: "Which Nissan Patrol grade is best for towing?",
+        a: "The Ti or the PRO-4X. Every grade carries the same 3,700 kg braked tow rating and the same drivetrain, so the Ti gives you the full capability at the bottom of the range. The PRO-4X adds adaptive air suspension, all-terrain tyres, trailer docking support and an electric brake controller, which are aimed directly at towing and off-road use rather than at cabin comfort.",
+      },
+      {
+        q: "Is the Ti-L Reserve worth the extra money?",
+        a: "Only if the second-row screens and the massage seats will genuinely be used. The Ti-L Reserve is the largest price step in the range for the narrowest benefit, and its 22-inch wheels are an active disadvantage in markets where the car will see gravel or poor roads — thinner sidewalls, more damage and slower tyre availability.",
+      },
+      {
+        q: "Does choosing a higher Patrol grade increase import tax?",
+        a: "Yes, and by more than the price difference. A higher purchase price raises the CIF value your duty is assessed on, and in most regimes consumption tax is then charged on the duty-inclusive value — so the extra car is taxed and the tax on it is taxed. Where a market bands its tax by price, a single grade can push the car into a higher band, which is a step change rather than a slope.",
+      },
+    ],
+    toc: [
+      { id: "ladder", label: "The six grades at a glance" },
+      { id: "what-changes", label: "What changes as you go up" },
+      { id: "grade-and-tax", label: "Why each rung costs more than it lists" },
+      { id: "which-grade", label: "Which grade to import" },
+      { id: "markets", label: "The ladder differs by market" },
+    ],
+  },
+];
+
+export const BLOG_POSTS: BlogPost[] = [
+  ...IRELAND_POSTS,
+  ...MODEL_POSTS,
+  ...COUNTRY_BLOG_POSTS,
+];
 
 // ── Roadmap — remaining cluster posts to build in later batches ──────────────
 // Cost & Cheapest:  (covered)
