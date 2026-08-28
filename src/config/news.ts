@@ -1121,6 +1121,289 @@ export const NEWS_ARTICLES: NewsArticle[] = [
       "importing-a-car-to-sri-lanka",
     ],
   },
+
+  // ── Nissan Patrol Y63 ─────────────────────────────────────────────────────
+  {
+    slug: "nissan-patrol-y63-australia-pricing-confirmed",
+    title:
+      "Nissan prices the Y63 Patrol in Australia: six grades, A$98,990 to A$145,990",
+    h1: "Nissan Patrol Y63 Australian Pricing Confirmed: Six Grades from A$98,990, First Deliveries Early 2027",
+    seoTitle: "Nissan Patrol Y63 Australia Price: A$98,990 to A$145,990",
+    description:
+      "Nissan Australia confirmed Y63 Patrol pricing on 27 August 2026: six grades from A$98,990 to A$145,990, 317 kW twin-turbo V6, 3,700 kg towing, deliveries early 2027.",
+    excerpt:
+      "Six grades, one engine, and a 3,700 kg tow rating. The number that matters to an importer is not A$98,990 — it is what is left once the Australian taxes inside it come out.",
+    category: "Releases",
+    dateline: "Melbourne",
+    keywords: [
+      "nissan patrol y63 price",
+      "nissan patrol 2027 australia price",
+      "nissan patrol y63 grades",
+      "nissan patrol y63 towing capacity",
+      "how much is the nissan patrol y63",
+      "when does the nissan patrol y63 arrive in australia",
+      "can you import a nissan patrol y63",
+    ],
+    author: AUTHOR,
+    publishDate: "2026-08-28",
+    updatedDate: "2026-08-28",
+    readingTimeMins: 9,
+    heroImage: "/cars/nissan-patrol-y63/range-hero.webp",
+    heroAlt: "Nissan Patrol Y63 range photographed for the Australian launch",
+    heroCaption:
+      "Nissan press image of a pre-production Y63 Patrol. Australian-delivered cars may differ in detail from the vehicle shown.",
+    toc: [
+      { id: "the-prices", label: "What the six grades cost" },
+      { id: "not-your-cif", label: "Why A$98,990 is not your landed base" },
+      { id: "co2", label: "The number Nissan has not published" },
+      { id: "corridors", label: "Which corridor it comes out of" },
+      { id: "admissibility", label: "Can you register one?" },
+      { id: "timing", label: "Order now or wait?" },
+      { id: "faqs", label: "FAQs" },
+    ],
+    faqs: [
+      {
+        q: "How much does the Nissan Patrol Y63 cost in Australia?",
+        a: "Nissan Australia announced pricing on 27 August 2026. The range runs from A$98,990 for the Ti to A$145,990 for the Ti-L Reserve, with the Ti+ at A$109,480, the Ti-L at A$122,690, the Ti-L+ at A$134,690 and the PRO-4X at A$137,590. All figures are manufacturer's suggested retail prices before on-road costs, so registration, stamp duty and compulsory insurance are additional.",
+      },
+      {
+        q: "How many grades does the Nissan Patrol Y63 have?",
+        a: "Six in Australia: Ti, Ti+, Ti-L, Ti-L+, PRO-4X and Ti-L Reserve. The Ti-L+ and PRO-4X are new names in the Australian Patrol range. All six use the same 3.5-litre twin-turbo V6 with 317 kW and 700 Nm, the same nine-speed automatic and the same dual-range four-wheel-drive hardware, so the ladder buys comfort and suspension rather than capability.",
+      },
+      {
+        q: "What is the Nissan Patrol Y63 towing capacity?",
+        a: "Nissan Australia rates the Y63 Patrol at 3,700 kg braked towing capacity across the range. CarExpert reports that this is 200 kg more than the Toyota LandCruiser 300, which makes towing the clearest specification difference between the two in the Australian market.",
+      },
+      {
+        q: "When do Nissan Patrol Y63 deliveries start?",
+        a: "Order books opened in Australia on 27 August 2026 and first customer deliveries are early 2027. Nissan New Zealand has confirmed a first-quarter 2027 arrival and opened registrations of interest but had not published local pricing or grades as at 28 August 2026. Japan gets the Patrol in the first half of fiscal 2027, meaning April to September 2027.",
+      },
+      {
+        q: "What are the Nissan Patrol Y63 CO2 emissions?",
+        a: "Nissan Australia has not published fuel consumption or CO₂ figures for the Y63 Patrol. Figures of around 12.7 L/100 km and 290 g/km circulating in August 2026 are 4X4 Australia's extrapolation from United States testing, not an Australian Design Rules result. Until an official figure exists, registration tax in a CO₂-banded market such as Ireland cannot be calculated.",
+      },
+      {
+        q: "Is the Australian list price what an exporter pays?",
+        a: "No. An Australian MSRP carries 10% GST inside it and excludes all on-road costs. A sale of goods can be GST-free where the supplier exports them within 60 days of the earlier of payment or invoice, on the Australian Taxation Office's conditions. Australia also levies Luxury Car Tax, and its treatment on an export sale of this model has not been verified, so the ex-GST figure is not automatically the landed base.",
+      },
+    ],
+    sources: [
+      {
+        label:
+          "Nissan announces pricing and key specifications for all-new Patrol in Australia",
+        href: "https://www.nissan.com.au/about-nissan/news-and-events/news/2026/august/nissan-announces-pricing-and-key-specifications-for-all-new-patrol-in-australia.html",
+        publisher: "Nissan Australia",
+      },
+      {
+        label: "2027 Nissan Patrol Y63 pricing confirmed for Australia",
+        href: "https://www.carexpert.com.au/car-news/2027-nissan-patrol-y63-pricing-confirmed-for-australia",
+        publisher: "CarExpert",
+      },
+      {
+        label: "2026 Nissan Patrol Y63: Everything you need to know",
+        href: "https://www.4x4australia.com.au/news/2026-nissan-patrol-y63-everything-we-know-so-far",
+        publisher: "4X4 Australia",
+      },
+      {
+        label: "Exports and GST",
+        href: "https://www.ato.gov.au/businesses-and-organisations/international-tax-for-business/australians-doing-business-overseas/exports-and-gst",
+        publisher: "Australian Taxation Office",
+      },
+      {
+        label: "IVA — Individual Vehicle Approval",
+        href: "https://www.nsai.ie/certification/automotive/national-type-approva/iva/",
+        publisher: "NSAI",
+      },
+    ],
+    relatedGuides: [
+      "how-to-import-a-nissan-patrol",
+      "nissan-patrol-y63-grades-explained",
+      "how-to-import-a-car-from-australia",
+    ],
+    linkedVehicleSlugs: ["nissan-patrol-y63"],
+  },
+  {
+    slug: "nissan-patrol-y63-vs-landcruiser-300-dealer-read",
+    title:
+      "Patrol Y63 against the LandCruiser 300: the dealer read, not the spec sheet",
+    h1: "Nissan Patrol Y63 vs Toyota LandCruiser 300: What It Changes for a Dealer",
+    seoTitle: "Patrol Y63 vs LandCruiser 300: The Dealer Read",
+    description:
+      "The Y63 Patrol opens A$280 under the LandCruiser 300 GX and tows 200 kg more. What that does to a large-SUV floor plan, and which of the six grades to stock.",
+    excerpt:
+      "Six grades where there were three is a margin ladder, not a specification change. The warranty, not the tow rating, is the largest undisclosed variable in this launch.",
+    category: "Market",
+    dateline: "Melbourne",
+    keywords: [
+      "nissan patrol vs landcruiser 300",
+      "patrol y63 vs landcruiser price",
+      "large suv import margin",
+      "nissan patrol y63 warranty",
+      "which nissan patrol grade to stock",
+      "is the nissan patrol cheaper than the landcruiser",
+    ],
+    author: AUTHOR,
+    publishDate: "2026-08-28",
+    updatedDate: "2026-08-28",
+    readingTimeMins: 9,
+    heroImage: "/cars/nissan-patrol-y63/black-quarry.webp",
+    heroAlt: "Nissan Patrol Y63 photographed on loose surface",
+    heroCaption:
+      "Nissan press image of a pre-production Y63 Patrol. Australian-delivered cars may differ in detail from the vehicle shown.",
+    toc: [
+      { id: "ladder", label: "The two ladders side by side" },
+      { id: "v8", label: "The V8 question" },
+      { id: "warranty", label: "The trap in this launch" },
+      { id: "residual", label: "Residual: known and guessed" },
+      { id: "floor-plan", label: "Floor-plan and freight" },
+      { id: "nves", label: "The supply-side constraint" },
+      { id: "verdict", label: "What we would commit to" },
+      { id: "faqs", label: "FAQs" },
+    ],
+    faqs: [
+      {
+        q: "Is the Nissan Patrol Y63 cheaper than the Toyota LandCruiser 300?",
+        a: "At the entry point, marginally. The Patrol Ti lists at A$98,990 before on-road costs against a LandCruiser 300 GX at A$99,270 as reported by CarExpert — a gap of A$280. At the top the difference is wider: A$145,990 for the Ti-L Reserve against A$156,740 for the Sahara ZX Hybrid. Toyota's prices move independently, so treat both ladders as of 27 August 2026.",
+      },
+      {
+        q: "Does the Nissan Patrol Y63 tow more than the LandCruiser 300?",
+        a: "Yes. Nissan Australia rates the Y63 Patrol at 3,700 kg braked, which CarExpert reports is 200 kg more than the LandCruiser 300. Towing is the one use case in this segment where buyers regularly change badge, which is why the rating carries more commercial weight than the power figures do.",
+      },
+      {
+        q: "Does the Nissan Patrol warranty apply to an exported car?",
+        a: "Unconfirmed, and it should be established in writing before it is advertised. Nissan Australia's 10-year/300,000 km warranty is stated as conditional on the vehicle being serviced at authorised dealers. A servicing-linked Australian warranty on a car serviced overseas may be reduced, may fall back to a shorter global term, or may not travel at all. Confirm the position with Nissan in the destination market.",
+      },
+      {
+        q: "Which Patrol Y63 grade should a dealer stock?",
+        a: "The Ti and the PRO-4X are the most defensible. The Ti carries the full four-wheel-drive hardware and the 3,700 kg tow rating at A$98,990, which is what actually sells in fleet and towing demand. The PRO-4X at A$137,590 suits markets where genuine off-road specification commands a premium. The A$145,990 Ti-L Reserve is the most exposed rung to an unproven engine family and a fragmented used pool.",
+      },
+      {
+        q: "How does the New Vehicle Efficiency Standard affect the Patrol?",
+        a: "Australia's New Vehicle Efficiency Standard has set CO₂ targets across each supplier's new-vehicle sales since 1 July 2025, with credits for beating the target and a penalty exposure for missing it, and a two-year window to trade or generate units. A large petrol V6 four-wheel drive consumes credits rather than generating them. That is a manufacturer cost rather than a buyer tax, but it shapes supply and pricing.",
+      },
+    ],
+    sources: [
+      {
+        label:
+          "Nissan announces pricing and key specifications for all-new Patrol in Australia",
+        href: "https://www.nissan.com.au/about-nissan/news-and-events/news/2026/august/nissan-announces-pricing-and-key-specifications-for-all-new-patrol-in-australia.html",
+        publisher: "Nissan Australia",
+      },
+      {
+        label: "2027 Nissan Patrol Y63 pricing confirmed for Australia",
+        href: "https://www.carexpert.com.au/car-news/2027-nissan-patrol-y63-pricing-confirmed-for-australia",
+        publisher: "CarExpert",
+      },
+      {
+        label:
+          "Nissan Patrol Y62 V8 end date confirmed for Australia as V6-powered Y63 waits in the wings",
+        href: "https://www.carexpert.com.au/car-news/nissan-patrol-y62-v8-end-date-confirmed-for-australia-as-v6-powered-y63-waits-in-the-wings",
+        publisher: "CarExpert",
+      },
+      {
+        label: "What is the New Vehicle Efficiency Standard?",
+        href: "https://www.nvesregulator.gov.au/what-new-vehicle-efficiency-standard",
+        publisher: "New Vehicle Efficiency Standard Regulator",
+      },
+    ],
+    relatedGuides: [
+      "nissan-patrol-y63-grades-explained",
+      "how-to-import-a-car-from-australia",
+      "cost-to-import-a-car-from-australia",
+    ],
+    linkedVehicleSlugs: ["nissan-patrol-y63"],
+  },
+  {
+    slug: "nissan-patrol-y63-right-hand-drive-markets",
+    title:
+      "The Y63 Patrol's right-hand-drive map: Australia first, Japan in fiscal 2027",
+    h1: "Which Markets Get the Nissan Patrol Y63, and When",
+    seoTitle: "Nissan Patrol Y63: Which Markets Get It, and When",
+    description:
+      "Australia has Y63 Patrol order books open for early 2027 delivery, New Zealand follows in Q1 2027 and Japan in fiscal 2027. The Gulf cars are left-hand drive.",
+    excerpt:
+      "Plentiful UAE supply is the most common wasted enquiry we take on this car. Until Japan opens, Australia is the only right-hand-drive corridor there is.",
+    category: "Industry",
+    dateline: "Yokohama",
+    keywords: [
+      "nissan patrol y63 right hand drive",
+      "nissan patrol japan launch",
+      "nissan patrol new zealand 2027",
+      "where to buy a nissan patrol y63",
+      "is the nissan patrol available in right hand drive",
+      "nissan patrol y63 uae left hand drive",
+    ],
+    author: AUTHOR,
+    publishDate: "2026-08-28",
+    updatedDate: "2026-08-28",
+    readingTimeMins: 8,
+    heroImage: "/cars/nissan-patrol-y63/white-front.webp",
+    heroAlt: "Nissan Patrol Y63 in white, front three-quarter view",
+    heroCaption:
+      "Nissan press image of a pre-production Y63 Patrol. Specification varies by market — the car shown is not any one market's confirmed build.",
+    toc: [
+      { id: "map", label: "The right-hand-drive map" },
+      { id: "gulf", label: "Why Gulf supply does not help" },
+      { id: "japan", label: "What the Japanese launch opens" },
+      { id: "admissibility", label: "Does it change what you can import?" },
+      { id: "act", label: "What to do, by market" },
+      { id: "faqs", label: "FAQs" },
+    ],
+    faqs: [
+      {
+        q: "Is the Nissan Patrol Y63 available in right-hand drive?",
+        a: "Yes. Australia is the first right-hand-drive market, with order books opened on 27 August 2026 and first deliveries early 2027. New Zealand follows in the first quarter of 2027, and Japan in the first half of fiscal 2027. The Middle East and North American cars, on sale since late 2024, are left-hand drive.",
+      },
+      {
+        q: "When does the Nissan Patrol launch in Japan?",
+        a: "Nissan announced at the 2025 Japan Mobility Show that the Patrol returns to Japan in the first half of fiscal 2027 — April to September 2027 on the Japanese fiscal calendar. It is the first time the nameplate has been sold domestically since the Safari ended production in 2007, and it opens a second right-hand-drive export corridor once cars reach the used market.",
+      },
+      {
+        q: "Can you import a Nissan Patrol from Dubai to a right-hand-drive country?",
+        a: "No, and it is the most common wasted enquiry on this model. Gulf-market Patrols are left-hand drive, which rules them out for Kenya, Uganda, Tanzania, Mauritius, Jamaica, Trinidad and Tobago, Guyana, Australia, New Zealand, Hong Kong, Malaysia, Sri Lanka, Ireland and the United Kingdom. UAE sourcing is for left-hand-drive luxury destinations.",
+      },
+      {
+        q: "Is it cheaper to buy a Patrol in the UAE because of the exchange rate?",
+        a: "No. The UAE dirham is pegged to the US dollar, so there is no independent currency advantage to sourcing out of Dubai — the corridor competes on stock and specification instead. Verify that the peg is still in place with the Central Bank of the UAE before relying on it, because peg arrangements do change, rarely and abruptly.",
+      },
+      {
+        q: "When will the Nissan Patrol Y63 be available in New Zealand?",
+        a: "Nissan New Zealand has confirmed a first-quarter 2027 arrival and has opened registrations of interest. New Zealand pricing and grade structure had not been published as at 28 August 2026, so committing to an Australian grade is committing to a ladder that may not be the one offered locally.",
+      },
+    ],
+    sources: [
+      {
+        label:
+          "Nissan announces pricing and key specifications for all-new Patrol in Australia",
+        href: "https://www.nissan.com.au/about-nissan/news-and-events/news/2026/august/nissan-announces-pricing-and-key-specifications-for-all-new-patrol-in-australia.html",
+        publisher: "Nissan Australia",
+      },
+      {
+        label:
+          "Nissan powers up Japan Mobility Show 2025 with icons and EV innovation",
+        href: "https://global.nissannews.com/en/releases/nissan-powers-up-jms-2025-with-icons-and-ev-innovation",
+        publisher: "Nissan Global Newsroom",
+      },
+      {
+        label:
+          "Nissan New Zealand confirms new Patrol will arrive in early 2027",
+        href: "https://autotrader.co.nz/showroom/nissan/nissan-new-zealand-confirms-new-patrol-will-arrive-in-early-2027",
+        publisher: "AutoTrader New Zealand",
+      },
+      {
+        label:
+          "2027 Nissan Patrol Y63: Launch dates set for more luxurious twin-turbo V6 off-road SUV range",
+        href: "https://www.carexpert.com.au/car-news/2027-nissan-patrol-y63-launch-dates-set-for-more-luxurious-twin-turbo-v6-off-road-suv-range",
+        publisher: "CarExpert",
+      },
+    ],
+    relatedGuides: [
+      "how-to-import-a-nissan-patrol",
+      "gcc-spec-cars-explained",
+      "new-zealand-vs-japan-for-used-imports",
+    ],
+    linkedVehicleSlugs: ["nissan-patrol-y63"],
+  },
 ];
 
 export const NEWS_BASE_PATH = "/latest-news";

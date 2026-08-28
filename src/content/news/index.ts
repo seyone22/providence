@@ -6,6 +6,9 @@ import JapanUsedCarExportsRecordWeakYen2026 from "./japan-used-car-exports-recor
 import MercedesMaybachS580EFirstClassUkSpec from "./mercedes-maybach-s-580-e-first-class-uk-spec";
 import Monterey2026AuctionWeekMarketReport from "./monterey-2026-auction-week-market-report";
 import MontereyCarWeek2026NewCarDebuts from "./monterey-car-week-2026-new-car-debuts";
+import NissanPatrolY63AustraliaPricingConfirmed from "./nissan-patrol-y63-australia-pricing-confirmed";
+import NissanPatrolY63RightHandDriveMarkets from "./nissan-patrol-y63-right-hand-drive-markets";
+import NissanPatrolY63VsLandcruiser300DealerRead from "./nissan-patrol-y63-vs-landcruiser-300-dealer-read";
 import SriLankaVehicleImportSurchargeExtended2026 from "./sri-lanka-vehicle-import-surcharge-extended-2026";
 import UkZevMandateReview2026Consultation from "./uk-zev-mandate-review-2026-consultation";
 
@@ -27,6 +30,12 @@ export const NEWS_BODIES: Record<string, ComponentType> = {
     MercedesMaybachS580EFirstClassUkSpec,
   "sri-lanka-vehicle-import-surcharge-extended-2026":
     SriLankaVehicleImportSurchargeExtended2026,
+  "nissan-patrol-y63-australia-pricing-confirmed":
+    NissanPatrolY63AustraliaPricingConfirmed,
+  "nissan-patrol-y63-vs-landcruiser-300-dealer-read":
+    NissanPatrolY63VsLandcruiser300DealerRead,
+  "nissan-patrol-y63-right-hand-drive-markets":
+    NissanPatrolY63RightHandDriveMarkets,
 };
 
 export function getNewsBody(slug: string): ComponentType | undefined {
