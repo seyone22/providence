@@ -1180,7 +1180,7 @@ export const NEWS_ARTICLES: NewsArticle[] = [
       },
       {
         q: "What are the Nissan Patrol Y63 CO2 emissions?",
-        a: "Nissan Australia has not published fuel consumption or CO₂ figures for the Y63 Patrol. Figures of around 12.7 L/100 km and 290 g/km circulating in August 2026 are 4X4 Australia's extrapolation from United States testing, not an Australian Design Rules result. Until an official figure exists, registration tax in a CO₂-banded market such as Ireland cannot be calculated.",
+        a: "Nissan Australia has not published fuel consumption or CO₂ figures for the Y63 Patrol. Figures of around 12.7 L/100 km and 290 g/km circulating in August 2026 are Chasing Cars' extrapolation from United States testing, not an Australian Design Rules result. Until an official figure exists, registration tax in a CO₂-banded market such as Ireland cannot be calculated.",
       },
       {
         q: "Is the Australian list price what an exporter pays?",
@@ -1200,9 +1200,14 @@ export const NEWS_ARTICLES: NewsArticle[] = [
         publisher: "CarExpert",
       },
       {
-        label: "2026 Nissan Patrol Y63: Everything you need to know",
-        href: "https://www.4x4australia.com.au/news/2026-nissan-patrol-y63-everything-we-know-so-far",
-        publisher: "4X4 Australia",
+        label: "2027 Nissan Patrol pricing and specification",
+        href: "https://www.carsales.com.au/editorial/details/2027-nissan-patrol-pricing-and-specification-152846/",
+        publisher: "carsales",
+      },
+      {
+        label: "Toyota LandCruiser 300 vs Nissan Patrol Y63: spec battle",
+        href: "https://www.chasingcars.com.au/news/future-cars/toyota-landcruiser-300-vs-nissan-patrol-y63-spec-battle",
+        publisher: "Chasing Cars",
       },
       {
         label: "Exports and GST",
@@ -1263,7 +1268,7 @@ export const NEWS_ARTICLES: NewsArticle[] = [
     faqs: [
       {
         q: "Is the Nissan Patrol Y63 cheaper than the Toyota LandCruiser 300?",
-        a: "At the entry point, marginally. The Patrol Ti lists at A$98,990 before on-road costs against a LandCruiser 300 GX at A$99,270 as reported by CarExpert — a gap of A$280. At the top the difference is wider: A$145,990 for the Ti-L Reserve against A$156,740 for the Sahara ZX Hybrid. Toyota's prices move independently, so treat both ladders as of 27 August 2026.",
+        a: "At the entry point, marginally. The Patrol Ti lists at A$98,990 before on-road costs against a LandCruiser 300 GX at A$99,270 — a gap of A$280. At the top the difference is wider: A$145,990 for the Ti-L Reserve against A$156,990 for the Performance Hybrid GR Sport, a gap of A$11,000. LandCruiser prices are as listed by carsales on 27 August 2026 and move independently of Nissan's.",
       },
       {
         q: "Does the Nissan Patrol Y63 tow more than the LandCruiser 300?",
@@ -1299,6 +1304,11 @@ export const NEWS_ARTICLES: NewsArticle[] = [
           "Nissan Patrol Y62 V8 end date confirmed for Australia as V6-powered Y63 waits in the wings",
         href: "https://www.carexpert.com.au/car-news/nissan-patrol-y62-v8-end-date-confirmed-for-australia-as-v6-powered-y63-waits-in-the-wings",
         publisher: "CarExpert",
+      },
+      {
+        label: "2027 Nissan Patrol pricing and specification",
+        href: "https://www.carsales.com.au/editorial/details/2027-nissan-patrol-pricing-and-specification-152846/",
+        publisher: "carsales",
       },
       {
         label: "What is the New Vehicle Efficiency Standard?",
@@ -1356,7 +1366,7 @@ export const NEWS_ARTICLES: NewsArticle[] = [
       },
       {
         q: "When does the Nissan Patrol launch in Japan?",
-        a: "Nissan announced at the 2025 Japan Mobility Show that the Patrol returns to Japan in the first half of fiscal 2027 — April to September 2027 on the Japanese fiscal calendar. It is the first time the nameplate has been sold domestically since the Safari ended production in 2007, and it opens a second right-hand-drive export corridor once cars reach the used market.",
+        a: "Nissan announced at the 2025 Japan Mobility Show that the Patrol comes to Japan in the first half of fiscal 2027 — April to September 2027 on the Japanese fiscal calendar. It returns Nissan to the large-SUV segment at home for the first time since the Safari ended production in 2007, and it opens a second right-hand-drive export corridor once cars reach the used market.",
       },
       {
         q: "Can you import a Nissan Patrol from Dubai to a right-hand-drive country?",
@@ -1395,6 +1405,11 @@ export const NEWS_ARTICLES: NewsArticle[] = [
           "2027 Nissan Patrol Y63: Launch dates set for more luxurious twin-turbo V6 off-road SUV range",
         href: "https://www.carexpert.com.au/car-news/2027-nissan-patrol-y63-launch-dates-set-for-more-luxurious-twin-turbo-v6-off-road-suv-range",
         publisher: "CarExpert",
+      },
+      {
+        label: "2026 Nissan Patrol Y63: Everything you need to know",
+        href: "https://www.4x4australia.com.au/news/2026-nissan-patrol-y63-everything-we-know-so-far",
+        publisher: "4X4 Australia",
       },
     ],
     relatedGuides: [

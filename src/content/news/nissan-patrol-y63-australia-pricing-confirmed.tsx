@@ -209,13 +209,14 @@ export default function NissanPatrolY63AustraliaPricingConfirmed() {
       </P>
 
       <P>
-        4X4 Australia, reporting on 5 August 2026, put the likely consumption at
-        around 12.7 L/100 km and CO&#8322; at roughly 290 g/km, extrapolated
-        from United States testing rather than measured under Australian Design
-        Rules. We are repeating those figures as someone else&rsquo;s estimate
-        and we would not budget a tax bill from them. A large petrol V6 will
-        land in the top CO&#8322; band in every regime that has one; exactly how
-        much that costs depends on a number nobody has published.
+        Chasing Cars, extrapolating from United States data rather than from an
+        Australian Design Rules test, puts the likely consumption at around 12.7
+        L/100 km and CO&#8322; at roughly 290 g/km, and states plainly that
+        Nissan has not announced consumption and emissions. We are repeating
+        those figures as someone else&rsquo;s estimate and we would not budget a
+        tax bill from them. A large petrol V6 will land in the top CO&#8322;
+        band in every regime that has one; exactly how much that costs depends
+        on a number nobody has published.
       </P>
 
       <PullQuote>
@@ -234,8 +235,9 @@ export default function NissanPatrolY63AustraliaPricingConfirmed() {
         opened registrations of interest, but had not published New Zealand
         pricing or grades as at 28 August 2026. Japan gets the Patrol in the
         first half of fiscal 2027 &mdash; April to September 2027 on
-        Japan&rsquo;s fiscal calendar &mdash; which will be the
-        nameplate&rsquo;s first domestic sale since the Safari ended in 2007.
+        Japan&rsquo;s fiscal calendar &mdash; which returns Nissan to the
+        large-SUV segment at home, last contested by the Safari until production
+        ended in 2007.
       </P>
 
       <P>
@@ -257,8 +259,9 @@ export default function NissanPatrolY63AustraliaPricingConfirmed() {
         vehicles, yes &mdash; and because this is a new car, the age limits that
         govern used imports in Kenya, Sri Lanka and elsewhere do not bite.
         Verify the current rule with the destination authority rather than with
-        us: the Kenya Revenue Authority for Kenya, NZTA for New Zealand, the
-        national customs authority for the Caribbean markets.
+        us: the Kenya Bureau of Standards and the Kenya Revenue Authority for
+        Kenya, NZTA for New Zealand, the national customs authority for the
+        Caribbean markets.
       </P>
 
       <P>
@@ -280,9 +283,10 @@ export default function NissanPatrolY63AustraliaPricingConfirmed() {
       <UL>
         <CheckLI>
           <Strong>Australian buyers:</Strong> order books are open now and
-          deliveries start early 2027. The outgoing Y62 V8 finished production
-          in August 2026, so the run-out stock that was listed at A$95,500 for
-          the Ti in June 2026 is finite and shrinking.
+          deliveries start early 2027. Y62 V8 production was due to conclude in
+          August 2026, with final shipments reaching Australia by September, so
+          the run-out stock that was listed at A$95,500 for the Ti in June 2026
+          is finite and shrinking.
         </CheckLI>
         <CheckLI>
           <Strong>New Zealand buyers:</Strong> wait. Registering interest costs
@@ -317,8 +321,8 @@ export default function NissanPatrolY63AustraliaPricingConfirmed() {
           <>
             <Strong>Fuel consumption and CO&#8322;.</Strong> Nissan Australia
             has published neither. The 12.7 L/100 km and 290 g/km figures in
-            circulation are 4X4 Australia&rsquo;s extrapolation from United
-            States data, not an ADR result.
+            circulation are Chasing Cars&rsquo; extrapolation from United States
+            data, not an ADR result.
           </>,
           <>
             <Strong>The size of the increase over the Y62.</Strong> Nissan puts

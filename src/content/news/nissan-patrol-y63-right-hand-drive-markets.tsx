@@ -27,10 +27,11 @@ export default function NissanPatrolY63RightHandDriveMarkets() {
         <Strong>Australia from early 2027</Strong>, with order books opened on
         27 August 2026;{" "}
         <Strong>New Zealand in the first quarter of 2027</Strong>; and{" "}
-        <Strong>Japan in the first half of fiscal 2027</Strong>, the
-        nameplate&rsquo;s first domestic sale since the Safari ended in 2007. If
-        you are buying for Nairobi, Kingston, Auckland or Hong Kong, that
-        sequence decides your corridor and your calendar.
+        <Strong>Japan in the first half of fiscal 2027</Strong>, which returns
+        Nissan to the large-SUV segment at home for the first time since the
+        Safari ended production in 2007. If you are buying for Nairobi,
+        Kingston, Auckland or Hong Kong, that sequence decides your corridor and
+        your calendar.
       </Lead>
 
       <KeyTakeaways
@@ -85,7 +86,7 @@ export default function NissanPatrolY63RightHandDriveMarkets() {
           [
             "Japan",
             "Right",
-            "Confirmed for the first half of fiscal 2027 (April–September 2027); first Patrol sold domestically since the Safari ended in 2007",
+            "Confirmed for the first half of fiscal 2027 (April–September 2027); Nissan's first large SUV at home since the Safari ended in 2007",
           ],
           ["Middle East / GCC", "Left", "On sale since late 2024"],
           ["North America", "Left", "On sale since late 2024, badged Armada"],
@@ -118,7 +119,7 @@ export default function NissanPatrolY63RightHandDriveMarkets() {
           {
             time: "H1 fiscal 2027",
             title: "Japan",
-            body: "April to September 2027. The Patrol returns to the Japanese market for the first time since the Safari ended production in 2007.",
+            body: "April to September 2027. The Patrol enters the Japanese market, returning Nissan to the large-SUV segment at home for the first time since the Safari ended production in 2007.",
           },
         ]}
       />
@@ -232,8 +233,8 @@ export default function NissanPatrolY63RightHandDriveMarkets() {
           <Strong>Kenya, Uganda, Tanzania, Mauritius:</Strong> Australia is your
           only right-hand-drive corridor until the Japanese cars appear. New
           means the eight-year age rule is not your constraint &mdash; confirm
-          the current position with the Kenya Revenue Authority, and budget the
-          duty stack before the freight.
+          the current position with the Kenya Bureau of Standards and the Kenya
+          Revenue Authority, and budget the duty stack before the freight.
         </CheckLI>
         <CheckLI>
           <Strong>New Zealand:</Strong> do nothing yet. Local cars arrive in the
@@ -261,7 +262,7 @@ export default function NissanPatrolY63RightHandDriveMarkets() {
         confirmed={[
           "Australian pricing announced and order books opened on 27 August 2026, with first deliveries early 2027.",
           "Nissan New Zealand has confirmed a first-quarter 2027 arrival and opened registrations of interest, without publishing local pricing or grades.",
-          "Nissan announced at the 2025 Japan Mobility Show that the Patrol returns to Japan in the first half of fiscal 2027, the first time the nameplate has been sold domestically since the Safari ended in 2007.",
+          "Nissan announced at the 2025 Japan Mobility Show that the Patrol comes to Japan in the first half of fiscal 2027, returning Nissan to the large-SUV segment at home for the first time since the Safari ended production in 2007.",
           "The Y63 has been on sale in the Middle East and, as the Armada, in North America since late 2024.",
         ]}
         unconfirmed={[

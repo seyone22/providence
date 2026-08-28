@@ -32,8 +32,8 @@ export default function NissanPatrolY63VsLandcruiser300DealerRead() {
           <>
             The Y63 Patrol range runs <Strong>A$98,990 to A$145,990</Strong>{" "}
             before on-road costs across six grades, against a LandCruiser 300
-            range CarExpert lists from A$99,270 (GX) to A$156,740 (Sahara ZX
-            Hybrid).
+            range carsales lists from A$99,270 (GX) to A$156,990 (Performance
+            Hybrid GR Sport).
           </>,
           <>
             <Strong>3,700 kg braked towing</Strong> is the Patrol&rsquo;s single
@@ -74,18 +74,18 @@ export default function NissanPatrolY63VsLandcruiser300DealerRead() {
           [
             "Toyota LandCruiser 300",
             "GX — A$99,270",
-            "Sahara ZX Hybrid — A$156,740",
+            "Performance Hybrid GR Sport — A$156,990",
           ],
         ]}
-        caption="Patrol prices: Nissan Australia, 27 August 2026. LandCruiser 300 prices as reported by CarExpert on the same date. All figures are before on-road costs, and Toyota's range moves independently of Nissan's."
+        caption="Patrol prices: Nissan Australia, 27 August 2026. LandCruiser 300 prices as listed by carsales on the same date, where the Performance Hybrid Sahara ZX sits just below the GR Sport at A$156,740. All figures are before on-road costs, and Toyota's range moves independently of Nissan's."
       />
 
       <P>
-        The Patrol undercuts at the bottom by A$280 and at the top by A$10,750.
+        The Patrol undercuts at the bottom by A$280 and at the top by A$11,000.
         A A$280 gap is not a competitive advantage, it is a pricing signal:
         Nissan has deliberately parked the entry Y63 just inside the
         LandCruiser&rsquo;s opening price so that no advertisement can say the
-        Patrol is dearer. The A$10,750 at the top is a different message
+        Patrol is dearer. The A$11,000 at the top is a different message
         entirely &mdash; Nissan is not claiming the flagship rung, it is
         claiming the two rungs below it, where the Ti-L+ at A$134,690 and the
         PRO-4X at A$137,590 now sit.
@@ -121,9 +121,9 @@ export default function NissanPatrolY63VsLandcruiser300DealerRead() {
       <P>
         Nissan Australia is offering a 10-year/300,000 km warranty with the Y63,
         with roadside assistance to the same limits and flat-rate servicing at
-        A$499 a year for the first five years, on 12-month or 15,000 km
-        intervals. The warranty is stated as conditional on the vehicle being
-        serviced at authorised dealers.
+        A$499 a service for the first five services or five years, whichever
+        comes first, on 12-month or 15,000 km intervals. The warranty is stated
+        as conditional on the vehicle being serviced at authorised dealers.
       </P>
 
       <P>
@@ -261,10 +261,10 @@ export default function NissanPatrolY63VsLandcruiser300DealerRead() {
             before on-road costs, the 3.5-litre twin-turbo V6 with 317 kW and
             700 Nm, the 3,700 kg braked tow rating, the 10-year/300,000 km
             warranty conditional on authorised-dealer servicing, and A$499
-            flat-rate servicing for five years &mdash; all from Nissan
-            Australia&rsquo;s announcement of 27 August 2026.
+            flat-rate servicing for the first five services &mdash; all from
+            Nissan Australia&rsquo;s announcement of 27 August 2026.
           </>,
-          "LandCruiser 300 range anchors of A$99,270 (GX) and A$156,740 (Sahara ZX Hybrid), and the 200 kg towing advantage, as reported by CarExpert on 27 August 2026.",
+          "LandCruiser 300 range anchors of A$99,270 (GX) and A$156,990 (Performance Hybrid GR Sport), as listed by carsales on 27 August 2026, and the 200 kg towing advantage as reported by CarExpert on the same date.",
           "The New Vehicle Efficiency Standard has applied to new passenger and light commercial vehicles supplied in Australia since 1 July 2025, with a credit-and-penalty mechanism and a two-year window to trade units.",
         ]}
         unconfirmed={[

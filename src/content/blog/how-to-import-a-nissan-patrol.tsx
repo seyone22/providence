@@ -223,10 +223,12 @@ export default function Body() {
       <P>
         Several destination markets cap the age of an imported vehicle, and the
         rule is a hard gate that no amount of condition or specification
-        overrides. Kenya&rsquo;s eight-year rule is the best known of them. A
-        new Patrol clears every age limit by definition; a used Y62 may not,
+        overrides. Kenya&rsquo;s eight-year rule is the best known of them, set
+        through the Kenya Bureau of Standards and enforced at import. A new
+        Patrol clears every age limit by definition; a used Y62 may not,
         depending on the year and the market. Confirm the current position with
-        the destination authority before you bid.
+        the standards and revenue authorities in your destination before you
+        bid, not with a forum thread.
       </P>
 
       <H3>Type approval and individual approval</H3>
