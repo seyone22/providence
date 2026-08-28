@@ -4,10 +4,108 @@ import { and, desc, eq, inArray, ne, sql } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { headers } from "next/headers";
 import { accounts, db, requests, sessions, specDossiers, users } from "@/db";
-// Import the S2S conversion libraries you created earlier
 import { sendGoogleConversion, sendMetaConversion } from "@/lib/conversions";
 import { emailService } from "@/lib/email";
+import {
+  DEAL_CURRENCY,
+  hasReachedPurchaseStage,
+  leadOutcome,
+  PURCHASE_EVENT,
+  QUALIFIED_LEAD_EVENT,
+} from "@/lib/leadConversion";
 import { auth } from "@/utils/auth";
+
+type LeadRow = typeof requests.$inferSelect;
+
+/**
+ * Upload whatever this lead has newly earned to Meta and Google Ads, then
+ * record what was actually accepted.
+ *
+ * Two rules govern everything here.
+ *
+ * **Only the team's label decides.** `leadOutcome` maps each sales label to
+ * one of qualified / disqualified / neutral from an exhaustive table. It used
+ * to be a substring test — and "Not Qualified" contains "qualified", so every
+ * lead the team threw away was uploaded to both platforms as a positive
+ * conversion, teaching the ad algorithms to find more just like it.
+ *
+ * **Only the ledger decides what has already gone.** Whether a lead had been
+ * reported used to be inferred from its previous label, which meant a lead
+ * moved from "Not Qualified" to SQL looked as though it had already converted
+ * and silently sent nothing. The ledger columns are written only when a
+ * platform actually accepts the event, so a failed upload is retried on the
+ * next save rather than being lost — and Meta performs no server-to-server
+ * deduplication, so nothing may ever be sent twice on the strength of a guess.
+ *
+ * There is deliberately no "disqualified" event. Meta has no negative signal
+ * and no way to retract one: the way you tell it a lead was junk is by never
+ * sending the positive event in the first place.
+ */
+async function uploadOfflineConversions(before: LeadRow, after: LeadRow) {
+  const wasQualified = leadOutcome(before.leadStatus) === "qualified";
+  const isQualified = leadOutcome(after.leadStatus) === "qualified";
+  const ledger: Partial<LeadRow> = {};
+
+  if (leadOutcome(after.leadStatus) === "disqualified") {
+    console.info(
+      `[CONVERSIONS] Lead ${after.id} is "${after.leadStatus}" — nothing uploaded.`,
+    );
+  }
+
+  // The trigger is the MOMENT of qualification, not the fact of it. Uploading
+  // on any save of an already-qualified lead would, the first time anyone
+  // edited an old deal, replay months of historical conversions into a live ad
+  // account stamped with today's date — misattributing them to today's spend.
+  //
+  // Note this is an exact comparison of two mapped outcomes, not the substring
+  // test it replaced: "Not Qualified" maps to disqualified, so a lead rescued
+  // from it to SQL is still a genuine transition and still converts.
+  if (isQualified && !wasQualified) {
+    const pending: Promise<void>[] = [];
+
+    if (!after.metaQualifiedSentAt) {
+      pending.push(
+        sendMetaConversion(after, QUALIFIED_LEAD_EVENT, {
+          eventId: `${after.id}:qualified`,
+        }).then((result) => {
+          if (result.ok) ledger.metaQualifiedSentAt = new Date();
+        }),
+      );
+    }
+
+    if (!after.googleQualifiedSentAt) {
+      pending.push(
+        sendGoogleConversion(after).then((result) => {
+          if (result.ok) ledger.googleQualifiedSentAt = new Date();
+        }),
+      );
+    }
+
+    await Promise.allSettled(pending);
+  }
+
+  // The purchase signal comes from the delivery pipeline, not the sales label:
+  // the customer has paid a deposit. The old code looked for "closed"/"won" in
+  // the sales label, which no label contains — so this never fired at all.
+  // Same transition rule, for the same reason.
+  const reachedPayment =
+    hasReachedPurchaseStage(after.status) &&
+    !hasReachedPurchaseStage(before.status);
+
+  if (reachedPayment && !after.metaPurchaseSentAt) {
+    const value = after.agreedPrice ?? after.totalAmount ?? null;
+    const result = await sendMetaConversion(after, PURCHASE_EVENT, {
+      eventId: `${after.id}:purchase`,
+      value,
+      currency: DEAL_CURRENCY,
+    });
+    if (result.ok) ledger.metaPurchaseSentAt = new Date();
+  }
+
+  if (Object.keys(ledger).length > 0) {
+    await db.update(requests).set(ledger).where(eq(requests.id, after.id));
+  }
+}
 
 async function requireAuth() {
   const session = await auth.api.getSession({
@@ -246,46 +344,17 @@ export async function updateRequestStatus(
       .where(eq(requests.id, id))
       .returning();
 
-    // 6. --- S2S CONVERSION TRIGGERS ---
+    // 6. --- OFFLINE CONVERSION UPLOADS ---
+    //     Driven by the label the team just set, guarded by the ledger.
     if (updatedRequest) {
-      const prevStatus = existingRequest.leadStatus || "Unqualified";
-      const newStatus = updatedRequest.leadStatus || "Unqualified";
-
-      const wasQualified =
-        prevStatus.toLowerCase().includes("qualified") ||
-        prevStatus.toLowerCase().includes("sql");
-      const isQualified =
-        newStatus.toLowerCase().includes("qualified") ||
-        newStatus.toLowerCase().includes("sql");
-
-      const wasClosed =
-        prevStatus.toLowerCase().includes("closed") ||
-        prevStatus.toLowerCase().includes("won");
-      const isClosed =
-        newStatus.toLowerCase().includes("closed") ||
-        newStatus.toLowerCase().includes("won");
-
-      if (isQualified && !wasQualified) {
-        const requestForConversions = {
-          ...updatedRequest,
-          _id: updatedRequest.id,
-          vehicle_model: updatedRequest.vehicleModel,
-        };
-        await Promise.allSettled([
-          sendMetaConversion(requestForConversions as any, "QualifiedLead"),
-          sendGoogleConversion(requestForConversions as any),
-        ]);
-      }
-
-      if (isClosed && !wasClosed) {
-        const requestForConversions = {
-          ...updatedRequest,
-          _id: updatedRequest.id,
-          vehicle_model: updatedRequest.vehicleModel,
-        };
-        await Promise.allSettled([
-          sendMetaConversion(requestForConversions as any, "Purchase"),
-        ]);
+      try {
+        await uploadOfflineConversions(existingRequest, updatedRequest);
+      } catch (error) {
+        // An ad platform being unreachable must never fail the admin's save.
+        console.error(
+          `[CONVERSIONS] Upload failed for lead ${updatedRequest.id}:`,
+          error,
+        );
       }
     }
 

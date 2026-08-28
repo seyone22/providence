@@ -31,17 +31,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { getPresignedUrls } from "@/lib/file-actions";
 
-const PIPELINE_STAGES = [
-  "New",
-  "Vehicle Selection",
-  "Price Agreement",
-  "Deposit Collected",
-  "Vehicle Purchased",
-  "Preparation",
-  "Shipped",
-  "Arrived at Port",
-  "Cleared Customs",
-];
+import { PIPELINE_STAGES } from "@/lib/leadConversion";
 
 type HistoryStyle = {
   dot: string;

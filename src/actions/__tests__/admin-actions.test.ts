@@ -61,10 +61,15 @@ vi.mock("@/db", () => {
   };
 });
 
-// Mock conversion triggers
+// Mock conversion triggers. These resolve to the real success shape, because
+// the action only writes its ledger when `result.ok` is true.
 vi.mock("@/lib/conversions", () => ({
-  sendGoogleConversion: vi.fn().mockResolvedValue(true),
-  sendMetaConversion: vi.fn().mockResolvedValue(true),
+  sendGoogleConversion: vi
+    .fn()
+    .mockResolvedValue({ ok: true, eventsReceived: 1, fbtraceId: null }),
+  sendMetaConversion: vi
+    .fn()
+    .mockResolvedValue({ ok: true, eventsReceived: 1, fbtraceId: null }),
 }));
 
 // Mock email service
@@ -164,38 +169,204 @@ describe("admin-actions", () => {
       expect(result.success).toBe(true);
     });
 
-    it("should trigger conversion events when status is Qualified", async () => {
-      const mockRequestExisting = {
+    // These use the labels the dashboard dropdown actually produces. The
+    // previous version of this test used "New" -> "Qualified", neither of
+    // which the UI can emit, which is why it stayed green while production
+    // uploaded every rejected lead to Meta as a conversion.
+    describe("offline conversion uploads", () => {
+      const baseLead = {
         id: "req-1",
-        leadStatus: "New",
         notes: "",
         statusHistory: [],
         createdAt: new Date(),
-      };
-      const mockRequestUpdated = {
-        id: "req-1",
-        leadStatus: "Qualified",
-        notes: "",
-        statusHistory: [],
-        createdAt: new Date(),
+        status: "New",
+        metaQualifiedSentAt: null,
+        metaPurchaseSentAt: null,
+        googleQualifiedSentAt: null,
       };
 
-      vi.mocked(db.then)
-        .mockImplementationOnce((onFulfilled) =>
-          onFulfilled([mockRequestExisting]),
-        )
-        .mockImplementationOnce((onFulfilled) =>
-          onFulfilled([mockRequestUpdated]),
+      /** Prime the select (existing row) and the update's returning() row. */
+      function primeDb(existing: object, updated: object) {
+        vi.mocked(db.then)
+          .mockImplementationOnce((onFulfilled) => onFulfilled([existing]))
+          .mockImplementationOnce((onFulfilled) => onFulfilled([updated]));
+      }
+
+      const SQL_STATUS = "SQL: Moved to vehicle offering stage";
+
+      it("uploads to both platforms when the team moves a lead to SQL", async () => {
+        primeDb(
+          { ...baseLead, leadStatus: "Action required" },
+          { ...baseLead, leadStatus: SQL_STATUS },
         );
 
-      const result = await updateRequestStatus("req-1", "ContactedStage", {
-        leadStatus: "Qualified",
-        salesComment: "Qualified lead.",
-        dossierIds: [],
+        const result = await updateRequestStatus("req-1", "New", {
+          leadStatus: SQL_STATUS,
+          salesComment: "Real buyer.",
+          dossierIds: [],
+        });
+
+        expect(result.success).toBe(true);
+        expect(sendMetaConversion).toHaveBeenCalledWith(
+          expect.objectContaining({ id: "req-1" }),
+          "QualifiedLead",
+          expect.anything(),
+        );
+        expect(sendGoogleConversion).toHaveBeenCalled();
       });
 
-      expect(sendGoogleConversion).toHaveBeenCalled();
-      expect(sendMetaConversion).toHaveBeenCalled();
+      // The regression this whole change exists for. "Not Qualified" contains
+      // the substring "qualified".
+      it("uploads NOTHING when the team marks a lead Not Qualified", async () => {
+        primeDb(
+          { ...baseLead, leadStatus: "Action required" },
+          { ...baseLead, leadStatus: "Not Qualified" },
+        );
+
+        await updateRequestStatus("req-1", "New", {
+          leadStatus: "Not Qualified",
+          salesComment: "Tyre kicker.",
+          dossierIds: [],
+        });
+
+        expect(sendMetaConversion).not.toHaveBeenCalled();
+        expect(sendGoogleConversion).not.toHaveBeenCalled();
+      });
+
+      it("uploads nothing for Lead Lost", async () => {
+        primeDb(
+          { ...baseLead, leadStatus: "Active Conversation" },
+          { ...baseLead, leadStatus: "Lead Lost" },
+        );
+
+        await updateRequestStatus("req-1", "New", {
+          leadStatus: "Lead Lost",
+          salesComment: "Went elsewhere.",
+          dossierIds: [],
+        });
+
+        expect(sendMetaConversion).not.toHaveBeenCalled();
+        expect(sendGoogleConversion).not.toHaveBeenCalled();
+      });
+
+      it("uploads nothing for a lead still in play", async () => {
+        primeDb(
+          { ...baseLead, leadStatus: "Action required" },
+          { ...baseLead, leadStatus: "Active Conversation" },
+        );
+
+        await updateRequestStatus("req-1", "New", {
+          leadStatus: "Active Conversation",
+          salesComment: "Spoke today.",
+          dossierIds: [],
+        });
+
+        expect(sendMetaConversion).not.toHaveBeenCalled();
+        expect(sendGoogleConversion).not.toHaveBeenCalled();
+      });
+
+      // Under the old code this lead looked as though it had already
+      // converted, so its real qualification was silently dropped.
+      it("still uploads a lead rescued from Not Qualified to SQL", async () => {
+        primeDb(
+          { ...baseLead, leadStatus: "Not Qualified" },
+          { ...baseLead, leadStatus: SQL_STATUS },
+        );
+
+        await updateRequestStatus("req-1", "New", {
+          leadStatus: SQL_STATUS,
+          salesComment: "Called back, real budget.",
+          dossierIds: [],
+        });
+
+        expect(sendMetaConversion).toHaveBeenCalled();
+        expect(sendGoogleConversion).toHaveBeenCalled();
+      });
+
+      // Without a transition test, the first edit to any historical deal would
+      // replay it into a live ad account stamped with today's date.
+      it("does not backfill a lead that was already at SQL before this edit", async () => {
+        primeDb(
+          { ...baseLead, leadStatus: SQL_STATUS },
+          { ...baseLead, leadStatus: SQL_STATUS },
+        );
+
+        await updateRequestStatus("req-1", "New", {
+          leadStatus: SQL_STATUS,
+          salesComment: "Just adding a note months later.",
+          dossierIds: [],
+        });
+
+        expect(sendMetaConversion).not.toHaveBeenCalled();
+        expect(sendGoogleConversion).not.toHaveBeenCalled();
+      });
+
+      it("does not backfill Purchase for a deal already past the deposit", async () => {
+        primeDb(
+          { ...baseLead, leadStatus: "Action required", status: "Shipped" },
+          {
+            ...baseLead,
+            leadStatus: "Action required",
+            status: "Arrived at Port",
+          },
+        );
+
+        await updateRequestStatus("req-1", "Arrived at Port", {
+          leadStatus: "Action required",
+          salesComment: "Docked.",
+          dossierIds: [],
+        });
+
+        expect(sendMetaConversion).not.toHaveBeenCalled();
+      });
+
+      it("does not upload twice for a lead already reported", async () => {
+        const alreadySent = {
+          ...baseLead,
+          leadStatus: SQL_STATUS,
+          metaQualifiedSentAt: new Date("2026-08-01"),
+          googleQualifiedSentAt: new Date("2026-08-01"),
+        };
+        primeDb(alreadySent, alreadySent);
+
+        await updateRequestStatus("req-1", "New", {
+          leadStatus: SQL_STATUS,
+          salesComment: "Adding a note.",
+          dossierIds: [],
+        });
+
+        expect(sendMetaConversion).not.toHaveBeenCalled();
+        expect(sendGoogleConversion).not.toHaveBeenCalled();
+      });
+
+      // Purchase comes off the delivery pipeline, not the sales label.
+      it("uploads Purchase once the deposit stage is reached", async () => {
+        primeDb(
+          {
+            ...baseLead,
+            leadStatus: "Action required",
+            status: "Price Agreement",
+          },
+          {
+            ...baseLead,
+            leadStatus: "Action required",
+            status: "Deposit Collected",
+            agreedPrice: 42000,
+          },
+        );
+
+        await updateRequestStatus("req-1", "Deposit Collected", {
+          leadStatus: "Action required",
+          salesComment: "Deposit in.",
+          dossierIds: [],
+        });
+
+        expect(sendMetaConversion).toHaveBeenCalledWith(
+          expect.objectContaining({ id: "req-1" }),
+          "Purchase",
+          expect.objectContaining({ value: 42000, currency: "USD" }),
+        );
+      });
     });
   });
 
