@@ -26,6 +26,7 @@ import HowToImportACarFromNewZealand from "./how-to-import-a-car-from-new-zealan
 import HowToImportACarFromThailand from "./how-to-import-a-car-from-thailand";
 import HowToImportACarFromTheUae from "./how-to-import-a-car-from-the-uae";
 import HowToImportACarFromTheUk from "./how-to-import-a-car-from-the-uk";
+import HowToImportANissanPatrol from "./how-to-import-a-nissan-patrol";
 import ImportCarFromJapanOrUkToIreland from "./import-car-from-japan-or-uk-to-ireland";
 import ImportingACarToSriLanka from "./importing-a-car-to-sri-lanka";
 import ImportingAUsedEvFromNewZealand from "./importing-a-used-ev-from-new-zealand";
@@ -37,6 +38,7 @@ import IndiaCarExportDocumentsExplained from "./india-car-export-documents-expla
 import JapanCarExportDocumentsExplained from "./japan-car-export-documents-explained";
 import JapaneseAuctionGradesExplained from "./japanese-auction-grades-explained";
 import NewZealandVsJapanForUsedImports from "./new-zealand-vs-japan-for-used-imports";
+import NissanPatrolY63GradesExplained from "./nissan-patrol-y63-grades-explained";
 import SriLankaCarImportDocumentsExplained from "./sri-lanka-car-import-documents-explained";
 import SriLankaVehicleImportRulesForDealers from "./sri-lanka-vehicle-import-rules-for-dealers";
 import SriLankaVehicleImportTaxesExplained from "./sri-lanka-vehicle-import-taxes-explained";
@@ -61,6 +63,10 @@ export const BLOG_BODIES: Record<string, ComponentType> = {
   "import-car-from-japan-or-uk-to-ireland": ImportCarFromJapanOrUkToIreland,
   "why-are-indian-manufactured-cars-cheaper":
     WhyAreIndianManufacturedCarsCheaper,
+
+  // ── Model guides ───────────────────────────────────────────────────────────
+  "how-to-import-a-nissan-patrol": HowToImportANissanPatrol,
+  "nissan-patrol-y63-grades-explained": NissanPatrolY63GradesExplained,
 
   // ── Japan ──────────────────────────────────────────────────────────────────
   "how-to-buy-a-car-at-japanese-auction": HowToBuyACarAtJapaneseAuction,
