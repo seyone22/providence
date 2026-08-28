@@ -28,31 +28,11 @@ import { isLhdLead, pathnameToSource } from "@/lib/leadSource";
 import RequestTableClient from "./RequestTableClient";
 import "react-day-picker/dist/style.css"; // Basic styles
 
-const PIPELINE_STAGES = [
-  "New",
-  "Vehicle Selection",
-  "Price Agreement",
-  "Deposit Collected",
-  "Vehicle Purchased",
-  "Preparation",
-  "Shipped",
-  "Arrived at Port",
-  "Cleared Customs",
-];
-
-// Simplify the list
-const SALES_STATUSES = [
-  "Action required",
-  "No Response",
-  "Stopped Responding",
-  "Replied (Email)",
-  "Replied (WhatsApp)",
-  "Replied (Both)",
-  "Active Conversation",
-  "SQL: Moved to vehicle offering stage",
-  "Not Qualified",
-  "Lead Lost", // "Lead Closed" removed as it is now grouped with Lead Lost
-];
+// Both lists live in src/lib/leadConversion.ts, beside the table mapping each
+// sales label to the offline conversion it earns. They are imported rather
+// than repeated because a local copy is how the dropdown and the conversion
+// logic drifted apart in the first place.
+import { PIPELINE_STAGES, SALES_STATUSES } from "@/lib/leadConversion";
 
 export default function DashboardClient({
   requests,

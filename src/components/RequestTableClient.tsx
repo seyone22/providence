@@ -53,31 +53,12 @@ import { type PageSize, paginate } from "@/lib/pagination";
 const PAGE_SIZE_OPTIONS: PageSize[] = [25, 50, 100, 200, "All"];
 const DEFAULT_PAGE_SIZE = 50;
 
-const PIPELINE_STAGES = [
-  "New",
-  "Vehicle Selection",
-  "Price Agreement",
-  "Deposit Collected",
-  "Vehicle Purchased",
-  "Preparation",
-  "Shipped",
-  "Arrived at Port",
-  "Cleared Customs",
-];
+// Both lists live in src/lib/leadConversion.ts, beside the table mapping each
+// sales label to the offline conversion it earns. SALES_STATUSES is re-exported
+// here because RequestActionModal has always imported it from this file.
+import { PIPELINE_STAGES, SALES_STATUSES } from "@/lib/leadConversion";
 
-// Exporting this so you can potentially import it in your Modal component
-export const SALES_STATUSES = [
-  "Action required",
-  "No Response",
-  "Stopped Responding",
-  "Replied (Email)",
-  "Replied (WhatsApp)",
-  "Replied (Both)",
-  "Active Conversation",
-  "SQL: Moved to vehicle offering stage",
-  "Not Qualified",
-  "Lead Lost",
-];
+export { SALES_STATUSES };
 
 const BASE_URL = "https://providenceauto.co.uk";
 

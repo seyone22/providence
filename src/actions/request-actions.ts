@@ -10,8 +10,10 @@ import {
   formatInIST,
   TIME_WINDOWS,
 } from "@/lib/contactScheduling";
+import { sendMetaConversion } from "@/lib/conversions";
 import { formatBudget } from "@/lib/currencies";
 import { emailService } from "@/lib/email";
+import { LEAD_EVENT } from "@/lib/leadConversion";
 import connectToDatabase from "@/lib/mongoose";
 
 // Destination markets owned by a named member rather than the shared Sales
@@ -420,6 +422,43 @@ export async function submitContactPreferences(input: {
         updatedAt: new Date(),
       })
       .where(eq(requests.id, input.requestId));
+
+    // 2b. Report the raw lead to Meta.
+    //
+    //     Meta has no negative event and no way to be told a lead was junk.
+    //     The only quality signal it understands is the RATIO between raw
+    //     leads and qualified ones, which is why its CRM guidance is to send
+    //     "a minimum of two stages ... including the raw lead event". Without
+    //     this denominator, the QualifiedLead events uploaded later carry no
+    //     information: every lead looks qualified.
+    //
+    //     Off by default, because the GTM container may already fire a
+    //     browser-side Lead pixel and two Lead events for one lead would
+    //     inflate the denominator instead. Turn it on once you have either
+    //     confirmed no browser Lead exists, or set that pixel's eventID to the
+    //     request id so Meta deduplicates the pair.
+    if (
+      process.env.META_SEND_LEAD_ON_SUBMIT === "true" &&
+      !request.metaLeadSentAt
+    ) {
+      try {
+        const result = await sendMetaConversion(request, LEAD_EVENT, {
+          eventId: request.id,
+        });
+        if (result.ok) {
+          await db
+            .update(requests)
+            .set({ metaLeadSentAt: new Date() })
+            .where(eq(requests.id, request.id));
+        }
+      } catch (error) {
+        // Never let an ad platform block a customer's submission.
+        console.error(
+          `[CONVERSIONS] Raw lead upload failed for ${request.id}:`,
+          error,
+        );
+      }
+    }
 
     // 3. Resolve the assigned agent for the alert + the from-the-rep email.
     const fallbackAgent = {
