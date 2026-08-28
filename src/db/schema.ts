@@ -166,6 +166,15 @@ export const requests = pgTable("request", {
   fbclid: text("fbclid"),
   fbc: text("fbc"),
   fbp: text("fbp"),
+  // Offline-conversion upload ledger. NULL means "never uploaded"; a timestamp
+  // means "already uploaded, never send it again". A record rather than
+  // something inferred from the lead's current label — inferring it from the
+  // label is what uploaded rejected leads to Meta as conversions. See
+  // src/lib/leadConversion.ts.
+  metaLeadSentAt: timestamp("metaLeadSentAt"),
+  metaQualifiedSentAt: timestamp("metaQualifiedSentAt"),
+  metaPurchaseSentAt: timestamp("metaPurchaseSentAt"),
+  googleQualifiedSentAt: timestamp("googleQualifiedSentAt"),
   assignedToId: text("assignedToId").references(() => users.id, {
     onDelete: "set null",
   }),

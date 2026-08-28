@@ -32,6 +32,11 @@ vi.mock("@/db", () => {
     set: vi.fn().mockReturnThis(),
     where: vi.fn().mockReturnThis(),
     returning: vi.fn(),
+    // markLeadAsQualified now reads the lead before touching it, so it can
+    // leave a status the team has already decided alone.
+    select: vi.fn().mockReturnThis(),
+    from: vi.fn().mockReturnThis(),
+    limit: vi.fn().mockResolvedValue([]),
   };
   return {
     db: mockDb,
@@ -110,22 +115,50 @@ describe("tracking-actions", () => {
   });
 
   describe("markLeadAsQualified", () => {
-    it("should update status and trigger email if request is found", async () => {
-      const mockRequest = { id: "req-1", leadStatus: "Qualified" };
+    it("promotes an untouched lead and sends the alert", async () => {
+      vi.mocked(db.limit).mockResolvedValue([
+        { id: "req-1", leadStatus: "Action required" },
+      ] as any);
       vi.mocked(db.update(requests).returning).mockResolvedValue([
-        mockRequest,
+        { id: "req-1", leadStatus: "Active Conversation" },
       ] as any);
 
       await markLeadAsQualified("req-1");
 
       expect(db.update).toHaveBeenCalledWith(requests);
+      // "Qualified" was never one of SALES_STATUSES, so the admin dropdown had
+      // no option matching it and silently reset the lead on the next save.
       expect(db.update(requests).set).toHaveBeenCalledWith({
-        leadStatus: "Qualified",
+        leadStatus: "Active Conversation",
       });
       expect(emailService.sendLeadQualifiedAlert).toHaveBeenCalled();
     });
 
+    // A customer opening their tracking link is not a sales decision, and used
+    // to flip a rejected lead back to qualified.
+    it("leaves a lead the team already rejected alone", async () => {
+      vi.mocked(db.limit).mockResolvedValue([
+        { id: "req-1", leadStatus: "Not Qualified" },
+      ] as any);
+
+      await markLeadAsQualified("req-1");
+
+      expect(db.update).not.toHaveBeenCalled();
+      expect(emailService.sendLeadQualifiedAlert).not.toHaveBeenCalled();
+    });
+
+    it("leaves a lead the team already qualified alone", async () => {
+      vi.mocked(db.limit).mockResolvedValue([
+        { id: "req-1", leadStatus: "SQL: Moved to vehicle offering stage" },
+      ] as any);
+
+      await markLeadAsQualified("req-1");
+
+      expect(db.update).not.toHaveBeenCalled();
+    });
+
     it("should log warning if request is not found", async () => {
+      vi.mocked(db.limit).mockResolvedValue([] as any);
       vi.mocked(db.update(requests).returning).mockResolvedValue([] as any);
 
       await markLeadAsQualified("req-1");
