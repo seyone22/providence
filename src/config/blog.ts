@@ -935,6 +935,74 @@ const UK_IVA_POSTS: BlogPost[] = [
     ],
   },
   {
+    slug: "iva-test-centres-uk",
+    title: "Every IVA Test Centre in Great Britain",
+    h1: "Every IVA Test Centre in Great Britain, and Which Ones Take Cars",
+    seoTitle: "IVA Test Centres UK: Full List and Which Take Cars",
+    description:
+      "All 22 IVA test centres in England, Scotland and Wales, including the seven privately operated sites — what each can test, and how to name one on your DVSA application.",
+    excerpt:
+      "Twenty-two centres, seven of them privately operated, and only eighteen that take a car. Where you can test is a real constraint on an import.",
+    cluster: "UK Registration & IVA",
+    primaryKeyword: "iva test centres",
+    keywords: [
+      "iva test centres",
+      "iva test centre locations",
+      "where to book an iva test",
+      "private iva test centre",
+      "vehicle examination facility",
+      "iva test centre near me",
+    ],
+    author: AUTHOR,
+    publishDate: "2026-09-01",
+    updatedDate: "2026-09-01",
+    readingTimeMins: 10,
+    heroImage:
+      "https://images.unsplash.com/photo-1612057473117-3e16246121e6?q=80&w=2400&auto=format&fit=crop",
+    ogImage:
+      "https://images.unsplash.com/photo-1612057473117-3e16246121e6?q=80&w=1200&h=630&fit=crop&auto=format",
+    heroAlt: "Vehicle testing workshop of the kind used for IVA inspections",
+    ctaHref: "/request",
+    related: [
+      "iva-test-explained",
+      "do-i-need-an-iva-test",
+      "iva-test-requirements",
+      "iva-test-cost",
+    ],
+    toc: [
+      { id: "who-tests", label: "Who actually carries out the test" },
+      { id: "private", label: "The seven privately operated sites" },
+      { id: "cars", label: "Only three of them take cars" },
+      { id: "full-list", label: "All 22 centres, by region" },
+      { id: "restrictions", label: "Restrictions worth reading first" },
+      { id: "booking", label: "How you choose a centre" },
+      { id: "geography", label: "The geography problem" },
+      { id: "faqs", label: "FAQs" },
+    ],
+    faqs: [
+      {
+        q: "Can a private company carry out an IVA test?",
+        a: "No. A private company can host one. DVSA's Vehicle Examination Facility model allows approval tests to be conducted at third-party sites, but DVSA is explicit that DVSA staff continue to carry out the test. There is no such thing as a privately approved IVA tester — the examiner is always DVSA's, wherever the ramp is.",
+      },
+      {
+        q: "How many IVA test centres are there in the UK?",
+        a: "Twenty-two in England, Scotland and Wales as at DVSA's list of 14 August 2026. Fifteen are DVSA's own test centres and seven are privately operated sites. Eighteen of the twenty-two can test passenger vehicles. The list applies to Great Britain; Northern Ireland runs its own arrangements through the DVA.",
+      },
+      {
+        q: "Which private IVA centres can test cars?",
+        a: "Three of the seven. Castle Donington (My Car Import) and Milton Keynes (Ship My Car) both take passenger vehicles, with Milton Keynes listed for normal and basic IVA. Purfleet (Ensign Bus Company) takes passenger vehicles for normal IVA only. The other four — Halesowen, Peterborough, Sheffield and Lancashire — are goods-vehicle, trailer and specialist sites.",
+      },
+      {
+        q: "How do I book an IVA test at a particular centre?",
+        a: "You choose the test centre as part of your DVSA application rather than contacting the site directly. GOV.UK's instruction is to say which centre you want to use when you apply, and DVSA will usually offer you an inspection within 20 working days at the location you chose, wherever possible.",
+      },
+      {
+        q: "Are there IVA test centres in Scotland and Wales?",
+        a: "One each. Edinburgh (at Livingston) is the only IVA centre in Scotland and Cardiff (at Miskin) the only one in Wales, and both are DVSA sites that take passenger vehicles. Every other centre on the list is in England, which makes transport a real line in a Scottish or Welsh importer's budget.",
+      },
+    ],
+  },
+  {
     slug: "registering-an-imported-car-in-the-uk",
     title: "Registering an Imported Car in the UK",
     h1: "Registering an Imported Car in the UK, Step by Step",
