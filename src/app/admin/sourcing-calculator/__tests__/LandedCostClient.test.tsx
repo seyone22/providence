@@ -79,6 +79,30 @@ function setInput(label: string, value: string) {
   input.dispatchEvent(new Event("input", { bubbles: true }));
 }
 
+// Tick a checkbox by the label text it sits inside.
+function checkByLabel(t: string) {
+  const label = Array.from(container.querySelectorAll("label")).find((l) =>
+    l.textContent?.includes(t),
+  );
+  const box = label?.querySelector<HTMLInputElement>("input[type=checkbox]");
+  if (!box) throw new Error(`no checkbox "${t}"`);
+  box.dispatchEvent(new MouseEvent("click", { bubbles: true }));
+}
+
+// Type into an input addressed by its aria-label (no <label> wrapper).
+function setAriaInput(label: string, value: string) {
+  const input = container.querySelector<HTMLInputElement>(
+    `input[aria-label="${label}"]`,
+  );
+  if (!input) throw new Error(`no input labelled "${label}"`);
+  const setter = Object.getOwnPropertyDescriptor(
+    HTMLInputElement.prototype,
+    "value",
+  )?.set;
+  setter?.call(input, value);
+  input.dispatchEvent(new Event("input", { bubbles: true }));
+}
+
 function clickByText(t: string) {
   const el = Array.from(container.querySelectorAll("button")).find((b) =>
     b.textContent?.includes(t),
@@ -132,6 +156,47 @@ describe("Sourcing panel, end to end", () => {
     expect(text()).toContain("Max auction bid for 30% ROI");
     expect(text()).toContain("620,926");
     expect(text()).toContain("Clears the 30% minimum ROI");
+  });
+
+  it("totals the cost lines into one figure on the summary card", async () => {
+    await act(async () => {
+      setInput("Make", "BMW");
+      setInput("Model", "1 Series");
+      setInput("Year", "2015");
+      setInput("Auction hammer / purchase price", "600000");
+    });
+
+    // The operator should never have to add CIF + duty + UK costs by hand.
+    const card = container.textContent ?? "";
+    expect(card).toContain("Total cost");
+    expect(card).toContain("CIF + duty + UK costs, all in");
+    // £4,808 CIF + £481 duty + £1,360 UK = £6,649, stated as its own line.
+    expect(card.match(/£6,649/g)?.length ?? 0).toBeGreaterThanOrEqual(2);
+  });
+
+  it("drives every figure from a manually overridden median", async () => {
+    await act(async () => {
+      setInput("Make", "BMW");
+      setInput("Model", "1 Series");
+      setInput("Year", "2015");
+      setInput("Auction hammer / purchase price", "600000");
+    });
+    await act(async () => clickByText("rawl market listings"));
+
+    // The scraped median is £10,550; the desk knows this car retails at £14,400.
+    await act(async () => checkByLabel("Set the median myself"));
+    await act(async () => setAriaInput("Manual median", "14400"));
+
+    // Net resale 14,400 ÷ 1.2 = £12,000, and the scraped figure is still shown.
+    expect(text()).toContain("£12,000");
+    expect(text()).toContain("Median (manual)");
+    expect(text()).toContain("scraped £10,550");
+    // Profit = 12,000 − 6,649 = £5,351 at 80.5% ROI, so the car now clears 30%.
+    expect(text()).toContain("£5,351");
+    expect(text()).toContain("80.5% ROI");
+    expect(text()).toContain("Clears the 30% minimum ROI");
+    // The ceiling bid re-solves off the manual number, so the old one is gone.
+    expect(text()).not.toContain("620,926");
   });
 
   it("re-solves everything when the minimum ROI is raised to 35%", async () => {
