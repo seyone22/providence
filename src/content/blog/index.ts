@@ -18,6 +18,7 @@ import CostToImportACarFromNewZealand from "./cost-to-import-a-car-from-new-zeal
 import CostToImportACarFromThailand from "./cost-to-import-a-car-from-thailand";
 import CostToImportACarFromTheUae from "./cost-to-import-a-car-from-the-uae";
 import CostToImportACarFromTheUk from "./cost-to-import-a-car-from-the-uk";
+import DoINeedAnIvaTest from "./do-i-need-an-iva-test";
 import GccSpecCarsExplained from "./gcc-spec-cars-explained";
 import HowToBuyACarAtJapaneseAuction from "./how-to-buy-a-car-at-japanese-auction";
 import HowToImportACarFromAustralia from "./how-to-import-a-car-from-australia";
@@ -35,10 +36,14 @@ import ImportingCarsFromIndiaForDealers from "./importing-cars-from-india-for-de
 import ImportingCarsToIreland from "./importing-cars-to-ireland";
 import ImportingHybridsAndEvsToSriLanka from "./importing-hybrids-and-evs-to-sri-lanka";
 import IndiaCarExportDocumentsExplained from "./india-car-export-documents-explained";
+import IvaTestCost from "./iva-test-cost";
+import IvaTestExplained from "./iva-test-explained";
+import IvaTestRequirements from "./iva-test-requirements";
 import JapanCarExportDocumentsExplained from "./japan-car-export-documents-explained";
 import JapaneseAuctionGradesExplained from "./japanese-auction-grades-explained";
 import NewZealandVsJapanForUsedImports from "./new-zealand-vs-japan-for-used-imports";
 import NissanPatrolY63GradesExplained from "./nissan-patrol-y63-grades-explained";
+import RegisteringAnImportedCarInTheUk from "./registering-an-imported-car-in-the-uk";
 import SriLankaCarImportDocumentsExplained from "./sri-lanka-car-import-documents-explained";
 import SriLankaVehicleImportRulesForDealers from "./sri-lanka-vehicle-import-rules-for-dealers";
 import SriLankaVehicleImportTaxesExplained from "./sri-lanka-vehicle-import-taxes-explained";
@@ -67,6 +72,13 @@ export const BLOG_BODIES: Record<string, ComponentType> = {
   // ── Model guides ───────────────────────────────────────────────────────────
   "how-to-import-a-nissan-patrol": HowToImportANissanPatrol,
   "nissan-patrol-y63-grades-explained": NissanPatrolY63GradesExplained,
+
+  // ── UK registration & IVA ──────────────────────────────────────────────────
+  "iva-test-explained": IvaTestExplained,
+  "do-i-need-an-iva-test": DoINeedAnIvaTest,
+  "iva-test-cost": IvaTestCost,
+  "iva-test-requirements": IvaTestRequirements,
+  "registering-an-imported-car-in-the-uk": RegisteringAnImportedCarInTheUk,
 
   // ── Japan ──────────────────────────────────────────────────────────────────
   "how-to-buy-a-car-at-japanese-auction": HowToBuyACarAtJapaneseAuction,

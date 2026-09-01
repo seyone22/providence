@@ -302,6 +302,12 @@ be quoted publicly without the caveats below. Full methodology:
   — the importer reclaims it — but resale is scraped **VAT-inclusive**, so
   the market median is divided by 1.2 before any profit or ROI figure is
   derived. Never compare a raw median against the landed cost.
+- **The median can be set by hand.** The scraped median is the default, but the
+  operator may override it with the retail figure they expect to achieve; it is
+  entered VAT-inclusive like the listings, it moves every downstream number, and
+  it is labelled as manual on screen, in the PDF and in the verdict prompt. An
+  overridden run is one person's judgement about resale, not a market reading —
+  which matters if a figure from it is ever quoted.
 - **30% ROI on landed cost is the desk minimum and default** (`TARGET_MARGIN_PCT`),
   editable per run, enforced in code after the AI model answers — a car below
   target can never come back as "source".
@@ -335,6 +341,7 @@ don't just fix the copy silently.
 | 2026-08-25 | Sri Lanka added to `DESTINATION_REGIONS` (28 → 29 destinations) | It is demonstrably a market we ship into — its own country page calls it "primarily a destination market for us", and both the Japan and India campaign pickers route there. `ca58b48` had removed it on the reasoning that it is a presence country, but presence and destination are not mutually exclusive. Resolves the contradiction logged in `brand-position.md` §11.3. |
 | 2026-08-25 | Sri Lanka's channel policy recorded here in §14, not in a separate untracked file | "Not public" means it never becomes landing-page copy, an ad or a chat reply — not that it is withheld from the team. Keeping it in the one source-of-truth document is what makes it usable when a targeting decision comes up. Note the repo is public (`github.com/seyone22/providence`), so this section is readable on GitHub. |
 | 2026-08-25 | The persist-until-answered rule narrowed to **source-of-truth documents only** | As first written it covered any recommendation, which is not what was asked and would have turned every passing suggestion into a standing obligation. Ordinary suggestions are raised once and dropped if not taken up; only a pending change to a documented truth persists. |
+| 2026-09-01 | The sourcing analyzer's market median can be overridden by the operator; `sourcing-analyzer-methodology.md` §4 documents it | The desk was already moving the median by adding and removing comparables until the number looked right. That edits the evidence to reach a conclusion and leaves no record of it. An explicit override is the same judgement made visible: the comparable set stays as crawled, and every surface says the median is a desk figure. It is an operator input, so "numbers are computed, prose is generated" is untouched — no model produces it. |
 
 ## 12. Known documentation to reconcile
 

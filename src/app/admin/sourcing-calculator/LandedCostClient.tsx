@@ -503,6 +503,29 @@ export default function LandedCostClient({
     [editableListings],
   );
 
+  // ── Manual median override ─────────────────────────────────────────────────
+  // The scraped median is the default, but the desk often knows the retail
+  // number better than a thin comparable set does. Rather than nudging the
+  // median by adding and removing listings, the operator types the figure the
+  // car will actually sell at. Everything downstream — net resale, profit, the
+  // ceiling bid, the verdict, the PDF and the saved run — reads the effective
+  // median below, so one number moves the whole page at once.
+  const [medianOverrideOn, setMedianOverrideOn] = useState(false);
+  const [medianOverrideInput, setMedianOverrideInput] = useState("");
+  const medianOverridden = medianOverrideOn && num(medianOverrideInput) > 0;
+  const effectiveMedian = medianOverridden
+    ? num(medianOverrideInput)
+    : liveStats.median;
+
+  // The scraped stats with the median swapped for the operator's. The rest of
+  // the distribution (range, IQR, histogram, outlier count) still describes the
+  // real listings, because it still is the real listings.
+  const stats = useMemo(
+    () =>
+      medianOverridden ? { ...liveStats, median: effectiveMedian } : liveStats,
+    [liveStats, medianOverridden, effectiveMedian],
+  );
+
   // Auto-scroll to the results once an analysis lands.
   const marketRef = useRef<HTMLDivElement>(null);
   useEffect(() => {
@@ -562,7 +585,7 @@ export default function LandedCostClient({
   // Scraped forecourt prices are VAT-inclusive; the landed cost above excludes
   // import VAT because the importer reclaims it. Take the VAT back out of the
   // resale side so both halves of the margin are net figures.
-  const medianExVat = resaleExVat(liveStats.median);
+  const medianExVat = resaleExVat(effectiveMedian);
   const liveMargin = medianExVat - result.totalLanded;
   const liveMarginPct =
     result.totalLanded > 0 ? liveMargin / result.totalLanded : 0;
@@ -610,8 +633,12 @@ export default function LandedCostClient({
   // an add/remove — length alone would miss an add that offsets a removal.
   const [verdictSignature, setVerdictSignature] = useState<string | null>(null);
   const listingsSignature = useMemo(
-    () => editableListings.map(listingKey).sort().join("~"),
-    [editableListings],
+    () =>
+      [
+        editableListings.map(listingKey).sort().join("~"),
+        `median:${Math.round(effectiveMedian)}`,
+      ].join("|"),
+    [editableListings, effectiveMedian],
   );
   const verdictStale =
     verdict != null && verdictSignature !== listingsSignature;
@@ -633,7 +660,9 @@ export default function LandedCostClient({
         market: {
           count: liveStats.count,
           min: liveStats.min,
-          median: liveStats.median,
+          median: effectiveMedian,
+          medianOverridden,
+          scrapedMedian: liveStats.median,
           medianExVat,
           mean: liveStats.mean,
           max: liveStats.max,
@@ -713,7 +742,7 @@ export default function LandedCostClient({
         // Save the live (possibly edited) set so the stored figures match.
         market: {
           ...market,
-          stats: liveStats,
+          stats,
           listings: editableListings,
           widened: liveStats.count < 5,
         },
@@ -746,6 +775,9 @@ export default function LandedCostClient({
     setMarket(null);
     setVerdict(null);
     setVerdictSignature(null);
+    // A stale override belongs to the previous car, not this one.
+    setMedianOverrideOn(false);
+    setMedianOverrideInput("");
     setSaved(false);
     try {
       // Make + model gate the match (case-insensitive); trim is a preference;
@@ -801,7 +833,8 @@ export default function LandedCostClient({
       const v = await getVerdict({
         vehicle: { make, model, edition, year, mileage },
         landedCostGbp: result.totalLanded,
-        stats: liveStats,
+        stats,
+        medianOverridden,
         // The net figure the margin is actually measured against.
         resaleExVatGbp: medianExVat,
         targetMarginPct,
@@ -1387,11 +1420,20 @@ export default function LandedCostClient({
               />
             </div>
             <Separator className="my-3 bg-zinc-700" />
-            <BreakdownRow
-              label="Total landed cost"
-              value={fmtGBP(result.totalLanded)}
-              strong
-            />
+            {/* The one number the operator would otherwise add up by hand.
+                Written out rather than using BreakdownRow's strong variant,
+                which paints zinc-900 text — invisible on this dark card. */}
+            <div className="flex items-start justify-between py-2 border-b border-zinc-700">
+              <div>
+                <p className="text-sm font-semibold text-white">Total cost</p>
+                <p className="text-[11px] text-zinc-400 mt-0.5">
+                  CIF + duty + UK costs, all in
+                </p>
+              </div>
+              <p className="text-base font-bold text-white tabular-nums">
+                {fmtGBP(result.totalLanded)}
+              </p>
+            </div>
 
             {/* The other half of the P&L: what the car earns net of VAT, and
                 what is left after every cost above. */}
@@ -1400,7 +1442,11 @@ export default function LandedCostClient({
                 <BreakdownRow
                   label="Median resale (ex VAT)"
                   value={fmtGBP(medianExVat)}
-                  sub={`${fmtGBP(liveStats.median)} market median ÷ ${RESALE_VAT_DIVISOR}`}
+                  sub={
+                    medianOverridden
+                      ? `${fmtGBP(effectiveMedian)} manual median ÷ ${RESALE_VAT_DIVISOR} · scraped ${fmtGBP(liveStats.median)}`
+                      : `${fmtGBP(liveStats.median)} market median ÷ ${RESALE_VAT_DIVISOR}`
+                  }
                 />
                 <div className="flex items-start justify-between py-2">
                   <div>
@@ -1475,6 +1521,7 @@ export default function LandedCostClient({
                       ≈ {fmtGBP(maxBid.maxHammer * fxGbpPerUnit)} · lands at{" "}
                       {fmtGBP(maxBid.maxLandedGbp)} against a{" "}
                       {fmtGBP(medianExVat)} net resale
+                      {medianOverridden ? " (manual median)" : ""}
                     </p>
                     {num(hammerPrice) > 0 ? (
                       <p
@@ -1606,23 +1653,103 @@ export default function LandedCostClient({
                 {/* Stat tiles */}
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
                   {[
-                    { label: "Lowest", value: liveStats.min },
-                    { label: "Median", value: liveStats.median },
-                    { label: "Mean", value: liveStats.mean },
-                    { label: "Highest", value: liveStats.max },
+                    { label: "Lowest", value: liveStats.min, median: false },
+                    { label: "Median", value: effectiveMedian, median: true },
+                    { label: "Mean", value: liveStats.mean, median: false },
+                    { label: "Highest", value: liveStats.max, median: false },
                   ].map((s) => (
                     <div
                       key={s.label}
-                      className="rounded-lg border border-zinc-200 p-3"
+                      className={`rounded-lg border p-3 ${
+                        s.median && medianOverridden
+                          ? "border-sky-300 bg-sky-50"
+                          : "border-zinc-200"
+                      }`}
                     >
                       <p className="text-[11px] uppercase tracking-wide text-zinc-400">
-                        {s.label}
+                        {s.median && medianOverridden
+                          ? "Median (manual)"
+                          : s.label}
                       </p>
                       <p className="text-lg font-bold text-zinc-900">
                         {fmtGBP(s.value)}
                       </p>
+                      {s.median && medianOverridden ? (
+                        <p className="text-[11px] text-sky-700">
+                          scraped {fmtGBP(liveStats.median)}
+                        </p>
+                      ) : null}
                     </div>
                   ))}
+                </div>
+
+                {/* Manual median override. Quicker, and more honest, than
+                    moving the median by dropping listings that were genuinely
+                    comparable: the crawled set stays as it was, and the number
+                    the desk actually believes drives the P&L. */}
+                <div className="rounded-lg border border-zinc-200 p-3">
+                  <label className="flex items-start gap-3 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={medianOverrideOn}
+                      onChange={(e) => {
+                        setMedianOverrideOn(e.target.checked);
+                        if (e.target.checked && !medianOverrideInput) {
+                          setMedianOverrideInput(
+                            String(Math.round(liveStats.median)),
+                          );
+                        }
+                      }}
+                      className="mt-0.5 size-4 shrink-0 accent-sky-600"
+                    />
+                    <span>
+                      <span className="block text-[13px] font-medium text-zinc-800">
+                        Set the median myself
+                      </span>
+                      <span className="block text-[11px] text-zinc-500 mt-0.5">
+                        Replaces the {fmtGBP(liveStats.median)} scraped median
+                        everywhere — net resale, profit, ROI, the ceiling bid,
+                        the verdict, the PDF and the saved run. Enter a
+                        VAT-inclusive retail price, the same basis the listings
+                        are on; it is divided by {RESALE_VAT_DIVISOR} like any
+                        other median.
+                      </span>
+                    </span>
+                  </label>
+                  {medianOverrideOn ? (
+                    <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-2 pl-7">
+                      <div className="relative">
+                        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-zinc-400">
+                          £
+                        </span>
+                        <Input
+                          inputMode="decimal"
+                          aria-label="Manual median"
+                          value={medianOverrideInput}
+                          onChange={(e) =>
+                            setMedianOverrideInput(e.target.value)
+                          }
+                          className="h-9 w-40 pl-7 tabular-nums"
+                        />
+                      </div>
+                      <p className="text-[11px] text-zinc-500">
+                        {medianOverridden
+                          ? `= ${fmtGBP(medianExVat)} net of VAT`
+                          : "Enter a figure above £0, or the scraped median stays in force."}
+                      </p>
+                      <button
+                        type="button"
+                        onClick={() =>
+                          setMedianOverrideInput(
+                            String(Math.round(liveStats.median)),
+                          )
+                        }
+                        className="text-[12px] font-medium text-sky-700 hover:underline"
+                      >
+                        Reset to the scraped {fmtGBP(liveStats.median)}
+                      </button>
+                    </div>
+                  ) : null}
                 </div>
 
                 {/* Histogram */}
@@ -1803,8 +1930,9 @@ export default function LandedCostClient({
                         </Badge>
                       </div>
                       <p className="text-[11px] text-zinc-400">
-                        net resale {fmtGBP(medianExVat)} (median{" "}
-                        {fmtGBP(liveStats.median)} ÷ {RESALE_VAT_DIVISOR}) −
+                        net resale {fmtGBP(medianExVat)} (
+                        {medianOverridden ? "manual median" : "median"}{" "}
+                        {fmtGBP(effectiveMedian)} ÷ {RESALE_VAT_DIVISOR}) −
                         landed {fmtGBP(result.totalLanded)} · % of landed cost
                       </p>
                       {maxBid.achievable ? (
@@ -1845,9 +1973,9 @@ export default function LandedCostClient({
                       {verdictStale ? (
                         <div className="mt-2 flex flex-wrap items-center gap-2 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2">
                           <p className="text-[11px] text-amber-800">
-                            Your listing set changed. The figures above already
-                            reflect it; the written narrative is from the
-                            previous set.
+                            The comparables or the median changed. The figures
+                            above already reflect it; the written narrative is
+                            from the previous set.
                           </p>
                           <Button
                             size="sm"

@@ -36,7 +36,15 @@ export interface SourcingPdfData {
   market: {
     count: number;
     min: number;
+    // The median the figures were actually built on — the scraped one unless
+    // the operator overrode it.
     median: number;
+    // True when that median is the desk's own retail figure rather than the
+    // scraped one. The report says so, because a reader would otherwise take
+    // it for a market statistic.
+    medianOverridden?: boolean;
+    // What the listings alone produced, kept for the record when overridden.
+    scrapedMedian?: number;
     // The median with VAT taken back out — the figure the margin is measured
     // against, since the landed cost excludes reclaimable import VAT.
     medianExVat: number;
@@ -353,7 +361,11 @@ const ReportPDF = ({
           </Text>
           <Row label="Lowest" value={fmtGBP(data.market.min)} />
           <Row
-            label="Median (VAT-inclusive asking price)"
+            label={
+              data.market.medianOverridden
+                ? "Median (VAT-inclusive · set manually)"
+                : "Median (VAT-inclusive asking price)"
+            }
             value={fmtGBP(data.market.median)}
           />
           <Row label="Mean" value={fmtGBP(data.market.mean)} />
@@ -368,6 +380,13 @@ const ReportPDF = ({
             comparable
             {data.market.trimmedOutliers > 0
               ? ` · ${data.market.trimmedOutliers} price outlier${data.market.trimmedOutliers === 1 ? "" : "s"} excluded`
+              : ""}
+            {data.market.medianOverridden
+              ? ` · median set manually to ${fmtGBP(data.market.median)}${
+                  data.market.scrapedMedian
+                    ? ` (the listings gave ${fmtGBP(data.market.scrapedMedian)})`
+                    : ""
+                }; every margin figure follows the manual number`
               : ""}
           </Text>
 

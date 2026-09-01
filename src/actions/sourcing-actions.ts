@@ -548,6 +548,11 @@ export interface VerdictInput {
   };
   landedCostGbp: number;
   stats: MarketStats;
+  // True when the operator replaced the scraped median with their own figure.
+  // The number itself already arrives in `stats.median`; this only tells the
+  // model where it came from, so the prose doesn't call a desk figure a
+  // market-derived one.
+  medianOverridden?: boolean;
   // Net resale revenue: the market median with VAT taken back out (÷1.2). The
   // landed cost excludes import VAT, so the margin is measured net-against-net.
   // Optional so an older saved payload still resolves — it falls back to the
@@ -617,6 +622,9 @@ export async function getVerdict(input: VerdictInput): Promise<VerdictResult> {
     `Total UK landed cost (includes duty, shipping, fees and UK-side clearance; import VAT is excluded because the importer reclaims it): £${Math.round(landedCostGbp).toLocaleString()}.`,
     `Live UK market for comparable cars (${stats.count} listings${input.widened ? `, match auto-widened to "${input.matchUsed}" — fewer exact comparables, so lower confidence` : ""}):`,
     `  median £${Math.round(stats.median).toLocaleString()}, mean £${Math.round(stats.mean).toLocaleString()}, range £${Math.round(stats.min).toLocaleString()}–£${Math.round(stats.max).toLocaleString()}, interquartile £${Math.round(stats.p25).toLocaleString()}–£${Math.round(stats.p75).toLocaleString()}.`,
+    input.medianOverridden
+      ? `  That median is the desk's own retail figure, entered by the buyer in place of the scraped one — treat it as the price this dealer expects to achieve, not as a market-derived statistic. The rest of the distribution above is still the scraped listings.`
+      : "",
     `Those asking prices are VAT-inclusive retail. Net of VAT the median sale earns £${Math.round(resaleExVat).toLocaleString()} (median ÷ 1.2), which is what the margin below is measured against — the landed cost is also net, because the importer reclaims import VAT.`,
     `Profit at median resale = £${Math.round(grossMargin).toLocaleString()} = ${(marginPct * 100).toFixed(1)}% of landed cost. The desk's minimum is ${targetLabel}, so this car ${meetsTarget ? "CLEARS" : "FALLS SHORT OF"} the threshold.`,
     input.maxBid

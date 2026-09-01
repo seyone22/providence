@@ -22,6 +22,13 @@ export async function generateMetadata({
   const path = `/blog/${post.slug}`;
   const url = `${SITE}${path}`;
 
+  // Slack, LinkedIn, X and iMessage need declared dimensions to render a link
+  // preview, so a post with a purpose-built 1200×630 share image declares them.
+  // Posts without one fall back to the hero, whose size varies by source.
+  const shareImage = post.ogImage
+    ? { url: post.ogImage, width: 1200, height: 630, alt: post.heroAlt }
+    : { url: post.heroImage, alt: post.heroAlt };
+
   return {
     title: { absolute: post.seoTitle },
     description: post.description,
@@ -37,13 +44,13 @@ export async function generateMetadata({
       publishedTime: post.publishDate,
       modifiedTime: post.updatedDate,
       authors: [post.author],
-      images: [{ url: post.heroImage, alt: post.heroAlt }],
+      images: [shareImage],
     },
     twitter: {
       card: "summary_large_image",
       title: post.seoTitle,
       description: post.description,
-      images: [post.heroImage],
+      images: [post.ogImage ?? post.heroImage],
     },
     robots: {
       index: true,

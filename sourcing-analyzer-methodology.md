@@ -210,6 +210,18 @@ From the kept set: count, min, max, mean, **median**, p25, p75, standard deviati
 
 **The median is the reference price for every margin figure**, not the mean — it is far less sensitive to one absurd asking price in a thin sample.
 
+**Manual median override.** The operator can replace the computed median with their own retail figure — "Set the median myself", under the stat tiles, prefilled with the scraped median. It is a deliberate escape hatch, because the alternative the desk was using is worse: nudging the median by adding and removing comparables edits the evidence to reach a number, and leaves no trace that it happened.
+
+The rules that keep it honest:
+
+- **It is an operator input, never a model output.** The governing principle is unchanged — no LLM produces this or any other figure. It is typed by a person who is accountable for it.
+- **It is entered VAT-inclusive**, on the same basis as the scraped asking prices, and is divided by 1.2 like any other median (§5.1). Entering a net figure would overstate margin by the VAT fraction.
+- **Only the median moves.** Count, min, max, mean, p25/p75, standard deviation, the histogram, the outlier count and the listings themselves still describe the real crawl, and are still displayed as such.
+- **Everything that consumes a median consumes this one:** net resale, profit, ROI, the ceiling bid (§5.3), the verdict prompt (§6.1), the PDF and the saved run — including the `marketMedian` column of `sourcingAnalyses`, so the stored row records the number the decision was actually taken on.
+- **Every surface labels it.** The stat tile reads "Median (manual)" and keeps the scraped figure beside it, the summary panel's sub-line names it, the PDF row is labelled and the provenance line records what the listings gave, and the verdict prompt is told the median is a desk figure rather than a market statistic.
+- **A new crawl clears it.** An override belongs to the car it was typed for; carrying it silently into the next vehicle would be the worst failure this feature could have.
+- **Changing it stales an existing verdict**, exactly as adding or removing a listing does (§3.7) — the effective median is part of the signature the narrative is signed against.
+
 **Confidence flag.** Fewer than 5 comparables marks the analysis as thin supply / lower confidence, which cascades into the verdict (see §6).
 
 ---
@@ -226,7 +238,7 @@ profit (PNL)  = net resale − total landed cost
 ROI %         = profit ÷ total landed cost
 ```
 
-Both halves of the subtraction are now net figures. **Never compare the raw median against the landed cost** — that is the single easiest way to make an unprofitable car look like a buy.
+Both halves of the subtraction are now net figures. **Never compare the raw median against the landed cost** — that is the single easiest way to make an unprofitable car look like a buy. Where the operator has overridden the median (§4), that figure takes its place here and everywhere below, on the same VAT-inclusive basis.
 
 The percentage is measured **against landed cost**, not against the sale price. £5,000 on a £20,000 landed car is 25%, not 20%. Both the money figure and the percentage are displayed, colour-coded against the target, with an explicit "clears / below the target" badge, and the on-screen line shows the arithmetic ("net resale £8,792 (median £10,550 ÷ 1.2) − landed £6,649").
 
@@ -277,6 +289,8 @@ Facts supplied: the vehicle, the landed cost (with an explicit note that VAT is 
 
 The margin maths is **not** recomputed server-side from the raw median — `getVerdict` takes `resaleExVatGbp` and `targetMarginPct` from the client, so the prose and the panel can never disagree about which numbers were compared.
 
+When the median has been overridden (§4), `medianOverridden` is passed with it and the fact block says so in words: the median is the desk's own expected retail price, not a market-derived statistic, and the rest of the distribution is still the scraped listings. The model is not told to weigh it differently — it is told what it is looking at.
+
 ### 6.2 Guardrails applied in code, after the model answers
 
 - **The target is enforced, not requested.** A car below the run's target can never come back as "source". If the model says `source` and the margin is short, the recommendation is downgraded to `marginal` on return. The model remains free to go *lower* than that, and free to withhold `source` above target for other reasons — thin supply, a widened match, a suspicious spread.
@@ -313,7 +327,7 @@ Model fallback: `gemini-2.5-flash` → `gemini-2.5-flash-lite` → `gemini-flash
 
 Every one of these is a stated assumption, not a fact about a specific car. They are listed here so a reviewer can attack them directly.
 
-1. **The market median is the achievable resale price.** In practice a dealer rarely gets the full median — there is haggling, prep and time-to-sell. The verdict prompt is told to allow headroom for this; the margin figure itself is not discounted for it.
+1. **The market median is the achievable resale price.** In practice a dealer rarely gets the full median — there is haggling, prep and time-to-sell. The verdict prompt is told to allow headroom for this; the margin figure itself is not discounted for it. Where the operator has overridden the median (§4), the assumption becomes their own: the tool believes the figure it was given, and every downstream number inherits whatever judgement went into it.
    - **The car resells at the standard 20% VAT rate.** The net resale figure is a flat median ÷ 1.2. A margin-scheme sale (VAT on the profit only, not the full price) would earn more than the tool credits, so the figure is conservative rather than wrong.
 2. **Reconditioning is not in the landed cost.** No paint, no tyres, no service, no warranty provision. A car needing work is worse than the number says.
 3. **Selling costs are not in the landed cost.** No advertising, no forecourt time, no finance commission clawback.
