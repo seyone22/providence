@@ -25,6 +25,10 @@ export type BlogCluster =
   | "Tax & Rules"
   | "Source Country"
   | "Guides"
+  // Importing *into* the UK. Deliberately separate from the "United Kingdom"
+  // cluster, which is about buying *from* Britain — the reader is a different
+  // person with a different question.
+  | "UK Registration & IVA"
   // Per-country clusters — one per office in src/config/countries.ts. Posts live
   // in src/config/blog-countries.ts and are appended to BLOG_POSTS below.
   | "Japan"
@@ -64,6 +68,13 @@ export type BlogPost = {
   readingTimeMins: number;
   heroImage: string;
   heroAlt: string;
+  /**
+   * Optional 1200×630 share image. When set, the post's Open Graph and Twitter
+   * cards use it with explicit dimensions, which is what Slack, LinkedIn, X and
+   * iMessage need to render a preview (see CLAUDE.md, "SEO & AEO"). Omit it and
+   * the card falls back to `heroImage` with no declared dimensions.
+   */
+  ogImage?: string;
   /** Slugs of related posts for internal linking. */
   related: string[];
   /** FAQs — rendered on-page AND emitted as FAQPage JSON-LD. */
@@ -635,9 +646,368 @@ const MODEL_POSTS: BlogPost[] = [
   },
 ];
 
+// ── UK registration & IVA ────────────────────────────────────────────────────
+// Importing *into* the United Kingdom. The UK sits in two of our lists — it is
+// a source market and a destination market — and these posts serve the second
+// reader: someone landing a car at a UK port who now has to get a number plate
+// on it. NOVA and DVLA registration are named, in-scope Providence services for
+// UK-bound cars (business-context.md §4.3), so the CTA on these is honest.
+//
+// Every figure below was checked against the primary source on 1 September 2026
+// and the source is named in the body. DVSA statutory IVA fees have not moved
+// since the fee page was last updated on 13 December 2022.
+const UK_IVA_POSTS: BlogPost[] = [
+  {
+    slug: "iva-test-explained",
+    title: "IVA Explained: The UK Approval Test for Imported Cars",
+    h1: "What an IVA Test Is, and When an Imported Car Needs One",
+    seoTitle: "IVA Test Explained: UK Vehicle Approval for Imports",
+    description:
+      "What Individual Vehicle Approval is, which imported cars need it, what DVSA inspects, what it costs and how long it takes — checked against GOV.UK on 1 September 2026.",
+    excerpt:
+      "An imported car with no UK or EU type approval cannot be registered until DVSA has approved it individually. Here is what that test is and when it applies.",
+    cluster: "UK Registration & IVA",
+    primaryKeyword: "iva test",
+    keywords: [
+      "iva test",
+      "individual vehicle approval",
+      "iva test uk",
+      "iva test imported car",
+      "dvsa iva",
+      "what is an iva test",
+    ],
+    author: AUTHOR,
+    publishDate: "2026-09-01",
+    updatedDate: "2026-09-01",
+    readingTimeMins: 12,
+    heroImage:
+      "https://images.unsplash.com/photo-1503376780353-7e6692767b70?q=80&w=2400&auto=format&fit=crop",
+    ogImage:
+      "https://images.unsplash.com/photo-1503376780353-7e6692767b70?q=80&w=1200&h=630&fit=crop&auto=format",
+    heroAlt: "Imported car awaiting UK individual vehicle approval",
+    // Not flagged `isPillar` on purpose: the blog index filters pillar posts out
+    // of their cluster group and features only the hardcoded Ireland hub, so the
+    // flag would hide this post from the index entirely.
+    ctaHref: "/request",
+    related: [
+      "do-i-need-an-iva-test",
+      "iva-test-cost",
+      "iva-test-requirements",
+      "registering-an-imported-car-in-the-uk",
+    ],
+    toc: [
+      { id: "what-it-is", label: "What an IVA actually is" },
+      { id: "who-needs-it", label: "Which cars need one" },
+      { id: "basic-vs-normal", label: "Basic IVA and normal IVA" },
+      { id: "what-happens", label: "What happens on the day" },
+      { id: "timeline", label: "How long the whole thing takes" },
+      { id: "after", label: "What the certificate gets you" },
+      { id: "changed", label: "What changed in 2025 and 2026" },
+      { id: "faqs", label: "FAQs" },
+    ],
+    faqs: [
+      {
+        q: "What is an IVA test?",
+        a: "Individual Vehicle Approval is the Driver and Vehicle Standards Agency's inspection of a single vehicle against British construction and environmental standards. It exists for cars that have no type approval covering them — anything built, rebuilt, radically altered, reconstructed from a classic, or imported. Pass it and DVSA issues an Individual Approval Certificate, which DVLA requires before it will register the car.",
+      },
+      {
+        q: "Is an IVA test the same as an MOT?",
+        a: "No, and passing one tells you nothing about the other. DVSA states the distinction plainly: the IVA inspection looks at how the vehicle is constructed or adapted, while the MOT looks at whether it is roadworthy. A car can sail through an MOT and fail IVA on its headlamp pattern, its speedometer or a sharp exterior edge, because none of those are MOT items.",
+      },
+      {
+        q: "How long does an IVA test take?",
+        a: "DVSA publishes an average inspection length of 60 minutes for normal IVA on a car and 110 minutes for basic IVA. The waiting is the longer part: DVSA aims to respond to an application within 10 working days and to offer an inspection within 20 working days at your chosen test centre.",
+      },
+      {
+        q: "Can an imported car be driven before it passes IVA?",
+        a: "Only to a pre-booked MOT or approval test. GOV.UK warns that you can be prosecuted for using the vehicle on a public road before registration is complete, and that journey to a booked test is the single exception. It is not insured-and-taxed driving; it is one permitted trip.",
+      },
+      {
+        q: "What happens if a car fails its IVA inspection?",
+        a: "You get a refusal notice listing the failures, fix them and book a re-inspection, which is charged at a lower fee than the full test. If you believe the decision is wrong you can appeal within 14 days for a re-examination by an independent inspector, and the appeal fee is refunded in part or in full if you win. You must not modify the vehicle before an appeal inspection.",
+      },
+    ],
+  },
+  {
+    slug: "do-i-need-an-iva-test",
+    title: "Do You Need an IVA Test? The Exemptions, Plainly",
+    h1: "Do You Need an IVA Test? The 10-Year Rule and Four Other Routes",
+    seoTitle: "Do I Need an IVA Test? UK Import Approval Rules 2026",
+    description:
+      "Most imported cars over 10 years old need no vehicle approval at all. Here is the exemption list, the EU certificate-of-conformity route and the GB conversion IVA for left-hand drive.",
+    excerpt:
+      "The single most valuable question in a UK import is whether the car needs approving at all. For a great many cars, the answer is no.",
+    cluster: "UK Registration & IVA",
+    primaryKeyword: "do i need an iva test",
+    keywords: [
+      "do i need an iva test",
+      "iva exemption",
+      "iva 10 year rule",
+      "imported car over 10 years old uk",
+      "gb conversion iva",
+      "mutual recognition vehicle approval",
+    ],
+    author: AUTHOR,
+    publishDate: "2026-09-01",
+    updatedDate: "2026-09-01",
+    readingTimeMins: 10,
+    heroImage:
+      "https://images.unsplash.com/photo-1523394397008-7c076b65a890?q=80&w=2400&auto=format&fit=crop",
+    ogImage:
+      "https://images.unsplash.com/photo-1523394397008-7c076b65a890?q=80&w=1200&h=630&fit=crop&auto=format",
+    heroAlt: "Older imported car of the kind exempt from vehicle approval",
+    ctaHref: "/request",
+    related: [
+      "iva-test-explained",
+      "iva-test-cost",
+      "registering-an-imported-car-in-the-uk",
+      "iva-test-requirements",
+    ],
+    toc: [
+      { id: "the-question", label: "The question that decides the budget" },
+      { id: "exempt", label: "The exemption list in full" },
+      { id: "ten-year", label: "Reading the 10-year rule properly" },
+      { id: "eu-cars", label: "Cars already registered in the EU" },
+      { id: "lhd", label: "Left-hand drive and GB conversion IVA" },
+      { id: "msva", label: "When it is MSVA rather than IVA" },
+      { id: "blocked", label: "The cars that cannot be registered at all" },
+      { id: "tax-trap", label: "The exemption that still needs a certificate" },
+      { id: "faqs", label: "FAQs" },
+    ],
+    faqs: [
+      {
+        q: "Do cars over 10 years old need an IVA test?",
+        a: "No. GOV.UK's exemption list states that cars and minibuses with eight passenger seats or less that are over 10 years old do not need vehicle approval, and the import guidance puts it as first registered or manufactured more than 10 years ago. That is why a great deal of Japanese import volume sits deliberately on the far side of that line.",
+      },
+      {
+        q: "Does an EU car need an IVA test to register in the UK?",
+        a: "Usually not. For a vehicle already registered in the EU, GOV.UK says to get a European Certificate of Conformity from the manufacturer, which serves as your proof of approval. The exception is a left-hand-drive vehicle, which also needs a certificate of GB conversion Individual Vehicle Approval — a £100 paper application to the Vehicle Certification Agency rather than a test.",
+      },
+      {
+        q: "What is GB conversion IVA?",
+        a: "It is the certificate that covers converting an EU-approved, EU-registered left-hand-drive vehicle for British use. You apply to the Vehicle Certification Agency on a form specific to the vehicle type — motorcycle, car, van or motorhome — and the fee is £100. It is not available for lorries or goods vehicles over 3,500kg, which need a full IVA instead.",
+      },
+      {
+        q: "Do I still need vehicle approval to tax an exempt car?",
+        a: "Sometimes, and this is the trap in the exemption. GOV.UK states you will need vehicle approval to tax the vehicle if it was first registered on or after 1 March 2001 with EU type approval and it is a light goods vehicle, or a car or minibus of eight seats or less with a CO₂ figure in g/km. If you do not have it, DVLA asks for a covering letter explaining why.",
+      },
+      {
+        q: "Can a written-off or salvage car be imported and registered?",
+        a: "Not if it counts as seriously damaged. GOV.UK is explicit that a seriously damaged vehicle cannot be registered or taxed, and that money spent on vehicle approval will not be refunded if you try. For imports, look for wording like statutory write-off, scrapped or non-repairable on the foreign registration certificate, and check with the issuing authority before you buy rather than after.",
+      },
+    ],
+  },
+  {
+    slug: "iva-test-cost",
+    title: "What an IVA Test Costs",
+    h1: "What an IVA Test Costs: Every DVSA Fee, Line by Line",
+    seoTitle: "IVA Test Cost 2026: Every DVSA Fee, Line by Line",
+    description:
+      "DVSA's published IVA fees for cars — inspection, re-inspection and appeal, in and out of working hours — plus the £100 mutual recognition certificate and the £55 DVLA registration fee.",
+    excerpt:
+      "The inspection fee is the small number. Here is the whole published fee table, and the costs that sit either side of it.",
+    cluster: "UK Registration & IVA",
+    primaryKeyword: "iva test cost",
+    keywords: [
+      "iva test cost",
+      "iva test fee",
+      "dvsa iva fees",
+      "how much is an iva test",
+      "iva re-inspection fee",
+      "cost to register an imported car uk",
+    ],
+    author: AUTHOR,
+    publishDate: "2026-09-01",
+    updatedDate: "2026-09-01",
+    readingTimeMins: 10,
+    heroImage:
+      "https://images.unsplash.com/photo-1554224155-6726b3ff858f?q=80&w=2400&auto=format&fit=crop",
+    ogImage:
+      "https://images.unsplash.com/photo-1554224155-6726b3ff858f?q=80&w=1200&h=630&fit=crop&auto=format",
+    heroAlt: "Working out the cost of an IVA test and UK registration",
+    ctaHref: "/request",
+    related: [
+      "iva-test-explained",
+      "do-i-need-an-iva-test",
+      "registering-an-imported-car-in-the-uk",
+      "iva-test-requirements",
+    ],
+    toc: [
+      { id: "headline", label: "The headline number, and its conditions" },
+      { id: "statutory", label: "The statutory fee table for cars" },
+      { id: "voluntary", label: "Voluntary IVA, and why it carries VAT" },
+      { id: "certificates", label: "Certificates and replacements" },
+      { id: "around-it", label: "The costs either side of the test" },
+      { id: "worked", label: "A worked total for a Japanese import" },
+      { id: "not-changed", label: "What has not changed" },
+      { id: "faqs", label: "FAQs" },
+    ],
+    faqs: [
+      {
+        q: "How much does an IVA test cost for a car?",
+        a: "DVSA's published fee for a car inspection is £199 in working hours and £294 outside them, for both normal IVA and basic IVA in the low-volume, hearse, left-hand-drive and personal-import classes. Amateur-built, rebuilt and parts-of-a-registered-vehicle cars are charged at £450 in working hours and £545 outside them. A re-inspection is £40 and £90 respectively.",
+      },
+      {
+        q: "Is there VAT on an IVA test?",
+        a: "Not on a statutory one. DVSA's fee table shows statutory IVA fees as single figures with no VAT line, and shows voluntary IVA — the test for a vehicle already registered in the UK — split into a service charge plus VAT. A voluntary car inspection is £213.98 plus £42.80 VAT, £256.78 in total, in working hours.",
+      },
+      {
+        q: "What does it cost to register an imported car in the UK?",
+        a: "The DVLA first registration fee is £55, and you tax the vehicle at the same time. That sits on top of any customs duty and import VAT paid at the border, the approval fee if the car needs one, and an MOT if the car is over three years old. Registration itself is the cheapest line in the whole exercise.",
+      },
+      {
+        q: "Do I pay again if my car fails the IVA?",
+        a: "You pay a re-inspection fee rather than a second full fee. For a car that is £40 in working hours and £59 outside them in the basic low-volume and personal-import classes, and £90 and £109 for amateur-built and rebuilt vehicles. An appeal is charged at the full inspection fee and refunded in part or in full if the appeal succeeds.",
+      },
+      {
+        q: "Have IVA fees gone up in 2026?",
+        a: "No. The GOV.UK page carrying DVSA's IVA fee tables for cars was last updated on 13 December 2022, and the figures on it are the ones in force when we checked on 1 September 2026. Any 2026 figure you see quoted that is not £199, £450 or their out-of-hours equivalents did not come from the published table.",
+      },
+    ],
+  },
+  {
+    slug: "iva-test-requirements",
+    title: "How to Pass an IVA Test",
+    h1: "How to Pass an IVA Test: DVSA's Own Top Ten Failure Points",
+    seoTitle: "IVA Test Requirements: How to Pass It First Time",
+    description:
+      "DVSA publishes the top ten reasons cars fail Individual Vehicle Approval — headlamp aim, rear fog lamps, speedometers, brakes and more. Here is the list, and what it means for an import.",
+    excerpt:
+      "Headlamps that dip the wrong way and a speedometer in km/h fail more imported cars than mechanical faults do. Both are fixable before the car is booked in.",
+    cluster: "UK Registration & IVA",
+    primaryKeyword: "iva test requirements",
+    keywords: [
+      "iva test requirements",
+      "iva test checklist",
+      "how to pass an iva test",
+      "iva headlamp requirements",
+      "iva rear fog lamp",
+      "iva speedometer mph",
+    ],
+    author: AUTHOR,
+    publishDate: "2026-09-01",
+    updatedDate: "2026-09-01",
+    readingTimeMins: 11,
+    heroImage:
+      "https://images.unsplash.com/photo-1552519507-da3b142c6e3d?q=80&w=2400&auto=format&fit=crop",
+    ogImage:
+      "https://images.unsplash.com/photo-1552519507-da3b142c6e3d?q=80&w=1200&h=630&fit=crop&auto=format",
+    heroAlt: "Car headlamp detail — the most common IVA failure point",
+    ctaHref: "/request",
+    related: [
+      "iva-test-explained",
+      "iva-test-cost",
+      "do-i-need-an-iva-test",
+      "registering-an-imported-car-in-the-uk",
+    ],
+    toc: [
+      { id: "the-list", label: "DVSA's own top ten" },
+      { id: "headlamps", label: "Headlamp aim, the number one failure" },
+      { id: "fog", label: "The rear fog lamp an import will not have" },
+      { id: "speedo", label: "Speedometers, and why km/h fails" },
+      { id: "brakes", label: "The brake efficiency figures" },
+      { id: "projections", label: "Exterior projections and the 100mm sphere" },
+      { id: "rest", label: "Plates, belts, emissions and interior" },
+      { id: "order", label: "The order to do the work in" },
+      { id: "faqs", label: "FAQs" },
+    ],
+    faqs: [
+      {
+        q: "What is the most common reason cars fail an IVA test?",
+        a: "Headlamp aim is first on DVSA's published top-ten list for M1 vehicles. The lamps must produce a clear beam image with the cut-off to the left, and DVSA says headlamps on vehicles imported from countries that drive on the right may need converting or replacing. Masking a headlamp, inside or out, is not accepted.",
+      },
+      {
+        q: "Does an imported car need a rear fog lamp for IVA?",
+        a: "Yes, and DVSA expects a car imported from outside the EU not to have one fitted at all. It must sit at the centre or offside rear, be a matched symmetrical pair if two are fitted, carry an 'e' or 'E' approval mark with a 'B' or 'F', have secure insulated wiring and a warning device, and light only when the dipped, main or front fog lamps are on.",
+      },
+      {
+        q: "Does an IVA speedometer have to read in mph?",
+        a: "Yes. DVSA's guidance states the speedometer must indicate mph and read accurately, and that accuracy is checked on calibrated rollers between 35 and 70 mph. It has to be readable by the driver at all times, with maximum marked increments of 20 mph. GPS units and bicycle or racing instruments are not accepted.",
+      },
+      {
+        q: "What brake efficiency does an IVA require?",
+        a: "DVSA publishes minimums of 60% service brake efficiency, 25% secondary brake performance where testable, and 18% parking brake efficiency, all calculated on design gross weight or calculated laden weight. These are different from MOT requirements, so an MOT pass is an indication rather than a guarantee.",
+      },
+      {
+        q: "Can I do the IVA test by video call?",
+        a: "Not for a car. DVSA's video-call option covers vans and light goods vehicles, heavy goods vehicles and trailers — categories N1, N2, N3 and O1 to O4. A passenger car in category M1 has to be presented at a test centre in person.",
+      },
+    ],
+  },
+  {
+    slug: "registering-an-imported-car-in-the-uk",
+    title: "Registering an Imported Car in the UK",
+    h1: "Registering an Imported Car in the UK, Step by Step",
+    seoTitle: "Registering an Imported Car in the UK: Full Process",
+    description:
+      "The full sequence for a car imported into the UK: the 14-day NOVA notification, duty and VAT, vehicle approval, the DVLA pack, the £55 fee and the six-week wait for a V5C.",
+    excerpt:
+      "Six steps, in a fixed order, and each one gates the next. Miss the first and the last cannot happen.",
+    cluster: "UK Registration & IVA",
+    primaryKeyword: "registering an imported car uk",
+    keywords: [
+      "registering an imported car uk",
+      "nova declaration",
+      "import car to uk process",
+      "dvla imported vehicle registration",
+      "v55 imported car",
+      "uk car import duty vat",
+    ],
+    author: AUTHOR,
+    publishDate: "2026-09-01",
+    updatedDate: "2026-09-01",
+    readingTimeMins: 12,
+    heroImage:
+      "https://images.unsplash.com/photo-1450101499163-c8848c66ca85?q=80&w=2400&auto=format&fit=crop",
+    ogImage:
+      "https://images.unsplash.com/photo-1450101499163-c8848c66ca85?q=80&w=1200&h=630&fit=crop&auto=format",
+    heroAlt: "Registration paperwork for a car imported into the UK",
+    ctaHref: "/request",
+    related: [
+      "iva-test-explained",
+      "do-i-need-an-iva-test",
+      "iva-test-cost",
+      "iva-test-requirements",
+    ],
+    toc: [
+      { id: "sequence", label: "The sequence, and why order matters" },
+      { id: "nova", label: "Telling HMRC within 14 days" },
+      { id: "duty-vat", label: "Duty and VAT at the border" },
+      { id: "approval", label: "Proving the car is approved" },
+      { id: "dvla", label: "The DVLA pack" },
+      { id: "mot-tax", label: "MOT, tax and the number plate" },
+      { id: "older", label: "Where classics get an easier run" },
+      { id: "faqs", label: "FAQs" },
+    ],
+    faqs: [
+      {
+        q: "How long do I have to tell HMRC about an imported car?",
+        a: "Fourteen days from the vehicle arriving in the UK permanently. GOV.UK is direct about the consequence: you cannot register the vehicle until you have done it, and you may be fined if you are late. The declaration is made through the Notification of Vehicle Arrivals service, by you, your customs agent or HMRC's CARS team.",
+      },
+      {
+        q: "How much is customs duty and VAT on a car imported to the UK?",
+        a: "For a used car imported into Great Britain from outside the UK, the UK Integrated Online Tariff shows a third-country duty rate of 10% and VAT at 20%, checked on 1 September 2026. Trade agreements change the duty: a Japanese-built car with valid proof of origin can qualify at 0%, and CPTPP members show a 2% preferential rate. Duty is charged before VAT, and VAT is charged on the total including the duty.",
+      },
+      {
+        q: "How long does DVLA take to register an imported car?",
+        a: "GOV.UK says it can take up to six weeks for the V5C registration certificate to arrive, and you need the V5C before number plates can be made up. That six weeks starts after the NOVA declaration is processed, any duty and VAT are paid, and proof of approval is in hand — so it is the last leg of the process, not the whole of it.",
+      },
+      {
+        q: "What documents does DVLA need for an imported vehicle?",
+        a: "Originals, not copies: proof of vehicle approval, form V267 if the vehicle is new, evidence of the date the vehicle was collected such as the supplier's invoice, and the original foreign registration certificate showing the manufacture date — which you do not get back. Form V627/3 is added if the vehicle has been structurally modified beyond the manufacturer's specification.",
+      },
+      {
+        q: "Does an imported classic car need an MOT?",
+        a: "Not if it was built or first registered more than 40 years ago and has had no substantial changes, such as a replacement chassis, body, axles or engine that changes how it works. Vehicle tax is a separate test: a vehicle built before 1 January 1986 can be put in the historic tax class, and if the build date is unknown, registration before 8 January 1986 does the same.",
+      },
+    ],
+  },
+];
+
 export const BLOG_POSTS: BlogPost[] = [
   ...IRELAND_POSTS,
   ...MODEL_POSTS,
+  ...UK_IVA_POSTS,
   ...COUNTRY_BLOG_POSTS,
 ];
 
@@ -714,13 +1084,15 @@ const SUGGESTED_BY_DESTINATION: Record<string, string[]> = {
     "importing-hybrids-and-evs-to-sri-lanka",
     "sri-lanka-car-import-documents-explained",
   ],
-  // Importing *into* the UK — most of our UK-bound volume comes off the
-  // Japanese auction floor, so lead with that, then the Dubai alternative.
+  // Importing *into* the UK — registration is the step that actually worries
+  // a UK-bound buyer, so lead with approval and registration, then the sourcing
+  // corridor most of our UK volume comes from.
   unitedkingdom: [
+    "registering-an-imported-car-in-the-uk",
+    "do-i-need-an-iva-test",
+    "iva-test-explained",
     "how-to-buy-a-car-at-japanese-auction",
     "cost-to-import-a-car-from-japan",
-    "japanese-auction-grades-explained",
-    "how-to-import-a-car-from-the-uae",
   ],
   india: [
     "how-to-import-a-car-from-india",
@@ -799,6 +1171,7 @@ export const CLUSTER_ORDER: BlogCluster[] = [
   "Guides",
   "Japan",
   "United Kingdom",
+  "UK Registration & IVA",
   "UAE",
   "India",
   "Thailand",
