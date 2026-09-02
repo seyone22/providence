@@ -1632,6 +1632,215 @@ export const NEWS_ARTICLES: NewsArticle[] = [
     ],
     linkedVehicleSlugs: ["mitsubishi-pajero-2026"],
   },
+  {
+    slug: "range-rover-electric-revealed-specifications-price",
+    title: "The first electric Range Rover is here: 550PS, 372 miles, £154,070",
+    h1: "The First Electric Range Rover Is Here: 550PS, 372 Miles and £154,070",
+    seoTitle: "Range Rover Electric: Specs, Price and Import Read",
+    description:
+      "JLR revealed the Range Rover Electric on 2 September 2026: 550PS, 850Nm, 372 miles WLTP and £154,070 OTR, built at Solihull. What it means to import one.",
+    excerpt:
+      "JLR published the specification, both range figures and the price on the same day, which almost never happens. It did not publish a towing figure — and that is the number that settles it for some buyers.",
+    category: "Releases",
+    dateline: "Solihull, West Midlands",
+    keywords: [
+      "range rover electric",
+      "range rover electric price",
+      "range rover electric specifications",
+      "range rover electric range miles",
+      "how much is the range rover electric",
+      "where is the range rover electric built",
+      "can you import a range rover electric",
+      "how far does the range rover electric go",
+    ],
+    author: AUTHOR,
+    publishDate: "2026-09-03",
+    updatedDate: "2026-09-03",
+    readingTimeMins: 11,
+    heroImage: "/cars/range-rover-electric/front-driving.webp",
+    heroAlt:
+      "The Range Rover Electric photographed head-on while driving on a mountain road",
+    heroCaption:
+      "JLR press image of the Range Rover Electric, released 2 September 2026. JLR states that specification, design and availability alter continually and that its material does not constitute an offer for the sale of any particular vehicle.",
+    toc: [
+      { id: "confirmed", label: "What JLR actually confirmed" },
+      { id: "price", label: "What £154,070 is, and is not" },
+      { id: "capability", label: "What electric cost, and what it didn't" },
+      { id: "applies", label: "Does this apply to you?" },
+      { id: "landed-cost", label: "What does it land at?" },
+      { id: "timing", label: "Move now or wait?" },
+      { id: "unknowns", label: "What is still unknown" },
+    ],
+    faqs: [
+      {
+        q: "How much does the Range Rover Electric cost?",
+        a: "JLR published a United Kingdom on-the-road price of £154,070 on 2 September 2026, with order books open the same day. That is a British retail figure containing 20% value added tax, the £55 DVLA first registration fee and £10 of first-year vehicle excise duty. Stripping the VAT leaves a vehicle price of £128,337.50 before tax.",
+      },
+      {
+        q: "What is the Range Rover Electric's range?",
+        a: "Up to 372 miles on the WLTP cycle, and JLR separately publishes a real-world figure of up to 333 miles, or 535 km. Publishing both is unusual and worth crediting. On a 350 kW rapid charger JLR quotes 10 to 80 per cent in around 22 minutes, or 137 miles added in ten minutes.",
+      },
+      {
+        q: "Where is the Range Rover Electric built?",
+        a: "At JLR's Solihull plant in the West Midlands, on the same line as the combustion and hybrid Range Rovers, with battery packs and electric drive units supplied by JLR's Electric Propulsion Manufacturing Centre at Wolverhampton. Solihull has built Range Rovers since 1970, and it is the only place this car is made anywhere in the world.",
+      },
+      {
+        q: "How much can the Range Rover Electric tow?",
+        a: "JLR has published no towing figure. Carscoops reports 2,500 kg, against 3,500 kg for the combustion Range Rover and 3,000 kg for the plug-in hybrid. Attribute that figure to Carscoops rather than to JLR. If you tow at the top of the combustion car's range, wait for JLR's own rating before ordering.",
+      },
+      {
+        q: "Is the Range Rover Electric the first electric Range Rover?",
+        a: "Yes. It is the first battery-electric car to carry the Range Rover name since the nameplate was introduced in 1970. It is not JLR's first electric vehicle — the Jaguar I-Pace went on sale in 2018 — so coverage describing this as JLR's first EV is wrong by about eight years.",
+      },
+      {
+        q: "Can you import a Range Rover Electric into a right-hand-drive market?",
+        a: "Yes. Range Rover is sold in 121 countries in both hands, and the car is built in the United Kingdom, so a right-hand-drive example is the standard specification rather than a special order. Being a new vehicle, the age limits that restrict used imports in Kenya, Sri Lanka and much of the Caribbean do not apply. Confirm the destination's treatment of battery-electric vehicles with its own authority before committing.",
+      },
+    ],
+    sources: [
+      {
+        label: "Range Rover Electric: A New Era For The Original Luxury SUV",
+        href: "https://media.jlr.com/range-rover/news/2026/09/range-rover-electric-new-era-original-luxury-suv",
+        publisher: "JLR (Range Rover Media Newsroom)",
+      },
+      {
+        label: "Range Rover Electric: a new era for the original luxury SUV",
+        href: "https://www.jlr.com/news/2026/09/range-rover-electric-new-era-original-luxury-suv",
+        publisher: "JLR",
+      },
+      {
+        label:
+          "The electric Range Rover costs $25,000 more than the gas one and tows a ton less",
+        href: "https://www.carscoops.com/2026/09/range-rover-electric-official-launch/",
+        publisher: "Carscoops",
+      },
+      {
+        label: "Vehicle tax for electric, zero and low emission vehicles",
+        href: "https://www.gov.uk/guidance/vehicle-tax-for-electric-and-low-emissions-vehicles",
+        publisher: "GOV.UK",
+      },
+      {
+        label: "Vehicle registration: new registrations fee",
+        href: "https://www.gov.uk/vehicle-registration/new-registrations-fee",
+        publisher: "GOV.UK (DVLA)",
+      },
+      {
+        label: "Euro foreign exchange reference rates",
+        href: "https://www.ecb.europa.eu/stats/policy_and_exchange_rates/euro_reference_exchange_rates/html/index.en.html",
+        publisher: "European Central Bank",
+      },
+    ],
+    relatedGuides: [
+      "how-to-import-a-car-from-the-uk",
+      "cost-to-import-a-car-from-the-uk",
+      "best-cars-to-import-from-the-uk",
+    ],
+    linkedVehicleSlugs: ["range-rover-electric-2026"],
+  },
+  {
+    slug: "range-rover-electric-uk-sourcing-export-vat",
+    title: "Sourcing the Range Rover Electric: the 20% inside a £154,070 price",
+    h1: "Sourcing the Range Rover Electric Out of the UK: What the Corridor Actually Contains",
+    seoTitle: "Importing a Range Rover Electric from the UK",
+    description:
+      "The Range Rover Electric is built only at Solihull. About £25,700 of its £154,070 price is UK VAT — here is when that comes out, and when it does not.",
+    excerpt:
+      "One plant, one source market, no second corridor. The VAT is the largest number you can control — and the charging question is the one that should stop some buyers entirely.",
+    category: "Market",
+    dateline: "London",
+    keywords: [
+      "import range rover electric from uk",
+      "range rover electric export vat",
+      "uk export vat zero rating vehicle",
+      "range rover electric landed cost",
+      "can you buy a car in the uk vat free for export",
+      "how much vat is inside a uk car price",
+      "range rover electric dealer import",
+    ],
+    author: AUTHOR,
+    publishDate: "2026-09-03",
+    updatedDate: "2026-09-03",
+    readingTimeMins: 12,
+    heroImage: "/cars/range-rover-electric/solihull-body-in-white.webp",
+    heroAlt:
+      "A Range Rover Electric body shell on the production line at JLR's Solihull plant, with a battery pack on the floor below",
+    heroCaption:
+      "JLR press image of Range Rover Electric production at Solihull, released 2 September 2026.",
+    toc: [
+      { id: "source-market", label: "Why there is only one corridor" },
+      { id: "vat", label: "The 20% inside the price" },
+      { id: "currency", label: "Which way sterling lands" },
+      { id: "charging", label: "The question that should stop some buyers" },
+      { id: "towing", label: "The tonne it lost" },
+      { id: "dealer", label: "The dealer read" },
+      { id: "landed", label: "Building the actual number" },
+    ],
+    faqs: [
+      {
+        q: "Can you buy a car in the UK VAT-free for export?",
+        a: "A supply can be zero-rated where it meets HMRC's export conditions in VAT Notice 703. The goods must leave the United Kingdom within three months and valid evidence of export must be obtained and held within three months. For a motor vehicle on a direct export it must not be used or delivered in the UK beforehand. Fail either test and VAT becomes payable at the UK rate.",
+      },
+      {
+        q: "How much VAT is inside the Range Rover Electric's £154,070 price?",
+        a: "About £25,667.50. The £55 DVLA first registration fee and the £10 first-year vehicle excise duty for a zero-emission car sit outside VAT, leaving £154,005 as the VAT-inclusive vehicle price. Divided by 1.2 that is £128,337.50 before tax. This is our arithmetic on JLR's published figure; JLR has published no breakdown of the on-the-road price.",
+      },
+      {
+        q: "What is the Personal Export Scheme, and is it the same thing?",
+        a: "No. The Personal Export Scheme under VAT Notice 707 lets a qualifying private individual take delivery of a new vehicle in Britain and use it before export. It needs pre-approval on form VAT410, with HMRC's VAT412 issued before the vehicle is released, and export within 12 months for an overseas visitor or six months for an entitled UK resident. Breaking the conditions makes the VAT payable and the vehicle liable to seizure.",
+      },
+      {
+        q: "Is there anywhere other than the UK to source a Range Rover Electric?",
+        a: "Not at the point of manufacture. JLR builds every Range Rover Electric at Solihull. You can buy one through a retailer in another market, but you would be buying the same British car after that market's import duty, consumption tax and retail margin had been added, and paying freight on it a second time.",
+      },
+      {
+        q: "What vehicle excise duty does a Range Rover Electric pay in the UK?",
+        a: "A zero-emission car registered on or after 1 April 2025 pays £10 in its first year, then the £200 standard rate. Because its list price exceeds the £50,000 threshold for zero-emission cars, it also pays the £440 expensive car supplement for five years from the second time it is taxed — £640 a year, or £3,200 across the five years. An exported car never enters that regime.",
+      },
+      {
+        q: "Should you import a Range Rover Electric into a market with little charging infrastructure?",
+        a: "No. The car's 22-minute rapid-charge claim depends on a 350 kW charger being within range of where it lives, and JLR's own frame of reference is the United Kingdom, Europe and the Tesla Supercharger network in North America. If your market cannot support DC rapid charging or a reliable home charger, buy the plug-in hybrid or combustion Range Rover instead — same plant, same corridor, a drivetrain your market can actually run.",
+      },
+    ],
+    sources: [
+      {
+        label: "Range Rover Electric: A New Era For The Original Luxury SUV",
+        href: "https://media.jlr.com/range-rover/news/2026/09/range-rover-electric-new-era-original-luxury-suv",
+        publisher: "JLR (Range Rover Media Newsroom)",
+      },
+      {
+        label: "VAT on goods exported from the UK (VAT Notice 703)",
+        href: "https://www.gov.uk/guidance/vat-on-goods-exported-from-the-uk-notice-703",
+        publisher: "GOV.UK (HMRC)",
+      },
+      {
+        label: "Personal Export Scheme (VAT Notice 707)",
+        href: "https://www.gov.uk/guidance/personal-export-scheme-notice-707",
+        publisher: "GOV.UK (HMRC)",
+      },
+      {
+        label: "Vehicle tax rates: cars registered on or after 1 April 2017",
+        href: "https://www.gov.uk/vehicle-tax-rate-tables",
+        publisher: "GOV.UK",
+      },
+      {
+        label: "Euro foreign exchange reference rates, 2 September 2026",
+        href: "https://www.ecb.europa.eu/stats/policy_and_exchange_rates/euro_reference_exchange_rates/html/index.en.html",
+        publisher: "European Central Bank",
+      },
+      {
+        label:
+          "The electric Range Rover costs $25,000 more than the gas one and tows a ton less",
+        href: "https://www.carscoops.com/2026/09/range-rover-electric-official-launch/",
+        publisher: "Carscoops",
+      },
+    ],
+    relatedGuides: [
+      "uk-car-export-documents-explained",
+      "cost-to-import-a-car-from-the-uk",
+      "importing-hybrids-and-evs-to-sri-lanka",
+    ],
+    linkedVehicleSlugs: ["range-rover-electric-2026"],
+  },
 ];
 
 export const NEWS_BASE_PATH = "/latest-news";

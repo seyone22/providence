@@ -397,7 +397,12 @@ export default function GalleryDetailClient({ car }: { car: Dossier }) {
               <img
                 src={`/car_logo/${getLogoFilename(car.make)}`}
                 alt={`${car.make} logo`}
-                className="h-9 w-auto opacity-50 grayscale hover:opacity-100 transition-opacity duration-500 mb-4"
+                // `self-start` is load-bearing: this sits in a `flex flex-col`,
+                // where the default `align-items: stretch` widens the image to
+                // the whole column and `w-auto` resolves to that stretched
+                // width. With `h-9` pinning the height, a wordmark like Land
+                // Rover's oval was being smeared to roughly 18:1.
+                className="h-12 w-auto self-start object-contain opacity-50 grayscale hover:opacity-100 transition-opacity duration-500 mb-4"
               />
             )}
 
@@ -441,6 +446,24 @@ export default function GalleryDetailClient({ car }: { car: Dossier }) {
                     </Link>
                   )}
                 </div>
+              </div>
+            )}
+
+            {/* A car that is already orderable still belongs to the story that
+                announced it — `newsSlug` is documented as a two-way link, so it
+                cannot live only inside the pre-order panel above. */}
+            {!car.isUpcoming && car.newsSlug && (
+              <div className="mt-3">
+                <Link
+                  href={`/latest-news/${car.newsSlug}`}
+                  className="group inline-flex items-center gap-1.5 text-sm font-bold text-sky-600 hover:text-sky-700 transition-colors"
+                >
+                  Read the announcement
+                  <ArrowRight
+                    size={14}
+                    className="group-hover:translate-x-1 transition-transform"
+                  />
+                </Link>
               </div>
             )}
 
