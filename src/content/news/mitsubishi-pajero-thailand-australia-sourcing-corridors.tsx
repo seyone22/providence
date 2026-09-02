@@ -496,7 +496,7 @@ export default function MitsubishiPajeroThailandAustraliaSourcingCorridors() {
           Thailand and Australia are both countries our own team buys in, so we
           can quote the same Pajero out of either and show you the two landed
           figures side by side rather than one.{" "}
-          <InlineLink href="/b2c/gallery/mitsubishi-pajero">
+          <InlineLink href="/b2c/gallery/mitsubishi-pajero-2026">
             Register a grade and a destination
           </InlineLink>{" "}
           and we will run both the day Mitsubishi publishes a price &mdash; or{" "}

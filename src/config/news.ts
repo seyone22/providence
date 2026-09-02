@@ -1526,7 +1526,7 @@ export const NEWS_ARTICLES: NewsArticle[] = [
       "cost-to-import-a-car-from-thailand",
       "how-to-import-a-car-from-australia",
     ],
-    linkedVehicleSlugs: ["mitsubishi-pajero"],
+    linkedVehicleSlugs: ["mitsubishi-pajero-2026"],
   },
   {
     slug: "mitsubishi-pajero-thailand-australia-sourcing-corridors",
@@ -1630,7 +1630,7 @@ export const NEWS_ARTICLES: NewsArticle[] = [
       "cost-to-import-a-car-from-australia",
       "thailand-vs-japan-for-pickup-imports",
     ],
-    linkedVehicleSlugs: ["mitsubishi-pajero"],
+    linkedVehicleSlugs: ["mitsubishi-pajero-2026"],
   },
 ];
 

@@ -434,7 +434,7 @@ export default function MitsubishiPajeroRevealedSpecificationsLaunchMarkets() {
       >
         <p>
           Our{" "}
-          <InlineLink href="/b2c/gallery/mitsubishi-pajero">
+          <InlineLink href="/b2c/gallery/mitsubishi-pajero-2026">
             Mitsubishi Pajero page
           </InlineLink>{" "}
           carries the confirmed specification and the Australian grade
