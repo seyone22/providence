@@ -444,6 +444,24 @@ export default function GalleryDetailClient({ car }: { car: Dossier }) {
               </div>
             )}
 
+            {/* A car that is already orderable still belongs to the story that
+                announced it — `newsSlug` is documented as a two-way link, so it
+                cannot live only inside the pre-order panel above. */}
+            {!car.isUpcoming && car.newsSlug && (
+              <div className="mt-3">
+                <Link
+                  href={`/latest-news/${car.newsSlug}`}
+                  className="group inline-flex items-center gap-1.5 text-sm font-bold text-sky-600 hover:text-sky-700 transition-colors"
+                >
+                  Read the announcement
+                  <ArrowRight
+                    size={14}
+                    className="group-hover:translate-x-1 transition-transform"
+                  />
+                </Link>
+              </div>
+            )}
+
             {car.notes && (
               <div className="mt-5">
                 <p
