@@ -11,6 +11,8 @@ import MontereyCarWeek2026NewCarDebuts from "./monterey-car-week-2026-new-car-de
 import NissanPatrolY63AustraliaPricingConfirmed from "./nissan-patrol-y63-australia-pricing-confirmed";
 import NissanPatrolY63RightHandDriveMarkets from "./nissan-patrol-y63-right-hand-drive-markets";
 import NissanPatrolY63VsLandcruiser300DealerRead from "./nissan-patrol-y63-vs-landcruiser-300-dealer-read";
+import RangeRoverElectricRevealedSpecificationsPrice from "./range-rover-electric-revealed-specifications-price";
+import RangeRoverElectricUkSourcingExportVat from "./range-rover-electric-uk-sourcing-export-vat";
 import SriLankaVehicleImportSurchargeExtended2026 from "./sri-lanka-vehicle-import-surcharge-extended-2026";
 import UkZevMandateReview2026Consultation from "./uk-zev-mandate-review-2026-consultation";
 
@@ -42,6 +44,10 @@ export const NEWS_BODIES: Record<string, ComponentType> = {
     MitsubishiPajeroRevealedSpecificationsLaunchMarkets,
   "mitsubishi-pajero-thailand-australia-sourcing-corridors":
     MitsubishiPajeroThailandAustraliaSourcingCorridors,
+  "range-rover-electric-revealed-specifications-price":
+    RangeRoverElectricRevealedSpecificationsPrice,
+  "range-rover-electric-uk-sourcing-export-vat":
+    RangeRoverElectricUkSourcingExportVat,
 };
 
 export function getNewsBody(slug: string): ComponentType | undefined {
