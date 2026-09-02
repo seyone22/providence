@@ -397,7 +397,12 @@ export default function GalleryDetailClient({ car }: { car: Dossier }) {
               <img
                 src={`/car_logo/${getLogoFilename(car.make)}`}
                 alt={`${car.make} logo`}
-                className="h-9 w-auto opacity-50 grayscale hover:opacity-100 transition-opacity duration-500 mb-4"
+                // `self-start` is load-bearing: this sits in a `flex flex-col`,
+                // where the default `align-items: stretch` widens the image to
+                // the whole column and `w-auto` resolves to that stretched
+                // width. With `h-9` pinning the height, a wordmark like Land
+                // Rover's oval was being smeared to roughly 18:1.
+                className="h-12 w-auto self-start object-contain opacity-50 grayscale hover:opacity-100 transition-opacity duration-500 mb-4"
               />
             )}
 
