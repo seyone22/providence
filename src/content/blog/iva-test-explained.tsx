@@ -245,7 +245,12 @@ export default function Body() {
         centre list of 14 August 2026 there are 22 IVA centres in England,
         Scotland and Wales, 18 of which take passenger vehicles. Scotland has
         one. Wales has one. If you are in Inverness or Bangor, the drive is part
-        of the cost.
+        of the cost — the full list, including the seven privately operated
+        sites, is in{" "}
+        <InlineLink href="/blog/iva-test-centres-uk">
+          every IVA test centre in Great Britain
+        </InlineLink>
+        .
       </P>
 
       <H2 id="after">What the certificate gets you</H2>
