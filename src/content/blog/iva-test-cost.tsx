@@ -223,7 +223,11 @@ export default function Body() {
           <Strong>Transport to the test centre.</Strong> There are 22 IVA
           centres in Great Britain and only 18 take passenger cars, one of them
           in Scotland and one in Wales. An unregistered car cannot drive itself
-          there except to a pre-booked test.
+          there except to a pre-booked test — check{" "}
+          <InlineLink href="/blog/iva-test-centres-uk">
+            which centre can actually take your car
+          </InlineLink>{" "}
+          before you plan the movement.
         </CheckLI>
         <CheckLI>
           <Strong>Storage while you wait.</Strong> DVSA aims to respond within

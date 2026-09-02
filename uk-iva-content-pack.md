@@ -1,8 +1,8 @@
 # UK IVA & Registration — Blog Content Pack
 
 **Cluster:** `UK Registration & IVA` (new)
-**Posts:** 5
-**Published / updated date on all five:** 2026-09-01
+**Posts:** 6
+**Published / updated date on all six:** 2026-09-01
 **Every figure fact-checked against its primary source on 1 September 2026.**
 
 This pack is the readable companion to the code. The live posts are database-free
@@ -16,11 +16,12 @@ without opening the repo.
 | 2 | `do-i-need-an-iva-test` | do i need an iva test | `/blog/do-i-need-an-iva-test` |
 | 3 | `iva-test-cost` | iva test cost | `/blog/iva-test-cost` |
 | 4 | `iva-test-requirements` | iva test requirements | `/blog/iva-test-requirements` |
-| 5 | `registering-an-imported-car-in-the-uk` | registering an imported car uk | `/blog/registering-an-imported-car-in-the-uk` |
+| 5 | `iva-test-centres-uk` | iva test centres | `/blog/iva-test-centres-uk` |
+| 6 | `registering-an-imported-car-in-the-uk` | registering an imported car uk | `/blog/registering-an-imported-car-in-the-uk` |
 
 **Why a new cluster rather than the existing "United Kingdom" one.** That
 cluster is about buying *from* Britain — where the stock is, how to read an MOT
-history, what the origin rules do to your duty bill. These five are about
+history, what the origin rules do to your duty bill. These six are about
 importing *into* Britain. Same country, different reader, different question.
 The UK sits in two of our lists (source market and destination market), and this
 cluster serves the second one.
@@ -624,7 +625,126 @@ test by video call?
 
 ---
 
-### 5 · Registering an Imported Car in the UK
+### 5 · Every IVA Test Centre in Great Britain
+
+- **Slug:** `iva-test-centres-uk`
+- **H1:** Every IVA Test Centre in Great Britain, and Which Ones Take Cars
+- **SEO title:** IVA Test Centres UK: Full List and Which Take Cars *(50 chars)*
+- **Reading time:** 10 min
+
+**Standfirst.** Twenty-two IVA test centres in Great Britain, seven of them run
+by private companies rather than by DVSA, and only three of those seven will
+look at a car.
+
+#### Who actually carries out the test
+
+The correction the post exists to make. A privately operated IVA site is a
+**venue**, not an approving authority. DVSA's Vehicle Examination Facility
+model, announced 4 February 2026, allows approval tests to be conducted at
+third-party sites — and DVSA's own description settles it: **DVSA staff will
+continue to carry out the test.** Same examiner, same manual, same fee. There is
+no such thing as a privately approved IVA tester.
+
+VEF sites can operate on their own account, as open-access sites testing
+third-party vehicles, or as a combination. Existing Privately Owned Testing
+Facilities can apply for VEF status.
+
+#### The seven privately operated sites
+
+| Centre | Operator | Location | What it can test |
+|---|---|---|---|
+| Castle Donington | My Car Import | Willow Park Industrial Estate, Trent Lane, Derbyshire DE74 2PY | Passenger vehicles (incl. motor caravans, ambulances, hearses), vans up to 3,500kg, light trailers |
+| Milton Keynes | Ship My Car | 20 Tanners Drive, Blakelands, MK14 5BN | Passenger vehicles — normal and basic IVA — and vans up to 3,500kg |
+| Purfleet | Ensign Bus Company | Juliette Close, Purfleet Industrial Park, Essex RM15 4YF | Passenger vehicles and vans (normal IVA only), lorries over 3,500kg, buses and coaches (M3 class 1), dangerous goods, trailers |
+| Halesowen | Motus Group (UK) Ltd (Imperial Commercials Ltd) | Park Rd, Halesowen B63 2RL | Vans up to 3,500kg, lorries over 3,500kg, dangerous goods, trailers |
+| Peterborough | Aebi Schmidt UK Limited | Southgate Way, Orton Southgate, PE2 6GP | M class ambulances (no weight restriction), vans up to 3,500kg (normal IVA only), lorries over 3,500kg |
+| Sheffield | Newell and Wright | Templeborough Depot, Sheffield Road, S9 1RT | Lorries over 3,500kg, dangerous goods, trailers |
+| Lancashire | Wheelbase Engineering | Chanters Way, off Lower Eccleshill Road, Lower Darwen BB3 0RP | Vans up to 3,500kg, lorries over 3,500kg, dangerous goods, trailers |
+
+Milton Keynes was added on 14 August 2026 and is the only entry on the whole
+list that publishes its own telephone, email and website. **Those details are
+deliberately not reproduced in the post** — see Part 5.
+
+#### Only three of them take cars
+
+Four of the seven are commercial-vehicle, trailer and specialist operations.
+
+- **Castle Donington (My Car Import)** — passenger vehicles, vans, light
+  trailers. Nothing over 6,500kg.
+- **Milton Keynes (Ship My Car)** — passenger vehicles for both normal *and*
+  basic IVA. The broadest car offer of the three.
+- **Purfleet (Ensign Bus Company)** — **normal IVA only**. A basic IVA case (a
+  personal import, a left-hand-drive car, a hearse, a very low volume car)
+  cannot be tested there.
+
+#### All 22 centres, by region
+
+| Region | Centre | Run by | Takes cars? |
+|---|---|---|---|
+| London and the South East | Gillingham, Kent | DVSA | Yes |
+| | Southampton (Northam) | DVSA | Yes — normal and basic |
+| | Yeading, Hayes | DVSA | Yes |
+| South West | Bristol (Avonmouth) | DVSA | Yes |
+| | Exeter | DVSA | Yes |
+| West Midlands | Halesowen | Motus Group (UK) Ltd | No |
+| | Kidderminster | DVSA | Yes |
+| East Midlands | Castle Donington | My Car Import | Yes |
+| | Derby | DVSA | Yes |
+| | Nottingham | DVSA | Yes |
+| East of England | Leighton Buzzard | DVSA | Yes |
+| | Milton Keynes | Ship My Car | Yes — normal and basic |
+| | Norwich | DVSA | Yes |
+| | Peterborough | Aebi Schmidt UK Limited | No |
+| | Purfleet | Ensign Bus Company | Yes — normal IVA only |
+| Yorkshire and Humberside | Beverley | DVSA | Yes |
+| | Sheffield | Newell and Wright | No |
+| North West | Chadderton, Oldham | DVSA | Yes |
+| | Lancashire (Lower Darwen) | Wheelbase Engineering | No |
+| North East | Newcastle (Gosforth) | DVSA | Yes |
+| Scotland | Edinburgh (Livingston) | DVSA | Yes |
+| Wales | Cardiff (Miskin) | DVSA | Yes |
+
+**22 centres · 15 DVSA-run · 7 privately operated · 18 take passenger vehicles ·
+3 private sites take cars · 1 centre each in Scotland and Wales.**
+
+#### Restrictions worth reading first
+
+- **Milton Keynes** — cannot book amateur built, parts-of-a-registered-vehicle,
+  rebuilt or very low volume vehicles. Cannot test over 4 metres in height, over
+  3,500kg, or anything needing a turning circle.
+- **Castle Donington** — nothing over 6,500kg.
+- **Southampton** — DVSA-run, but its basic IVA list adds a mechanical
+  condition: the vehicle **must not have a limited slip differential**, and must
+  be two-wheel drive or have selectable two-wheel drive. That rules out a lot of
+  Land Cruisers, Patrols and performance saloons.
+- Five centres can noise-test exhaust modifications over two metres in height:
+  Gillingham, Bristol, Derby, Chadderton and Edinburgh.
+
+#### How you choose a centre
+
+You do not ring the site. GOV.UK's instruction is to say which centre you want
+when you apply — the choice is part of the DVSA application. DVSA will usually
+offer an inspection within 20 working days at the location you chose,
+*wherever possible*. The fee is identical whichever you name.
+
+#### The geography problem
+
+Scotland has one centre. Wales has one. The whole north of England has three.
+Five of the eighteen car-capable sites are in the East of England alone. The car
+is unregistered and cannot legally be driven anywhere except a pre-booked test,
+so where it lands and where it can be tested should be one decision.
+
+Northern Ireland is not on the list at all — the publication covers England,
+Scotland and Wales.
+
+**FAQs** — Can a private company carry out an IVA test? · How many IVA test
+centres are there in the UK? · Which private IVA centres can test cars? · How do
+I book an IVA test at a particular centre? · Are there IVA test centres in
+Scotland and Wales?
+
+---
+
+### 6 · Registering an Imported Car in the UK
 
 - **Slug:** `registering-an-imported-car-in-the-uk`
 - **H1:** Registering an Imported Car in the UK, Step by Step
@@ -783,7 +903,8 @@ the underlying rule is.
 | Top ten failure points; headlamp dip and no masking; rear fog lamp rules and 'e'/'E' + 'B'/'F' marks; speedometer mph, 35–70 mph, no GPS; brake minimums 60/25/18%; 100 mm sphere and 2.5 mm radius; statutory plate order; emissions by engine age | GOV.UK / DVSA, *IVA for cars: help to get a pass* | 29 June 2017 |
 | M1 inspection manual, 335 pages | GOV.UK, *IVA inspection manual: cars* | 14 July 2025 |
 | Video-call IVA covers N1, N2, N3, O1–O4 — not M1 | GOV.UK, *Get an IVA test done by video call* | 18 November 2020 |
-| 22 IVA test centres, 18 taking passenger cars, 15 DVSA-run, 7 third-party; Milton Keynes (Ship My Car) added | GOV.UK, *IVA test centre locations* | **14 August 2026** |
+| 22 IVA test centres, 18 taking passenger cars, 15 DVSA-run, 7 third-party; every operator name, address, capability and restriction; Milton Keynes added 14 Aug 2026, Castle Donington 16 Apr 2024 | GOV.UK, *IVA test centre locations* | **14 August 2026** |
+| "DVSA staff will continue to carry out the test" at VEF sites; own-account / open-access site models; POTFs may apply for VEF status | DVSA *Moving On* blog | 4 February 2026 |
 | 14-day NOVA deadline; who declares; documents needed; 48cc/7.2kW exception; Isle of Man exception | GOV.UK, *Importing vehicles into the UK: telling HMRC* | 10 December 2024 |
 | VAT charged on vehicle + accessories + delivery + duty; must pay before registering | GOV.UK, *Importing vehicles into the UK: paying VAT and duty* | 10 December 2024 |
 | £55 registration fee; V267; V627/3; original foreign registration certificate not returned; up to 6 weeks for V5C | GOV.UK, *Registering an imported vehicle* | 10 December 2024 |
@@ -812,21 +933,25 @@ the underlying rule is.
 
 | File | Change |
 |---|---|
-| `src/config/blog.ts` | New `UK Registration & IVA` cluster; new `UK_IVA_POSTS` array (5 entries); added to `BLOG_POSTS` and `CLUSTER_ORDER`; new optional `ogImage` field on `BlogPost`; UK destination now suggests the registration guides first |
+| `src/config/blog.ts` | New `UK Registration & IVA` cluster; new `UK_IVA_POSTS` array (6 entries); added to `BLOG_POSTS` and `CLUSTER_ORDER`; new optional `ogImage` field on `BlogPost`; UK destination now suggests the registration guides first |
 | `src/content/blog/iva-test-explained.tsx` | New body |
 | `src/content/blog/do-i-need-an-iva-test.tsx` | New body |
 | `src/content/blog/iva-test-cost.tsx` | New body |
 | `src/content/blog/iva-test-requirements.tsx` | New body |
+| `src/content/blog/iva-test-centres-uk.tsx` | New body |
 | `src/content/blog/registering-an-imported-car-in-the-uk.tsx` | New body |
-| `src/content/blog/index.ts` | Five imports and five `BLOG_BODIES` entries |
+| `src/content/blog/index.ts` | Six imports and six `BLOG_BODIES` entries |
 | `src/app/(marketing)/blog/[slug]/page.tsx` | Open Graph image now declares `width`/`height` when a post supplies a purpose-built 1200×630 `ogImage`; posts without one behave exactly as before |
 
 `sitemap.ts` needed no change — it maps `BLOG_POSTS`, so the five new URLs are
 already in it.
 
+The centre directory also adds two inline cross-links: from the pillar's
+timeline section, and from the cost post's transport line.
+
 ---
 
-## Part 5 — Two things for a human to decide
+## Part 5 — Three things for a human to decide
 
 1. **The blog index's OG images.** All 50 pre-existing posts still ship an
    Open Graph image with no declared dimensions (their Unsplash heroes are
@@ -835,7 +960,16 @@ already in it.
    the mechanism now exists to fix the rest — but backfilling 50 posts was
    outside this brief, so it has been left alone rather than done silently.
 
-2. **A `/latest-news` piece on the VEF rollout.** Not written, for the reason in
+2. **Naming competitors in the centre directory.** Two of the seven private
+   sites are run by car-import companies — My Car Import and Ship My Car. Their
+   names are reproduced because you have to name the centre on the DVSA
+   application, so it is action-relevant information a reader cannot use the
+   page without. Their published phone, email and website details are **not**
+   reproduced, and the post's disclaimer states that listing a company records
+   what DVSA publishes and is not an endorsement. If you would rather the post
+   described them by location only, that is a one-line change.
+
+3. **A `/latest-news` piece on the VEF rollout.** Not written, for the reason in
    Part 1 — the freshest confirmed item is 14 August 2026 and the substantive
    ones are February 2026, which is stale for dated reporting. If you want it,
    the trigger to watch is the IVA test centre list: a second or third

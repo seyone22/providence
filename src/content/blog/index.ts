@@ -36,6 +36,7 @@ import ImportingCarsFromIndiaForDealers from "./importing-cars-from-india-for-de
 import ImportingCarsToIreland from "./importing-cars-to-ireland";
 import ImportingHybridsAndEvsToSriLanka from "./importing-hybrids-and-evs-to-sri-lanka";
 import IndiaCarExportDocumentsExplained from "./india-car-export-documents-explained";
+import IvaTestCentresUk from "./iva-test-centres-uk";
 import IvaTestCost from "./iva-test-cost";
 import IvaTestExplained from "./iva-test-explained";
 import IvaTestRequirements from "./iva-test-requirements";
@@ -78,6 +79,7 @@ export const BLOG_BODIES: Record<string, ComponentType> = {
   "do-i-need-an-iva-test": DoINeedAnIvaTest,
   "iva-test-cost": IvaTestCost,
   "iva-test-requirements": IvaTestRequirements,
+  "iva-test-centres-uk": IvaTestCentresUk,
   "registering-an-imported-car-in-the-uk": RegisteringAnImportedCarInTheUk,
 
   // ── Japan ──────────────────────────────────────────────────────────────────

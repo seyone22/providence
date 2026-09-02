@@ -4,6 +4,8 @@ import FerrariLuceChassis040MillionAuction from "./ferrari-luce-chassis-0-40-mil
 import IrelandEvIncentivesTaper20262028 from "./ireland-ev-incentives-taper-2026-2028";
 import JapanUsedCarExportsRecordWeakYen2026 from "./japan-used-car-exports-record-weak-yen-2026";
 import MercedesMaybachS580EFirstClassUkSpec from "./mercedes-maybach-s-580-e-first-class-uk-spec";
+import MitsubishiPajeroRevealedSpecificationsLaunchMarkets from "./mitsubishi-pajero-revealed-specifications-launch-markets";
+import MitsubishiPajeroThailandAustraliaSourcingCorridors from "./mitsubishi-pajero-thailand-australia-sourcing-corridors";
 import Monterey2026AuctionWeekMarketReport from "./monterey-2026-auction-week-market-report";
 import MontereyCarWeek2026NewCarDebuts from "./monterey-car-week-2026-new-car-debuts";
 import NissanPatrolY63AustraliaPricingConfirmed from "./nissan-patrol-y63-australia-pricing-confirmed";
@@ -36,6 +38,10 @@ export const NEWS_BODIES: Record<string, ComponentType> = {
     NissanPatrolY63VsLandcruiser300DealerRead,
   "nissan-patrol-y63-right-hand-drive-markets":
     NissanPatrolY63RightHandDriveMarkets,
+  "mitsubishi-pajero-revealed-specifications-launch-markets":
+    MitsubishiPajeroRevealedSpecificationsLaunchMarkets,
+  "mitsubishi-pajero-thailand-australia-sourcing-corridors":
+    MitsubishiPajeroThailandAustraliaSourcingCorridors,
 };
 
 export function getNewsBody(slug: string): ComponentType | undefined {

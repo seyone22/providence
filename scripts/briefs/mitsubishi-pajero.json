@@ -1,0 +1,173 @@
+{
+  "_comment": "All-new Mitsubishi Pajero, revealed 2 September 2026. Built in Thailand; launches Thailand first, then Japan and Australia in fiscal 2026 (April 2026 – March 2027), then approximately 100 countries from fiscal 2027. Coming soon — no price has been published in any market. Each environment has its own database, so publishing this page on one does not create it on the others. Recreate it with: node --env-file=.env.local scripts/create-car-page.mjs scripts/briefs/mitsubishi-pajero.json --env staging --publish (or --env production). SOURCES: Mitsubishi Motors Corporation world-premiere release, 'Mitsubishi Motors Unveils the All-New Pajero Cross-Country SUV', 2 September 2026 (https://www.mitsubishi-motors.com/en/newsroom/newsrelease/2026/20260902_1.html) — every specification, dimension, angle, feature and colour name below; MMC teaser release 29 May 2026 (Triton ladder frame); CarsGuide 2 September 2026 (150 kW and 3,500 kg braked towing — NOT published by Mitsubishi, flagged as trade press wherever used); carsales, '2027 Mitsubishi Pajero range leaked', citing Australian government approval documents (the four-grade / six-variant Australian structure and the seat counts). IMAGE LICENCE — READ BEFORE PROMOTING THIS PAGE BEYOND DEV: the photographs are Mitsubishi Motors press images from the world-premiere release page, whose stated terms are 'for editorial or personal use only. Commercial use, including advertising, marketing and merchandising, is strictly prohibited.' They are used here on a dev environment pending a decision. Replace them with own photography or obtain written permission from Mitsubishi before running this brief against staging or production.",
+
+  "make": "Mitsubishi",
+  "model": "Pajero",
+  "year": "2026",
+  "trim": "",
+  "condition": "New",
+  "countryOfOrigin": "Thailand",
+  "slug": "mitsubishi-pajero-2026",
+
+  "engineConfig": "clean diesel with a wide-range single variable geometry turbocharger",
+  "displacement": "2.4-litre",
+  "maxTorque": "480 Nm (470 Nm on select specifications)",
+  "transmission": "Eight-speed automatic with sport mode",
+  "fuelSystem": "Diesel",
+  "steeringOptions": ["RHD"],
+
+  "upholstery": "Camel interior theme, contrasted with black; soft-touch material with stitching inspired by Kimekomi",
+  "infotainment": "Monolithic display integrating two 14.3-inch screens (12.3-inch on select specifications), with Smartphone-link Display Audio and MITSUBISHI CONNECT",
+
+  "isUpcoming": true,
+  "expectedAvailability": "Thailand first, then Japan and Australia during fiscal 2026 (April 2026 – March 2027); around 100 further markets from fiscal 2027",
+  "newsSlug": "mitsubishi-pajero-revealed-specifications-launch-markets",
+
+  "grades": [
+    {
+      "name": "GLX",
+      "isDefault": true,
+      "summary": "The entry grade in the Australian range, approved as a five-seater.",
+      "highlights": [
+        "Five-seat configuration",
+        "Equipment level not yet published by Mitsubishi"
+      ]
+    },
+    {
+      "name": "GLS",
+      "summary": "Approved for Australia in both five- and seven-seat configurations.",
+      "highlights": [
+        "Five- or seven-seat configuration",
+        "Equipment level not yet published by Mitsubishi"
+      ]
+    },
+    {
+      "name": "Exceed",
+      "summary": "Approved for Australia in both five- and seven-seat configurations.",
+      "highlights": [
+        "Five- or seven-seat configuration",
+        "Equipment level not yet published by Mitsubishi"
+      ]
+    },
+    {
+      "name": "GSR",
+      "summary": "The flagship of the Australian range, approved as a seven-seater.",
+      "highlights": [
+        "Seven-seat configuration",
+        "Equipment level not yet published by Mitsubishi"
+      ]
+    }
+  ],
+
+  "images": [
+    "/cars/mitsubishi-pajero/front-three-quarter.webp",
+    "/cars/mitsubishi-pajero/rear-three-quarter.webp",
+    "/cars/mitsubishi-pajero/off-road-action.webp",
+    "/cars/mitsubishi-pajero/interior-rhd-cabin.webp",
+    "/cars/mitsubishi-pajero/interior-display.webp",
+    "/cars/mitsubishi-pajero/interior-three-rows.webp",
+    "/cars/mitsubishi-pajero/engine-24-diesel.webp",
+    "/cars/mitsubishi-pajero/ladder-frame.webp",
+    "/cars/mitsubishi-pajero/suspension.webp",
+    "/cars/mitsubishi-pajero/world-premiere.webp"
+  ],
+  "heroImageUrl": "/cars/mitsubishi-pajero/front-three-quarter.webp",
+
+  "exteriorColors": [
+    { "name": "Armor Copper Metallic", "hex": "#8f5f45", "imageIndex": 0 },
+    { "name": "Phantom Blue Metallic", "hex": "#2b3a4f" }
+  ],
+
+  "interiorColors": [{ "name": "Camel", "hex": "#9a714b", "imageIndex": 3 }],
+
+  "features": [
+    "Super Select 4WD-II (SS4-II) with 2H, 4H, 4HLc and 4LLc",
+    "Super-All Wheel Control (S-AWC) with Active Yaw Control",
+    "Seven drive modes: Normal, Eco, Gravel, Snow, Mud, Sand, Rock",
+    "Three-row, seven-seat layout with a 150 mm sliding second row",
+    "Third-row seats fold flat for a level load area",
+    "Multi-Meter with 16 background themes, altitude, compass, pitch and roll",
+    "Dynamic Sound Yamaha Ultimate, 12 speakers and dual amplifiers",
+    "Three-zone automatic climate control with seat ventilation",
+    "Eight airbags, including Mitsubishi Motors' first SRS centre airbag",
+    "MI-PILOT single-lane highway driving assistance",
+    "Emergency Lane Assist and Forward Collision Mitigation with junction assist",
+    "3D Multi Around Monitor with automatic front under-floor view in 4HLc and 4LLc",
+    "Acoustic glass windscreen and front and rear door windows",
+    "18-inch brake rotors with an electric brake booster"
+  ],
+
+  "customData": [
+    {
+      "label": "Built at",
+      "value": "Mitsubishi Motors' production base in Thailand"
+    },
+    {
+      "label": "Frame",
+      "value": "Ladder frame derived from the Mitsubishi Triton"
+    },
+    {
+      "label": "Suspension",
+      "value": "Double-wishbone front, five-link rigid rear axle"
+    },
+    { "label": "Length", "value": "4,920 mm" },
+    { "label": "Width", "value": "1,925 mm" },
+    { "label": "Height", "value": "1,910 mm" },
+    { "label": "Wheelbase", "value": "2,870 mm" },
+    { "label": "Track, front and rear", "value": "1,630 mm" },
+    { "label": "Ground clearance", "value": "230 mm" },
+    { "label": "Approach angle", "value": "30.4 degrees" },
+    { "label": "Ramp breakover angle", "value": "22.6 degrees" },
+    { "label": "Departure angle", "value": "25.8 degrees" },
+    { "label": "Weight distribution", "value": "52:48 front to rear" },
+    { "label": "Seats", "value": "Seven" },
+    { "label": "Design concept", "value": "Grand Charisma" },
+    {
+      "label": "Australian range (approved)",
+      "value": "GLX, GLS, Exceed and GSR — six variants"
+    },
+    {
+      "label": "Maximum power",
+      "value": "150 kW reported by CarsGuide; Mitsubishi has published no power figure"
+    },
+    {
+      "label": "Braked towing capacity",
+      "value": "3,500 kg reported by CarsGuide; Mitsubishi has published no towing figure"
+    },
+    {
+      "label": "Price",
+      "value": "Not announced in any market as at 2 September 2026"
+    }
+  ],
+
+  "valuePoints": [
+    {
+      "title": "You order it in the country it is built in",
+      "description": "The Pajero is built at Mitsubishi's Thai plant and Thailand gets it first. Thailand is one of the seven countries our own team buys in, so you can order this car at the front of the queue rather than waiting for the market you happen to live in to be reached."
+    },
+    {
+      "title": "Two right-hand-drive corridors, not one",
+      "description": "Thailand and Australia are both markets we buy in, and both get the Pajero inside fiscal 2026. You choose the corridor on freight time, specification and what the price turns out to be — and if one of them stops making sense, we will say so."
+    },
+    {
+      "title": "You see the real number before you commit",
+      "description": "Mitsubishi has not published a price anywhere yet. The day it does, we map the duty, VAT and registration-tax position for your destination onto the grade you actually want and give you one landed figure with the freight in it. Until then, nobody can quote you this car honestly."
+    }
+  ],
+
+  "searchTags": [
+    "mitsubishi",
+    "pajero",
+    "montero",
+    "suv",
+    "7-seater",
+    "4wd",
+    "diesel",
+    "thailand",
+    "australia",
+    "upcoming",
+    "coming-soon"
+  ],
+
+  "notes": "The Pajero is back, and it is built in Thailand. Mitsubishi revealed the all-new car on 2 September 2026 — a ladder-frame, seven-seat cross-country SUV on a 2.4-litre clean diesel with a single variable-geometry turbo, 480 Nm, an eight-speed automatic and Super Select 4WD-II with S-AWC. It is 4,920 mm long on a 2,870 mm wheelbase, sits 230 mm off the ground, and approaches at 30.4 degrees. Thailand is the first market, with Japan and Australia following inside fiscal 2026 and around 100 more countries from fiscal 2027 — so for most of the world this car is a 2027 proposition unless you source it out of a market that already has it. Thailand and Australia are both countries we buy in. Register your interest with the grade and destination you want and we will come back with a landed cost the moment Mitsubishi publishes a price. Two things we will not pretend to know: Mitsubishi has published no price and no power output, and the 150 kW and 3,500 kg towing figures in circulation are trade-press reporting rather than Mitsubishi's own. Photography is Mitsubishi Motors press imagery of a pre-production car; Mitsubishi states that specifications and features may vary by trim level and market."
+}

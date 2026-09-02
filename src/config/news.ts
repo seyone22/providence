@@ -1419,6 +1419,219 @@ export const NEWS_ARTICLES: NewsArticle[] = [
     ],
     linkedVehicleSlugs: ["nissan-patrol-y63"],
   },
+  {
+    slug: "mitsubishi-pajero-revealed-specifications-launch-markets",
+    title:
+      "Mitsubishi reveals the all-new Pajero: Thai-built, 480 Nm, no price anywhere",
+    h1: "The All-New Mitsubishi Pajero Is Revealed: Thai-Built, Seven Seats, and Unpriced in Every Market",
+    seoTitle: "New Mitsubishi Pajero Revealed: Specs, Markets and Timing",
+    description:
+      "Mitsubishi revealed the all-new Pajero on 2 September 2026: Thai-built, 2.4 diesel, 480 Nm, eight-speed automatic, seven seats — and no price in any market.",
+    excerpt:
+      "Mitsubishi published the dimensions to the millimetre and the approach angle to one decimal place. It published no price and no power output — and the launch order confines the car to three countries until April 2027.",
+    category: "Releases",
+    dateline: "Tokyo",
+    keywords: [
+      "new mitsubishi pajero",
+      "mitsubishi pajero 2026 specifications",
+      "mitsubishi pajero thailand",
+      "mitsubishi pajero australia release date",
+      "is the new mitsubishi pajero twin turbo",
+      "when can you buy the new mitsubishi pajero",
+      "can you import a mitsubishi pajero",
+    ],
+    author: AUTHOR,
+    publishDate: "2026-09-02",
+    updatedDate: "2026-09-02",
+    readingTimeMins: 10,
+    heroImage: "/cars/mitsubishi-pajero/off-road-action.webp",
+    heroAlt:
+      "The all-new Mitsubishi Pajero photographed on a loose surface for its world premiere",
+    heroCaption:
+      "Mitsubishi Motors press image of a pre-production all-new Pajero. Mitsubishi states that specifications and features may vary by trim level and market.",
+    toc: [
+      { id: "confirmed", label: "What Mitsubishi actually confirmed" },
+      {
+        id: "not-published",
+        label: "The two numbers Mitsubishi did not publish",
+      },
+      { id: "launch-order", label: "Why the launch order is the story" },
+      { id: "applies", label: "Does this apply to you?" },
+      { id: "landed-cost", label: "What it lands at" },
+      { id: "timing", label: "Move now or wait?" },
+      { id: "nameplate", label: "What the nameplate brings" },
+    ],
+    faqs: [
+      {
+        q: "Where is the new Mitsubishi Pajero built?",
+        a: "Mitsubishi Motors builds the all-new Pajero at its production base in Thailand, on a ladder frame derived from the Mitsubishi Triton pickup. Mitsubishi confirmed this in its world-premiere release of 2 September 2026. Thailand is also the first market to get the car, ahead of Japan and Australia, which both follow during Mitsubishi's fiscal 2026 — April 2026 to March 2027.",
+      },
+      {
+        q: "How much does the new Mitsubishi Pajero cost?",
+        a: "Mitsubishi has not published a price in any market as at 2 September 2026. Thai, Japanese and Australian pricing are all still to be announced. Because the purchase price is the largest single input into a landed cost, no honest landed-cost figure for this car exists yet, and any quote you are shown today is built on a number nobody has.",
+      },
+      {
+        q: "Is the new Mitsubishi Pajero a twin-turbo diesel?",
+        a: "No. Mitsubishi's world-premiere release describes a 2.4-litre clean diesel with a wide-range single variable geometry turbocharger, producing 480 Nm of torque, or 470 Nm on select specifications. A great deal of pre-reveal coverage described a bi-turbo engine with a six-speed automatic. Mitsubishi's own release states a single turbocharger and a newly developed eight-speed automatic.",
+      },
+      {
+        q: "What is the new Mitsubishi Pajero's power output and towing capacity?",
+        a: "Mitsubishi has published neither. Its release states torque of 480 Nm and says nothing about maximum power or towing. The figures of 150 kW and 3,500 kg braked towing now in circulation come from CarsGuide's reporting on the reveal, not from Mitsubishi. Attribute them to CarsGuide rather than to the manufacturer until Mitsubishi publishes its own.",
+      },
+      {
+        q: "When can you buy the new Mitsubishi Pajero in other countries?",
+        a: "Mitsubishi plans to launch the all-new Pajero in approximately 100 countries from fiscal 2027 onward, naming ASEAN, Latin America and the Middle East. Mitsubishi's fiscal 2027 begins in April 2027. Until then, the only markets with the car are Thailand, Japan and Australia, so any earlier arrival elsewhere has to be imported out of one of those three.",
+      },
+      {
+        q: "Can you import a new Mitsubishi Pajero into a right-hand-drive market?",
+        a: "All three first-launch markets are right-hand drive, so the car exists in the correct hand for most import destinations. Because it is a new vehicle, the age limits that restrict used imports in Kenya, Sri Lanka and much of the Caribbean do not apply. Type approval does: in Ireland and the United Kingdom, where the Pajero is not sold, registration means individual approval, and no CO2 figure has been published.",
+      },
+    ],
+    sources: [
+      {
+        label: "Mitsubishi Motors Unveils the All-New Pajero Cross-Country SUV",
+        href: "https://www.mitsubishi-motors.com/en/newsroom/newsrelease/2026/20260902_1.html",
+        publisher: "Mitsubishi Motors Corporation",
+      },
+      {
+        label:
+          "Mitsubishi Motors To Debut the All-New Pajero Cross-Country SUV in Autumn 2026",
+        href: "https://www.mitsubishi-motors.com/en/newsroom/newsrelease/2026/20260529_2.html",
+        publisher: "Mitsubishi Motors Corporation",
+      },
+      {
+        label:
+          "2026 Mitsubishi Pajero 4WD revealed, including engine and towing capacity",
+        href: "https://www.carsguide.com.au/car-news/2026-mitsubishi-pajero-4wd-revealed-including-engine-and-towing-capacity-as-it-prepares-to",
+        publisher: "CarsGuide",
+      },
+      {
+        label: "2027 Mitsubishi Pajero range leaked",
+        href: "https://www.carsales.com.au/editorial/details/2027-mitsubishi-pajero-range-leaked-152370/",
+        publisher: "carsales",
+      },
+      {
+        label: "Dakar Rally — Mitsubishi Motors motorsports history",
+        href: "https://www.mitsubishi-motors.com/en/brand/motorsports/dakar/",
+        publisher: "Mitsubishi Motors Corporation",
+      },
+      {
+        label: "The Revenue Department of Thailand — value added tax",
+        href: "https://www.rd.go.th/english/index.html",
+        publisher: "Revenue Department of Thailand",
+      },
+    ],
+    relatedGuides: [
+      "how-to-import-a-car-from-thailand",
+      "cost-to-import-a-car-from-thailand",
+      "how-to-import-a-car-from-australia",
+    ],
+    linkedVehicleSlugs: ["mitsubishi-pajero-2026"],
+  },
+  {
+    slug: "mitsubishi-pajero-thailand-australia-sourcing-corridors",
+    title:
+      "Two corridors for one Pajero: what Thailand and Australia each put in the price",
+    h1: "Sourcing the New Mitsubishi Pajero: What the Thailand and Australia Corridors Actually Contain",
+    seoTitle: "Pajero Sourcing: Thailand or Australia, the Dealer Read",
+    description:
+      "Mitsubishi builds the new Pajero in Thailand and sells it in Australia. Two corridors, 4 Australian grades, 10% GST inside the list price, and no price yet.",
+    excerpt:
+      "Thailand builds it and sells it first; Australia is the only market with a published range. Neither has a price — and Thai export capacity was cut by 50,000 units on 1 August.",
+    category: "Market",
+    dateline: "Bangkok",
+    keywords: [
+      "import mitsubishi pajero from thailand",
+      "import mitsubishi pajero from australia",
+      "thailand car export excise tax",
+      "australia gst free export vehicle",
+      "which country to import a pajero from",
+      "mitsubishi pajero dealer import margin",
+      "thailand vehicle export 2026",
+    ],
+    author: AUTHOR,
+    publishDate: "2026-09-02",
+    updatedDate: "2026-09-02",
+    readingTimeMins: 10,
+    heroImage: "/cars/mitsubishi-pajero/rear-three-quarter.webp",
+    heroAlt:
+      "The all-new Mitsubishi Pajero photographed from the rear three-quarter on a salt flat",
+    heroCaption:
+      "Mitsubishi Motors press image of a pre-production all-new Pajero. Mitsubishi states that specifications and features may vary by trim level and market.",
+    toc: [
+      { id: "thailand", label: "What a Thai price contains" },
+      { id: "australia", label: "What an Australian price contains" },
+      { id: "comparison", label: "The two corridors, side by side" },
+      { id: "freight", label: "The freight risk in the numbers" },
+      { id: "which-corridor", label: "Which corridor to commit to" },
+      { id: "dont-buy", label: "The case for not buying yet" },
+    ],
+    faqs: [
+      {
+        q: "Is it cheaper to import a Mitsubishi Pajero from Thailand or Australia?",
+        a: "Neither can be costed yet, because Mitsubishi has published no price in either market. On structure, Thailand should win on unit cost — it is the plant, it is first in the queue, and the freight leg to East Africa, South Asia and the Caribbean is shorter. Australia should win on certainty, because its range structure is already published and its list prices carry a single legible 10% GST.",
+      },
+      {
+        q: "What taxes are inside a Thai new car price?",
+        a: "Thailand levies excise tax on motor vehicles as an ad valorem charge calculated on the suggested retail price rather than an ex-works value, with value-added tax on top and exports zero-rated for VAT. A Thai showroom price is therefore not an export base. We are not publishing the rates: the Thai Excise Department's motor-vehicle schedule was not reachable when we checked on 2 September 2026, and a tax figure needs the authority behind it.",
+      },
+      {
+        q: "Is an Australian new car export free of GST?",
+        a: "A sale of goods can be GST-free where the supplier exports them within 60 days of the earlier of receiving payment or issuing an invoice, on the Australian Taxation Office's conditions and with its documentary evidence of export. Australia also levies Luxury Car Tax above a threshold the ATO revises annually. We have not verified the 2026-27 threshold or its treatment on an export sale of this model.",
+      },
+      {
+        q: "What grades will the new Mitsubishi Pajero come in?",
+        a: "Australian government approval documents, reported by carsales, show four grades across six variants: GLX, GLS, Exceed and GSR. The GLX is approved as a five-seater and the GSR as a seven-seater, with the GLS and Exceed approved in both five- and seven-seat configurations. Mitsubishi has not published what equipment separates the grades, and no other market has a published range structure.",
+      },
+      {
+        q: "Is Thai vehicle export capacity under pressure in 2026?",
+        a: "Yes. On 1 August 2026 the Federation of Thai Industries cut Thailand's 2026 production target from 1.5 million vehicles to 1.45 million, with the whole reduction falling on export production — from 950,000 units to 900,000. Thai vehicle exports to the Middle East fell 38.35% in the first half of 2026 as the closure of shipping routes through the Strait of Hormuz continued to disrupt deliveries.",
+      },
+      {
+        q: "Should a dealer commit floor-plan to the new Pajero now?",
+        a: "No. There is no published price in either corridor, so unit cost is unknown. The nameplate was discontinued in overseas markets in 2021, so there is no recent residual history in any destination market. And Mitsubishi plans official launches in approximately 100 countries from April 2027, which means imported stock landing in early 2027 may compete with franchised cars carrying a local warranty.",
+      },
+    ],
+    sources: [
+      {
+        label: "Mitsubishi Motors Unveils the All-New Pajero Cross-Country SUV",
+        href: "https://www.mitsubishi-motors.com/en/newsroom/newsrelease/2026/20260902_1.html",
+        publisher: "Mitsubishi Motors Corporation",
+      },
+      {
+        label: "The Revenue Department of Thailand — value added tax",
+        href: "https://www.rd.go.th/english/index.html",
+        publisher: "Revenue Department of Thailand",
+      },
+      {
+        label: "Exports and GST",
+        href: "https://www.ato.gov.au/businesses-and-organisations/international-tax-for-business/australians-doing-business-overseas/exports-and-gst",
+        publisher: "Australian Taxation Office",
+      },
+      {
+        label: "Thailand cuts 2026 car output target as exports weaken",
+        href: "https://www.nationthailand.com/business/manufacturing/40069285",
+        publisher: "The Nation Thailand",
+      },
+      {
+        label: "2027 Mitsubishi Pajero range leaked",
+        href: "https://www.carsales.com.au/editorial/details/2027-mitsubishi-pajero-range-leaked-152370/",
+        publisher: "carsales",
+      },
+      {
+        label:
+          "2026 Mitsubishi Pajero 4WD revealed, including engine and towing capacity",
+        href: "https://www.carsguide.com.au/car-news/2026-mitsubishi-pajero-4wd-revealed-including-engine-and-towing-capacity-as-it-prepares-to",
+        publisher: "CarsGuide",
+      },
+    ],
+    relatedGuides: [
+      "best-pickups-to-import-from-thailand",
+      "cost-to-import-a-car-from-australia",
+      "thailand-vs-japan-for-pickup-imports",
+    ],
+    linkedVehicleSlugs: ["mitsubishi-pajero-2026"],
+  },
 ];
 
 export const NEWS_BASE_PATH = "/latest-news";
