@@ -19,6 +19,7 @@ import { notFound } from "next/navigation";
 import { getTrackingData, markLeadAsOpened } from "@/actions/tracking-actions";
 import ClientAgentCard from "@/components/ClientAgentCard";
 import MinimalHeader from "@/components/MinimalHeader";
+import { getAgentPhotoUrl } from "@/lib/agent-photo";
 
 const TIMELINE_STEPS = [
   {
@@ -113,10 +114,13 @@ export default async function TrackingPage({
     agentData?.name || requestData.assignedToName || "Our Support Team";
   const agentEmail = agentData?.email || "support@providenceauto.com";
   const agentWhatsapp = agentData?.whatsappNumber || "";
-  // Pull the image from DB, fallback to the provided default R2 avatar
-  const agentImage =
-    agentData?.image ||
-    "https://pub-0c6552f09f244121ac51914a1f782578.r2.dev/profiles/1775233164832-498582237.jpg";
+  // The consultant's own My Profile headshot, falling back to their account
+  // avatar. Empty when they have neither — ClientAgentCard draws a placeholder
+  // rather than showing a colleague's face above this person's name.
+  const agentImage = await getAgentPhotoUrl(
+    requestData.assignedToId,
+    agentData?.image,
+  );
 
   return (
     <main className="min-h-screen bg-white text-black selection:bg-black/10 selection:text-black font-sans overflow-x-hidden pb-32">

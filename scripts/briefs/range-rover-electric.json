@@ -1,0 +1,240 @@
+{
+  "_comment": "Range Rover Electric, revealed by JLR on 2 September 2026 with order books open the same day. Built at Solihull in the West Midlands — the only plant that makes it anywhere in the world — with battery packs and electric drive units from JLR's Electric Propulsion Manufacturing Centre at Wolverhampton. NOT an upcoming car: it is orderable now, so isUpcoming is false. Each environment has its own database, so publishing this page on one does not create it on the others. Recreate it with: node --env-file=.env.local scripts/create-car-page.mjs scripts/briefs/range-rover-electric.json --env staging --publish (or --env production). SOURCES: JLR, 'Range Rover Electric: A New Era For The Original Luxury SUV', 2 September 2026 (https://media.jlr.com/range-rover/news/2026/09/range-rover-electric-new-era-original-luxury-suv) — every specification figure, colour name, specification-level name, feature and manufacturing claim below. Carscoops, 2 September 2026 (https://www.carscoops.com/2026/09/range-rover-electric-official-launch/) — the 2,500 kg towing figure and the $138,000 US price, both flagged as trade press because JLR published neither. GOV.UK — the £55 DVLA first registration fee and the £10 first-year vehicle excise duty used in the ex-VAT arithmetic, checked 3 September 2026. IMAGES: JLR press photography from the 2 September 2026 release, confirmed cleared for commercial use by the account owner on 3 September 2026. PRICING: no landed-cost matrix is set, because none has been built. JLR's UK on-the-road price is recorded in customData as a UK retail figure and must not be presented as a landed cost in any destination.",
+
+  "make": "Land Rover",
+  "model": "Range Rover Electric",
+  "year": "2026",
+  "trim": "",
+  "condition": "New",
+  "countryOfOrigin": "United Kingdom",
+  "slug": "range-rover-electric-2026",
+
+  "engineConfig": "Twin permanent magnet electric motors, 260 kW each, on an 800-volt architecture",
+  "maxPower": "Up to 550PS (about 542 hp)",
+  "maxTorque": "850 Nm",
+  "transmission": "Single-speed, all-wheel drive",
+  "fuelSystem": "Electric",
+  "emissions": "Zero tailpipe emissions",
+  "steeringOptions": ["RHD", "LHD"],
+
+  "upholstery": "Light Cloud Ultrafabrics PU with Kvadrat textile on the First Edition; JLR has not published the material range for the other specifications",
+  "infotainment": "Software-over-the-air updates, with the Range Rover App for charge scheduling, cabin purification, lock status, live location and predicted range",
+
+  "isUpcoming": false,
+  "expectedAvailability": "Order books open in the United Kingdom from 2 September 2026",
+  "newsSlug": "range-rover-electric-revealed-specifications-price",
+
+  "grades": [
+    {
+      "name": "SE",
+      "isDefault": true,
+      "summary": "The entry point to the range, in standard or long wheelbase.",
+      "highlights": [
+        "Aerodynamically-optimised grille and wheels — JLR notes the aero grille is market-dependent",
+        "Equipment level not published by JLR in the launch release"
+      ]
+    },
+    {
+      "name": "HSE",
+      "summary": "The second rung of the range, in standard or long wheelbase.",
+      "highlights": [
+        "Equipment level not published by JLR in the launch release"
+      ]
+    },
+    {
+      "name": "Autobiography",
+      "summary": "The established flagship of the standard Range Rover ladder.",
+      "highlights": [
+        "Equipment level not published by JLR in the launch release"
+      ]
+    },
+    {
+      "name": "First Edition",
+      "summary": "The curated launch specification, offered in three colours only.",
+      "highlights": [
+        "Belgravia Green, Santorini Black or Varesine Blue",
+        "Light Cloud Ultrafabrics PU and Kvadrat interior, newly introduced",
+        "Available for a limited period from launch"
+      ]
+    },
+    {
+      "name": "SV",
+      "summary": "Special Vehicle Operations' interpretation, which keeps its own exterior identity.",
+      "highlights": [
+        "SV-exclusive grille design rather than the aero-optimised grille",
+        "SV-exclusive 22-inch wheels"
+      ]
+    },
+    {
+      "name": "SV Ultra",
+      "summary": "An SV derivative named in JLR's launch release.",
+      "highlights": [
+        "SV-exclusive grille design and SV-exclusive 22-inch wheels",
+        "What separates it from SV has not been published by JLR"
+      ]
+    },
+    {
+      "name": "SV Black",
+      "summary": "An SV derivative named in JLR's launch release.",
+      "highlights": [
+        "SV-exclusive grille design and SV-exclusive 22-inch wheels",
+        "What separates it from SV has not been published by JLR"
+      ]
+    }
+  ],
+
+  "images": [
+    "/cars/range-rover-electric/front-driving.webp",
+    "/cars/range-rover-electric/rear-three-quarter-green.webp",
+    "/cars/range-rover-electric/side-profile.webp",
+    "/cars/range-rover-electric/front.webp",
+    "/cars/range-rover-electric/rear-three-quarter.webp",
+    "/cars/range-rover-electric/rear.webp",
+    "/cars/range-rover-electric/home-charging.webp",
+    "/cars/range-rover-electric/charging.webp",
+    "/cars/range-rover-electric/wading.webp",
+    "/cars/range-rover-electric/off-road.webp",
+    "/cars/range-rover-electric/towing.webp",
+    "/cars/range-rover-electric/interior-cabin.webp",
+    "/cars/range-rover-electric/interior-front.webp",
+    "/cars/range-rover-electric/interior-rear.webp",
+    "/cars/range-rover-electric/seat-detail.webp",
+    "/cars/range-rover-electric/centre-console.webp",
+    "/cars/range-rover-electric/alloy-wheel.webp",
+    "/cars/range-rover-electric/solihull-line.webp",
+    "/cars/range-rover-electric/solihull-body-in-white.webp",
+    "/cars/range-rover-electric/solihull-battery-pack.webp"
+  ],
+  "heroImageUrl": "/cars/range-rover-electric/front-driving.webp",
+
+  "exteriorColors": [
+    {
+      "name": "Belgravia Green",
+      "hex": "#22392f",
+      "imageIndex": 1
+    },
+    { "name": "Santorini Black", "hex": "#14181a" },
+    { "name": "Varesine Blue", "hex": "#1c3a5e" }
+  ],
+
+  "interiorColors": [
+    { "name": "Light Cloud", "hex": "#d5d2c9", "imageIndex": 11 }
+  ],
+
+  "features": [
+    "800-volt architecture with fast, adaptable split-charging",
+    "118.5 kWh usable lithium-ion double-stack battery of 344 prismatic cells",
+    "Intelligent Driveline Dynamics, distributing rear torque from 100 per cent to zero",
+    "Integrated Traction Management, controlling motor speed within 50 milliseconds",
+    "Single Pedal mode, for pull-away on gradients up to 33 degrees",
+    "Twin-chamber air suspension with a lower centre of gravity than the V8",
+    "Wading depth of up to 900 mm",
+    "ThermAssist heat management, adding up to 25 miles of range",
+    "Silicon carbide semiconductors in both drive units",
+    "Battery Digital Twin with over 900 diagnostic data points",
+    "Software-over-the-air updates",
+    "Range Rover App for charge scheduling and vehicle status",
+    "Built-in NACS compatibility for the Tesla Supercharger network in North America",
+    "Range Rover Bespoke commissioning, for paint, materials and embroidery beyond the standard range"
+  ],
+
+  "customData": [
+    {
+      "label": "Battery",
+      "value": "118.5 kWh usable, lithium-ion double-stack, 344 prismatic cells"
+    },
+    { "label": "Architecture", "value": "800-volt, with split charging" },
+    { "label": "Range, WLTP", "value": "Up to 372 miles" },
+    {
+      "label": "Range, JLR's real-world figure",
+      "value": "Up to 333 miles (535 km)"
+    },
+    {
+      "label": "DC charging",
+      "value": "10–80 per cent in around 22 minutes at 350 kW"
+    },
+    {
+      "label": "Charge added in 10 minutes",
+      "value": "137 miles (220 km), WLTP"
+    },
+    { "label": "0–60 mph", "value": "As little as 4.3 seconds" },
+    { "label": "50–75 mph", "value": "As little as 2.7 seconds" },
+    { "label": "Wading depth", "value": "Up to 900 mm" },
+    {
+      "label": "Gradient, pull-away",
+      "value": "Up to 33 degrees, in Single Pedal mode"
+    },
+    { "label": "Gradient, rolling climb", "value": "Up to 45 degrees" },
+    {
+      "label": "Body",
+      "value": "Standard or long wheelbase; JLR states long-wheelbase availability is market-specific"
+    },
+    {
+      "label": "Propulsion warranty",
+      "value": "8 years or 100,000 miles; JLR states benefits and coverage vary by market"
+    },
+    {
+      "label": "Built at",
+      "value": "JLR Solihull, West Midlands — the only plant building this car"
+    },
+    {
+      "label": "Battery and drive units",
+      "value": "JLR Electric Propulsion Manufacturing Centre, Wolverhampton"
+    },
+    {
+      "label": "Patent applications",
+      "value": "Over 300 — the most for a single vehicle in Range Rover's history"
+    },
+    {
+      "label": "Development testing",
+      "value": "Over 1.5 million km and over 250,000 hours, including −40°C in Arjeplog and the Dubai desert"
+    },
+    {
+      "label": "UK on-the-road price",
+      "value": "From £154,070 OTR (JLR, 2 September 2026) — a UK retail figure including 20% VAT, not a landed cost"
+    },
+    {
+      "label": "UK price before VAT",
+      "value": "£128,337.50 — our arithmetic, after the £55 DVLA first registration fee and £10 first-year duty"
+    },
+    {
+      "label": "Towing capacity",
+      "value": "2,500 kg reported by Carscoops; JLR has published no towing figure"
+    }
+  ],
+
+  "valuePoints": [
+    {
+      "title": "You buy it where it is built",
+      "description": "Every Range Rover Electric in the world is built at Solihull, and the United Kingdom is one of the seven countries our own team buys in. Ordering out of Britain means one set of taxes and one margin between the factory and your port, rather than buying a British car back off another market's retailer and paying freight on it twice."
+    },
+    {
+      "title": "You see the VAT line separately",
+      "description": "About £25,700 of the £154,070 UK on-the-road price is British value added tax. On HMRC's export conditions that VAT does not fall due — but the conditions are real, with a three-month window to export and to evidence it. We show you that line on its own, so you can see which part of the number is the car and which part is a tax you may never pay."
+    },
+    {
+      "title": "You get told when the answer is no",
+      "description": "A 22-minute rapid charge assumes a 350 kW charger within range of where the car lives, and a 118.5 kWh battery assumes a home supply that can fill it. If your destination cannot support either, we will say so and point you at the plug-in hybrid or combustion car off the same line, rather than landing you something you cannot charge."
+    },
+    {
+      "title": "You choose the specification before you commit",
+      "description": "Seven specifications, standard or long wheelbase, right- or left-hand drive, and three launch colours. Tell us which combination you want and your destination port, and we will build the landed figure against that exact car — the purchase price, the freight, the marine cover and the duty line, itemised, before any money moves."
+    }
+  ],
+
+  "searchTags": [
+    "land-rover",
+    "range-rover",
+    "range-rover-electric",
+    "electric",
+    "ev",
+    "luxury-suv",
+    "suv",
+    "united-kingdom",
+    "uk",
+    "solihull",
+    "new"
+  ],
+
+  "notes": "The first battery-electric car to carry the Range Rover name, and you can order one now — JLR revealed it on 2 September 2026 and opened order books the same day. Twin 260 kW permanent magnet motors, up to 550PS and 850 Nm, a 118.5 kWh usable double-stack battery on an 800-volt architecture, up to 372 miles WLTP and 333 miles on JLR's own real-world figure, 10–80 per cent in around 22 minutes on a 350 kW charger, and 900 mm of wading kept. Every one of these cars in the world is built at Solihull, and the United Kingdom is one of the seven countries our own team buys in — so you can order it out of the country it is made in, choose the specification and the hand you need, and see the landed figure for your own port before anything is committed. Three things we will not pretend to know. JLR published no towing figure: the 2,500 kg in circulation is Carscoops' reporting, against 3,500 kg for the combustion car, and if you tow near that limit it is the line that decides this car for you. JLR published no kerb weight, which matters for freight quotation and for markets that band tax by weight. And JLR has not published what equipment separates SE, HSE and Autobiography, or SV from SV Ultra and SV Black, so those grades record only what the launch release actually confirms. Colour swatches are our approximation of the factory paint, not a colour match. Photography is JLR press imagery of the Range Rover Electric; JLR states that specification, design and availability alter continually and that its material is not an offer for the sale of any particular vehicle. No landed cost is shown on this page — the £154,070 figure is a United Kingdom on-the-road retail price with 20% UK VAT inside it, and it is not a base for an import calculation in any other country."
+}

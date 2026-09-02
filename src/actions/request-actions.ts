@@ -5,6 +5,7 @@ import crypto from "node:crypto";
 import { and, asc, desc, eq, ilike, ne, notInArray, sql } from "drizzle-orm";
 import { BLOG_BASE_PATH, getSuggestedPosts } from "@/config/blog";
 import { db, requests, users } from "@/db";
+import { getAgentPhotoUrl } from "@/lib/agent-photo";
 import {
   computePreferredContactAt,
   formatInIST,
@@ -260,9 +261,7 @@ export async function submitCarRequest(data: {
       _id: assignedAgent?.id || null,
       name: assignedAgent?.name || "Providence Support",
       email: assignedAgent?.email || "info@providenceauto.uk.com",
-      image:
-        assignedAgent?.image ||
-        "https://pub-0c6552f09f244121ac51914a1f782578.r2.dev/profiles/1775233164832-498582237.jpg",
+      image: await getAgentPhotoUrl(assignedAgent?.id, assignedAgent?.image),
     };
 
     // 2. Create the database record, appending the assigned agent's details.
@@ -464,8 +463,9 @@ export async function submitContactPreferences(input: {
     const fallbackAgent = {
       name: "Providence Support",
       email: "info@providenceauto.uk.com",
-      image:
-        "https://pub-0c6552f09f244121ac51914a1f782578.r2.dev/profiles/1775233164832-498582237.jpg",
+      // No photo rather than someone else's: EmailAvatar falls back to the
+      // Providence mark, which is honest where a stranger's headshot is not.
+      image: "",
       whatsappNumber: "",
     };
     let agent = {
@@ -481,7 +481,7 @@ export async function submitContactPreferences(input: {
         agent = {
           name: user.name || agent.name,
           email: user.email || fallbackAgent.email,
-          image: user.image || fallbackAgent.image,
+          image: await getAgentPhotoUrl(user.id, user.image),
           whatsappNumber: user.whatsappNumber || fallbackAgent.whatsappNumber,
         };
       }
