@@ -179,6 +179,10 @@ export default function RootLayout({
   return (
     <html lang="en">
       <head>
+        <meta
+          name="facebook-domain-verification"
+          content="x4qs1qthrb8eitu7o99x54n7m6y2hm"
+        />
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{
