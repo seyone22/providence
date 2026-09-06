@@ -72,6 +72,22 @@ export function Reveal({
 }: RevealProps) {
   // biome-ignore lint/suspicious/noExplicitAny: dynamic tag name
   const Comp = as as any;
+
+  // An immediate reveal is played by CSS, not by the runtime script, so its
+  // motion parameters have to reach the stylesheet — custom properties are the
+  // only way to get per-element values into a shared @keyframes. A scroll
+  // reveal keeps using the data-* attributes the runtime reads.
+  const style = immediate
+    ? ({
+        ...(rest.style || {}),
+        "--pa-ry": `${y}px`,
+        "--pa-rx": `${x}px`,
+        "--pa-rs": scale,
+        "--pa-rd": `${Math.round(duration * 1000)}ms`,
+        "--pa-rdelay": `${Math.round(delay * 1000)}ms`,
+      } as React.CSSProperties)
+    : rest.style;
+
   return (
     <Comp
       className={`${immediate ? "pa-reveal-immediate" : "pa-reveal"} ${className}`}
@@ -81,6 +97,7 @@ export function Reveal({
       data-rd={Math.round(duration * 1000)}
       data-rdelay={Math.round(delay * 1000)}
       {...rest}
+      style={style}
     >
       {children}
     </Comp>

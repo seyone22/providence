@@ -64,6 +64,12 @@ ${lastBuild ? `    <lastBuildDate>${toRfc822(lastBuild)}</lastBuildDate>\n` : ""
     headers: {
       "Content-Type": "application/rss+xml; charset=utf-8",
       "Cache-Control": "public, max-age=1800, s-maxage=1800",
+      // A feed is a discovery mechanism, not a page. Google had been crawling
+      // this URL and then filing it under "Crawled - currently not indexed",
+      // which is the correct outcome reached the expensive way. Saying so up
+      // front stops it competing with /latest-news for the same content, and
+      // `follow` keeps the article links working as crawl paths.
+      "X-Robots-Tag": "noindex, follow",
     },
   });
 }

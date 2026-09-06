@@ -429,7 +429,7 @@ export default function GalleryClient({ dossiers }: { dossiers: Dossier[] }) {
             className="relative h-[600px] lg:h-[800px] rounded-[2.5rem] overflow-hidden bg-zinc-200"
           >
             <img
-              src="/gallery_image.jpg"
+              src="/gallery_image.webp"
               alt="Vehicles being loaded into a shipping container"
               className="w-full h-full object-cover"
             />

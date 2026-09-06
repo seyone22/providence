@@ -1,5 +1,13 @@
+import type { Metadata } from "next";
 import { Suspense } from "react";
 import RequestForm from "@/components/requestForm";
+
+// This route exists to be iframed into a partner's site, so it is a chrome-less
+// copy of a form that already lives at /request. Indexing it would put a
+// headless duplicate of a real page into the results.
+export const metadata: Metadata = {
+  robots: { index: false, follow: false },
+};
 
 export default function EmbedRequestPage() {
   return (

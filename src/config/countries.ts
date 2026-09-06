@@ -137,7 +137,7 @@ const japan: CountryPageConfig = {
     title: "Japan.\nThe auction floor, in person.",
     subtitle:
       "Our Japan team stands on the auction floor every week, reads the original sheet in Japanese, and inspects the car before it is ever loaded. You get the grade, the photographs and one landed price before a single yen moves.",
-    backgroundImage: "/import-cars/hero-land-cruiser.jpg",
+    backgroundImage: "/import-cars/hero-land-cruiser.webp",
   },
   stats: [
     { value: "100k+", label: "Cars graded at auction each week" },

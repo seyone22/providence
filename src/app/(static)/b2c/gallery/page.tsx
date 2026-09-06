@@ -23,11 +23,14 @@ export async function generateMetadata(): Promise<Metadata> {
   const ogImage =
     active.find((d) => d.heroImageUrl)?.heroImageUrl ||
     active.find((d) => d.images?.length)?.images?.[0] ||
-    "/gallery_image.jpg";
+    "/og/default.jpg";
 
   return {
     title: PAGE_TITLE,
     description: PAGE_DESCRIPTION,
+    // Search Console had this URL under "Discovered - currently not indexed"
+    // with no canonical of its own to state which URL it wanted to be.
+    alternates: { canonical: "/b2c/gallery" },
     openGraph: {
       title: `${PAGE_TITLE} | Providence Auto`,
       description: PAGE_DESCRIPTION,
