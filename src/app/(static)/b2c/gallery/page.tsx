@@ -28,6 +28,9 @@ export async function generateMetadata(): Promise<Metadata> {
   return {
     title: PAGE_TITLE,
     description: PAGE_DESCRIPTION,
+    // Search Console had this URL under "Discovered - currently not indexed"
+    // with no canonical of its own to state which URL it wanted to be.
+    alternates: { canonical: "/b2c/gallery" },
     openGraph: {
       title: `${PAGE_TITLE} | Providence Auto`,
       description: PAGE_DESCRIPTION,

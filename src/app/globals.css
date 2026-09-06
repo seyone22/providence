@@ -283,14 +283,48 @@ html {
    reveal-runtime script (see layout.tsx), which doesn't touch the CSS
    transition/animation properties and so never conflicts with an element's own
    hover/transition styles. Elements start hidden; the runtime adds .pa-revealed
-   once (and never removes it) when they enter the viewport. */
-.pa-reveal,
-.pa-reveal-immediate {
+   once (and never removes it) when they enter the viewport.
+
+   There are two variants, and the difference is which of them can be the LCP
+   element.
+
+   `.pa-reveal` is for content below the fold. Starting at opacity:0 is correct
+   there — the browser has not been asked to paint it yet anyway.
+
+   `.pa-reveal-immediate` is for content in the first screen, and it must NEVER
+   start at opacity:0. Chrome does not count an element with zero opacity as
+   painted, so an above-the-fold element hidden this way postpones Largest
+   Contentful Paint until JavaScript un-hides it. That is not theoretical: this
+   rule used to cover both variants, and PageSpeed measured a 20.2s mobile LCP
+   against the "Welcome to Providence Auto" paragraph — with a 0ms TTFB and the
+   whole delay booked as "element render delay", i.e. the page had been
+   delivered and was simply being held invisible.
+
+   So the immediate variant is opaque from the first frame and animates
+   transform only, in pure CSS, with no JavaScript in the path. Moving an
+   element does not stop it counting as painted; fading it in from nothing
+   does. Per-element distance, duration and delay arrive as custom properties
+   set inline by <Reveal> (src/components/Reveal.tsx). */
+.pa-reveal {
   opacity: 0;
 }
-.pa-reveal.pa-revealed,
-.pa-reveal-immediate.pa-revealed {
+.pa-reveal.pa-revealed {
   opacity: 1;
+}
+
+.pa-reveal-immediate {
+  opacity: 1;
+  animation: pa-reveal-immediate-in var(--pa-rd, 600ms)
+    cubic-bezier(0.16, 1, 0.3, 1) var(--pa-rdelay, 0ms) both;
+}
+@keyframes pa-reveal-immediate-in {
+  from {
+    transform: translate3d(var(--pa-rx, 0px), var(--pa-ry, 16px), 0)
+      scale(var(--pa-rs, 1));
+  }
+  to {
+    transform: none;
+  }
 }
 
 /* ── Secondary CTA surface ────────────────────────────────────────────────

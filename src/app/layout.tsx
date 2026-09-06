@@ -202,8 +202,15 @@ export default function RootLayout({
                 it never conflicts with hover/transition styles and the revealed
                 state stays declaratively visible.
 
-                Every revealable element ships at opacity:0, so anything that
-                stops this runtime from running leaves real content invisible on a
+                SCOPE: this runtime drives `.pa-reveal` only — the below-the-fold
+                variant. `.pa-reveal-immediate` is animated entirely in CSS (see
+                globals.css) and is deliberately not touched here, because
+                anything above the fold must be able to paint without waiting for
+                a script. Handing the first screen to this runtime is what
+                produced a 20.2s mobile LCP.
+
+                A `.pa-reveal` element ships at opacity:0, so anything that stops
+                this runtime from running leaves real content invisible on a
                 fully loaded page. IntersectionObserver alone is not enough of a
                 guarantee: its callbacks ride the rendering lifecycle, so a phone
                 whose main thread is busy hydrating can hold a section on screen
@@ -261,13 +268,12 @@ export default function RootLayout({
     setTimeout(function(){ queued = false; sweep(); }, 120);
   }
   function add(el){
-    if(el.classList.contains('pa-reveal-immediate')){ reveal(el); return; }
     if(!io){ reveal(el); return; }
     io.observe(el);
     pending.push(el);
   }
   function scan(root){
-    var els=(root||document).querySelectorAll('.pa-reveal:not(.pa-revealed),.pa-reveal-immediate:not(.pa-revealed)');
+    var els=(root||document).querySelectorAll('.pa-reveal:not(.pa-revealed)');
     for(var i=0;i<els.length;i++) add(els[i]);
     sweep();
   }
@@ -278,7 +284,7 @@ export default function RootLayout({
         for(var j=0;j<nodes.length;j++){
           var n=nodes[j];
           if(n.nodeType===1){
-            if(n.classList && (n.classList.contains('pa-reveal')||n.classList.contains('pa-reveal-immediate'))) add(n);
+            if(n.classList && n.classList.contains('pa-reveal')) add(n);
             if(n.querySelectorAll) scan(n);
           }
         }

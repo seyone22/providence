@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { headers } from "next/headers";
-import { notFound, redirect } from "next/navigation";
+import { notFound, permanentRedirect, redirect } from "next/navigation";
 import { getSpecDossierById } from "@/actions/spec-actions";
 import GalleryDetailClient from "@/components/GalleryDetailClient";
 import { formatVehicleTitle } from "@/lib/vehicle";
@@ -41,9 +41,18 @@ export async function generateMetadata({
   // any relative path to an absolute URL for the preview crawler.
   const ogImage = car.heroImageUrl || car.images?.[0] || "/gallery_image.jpg";
 
+  // Every car is reachable at both /b2c/gallery/<slug> and /b2c/gallery/<_id>,
+  // and both used to answer 200 with no canonical between them — so Google saw
+  // two identical pages and indexed neither. Search Console listed five raw-id
+  // URLs alongside their own slug URLs under "Discovered - currently not
+  // indexed". The slug form is the one every internal link uses, so it is the
+  // canonical; the page component below 308s the id form onto it.
+  const canonicalPath = `/b2c/gallery/${car.slug || id}`;
+
   return {
     title: pageTitle,
     description: pageDescription,
+    alternates: { canonical: canonicalPath },
     openGraph: {
       title: pageTitle,
       description: pageDescription,
@@ -83,6 +92,15 @@ export default async function GalleryDetailPage({
   }
 
   const car = response.data;
+
+  // Collapse the two URLs for this car into one. The dossier resolves by slug
+  // OR by _id, so a car with a slug had two live, identical, 200-answering
+  // URLs — the exact shape of the duplicate-content problem Search Console
+  // reported. 308 (permanent) rather than 307, so the id form's accumulated
+  // equity moves to the slug instead of being split.
+  if (car.slug && id !== car.slug) {
+    permanentRedirect(`/b2c/gallery/${car.slug}`);
+  }
 
   const session = await auth.api.getSession({
     headers: await headers(),
