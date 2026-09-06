@@ -1,0 +1,18 @@
+# Served as /robots.txt on staging.* and dev.* only, via the host-gated rewrite
+# in next.config.ts. Production keeps the real robots.txt from src/app/robots.ts.
+#
+# Crawling is deliberately ALLOWED here. It looks wrong, and it is the whole
+# point: these hosts are already in Google's index (Search Console lists
+# staging/ and dev/ URLs under "Duplicate without user-selected canonical" and
+# "Alternate page with proper canonical tag"). A "Disallow: /" would stop
+# Googlebot fetching the pages at all — and a page it cannot fetch is a page
+# whose "X-Robots-Tag: noindex" it can never read, so every URL already indexed
+# would stay indexed indefinitely. Blocking the crawler is not the same as
+# removing the page.
+#
+# So: let Googlebot in, let it read the noindex header that next.config.ts sets
+# on every response from these hosts, and let it drop the URLs. Once Search
+# Console reports zero indexed pages for staging/dev, this file can be switched
+# to "Disallow: /" to save the crawl budget.
+User-Agent: *
+Allow: /

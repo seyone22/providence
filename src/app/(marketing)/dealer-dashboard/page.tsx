@@ -6,6 +6,7 @@ import {
   ExternalLink,
   Users,
 } from "lucide-react";
+import type { Metadata } from "next";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { getDealerDashboardData } from "@/actions/dealer-actions";
@@ -21,6 +22,14 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+
+// Auth-gated: it redirects (307) unless you are a signed-in dealer, so there is
+// nothing here for a crawler to index. It was listed in sitemap.ts until now,
+// which is why Search Console reported it under "Discovered - currently not
+// indexed" — we were advertising a redirect as though it were a page.
+export const metadata: Metadata = {
+  robots: { index: false, follow: false },
+};
 
 export default async function DealerDashboard() {
   const res = await getDealerDashboardData();

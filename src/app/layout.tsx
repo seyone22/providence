@@ -41,11 +41,17 @@ export const metadata: Metadata = {
   ],
   authors: [{ name: "Providence Auto" }],
   creator: "Providence Auto",
-  icons: {
-    icon: "/favicon.ico",
-    shortcut: "/favicon.ico",
-    apple: "/favicon.ico",
-  },
+  // No `icons` block on purpose. src/app/favicon.ico already exists, and Next's
+  // file convention emits the <link rel="icon"> for it with a content hash
+  // (/favicon.ico?favicon.<hash>.ico). Declaring "/favicon.ico" here as well
+  // published a SECOND, unhashed URL for the same bytes — Search Console duly
+  // crawled both and filed both under "Crawled - currently not indexed".
+  //
+  // Deleting the block leaves exactly one icon URL, and the hashed one is the
+  // better survivor: it can be cached forever and still change when the icon
+  // does. (`apple` pointed at the .ico too, which was wrong regardless — an
+  // apple-touch-icon has to be a 180x180 PNG. If one is ever wanted, add
+  // src/app/apple-icon.png and the convention will pick it up.)
   openGraph: {
     type: "website",
     locale: "en_US",
@@ -54,12 +60,21 @@ export const metadata: Metadata = {
     title: "World’s Largest Borderless Showroom | Global Car Sourcing",
     description:
       "Eight countries, our own people in every one. Save on luxury SUVs, sedans, and performance cars by cutting out the middleman. Direct delivery to your port.",
+    // 1200x630 is the card size every scraper crops to. This used to be
+    // /logo.png at 1007x967 — a near-square logo, which Slack, LinkedIn, X and
+    // iMessage all letterbox or centre-crop into something that reads as a
+    // broken image. CLAUDE.md makes 1200x630 a standing requirement for every
+    // page; the site-wide default was the one place still failing it.
+    //
+    // The photograph is ours (vehicles being loaded into a shipping container)
+    // and is the same asset the gallery already used. Swap the file if the
+    // brand wants a different card — the shape is the part that matters.
     images: [
       {
-        url: "/logo.png",
-        width: 1007,
-        height: 967,
-        alt: "Providence Auto",
+        url: "/og/default.jpg",
+        width: 1200,
+        height: 630,
+        alt: "Vehicles being loaded into a shipping container for export",
       },
     ],
   },
@@ -68,7 +83,9 @@ export const metadata: Metadata = {
     title: "Providence Auto | Global Car Sourcing & Direct Import",
     description:
       "Source premium vehicles from 40+ global markets tax-efficiently.",
-    images: ["/logo.png"],
+    // `summary_large_image` crops to 1200x630; the square logo was being
+    // letterboxed. Same card as Open Graph above.
+    images: ["/og/default.jpg"],
   },
   robots: {
     index: true,
@@ -202,8 +219,15 @@ export default function RootLayout({
                 it never conflicts with hover/transition styles and the revealed
                 state stays declaratively visible.
 
-                Every revealable element ships at opacity:0, so anything that
-                stops this runtime from running leaves real content invisible on a
+                SCOPE: this runtime drives `.pa-reveal` only — the below-the-fold
+                variant. `.pa-reveal-immediate` is animated entirely in CSS (see
+                globals.css) and is deliberately not touched here, because
+                anything above the fold must be able to paint without waiting for
+                a script. Handing the first screen to this runtime is what
+                produced a 20.2s mobile LCP.
+
+                A `.pa-reveal` element ships at opacity:0, so anything that stops
+                this runtime from running leaves real content invisible on a
                 fully loaded page. IntersectionObserver alone is not enough of a
                 guarantee: its callbacks ride the rendering lifecycle, so a phone
                 whose main thread is busy hydrating can hold a section on screen
@@ -261,13 +285,12 @@ export default function RootLayout({
     setTimeout(function(){ queued = false; sweep(); }, 120);
   }
   function add(el){
-    if(el.classList.contains('pa-reveal-immediate')){ reveal(el); return; }
     if(!io){ reveal(el); return; }
     io.observe(el);
     pending.push(el);
   }
   function scan(root){
-    var els=(root||document).querySelectorAll('.pa-reveal:not(.pa-revealed),.pa-reveal-immediate:not(.pa-revealed)');
+    var els=(root||document).querySelectorAll('.pa-reveal:not(.pa-revealed)');
     for(var i=0;i<els.length;i++) add(els[i]);
     sweep();
   }
@@ -278,7 +301,7 @@ export default function RootLayout({
         for(var j=0;j<nodes.length;j++){
           var n=nodes[j];
           if(n.nodeType===1){
-            if(n.classList && (n.classList.contains('pa-reveal')||n.classList.contains('pa-reveal-immediate'))) add(n);
+            if(n.classList && n.classList.contains('pa-reveal')) add(n);
             if(n.querySelectorAll) scan(n);
           }
         }

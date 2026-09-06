@@ -12,13 +12,13 @@ import { lhdCampaignConfig } from "@/config/landing-pages"; // Adjust path as ne
 
 // Hardcoded array using the specific files you highlighted
 const highlightedCarLogos = [
-  { src: "/car_logo/Aston Martin Logo.png", alt: "Aston Martin" },
-  { src: "/car_logo/ferrari logo.png", alt: "Ferrari" },
-  { src: "/car_logo/lamborghini logo.png", alt: "Lamborghini" },
-  { src: "/car_logo/Bentley Logo.png", alt: "Land Rover" },
-  { src: "/car_logo/mercedes benz logo.png", alt: "Lexus" },
-  { src: "/car_logo/porsche logo.png", alt: "Porsche" },
-  { src: "/car_logo/rolls royce logo.png", alt: "Rolls Royce" },
+  { src: "/car_logo/aston-martin-logo.webp", alt: "Aston Martin" },
+  { src: "/car_logo/ferrari-logo.webp", alt: "Ferrari" },
+  { src: "/car_logo/lamborghini-logo.webp", alt: "Lamborghini" },
+  { src: "/car_logo/bentley-logo.webp", alt: "Land Rover" },
+  { src: "/car_logo/mercedes-benz-logo.webp", alt: "Lexus" },
+  { src: "/car_logo/porsche-logo.webp", alt: "Porsche" },
+  { src: "/car_logo/rolls-royce-logo.webp", alt: "Rolls Royce" },
 ];
 
 export default function ConfigurableLanding() {

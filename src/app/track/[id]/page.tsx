@@ -15,11 +15,19 @@ import {
   Ship,
   Wrench,
 } from "lucide-react";
+import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { getTrackingData, markLeadAsOpened } from "@/actions/tracking-actions";
 import ClientAgentCard from "@/components/ClientAgentCard";
 import MinimalHeader from "@/components/MinimalHeader";
 import { getAgentPhotoUrl } from "@/lib/agent-photo";
+
+// One customer's order, reachable by anyone holding the link. It carries a real
+// person's name, vehicle and shipping status, so it must never be indexed —
+// `follow: false` too, since the links out of it are order-specific.
+export const metadata: Metadata = {
+  robots: { index: false, follow: false },
+};
 
 const TIMELINE_STEPS = [
   {

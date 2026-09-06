@@ -851,7 +851,7 @@ export const NEWS_ARTICLES: NewsArticle[] = [
     publishDate: "2026-08-07",
     updatedDate: "2026-08-17",
     readingTimeMins: 8,
-    heroImage: "/import-cars/japan-car-truck.jpeg",
+    heroImage: "/import-cars/japan-car-truck.webp",
     heroAlt:
       "Vehicles loaded for export in Japan, illustrating record Japanese used car export volumes",
     toc: [

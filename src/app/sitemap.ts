@@ -35,12 +35,17 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const baseUrl = "https://www.providenceauto.co.uk";
 
   // 1. Static Routes
+  //
+  // Every entry here must be a URL that returns 200 and is meant to be indexed.
+  // Two used to fail that: "/contact", which has no route at all and 404s, and
+  // "/dealer-dashboard", which is auth-gated and answers 307. Google reported
+  // both under "Discovered - currently not indexed", which is what advertising
+  // a dead URL in your own sitemap looks like from the outside. If a contact
+  // page is built later, add it back — but only once it serves a 200.
   const staticRoutes = [
     "",
     "/b2c/gallery",
     "/about-us",
-    "/contact",
-    "/dealer-dashboard",
     "/import-cars-to-ireland",
     "/import-japanese-cars",
     "/import-japanese-cars-to-ireland",
