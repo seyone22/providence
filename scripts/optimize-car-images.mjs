@@ -13,11 +13,20 @@
 // Originals are replaced, not kept alongside: two copies of every shot in git
 // is the thing this exists to avoid.
 
-import { readdir, stat, unlink } from "node:fs/promises";
+import {
+  readdir,
+  readFile,
+  rename,
+  stat,
+  unlink,
+  writeFile,
+} from "node:fs/promises";
 import path from "node:path";
 import sharp from "sharp";
 
-const SOURCE_EXTENSIONS = new Set([".jpg", ".jpeg", ".png"]);
+// .webp is included so an already-converted folder can be re-encoded in place
+// when the target width changes; see the inPlace handling in the loop below.
+const SOURCE_EXTENSIONS = new Set([".jpg", ".jpeg", ".png", ".webp"]);
 const DEFAULT_WIDTH = 1600;
 const QUALITY = 82;
 
@@ -60,17 +69,43 @@ async function run() {
   for (const name of entries) {
     const from = path.join(dir, name);
     const to = path.join(dir, `${path.parse(name).name}.webp`);
+    // A .webp source re-encodes onto its own path. Everything below therefore
+    // goes through a buffer and only unlinks when the name actually changed —
+    // streaming sharp straight back into the file it is reading truncates it.
+    const inPlace = path.resolve(from) === path.resolve(to);
 
     const originalSize = (await stat(from)).size;
     // withoutEnlargement: a source already narrower than the target is
     // re-encoded at its own size rather than upscaled into softness.
-    await sharp(from)
+    // The source is read into memory rather than handed to sharp as a path.
+    // libvips keeps a cached file descriptor on any path it opens, so an
+    // in-place re-encode would still be holding the file when we try to write
+    // it back — EPERM on Windows. A buffer has no descriptor to hold.
+    const buffer = await sharp(await readFile(from))
       .resize({ width, withoutEnlargement: true })
       .webp({ quality: QUALITY })
-      .toFile(to);
-    const newSize = (await stat(to)).size;
+      .toBuffer();
 
-    await unlink(from);
+    // Re-encoding an already-optimised WebP can come out bigger than the
+    // original. Keep whichever is smaller rather than regressing the file.
+    if (inPlace && buffer.length >= originalSize) {
+      before += originalSize;
+      after += originalSize;
+      console.log(
+        `  ${name}   ${kb(originalSize)} → unchanged (already smaller)`,
+      );
+      continue;
+    }
+
+    // Write to a sibling temp file and rename over the target. Renaming is
+    // atomic, so an interrupted run can never leave a half-written image, and
+    // on Windows it avoids the EBUSY/UNKNOWN you get from opening a path for
+    // writing while sharp still holds a read handle on it.
+    const tmp = `${to}.tmp`;
+    await writeFile(tmp, buffer);
+    if (!inPlace) await unlink(from);
+    await rename(tmp, to);
+    const newSize = buffer.length;
 
     before += originalSize;
     after += newSize;

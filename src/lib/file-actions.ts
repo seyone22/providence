@@ -48,6 +48,11 @@ export async function getPresignedUrls(files: FileMetadata[], folder: string) {
           Bucket: BUCKET_NAME,
           Key: fileName,
           ContentType: file.type || "application/octet-stream",
+          // R2 keys are timestamped and never rewritten in place, so an object at a
+          // given key really is immutable. Without this, R2 serves no Cache-Control at
+          // all — PageSpeed measured 2,276 KiB of dossier imagery being re-fetched on
+          // every visit under "Use efficient cache lifetimes".
+          CacheControl: "public, max-age=31536000, immutable",
         });
 
         // URL valid for 5 minutes
@@ -94,6 +99,11 @@ export async function uploadToR2(formData: FormData) {
           Key: fileName,
           Body: buffer,
           ContentType: file.type,
+          // R2 keys are timestamped and never rewritten in place, so an object at a
+          // given key really is immutable. Without this, R2 serves no Cache-Control at
+          // all — PageSpeed measured 2,276 KiB of dossier imagery being re-fetched on
+          // every visit under "Use efficient cache lifetimes".
+          CacheControl: "public, max-age=31536000, immutable",
         }),
       );
 
@@ -140,6 +150,11 @@ export async function uploadDossierImages(formData: FormData) {
           Key: fileName,
           Body: body,
           ContentType: file.type,
+          // R2 keys are timestamped and never rewritten in place, so an object at a
+          // given key really is immutable. Without this, R2 serves no Cache-Control at
+          // all — PageSpeed measured 2,276 KiB of dossier imagery being re-fetched on
+          // every visit under "Use efficient cache lifetimes".
+          CacheControl: "public, max-age=31536000, immutable",
         }),
       );
 
@@ -173,6 +188,11 @@ export async function uploadProfileImage(formData: FormData) {
         Key: fileName,
         Body: buffer,
         ContentType: file.type,
+        // R2 keys are timestamped and never rewritten in place, so an object at a
+        // given key really is immutable. Without this, R2 serves no Cache-Control at
+        // all — PageSpeed measured 2,276 KiB of dossier imagery being re-fetched on
+        // every visit under "Use efficient cache lifetimes".
+        CacheControl: "public, max-age=31536000, immutable",
       }),
     );
 

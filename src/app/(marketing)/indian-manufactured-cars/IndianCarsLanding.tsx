@@ -58,7 +58,7 @@ const BRANDS: { name: string; make: string; desc: string; logo: string }[] = [
     name: "Toyota",
     make: "Toyota",
     desc: "Global reliability, built at Indian scale",
-    logo: "/car_logo/Toyota.png",
+    logo: "/car_logo/toyota.webp",
   },
   {
     name: "Kia",
