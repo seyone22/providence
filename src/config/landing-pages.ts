@@ -85,7 +85,7 @@ export const lhdCampaignConfig: LandingPageConfig = {
   },
   valueProps: {
     title: "Why Import From Providence Auto",
-    containerImage: "/import-cars/japan-car-truck.jpeg",
+    containerImage: "/import-cars/japan-car-truck.webp",
     features: [
       {
         icon: FileSearch,
@@ -223,7 +223,7 @@ export const japanImportCampaignConfig: LandingPageConfig = {
     // the right-hand-drive-import story. Re-cropped to 3:2 to match the
     // container and keep side-trim minimal on wide viewports.
     // Photo: Nikolas Noonan / Unsplash (unsplash.com/photos/JuEtWryZhag).
-    backgroundImage: "/import-cars/hero-land-cruiser.jpg",
+    backgroundImage: "/import-cars/hero-land-cruiser.webp",
   },
   intro: {
     highlight: "You see the auction sheet before we spend a yen.",
@@ -231,7 +231,7 @@ export const japanImportCampaignConfig: LandingPageConfig = {
   },
   valueProps: {
     title: "Why Import From Providence Auto",
-    containerImage: "/import-cars/japan-car-truck.jpeg",
+    containerImage: "/import-cars/japan-car-truck.webp",
     features: [
       {
         icon: FileSearch,
@@ -403,7 +403,7 @@ export const indianCampaignConfig: LandingPageConfig = {
   },
   valueProps: {
     title: "Why Import From Providence Auto",
-    containerImage: "/import-cars/india-why-import.jpg",
+    containerImage: "/import-cars/india-why-import.webp",
     features: [
       {
         icon: Handshake,

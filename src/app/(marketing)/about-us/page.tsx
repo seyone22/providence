@@ -37,7 +37,7 @@ const DESCRIPTION =
 // Cropped to the 1200×630 size link-preview crawlers (Facebook, LinkedIn,
 // X, Slack…) expect. Self-hosted so the preview can't break when a
 // third-party CDN rewrites a URL.
-const OG_IMAGE = `${SITE}/about/og-about-us.jpg`;
+const OG_IMAGE = `${SITE}/about/og-about-us.webp`;
 
 export const metadata: Metadata = {
   title: { absolute: TITLE },
@@ -113,7 +113,7 @@ const VALUES = [
     n: "01",
     name: "Trust",
     line: "We earn it before we ask for anything in return. Every conversation, every car.",
-    src: "/about/value-trust.jpg",
+    src: "/about/value-trust.webp",
     lqip: "data:image/webp;base64,UklGRkYAAABXRUJQVlA4IDoAAACwAQCdASoIAAoAA4BaJaQAAuc/wEgAAP7sWdN8zCAP/Uj07hvEwgtytJQLFeBEdjVkwL0JsGW4QAAA",
     alt: "A Mercedes-Benz grille and star with a Providence Auto plate below it",
     rot: "-6deg",
@@ -124,7 +124,7 @@ const VALUES = [
     n: "02",
     name: "Reliability",
     line: "When we say we'll call, we call. When we say it's ready, it's ready.",
-    src: "/about/value-reliability.jpg",
+    src: "/about/value-reliability.webp",
     lqip: "data:image/webp;base64,UklGRkoAAABXRUJQVlA4ID4AAACwAQCdASoIAAoAA4BaJZwAAldnNekAAP7x4KLEZdUkDbvp+scHnqWSO4PdN1dB0MKDCcuaAz41r4H2LrwIAA==",
     alt: "The headlight and front wing of a white saloon in close detail",
     rot: "-3.6deg",
@@ -135,7 +135,7 @@ const VALUES = [
     n: "03",
     name: "Transparency",
     line: "No hidden fees, no small print. You see the price, the process and the people.",
-    src: "/about/value-transparency.jpg",
+    src: "/about/value-transparency.webp",
     lqip: "data:image/webp;base64,UklGRkoAAABXRUJQVlA4ID4AAADQAQCdASoIAAoAA4BaJZwAAueKfalBMAD+5Tr8ooB40eiyJ7BDxy8/E6Gu0KI6hrVFcGQdwErX/WBR2mAgAA==",
     alt: "The front of a silver sports car under low garage light",
     rot: "-1.2deg",
@@ -146,7 +146,7 @@ const VALUES = [
     n: "04",
     name: "Commitment",
     line: "It doesn't end at handover. We're in it for every mile after the sale.",
-    src: "/about/value-commitment.jpg",
+    src: "/about/value-commitment.webp",
     lqip: "data:image/webp;base64,UklGRl4AAABXRUJQVlA4IFIAAACwAQCdASoIAAoAA4BaJbACdADzeaBwAP6bY3IAuHFYBhTjOjSSDruet/me+fQ5EJxa0sJfEizoiZXNTcb2CaqlA/vCkH3IKYuD6hHXgMMKAAAA",
     alt: "The rear wheel and tail light of a yellow supercar in close detail",
     rot: "1.2deg",
@@ -157,7 +157,7 @@ const VALUES = [
     n: "05",
     name: "Honesty",
     line: "What the car needs, and what we'd choose ourselves. Advice over a quick sale.",
-    src: "/about/value-honesty.jpg",
+    src: "/about/value-honesty.webp",
     lqip: "data:image/webp;base64,UklGRk4AAABXRUJQVlA4IEIAAADwAQCdASoIAAoAA4BaJZQCdAD0slMyIAAA/u0muB3IowvHcMG5tBZXaU88SZZDqGV/hzHCD1GMhSYl0TEbFxxOGAA=",
     alt: "A lit headlight on a dark SUV at night",
     rot: "3.6deg",
@@ -168,7 +168,7 @@ const VALUES = [
     n: "06",
     name: "Relationship",
     line: "We remember your name and what matters to you. Not a transaction — a beginning.",
-    src: "/about/value-relationship.jpg",
+    src: "/about/value-relationship.webp",
     lqip: "data:image/webp;base64,UklGRjoAAABXRUJQVlA4IC4AAAAwAQCdASoIAAoAA4BaJaQAA3AA/vWY2Zlf5o/96++oOcgix2FYkJeVESnQAAAA",
     alt: "The rear of a dark coupé at night with its tail lights lit",
     rot: "6deg",
@@ -646,7 +646,7 @@ export default function AboutUsPage() {
                 <div className="relative">
                   <div className="relative aspect-[3/4] overflow-hidden rounded-[2rem] ring-1 ring-black/5 shadow-[0_30px_80px_-40px_rgba(0,0,0,0.5)]">
                     <Image
-                      src="/about/ferrari-296-cabin.jpg"
+                      src="/about/ferrari-296-cabin.webp"
                       alt="The red leather cabin of a right-hand-drive Ferrari 296 GTB with a Providence Auto mat laid in the footwell"
                       fill
                       sizes="(max-width: 1024px) 100vw, 45vw"
@@ -655,7 +655,7 @@ export default function AboutUsPage() {
                   </div>
                   <div className="hidden sm:block absolute -bottom-8 -right-5 w-40 lg:w-48 aspect-square overflow-hidden rounded-[1.25rem] ring-4 ring-white shadow-[0_20px_50px_-20px_rgba(0,0,0,0.45)]">
                     <Image
-                      src="/about/ferrari-296-exterior.jpg"
+                      src="/about/ferrari-296-exterior.webp"
                       alt="The same Ferrari 296 GTB photographed head-on, with a Providence Auto plate"
                       fill
                       sizes="(max-width: 1024px) 160px, 192px"
@@ -711,7 +711,7 @@ export default function AboutUsPage() {
                 className="relative mb-6 aspect-[1297/556] overflow-hidden rounded-[2rem] ring-1 ring-black/5"
               >
                 <Image
-                  src="/about/in-motion.jpg"
+                  src="/about/in-motion.webp"
                   alt="A car at speed on an open road, photographed with a panning blur"
                   fill
                   sizes="(max-width: 1024px) 100vw, 1024px"
@@ -732,7 +732,7 @@ export default function AboutUsPage() {
           {/* ── WHY WE'RE DIFFERENT ─────────────────── */}
           <section className="relative overflow-hidden py-20 md:py-28 px-6 bg-black">
             <Image
-              src="/about/coupe-overcast.jpg"
+              src="/about/coupe-overcast.webp"
               alt=""
               aria-hidden="true"
               fill
@@ -999,7 +999,7 @@ export default function AboutUsPage() {
           {/* ── TAGLINE BAND ─────────────────────────── */}
           <section className="relative h-[240px] md:h-[320px] overflow-hidden">
             <Image
-              src="/about/ferrari-f8-detail.jpg"
+              src="/about/ferrari-f8-detail.webp"
               alt="Close detail of the front wing and headlight of a red Ferrari"
               fill
               sizes="100vw"

@@ -80,7 +80,7 @@ const MODEL_GROUPS: ModelGroup[] = [
         model: "Aqua",
         blurb:
           "Japan's best-selling compact hybrid, and the cheapest hybrid we import.",
-        image: "/import-cars/aqua.jpg",
+        image: "/import-cars/aqua.webp",
       },
       {
         name: "Toyota Prius",
@@ -88,7 +88,7 @@ const MODEL_GROUPS: ModelGroup[] = [
         model: "Prius",
         blurb:
           "The car that established the hybrid, and still the most economical saloon we ship.",
-        image: "/import-cars/prius.jpg",
+        image: "/import-cars/prius.webp",
       },
       {
         name: "Honda Fit",
@@ -96,7 +96,7 @@ const MODEL_GROUPS: ModelGroup[] = [
         model: "Fit",
         blurb:
           "A compact hatchback with far more cabin and boot space than its footprint suggests.",
-        image: "/import-cars/fit.jpg",
+        image: "/import-cars/fit.webp",
       },
       {
         name: "Honda Vezel",
@@ -104,7 +104,7 @@ const MODEL_GROUPS: ModelGroup[] = [
         model: "Vezel",
         blurb:
           "Honda's compact hybrid crossover, sized for cities and priced below a Harrier.",
-        image: "/import-cars/vezel.jpg",
+        image: "/import-cars/vezel.webp",
       },
       {
         name: "Nissan Note e-POWER",
@@ -112,7 +112,7 @@ const MODEL_GROUPS: ModelGroup[] = [
         model: "Note e-POWER",
         blurb:
           "The petrol engine only charges the battery, so it drives like an EV but never needs plugging in.",
-        image: "/import-cars/note.jpg",
+        image: "/import-cars/note.webp",
       },
       {
         name: "Suzuki Swift",
@@ -120,7 +120,7 @@ const MODEL_GROUPS: ModelGroup[] = [
         model: "Swift",
         blurb:
           "A light, mechanically simple city car that is cheap to run and easy to get parts for.",
-        image: "/import-cars/swift.jpg",
+        image: "/import-cars/swift.webp",
       },
     ],
   },
@@ -137,7 +137,7 @@ const MODEL_GROUPS: ModelGroup[] = [
         model: "Harrier",
         blurb:
           "Toyota's premium SUV, and the single most requested import across East Africa.",
-        image: "/import-cars/harrier.jpg",
+        image: "/import-cars/harrier.webp",
       },
       {
         name: "Land Cruiser Prado",
@@ -145,7 +145,7 @@ const MODEL_GROUPS: ModelGroup[] = [
         model: "Land Cruiser Prado",
         blurb:
           "Genuine Land Cruiser capability in a smaller, cheaper and more economical body.",
-        image: "/import-cars/prado.jpg",
+        image: "/import-cars/prado.webp",
       },
       {
         name: "Land Cruiser 200",
@@ -153,7 +153,7 @@ const MODEL_GROUPS: ModelGroup[] = [
         model: "Land Cruiser 200",
         blurb:
           "The V8 Land Cruiser flagship, and the benchmark for long-distance reliability.",
-        image: "/import-cars/lc200.jpg",
+        image: "/import-cars/lc200.webp",
       },
       {
         name: "Land Cruiser 300",
@@ -161,7 +161,7 @@ const MODEL_GROUPS: ModelGroup[] = [
         model: "Land Cruiser 300",
         blurb:
           "The current Land Cruiser, available from Japan while local waiting lists are still years long.",
-        image: "/import-cars/lc300.jpg",
+        image: "/import-cars/lc300.webp",
       },
       {
         name: "Lexus LX 600",
@@ -169,7 +169,7 @@ const MODEL_GROUPS: ModelGroup[] = [
         model: "LX 600",
         blurb:
           "Land Cruiser 300 mechanicals underneath a Lexus cabin and finish.",
-        image: "/import-cars/lx600.jpg",
+        image: "/import-cars/lx600.webp",
       },
       {
         name: "Land Cruiser 70 Series",
@@ -177,7 +177,7 @@ const MODEL_GROUPS: ModelGroup[] = [
         model: "Land Cruiser 70 Series",
         blurb:
           "The utilitarian Land Cruiser built for the hardest conditions, and back in production.",
-        image: "/import-cars/lc70.jpg",
+        image: "/import-cars/lc70.webp",
       },
       {
         name: "Mercedes-Benz G-Class",
@@ -185,7 +185,7 @@ const MODEL_GROUPS: ModelGroup[] = [
         model: "G-Class",
         blurb:
           "The G-Wagon, reaching auction with the low mileage typical of Japanese ownership.",
-        image: "/import-cars/gwagon.jpg",
+        image: "/import-cars/gwagon.webp",
       },
     ],
   },
@@ -202,7 +202,7 @@ const MODEL_GROUPS: ModelGroup[] = [
         model: "Alphard",
         blurb:
           "Toyota's luxury people mover, with reclining business-class seats in the second row.",
-        image: "/import-cars/alphard.jpg",
+        image: "/import-cars/alphard.webp",
       },
       {
         name: "Toyota Noah",
@@ -210,7 +210,7 @@ const MODEL_GROUPS: ModelGroup[] = [
         model: "Noah",
         blurb:
           "An eight-seat van with sliding doors, offered as a hybrid with very low running costs.",
-        image: "/import-cars/noah.jpg",
+        image: "/import-cars/noah.webp",
       },
       {
         name: "Toyota Voxy",
@@ -218,7 +218,7 @@ const MODEL_GROUPS: ModelGroup[] = [
         model: "Voxy",
         blurb:
           "Mechanically the same van as the Noah, with sportier styling and trim.",
-        image: "/import-cars/voxy.jpg",
+        image: "/import-cars/voxy.webp",
       },
     ],
   },
@@ -235,7 +235,7 @@ const MODEL_GROUPS: ModelGroup[] = [
         model: "C-Class",
         blurb:
           "Executive saloon comfort, with the low mileage typical of Japanese ownership.",
-        image: "/import-cars/mercedes.jpg",
+        image: "/import-cars/mercedes.webp",
       },
       {
         name: "BMW 3 Series",
@@ -243,7 +243,7 @@ const MODEL_GROUPS: ModelGroup[] = [
         model: "3 Series",
         blurb:
           "BMW's compact executive saloon, bought at Japanese wholesale auction prices.",
-        image: "/import-cars/bmw.jpg",
+        image: "/import-cars/bmw.webp",
       },
       {
         name: "Nissan GT-R",
@@ -251,7 +251,7 @@ const MODEL_GROUPS: ModelGroup[] = [
         model: "GT-R",
         blurb:
           "Nissan's flagship performance car, sourced in the country that builds it.",
-        image: "/import-cars/gtr.jpg",
+        image: "/import-cars/gtr.webp",
       },
     ],
   },

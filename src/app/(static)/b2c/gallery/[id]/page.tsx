@@ -39,7 +39,7 @@ export async function generateMetadata({
   // Honor the admin-selected hero image, then fall back to the first gallery
   // image, then a static default. metadataBase (src/app/layout.tsx) resolves
   // any relative path to an absolute URL for the preview crawler.
-  const ogImage = car.heroImageUrl || car.images?.[0] || "/gallery_image.jpg";
+  const ogImage = car.heroImageUrl || car.images?.[0] || "/og/default.jpg";
 
   // Every car is reachable at both /b2c/gallery/<slug> and /b2c/gallery/<_id>,
   // and both used to answer 200 with no canonical between them — so Google saw

@@ -41,11 +41,17 @@ export const metadata: Metadata = {
   ],
   authors: [{ name: "Providence Auto" }],
   creator: "Providence Auto",
-  icons: {
-    icon: "/favicon.ico",
-    shortcut: "/favicon.ico",
-    apple: "/favicon.ico",
-  },
+  // No `icons` block on purpose. src/app/favicon.ico already exists, and Next's
+  // file convention emits the <link rel="icon"> for it with a content hash
+  // (/favicon.ico?favicon.<hash>.ico). Declaring "/favicon.ico" here as well
+  // published a SECOND, unhashed URL for the same bytes — Search Console duly
+  // crawled both and filed both under "Crawled - currently not indexed".
+  //
+  // Deleting the block leaves exactly one icon URL, and the hashed one is the
+  // better survivor: it can be cached forever and still change when the icon
+  // does. (`apple` pointed at the .ico too, which was wrong regardless — an
+  // apple-touch-icon has to be a 180x180 PNG. If one is ever wanted, add
+  // src/app/apple-icon.png and the convention will pick it up.)
   openGraph: {
     type: "website",
     locale: "en_US",
@@ -54,12 +60,21 @@ export const metadata: Metadata = {
     title: "World’s Largest Borderless Showroom | Global Car Sourcing",
     description:
       "Eight countries, our own people in every one. Save on luxury SUVs, sedans, and performance cars by cutting out the middleman. Direct delivery to your port.",
+    // 1200x630 is the card size every scraper crops to. This used to be
+    // /logo.png at 1007x967 — a near-square logo, which Slack, LinkedIn, X and
+    // iMessage all letterbox or centre-crop into something that reads as a
+    // broken image. CLAUDE.md makes 1200x630 a standing requirement for every
+    // page; the site-wide default was the one place still failing it.
+    //
+    // The photograph is ours (vehicles being loaded into a shipping container)
+    // and is the same asset the gallery already used. Swap the file if the
+    // brand wants a different card — the shape is the part that matters.
     images: [
       {
-        url: "/logo.png",
-        width: 1007,
-        height: 967,
-        alt: "Providence Auto",
+        url: "/og/default.jpg",
+        width: 1200,
+        height: 630,
+        alt: "Vehicles being loaded into a shipping container for export",
       },
     ],
   },
@@ -68,7 +83,9 @@ export const metadata: Metadata = {
     title: "Providence Auto | Global Car Sourcing & Direct Import",
     description:
       "Source premium vehicles from 40+ global markets tax-efficiently.",
-    images: ["/logo.png"],
+    // `summary_large_image` crops to 1200x630; the square logo was being
+    // letterboxed. Same card as Open Graph above.
+    images: ["/og/default.jpg"],
   },
   robots: {
     index: true,
