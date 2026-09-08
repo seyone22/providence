@@ -244,35 +244,44 @@ The current model gives a dealership exactly one login, because
 asks for dealer-created sales accounts, so the one-to-one becomes one-to-many and
 the dealership itself becomes the tenant.
 
+**Use Better-Auth's Organization plugin rather than hand-rolling this.** It is
+first-party, compatible with the installed 1.4.19 and the Drizzle adapter, and
+supplies the organization / member / invitation model, invitation expiry, seat
+limits, role evaluation, lifecycle hooks, and a server-side
+`activeOrganizationId` on the session row
+([Better-Auth: Organization](https://www.better-auth.com/docs/plugins/organization)).
+Map its singular table names to plural Drizzle exports exactly as the repo
+already does for `user` → `users` (`src/utils/auth.ts:14-22`).
+
 ```
-dealerAccount            the tenant — a dealership
-  id                     internal uuid, never public
+organization             the tenant — a dealership          [plugin]
+member                   a person inside a dealership       [plugin]
+invitation               a pending seat                     [plugin]
+
+dealerAccount            Providence's dealer-specific fields
+  organizationId     ->  organization.id, unique
   publicId               "DL-xxxxx", display only, not a key
-  companyName
-  status                 draft | submitted | in_review | more_info | approved | rejected | suspended
-  ...business details, see §4.2
+  embedKey               rotatable, see §3.2
+  status                 draft | submitted | in_review | info_requested
+                         | approved | rejected | suspended
+  catalogueAccess, tradeAccess       the two capability flags (§4.1)
   commissionRate         default 10.0
-  approvedAt, approvedBy, decisionNote
-  createdAt, updatedAt
+  approvedAt, approvedBy, decisionNote, rejectReason
+  assignedAt, firstTouchedAt, decidedAt          SLA instrumentation (§4.5)
 
-dealerMember             a person inside a dealership
-  id
-  dealerAccountId    ->  dealerAccount.id
-  userId             ->  user.id
-  role                   owner | manager | agent
-  status                 invited | active | disabled
-  invitedBy, invitedAt, acceptedAt
-  UNIQUE (dealerAccountId, userId)
-
-dealerInvitation         a pending seat
-  id, dealerAccountId, email, role
-  tokenHash              never store the raw token
-  expiresAt, acceptedAt, revokedAt
+dealerRequirement        one row per verification requirement (§4.3)
+  dealerAccountId, key, state, errorCode, humanReason
 ```
+
+**The plugin answers "may this role do X". It never answers "does this row
+belong to this tenant".** It scopes none of `requests`, `specDossiers` or
+`sourcingAnalyses`. Reading its completeness as tenant isolation is the single
+most expensive mistake available here — isolation is §3.5, and it is a separate
+workstream.
 
 `users.role` keeps a single coarse value (`dealer`) that says *which console you
-land in*. It must never carry the dealership identity — that lives on
-`dealerMember`, which is the row every dealer-scoped query joins through.
+land in*. It must never carry the dealership identity — that lives on `member`,
+which is the row every dealer-scoped query joins through.
 
 **Roles inside a dealership**
 
@@ -281,8 +290,20 @@ land in*. It must never carry the dealership identity — that lives on
 | `owner` | all | invite, disable, change roles | edit, publish | yes |
 | `manager` | all | invite agents | edit | yes |
 | `agent` | own assigned only | no | no | no |
+| `read-only` | all, read | no | no | no |
+
+Define the ladder once in a shared `permissions.ts` imported by both server and
+client. **Get the `read` versus `read-own` distinction right immediately** —
+retrofitting per-branch visibility after agents have shared pipelines is a data
+model change, not a permission change. Two invariants belong in
+`organizationHooks`: no role may grant a permission it does not itself hold, and
+a dealership can never be left without an owner.
 
 An `owner` is created by the approval action (§4.5), never by self-service.
+
+`authClient.organization.checkRolePermission` runs synchronously on the client
+and excludes dynamic roles — it is for rendering, never for authorisation. Only
+`auth.api.hasPermission` on the server decides anything.
 
 ### 3.2 Two identifiers, and why
 
@@ -300,7 +321,7 @@ scoped by an origin allow-list (§7.3). Because it is rotatable, a leaked or
 abused key is a support action rather than an incident.
 
 **Every dealer-scoped query resolves the tenant from the session**, via
-`dealerMember`. A tenant id supplied by the client is never trusted for
+`member`. A tenant id supplied by the client is never trusted for
 authorisation — the pattern to copy is `submitCarRequest`, which already
 re-validates a client-supplied `assignedAgentId` against the database and
 silently falls back (`src/actions/request-actions.ts:153-170`).
@@ -313,7 +334,7 @@ relation:
 
 ```
 requests.dealerAccountId   -> dealerAccount.id, nullable, INDEXED
-requests.dealerMemberId    -> dealerMember.id, nullable   (which of the dealer's people owns it)
+requests.dealerMemberId    -> member.id, nullable         (which of the dealer's people owns it)
 requests.origin            'providence' | 'dealer_widget' | 'dealer_page'
 ```
 
@@ -339,6 +360,69 @@ applied per environment** — `dev`, `staging`, `production` — following
 `drizzle/0005_conversion_ledger.sql` and `scripts/apply-grade-columns.mjs`.
 Staging is currently missing `dealerprofile` entirely and must be reconciled
 before anything else lands.
+
+### 3.5 Isolation is mechanical, or it does not hold
+
+A missing `where` clause is invisible to code review — the reviewer has to
+notice a line that *is not there*. Convention does not survive a hotfix. So
+isolation is enforced by structure and by CI, not by discipline.
+
+**One scoped data-access layer, built before the first dealer feature.**
+`src/db/tenant.ts` exports a `forTenant(orgId)` factory that bakes the tenant
+predicate into every read and write. Feature code never imports the
+tenant-owned tables directly; a Biome `no-restricted-imports` rule enforces it.
+The repo's existing discipline of routing every mutation through
+`src/actions/` gives a natural chokepoint most codebases lack — worth using
+while there are a handful of dealer actions rather than forty.
+
+**Four rules the layer encodes:**
+
+1. **Resolve the tenant from the session, never from the request.** A tenant id
+   in a form payload, query string, header or path segment is a *selector* — it
+   must be validated against the member table before it authorises anything.
+2. **Fetch by composite key `(organizationId, id)`.** Fetch-then-check invites
+   the forgotten-check variant and leaks existence through differing errors.
+3. **Cross-tenant access returns a 404-shaped denial, never a 403.** A 403
+   confirms the object exists and turns the endpoint into an enumeration oracle.
+4. **Cross-tenant staff reads go through a separately named, permission-gated,
+   audit-logged path** — `db.asPlatformAdmin()`. Never an optional `orgId`
+   parameter that means "all tenants" when omitted; an optional tenant filter
+   defaulting to no filter is the bug wearing the costume of the fix.
+
+**A required CI job runs a cross-tenant denial matrix** against a real Postgres:
+two seeded tenants, and for every tenant-scoped action and route, a call as
+tenant B against tenant A's id asserting denial. It is table-driven, and CI
+fails when an action exists that the matrix does not cover. Today's CI —
+non-blocking lint, `tsc --noEmit`, a dry `next build` — cannot catch a missing
+where clause.
+
+**Postgres RLS is a backstop, not the control.** If it is adopted, it is adopted
+properly: a dedicated non-owner, non-`BYPASSRLS` application role with
+`DATABASE_URL` repointed at it, `FORCE ROW LEVEL SECURITY`, a `WITH CHECK` on
+every policy as well as a `USING` (a `USING`-only policy isolates reads and
+leaves writes open), tenant context set with `set_config(..., true)` inside an
+explicit transaction, and an unset variable that fails closed. **RLS enabled
+while the app still connects as the table owner does nothing at all** — and
+looks correct in `pg_policies`, which is the most dangerous possible outcome.
+Two consequences specific to this repo: a boot-time assertion should query
+`pg_policies` and refuse to start if a tenant-owned table lacks its policy,
+because hand-applied per-environment SQL (§3.4) makes "present on staging,
+absent on production" the realistic failure; and a pool-reuse test must assert
+that two sequential requests for different tenants over a size-1 pool never see
+each other's rows.
+
+**Carry tenant context into every asynchronous path** — Resend emails, PDF
+generation, scheduled runs — as an explicit argument, and re-check membership at
+execution time. A dealer whose access was revoked on Monday must not receive a
+Tuesday PDF. Put the tenant id in every cache key whose value varies by tenant,
+and treat each new satellite surface (an export, a feed, a webhook, a dealer API
+key) as a fresh isolation review behind its own flag, so "turn it off" stays a
+real remediation.
+
+One existing surface to revisit here: `/track/[id]` is effectively a capability
+URL. That is acceptable for a one-off customer link and not acceptable once
+dealer staff have accounts and the id space is enumerable from their own lead
+list.
 
 ---
 
@@ -635,7 +719,7 @@ report, not a CRM. Dealers may set:
 - a note, appended to `statusHistory` with the dealer member as `performedBy`
 - a follow-up time, reusing `setFollowUpTimer` / `clearFollowUpTimer`
   (`src/lib/followUpTimer.ts`, `src/actions/admin-actions.ts:373-445`)
-- assignment to one of their own `dealerMember` agents
+- assignment to one of their own `agent` members
 
 Dealers may **not** write `status` — the nine-stage delivery pipeline is
 Providence's operational truth (sourcing, inspection, shipping), and a dealer
@@ -662,7 +746,7 @@ Two more defects in the same function, to fix rather than carry forward:
 - **No pagination, filter, search or sort** — `getDealerDashboardData` returns
   every matching row.
 
-### 5.4 Performance: do not copy the admin dashboard
+### 5.4 Do not copy the admin dashboard's query shape
 
 `getRequests` ships every non-draft lead in the database to the browser on every
 `/admin` load, unpaginated, after a `JSON.parse(JSON.stringify(...))` round trip
@@ -691,28 +775,90 @@ a record, not a derivation that silently changes when someone edits the rate.**
 
 ### 5.6 Dealers creating their own users
 
-`/portal/team` — invite by email, assign `owner` / `manager` / `agent`, disable a
-member. Backed by `dealerInvitation` (§3.1): a hashed single-use token, an expiry,
-one pending invitation per email per dealership.
+`/portal/team` — invite by email, assign a role, disable a member. Backed by the
+Organization plugin's `invitation` table (§3.1), configured defensively on day
+one:
 
-Two things the existing admin user-creation path does that must **not** be copied:
-it generates the password with `Math.random()` and emails it in plaintext
-(`admin-actions.ts:493`, `:509-513`). Invitations here carry a token and the
-invitee sets their own password.
+- `requireEmailVerificationOnInvitation: true`
+- `cancelPendingInvitationsOnReInvite: true`
+- `invitationExpiresIn` shortened from the 48-hour default to about 24 hours
+- **never** set `generateId: "serial"` anywhere — it disables ID generation for
+  every table, which would make invitation ids enumerable
+
+**One caveat that has to be designed around:** in Better-Auth the accept-invite
+link token *is* the invitation row's primary key, stored unhashed. Anyone with
+database read — a leaked backup, a log line, an over-broad admin screen — holds
+every live invitation. The email-match check on accept is therefore the only
+compensating control, and disabling it is a security decision rather than a UX
+convenience. Never log an accept-invitation URL or a raw invitation id, and keep
+invitation ids off admin screens.
+
+Domain-based auto-join is out of scope for v1. Providence's dealers are
+relationship-onboarded by a salesperson, so explicit invitation is both safer and
+truer to how the business actually works.
+
+Two things the existing admin user-creation path does that must **not** be
+copied: it generates the password with `Math.random()` and emails it in plaintext
+(`admin-actions.ts:493`, `:509-513`). Invitees set their own password.
 
 Disabling a member must revoke their live sessions — the pattern exists at
 `admin-actions.ts:587`, which deletes the user's session rows.
 
+**Support impersonation**, when it is needed, uses Better-Auth's admin plugin
+rather than a bespoke mechanism: it records `impersonatedBy` on the session and
+bounds the duration. Layer on a persistent banner naming impersonator,
+impersonated user, tenant and time remaining; an audit event on start, stop and
+every mutation performed while impersonating; a required reason; and read-only by
+default, with write impersonation a separate and rarer permission. Note the
+dependency: impersonation gated on a literal role string would silently
+mis-evaluate across environments until §2.2 is fixed, and the shared cookie
+prefix (§2.7) makes impersonated sessions materially harder to audit.
+
 ### 5.7 Notifications
 
 Nothing currently notifies a dealer of anything; the only lead emails go to the
-assigned Providence agent and the customer (`request-actions.ts:490-533`). A
-dealer whose widget produced a lead needs to know quickly, so: an email to the
-dealership on new lead and on stage change, per-member preferences, and a digest
-option. Every send reuses `src/lib/email.ts`, whose `sendEmail` already degrades
-to `[EMAIL MOCK]` without `RESEND_API_KEY` and swallows delivery failures — which
-means a missing key is invisible rather than loud, and the portal should surface
-send failures rather than inherit that silence.
+assigned Providence agent and the customer (`request-actions.ts:490-533`).
+
+**The target is a first response inside 15 minutes, and it should be
+instrumented.** DAS Technology's study of 1,700 dealerships (Q3–Q4 2024 data)
+found 61% already answer retail leads within 15 minutes — so a supplier that
+responds more slowly than the dealer's own standard reads as unserious. (Avoid
+the "5 minutes = 9× conversion" and "10% per minute" figures that circulate in
+automotive marketing posts; they trace back to a general B2B study from around
+2011 relabelled as automotive, with no dated primary source.)
+
+That target rules out email as the primary alert. **Notify over a channel with
+delivery and read signals** — push, WhatsApp or SMS — with email as the audit
+trail. `users.whatsappNumber` already exists (`src/utils/auth.ts:92`) and is
+unused for this.
+
+**Make the first automated response carry a real number.** The same study found
+74% of dealer responses excluded a price quote and 90% omitted multiple photos.
+Providence computes landed cost deterministically, so putting a CNF figure in
+the first reply is a differentiator competitors structurally cannot copy.
+
+Every send reuses `src/lib/email.ts`, whose `sendEmail` degrades to
+`[EMAIL MOCK]` without `RESEND_API_KEY` and swallows delivery failures — a
+missing key is invisible rather than loud, so the portal must surface send
+failures rather than inherit that silence.
+
+### 5.8 Feed the dealer's own CRM, do not compete with it
+
+The most consistent complaint about automotive CRMs is friction, and a supplier
+portal that becomes a second daily login competes with the system the dealer's
+staff already live in — and loses.
+
+**ADF XML is the format the trade already speaks.** A dealer-configurable ADF
+endpoint drops Providence leads natively into the VinSolutions, Elead or
+DealerSocket instance a dealer already runs, which removes the "we are not
+logging into another system" objection outright. Confirm the required-field
+matrix against the ADF specification before building; this research did not
+verify it.
+
+This does not delete §5.1 — a dealer with no CRM still needs somewhere to see
+their leads, and the portal is also where the landing page, embed and commission
+live. But **the portal is the fallback and the configuration surface; the feed is
+the product.** Build the feed first.
 
 ---
 
@@ -733,37 +879,130 @@ contract:
 - the picker dialog from `listGalleryForPicker` for featured vehicles
 - image upload via `uploadProfileImage` to R2 (`src/lib/file-actions.ts:171-204`)
 
-### 6.2 URL shape
+### 6.2 Dealer pages get their own host
 
-**Recommendation: `providenceauto.co.uk/dealers/<handle>` — a path, not a
-subdomain.**
+**Recommendation: `dealers.providenceauto.co.uk/<handle>` — a separate host, not
+a path on the main domain.** This is the one decision here that is expensive to
+reverse.
 
-A subdomain needs per-tenant DNS and certificates, its own entry in
-`trustedOrigins` (`src/utils/auth.ts:24-30`), and would widen exactly the
-cross-subdomain cookie surface that §2.7 already flags as a risk. A path costs
-none of that and reuses the existing routing, sitemap and metadata machinery
-unchanged.
+An earlier draft of this document recommended a path, on the operational grounds
+that a subdomain needs DNS, a wildcard certificate and an entry in
+`trustedOrigins`. The search evidence reverses that, and the operational
+objection turns out to be weaker than it looked: **a dealer landing page is
+public and unauthenticated, so it does not need the session cookie at all.** A
+cookie-less host is not a widening of the cross-subdomain surface flagged in
+§2.7 — it is a narrowing.
 
-`dealers` must be added to `RESERVED_SLUGS` before the first handle is claimed.
+What changed the recommendation:
+
+- **Google's site reputation abuse policy governs exactly this.** It applies
+  "where third-party content is published on a host site mainly because of that
+  host's already-established ranking signals", and defines third-party content
+  to include "white-label services" and "content created by people not employed
+  directly by the host site". The operative test is "whether content on the
+  relevant portion of the site is created with sufficient input, editorial
+  oversight, or contribution from the host site to be considered fully
+  integrated with the main site"
+  ([Google: spam policies](https://developers.google.com/search/docs/essentials/spam-policies)).
+  A dealer's sales page, authored by a separate commercial entity, on a domain
+  that has spent years earning rankings for car-import queries, does not
+  obviously pass that test.
+- **The user-generated-content carve-out is narrower than it reads.** It exempts
+  "sites designed to allow user-generated content, such as a forum website or
+  comment sections" — where the UGC *is* the product. A dealer portal bolted
+  onto a marketing and editorial site is not that.
+- **Enforcement is real and section-scoped.** Manual actions from May 2024
+  deindexed subfolders belonging to Forbes Advisor, CNN Underscored, USA Today's
+  Reviewed and WSJ Buy Side. All of those publishers had editorial processes;
+  light review did not save them. The accepted remedy was removing or
+  noindexing the section — which is an argument for keeping dealer pages
+  somewhere cleanly separable, so a problem can be amputated.
+- **The closest precedent argues for restraint.** Ahrefs' case study puts
+  linktr.ee's estimated organic traffic at roughly 6.5M/month in August 2022
+  falling to roughly 2.7M/month by May 2023, on a domain of millions of thin
+  customer pages. Even Linktree does not push all of its pages at Google.
+  (Traffic figures are Ahrefs estimates, not Linktree-reported.)
+- **The industry split is not accidental.** Products whose customer pages are
+  substantive commercial properties use subdomains — Substack, Shopify, Gumroad.
+  Products whose pages are deliberately thin keep them on paths, and
+  correspondingly do not try to rank them. A dealer sales page is on the
+  Substack side of that line.
+
+Register the dealer host as **its own Search Console property**, so a change in
+dealer-page performance is visibly separate from car pages, blog and news. If the
+section ever has to be amputated, that data is what makes the decision provable
+rather than arguable.
+
+`dealers` is reserved regardless, so that the path form can never be claimed as
+a handle later.
 
 ### 6.3 Handle rules
 
-Reuse `slugify()` and `RESERVED_SLUGS` from `sales-profile-actions.ts:12-44` —
-**do not write a fourth slug normaliser.** There are already three and they
-disagree: profiles strip underscores, dossiers keep them
-(`sales-profile-actions.ts:41` vs `spec-actions.ts:43`), and
-`scripts/create-car-page.mjs:137` carries a fourth.
+Reuse `slugify()` from `sales-profile-actions.ts:12-44` — **do not write a fourth
+slug normaliser.** There are already three and they disagree: profiles strip
+underscores, dossiers keep them (`sales-profile-actions.ts:41` vs
+`spec-actions.ts:43`), and `scripts/create-car-page.mjs:137` carries a fourth.
 
-The existing 19-word reserved list has drifted from the route tree — it is missing
-`about-us`, `latest-news`, `source-cars-from`, `embed`, `dealers` and every
-`import-*` page. It is hand-maintained, nothing regenerates it, and nothing tests
-it. Extend it, and add a test asserting every top-level route segment is reserved.
+**Charset: lowercase `a-z`, `0-9` and hyphen. 3–40 characters. No leading,
+trailing or doubled hyphen. Not all-numeric.**
 
-Availability check: a debounced async check as the dealer types, with four visible
-states — checking / available / taken / reserved — and suggestions when taken. The
-dossier editor's `{conflict, slug, suggestedSlug}` return plus a `forceSlug` retry
-(`spec-actions.ts:100-124`) is a better model than the profile editor's flat
-rejection.
+- **ASCII only, deliberately.** A permissive Unicode-letter class — Cal.com's
+  slugify uses `\p{L}`, which admits every script — makes a Cyrillic lookalike
+  of a real dealer's or a marque's handle claimable and visually
+  indistinguishable. For a business directory that is a live impersonation
+  vector, and restricting to ASCII closes it outright.
+- **No periods or underscores.** Periods make a handle look like a domain and
+  complicate the per-dealer host; underscores vanish when a URL is underlined in
+  an email.
+- **Not all-numeric**, so a handle can never collide with a future numeric id
+  route.
+
+**Normalise in the field as the dealer types, rather than rejecting.** Dealer
+trading names are exactly the input that breaks naive slugifiers — "Ó Briain
+Motors", "Müller & Sons", "J.D. Auto". One detail worth copying from Cal.com:
+keep a `forDisplayingInput` flag so a *trailing* hyphen survives while someone is
+mid-word — typing "north-" on the way to "north-london-motors" should not have
+the hyphen yanked out from under the caret. Strip it on save, not on keystroke.
+
+**The reserved list is two layers with two different mechanisms.**
+
+1. **Route collisions, generated — never hand-maintained.** Derive the list from
+   the route manifest at build time and add a CI check that fails when a new
+   route collides with a live handle. Hand-maintained lists drift the first time
+   someone adds a route, and the failure is silent until a dealer's page shadows
+   something real. The existing 19-word `RESERVED_SLUGS` has already drifted: it
+   is missing `about-us`, `latest-news`, `source-cars-from`, `embed`, `motion-lab`
+   and every `import-*` page. GitLab publishes its equivalent list openly and it
+   is purely mechanical — `admin`, `api`, `assets`, `favicon.ico`, `robots.txt`,
+   `sitemap.xml`, `.well-known` and so on
+   ([GitLab: reserved names](https://docs.gitlab.com/user/reserved_names/)).
+   Moving dealer pages to their own host (§6.2) shrinks this set considerably —
+   handles then collide only with routes on *that* host — but the infrastructure
+   names still have to be held back.
+2. **A short curated hold list**, hand-written and deliberately small: generic
+   high-value terms (`imports`, `jdm`, `auction`, `cars`, `providence` and
+   misspellings of it) and marque names. These are reserved, not sold.
+
+**Impersonation is solved at onboarding, not by blocklist.** No blocklist
+catches every way to imitate a real business. Providence has a lever consumer
+products lack: nothing is open self-serve, so a handle is only claimable by a
+verified trading entity with a company or VAT number attached (§4.3). Keep a
+terms clause reserving the right to reassign a handle anyway — two legitimate
+dealers will eventually want the same word.
+
+**The availability check is advisory; the unique index is the authority.**
+Instant local validation first (charset, length, reserved list) with no network
+call, then a debounced abortable async check, then a unique constraint at the
+database with a graceful conflict message. Two dealers can pass the check
+simultaneously; without the constraint one of them gets a 500 at the worst
+moment in onboarding. Show five states — checking / available / taken / invalid /
+reserved — and make **reserved read differently from taken**, so a dealer does
+not go hunting for a phantom owner. Offer suggestions when taken: generic names
+collide constantly in this trade, and nudging "citymotors" toward
+"citymotors-leeds" also produces handles that read as real businesses. The
+dossier editor's `{conflict, slug, suggestedSlug}` return plus a `forceSlug`
+retry (`spec-actions.ts:100-124`) is a better model than the profile editor's
+flat rejection.
 
 ### 6.4 Two defects the template will otherwise pass on
 
@@ -772,6 +1011,23 @@ no alias table, no catch-all rewrite and no middleware. The profile editor's
 entire mitigation is hint text reading "Changing this breaks old links." A
 dealer's handle will be printed on stock lists and sent to customers, so it must
 be solved here: keep an alias table of retired handles and answer them with a 308.
+
+The governing policy, which matches what Substack and Shopify both do: **one
+self-serve handle change, then support only; the old handle redirects
+permanently; and a redirected handle is never released back into the pool.**
+Re-issuing a handle silently hands one dealer's inbound links, bookmarks and
+printed business cards to a competitor — a customer-confusion problem, and
+potentially a legal one, before it is an SEO problem.
+
+The same reasoning covers departure. Write the dormancy and exit policy into the
+dealer agreement *before* launch: a suggested twelve months of no login, no edit
+and no traffic, an email at ten months, then unpublish — **410, not 404**, which
+drops from the index faster — and release only after a further period. On account
+closure, unpublish immediately. A departed dealer's page left serving stale stock
+and prices is a claim the business no longer stands behind. (Linktree runs the
+same multi-signal clock at six months and reserves the right to reclaim "without
+notice"; for a B2B relationship where a quiet quarter is normal, twelve months
+and an advance email is the better read.)
 
 **Case variants all return 200.** `getPublishedProfileBySlug` re-slugifies the
 incoming parameter (`sales-profile-actions.ts:111`), so `/team/Abdallah`,
@@ -796,14 +1052,51 @@ because the reader hard-filters `isPublished = true` — the "View my page" butt
   URL, canonical, explicit `robots`, one H1, and a 40–50 word direct answer for
   AEO. `/team/[slug]` currently ships an OG image with no dimensions — do not copy
   that part.
-- **Indexing policy is an open question (§10).** Many thin, partner-authored pages
-  on the main domain is a real risk to the parent domain's reputation. The default
-  recommended here is `noindex` until a quality threshold is met — a real logo, a
-  description over a minimum length, at least one listing — and index after.
+- **Ship `noindex`, and make indexation something a dealer earns.** This is
+  Google's own prescription for platforms hosting third-party pages: for users
+  without established reputation, "consider adding the `noindex` robots `meta`
+  tag on posts that come from new users", and "consider adding a `nofollow` or
+  `ugc` `rel` attribute to all links in untrusted content"
+  ([Google: prevent abuse](https://developers.google.com/search/docs/monitor-debug/prevent-abuse)).
+  The gate: a verified trading entity, every required field present, a minimum
+  count of genuinely unique words, at least one real listing with original
+  photographs, and a human approval click. Store the result as a boolean on the
+  dealer record feeding the page's exported `robots` — no new infrastructure,
+  since per-page `robots` is already a standing requirement in `CLAUDE.md`.
+  Shipping `noindex` first costs nothing; the publishers deindexed in 2024 had
+  to apply exactly this remedy under duress, so doing it up front is the same
+  action taken calmly.
+- **`rel="ugc nofollow"` on every outbound link in dealer-authored content**,
+  permanently rather than only for new accounts. It costs nothing and removes
+  the "link scheme" reading of the feature entirely.
+- **A fixed template with a themeable shell, never a free-form builder.**
+  Dealers control facts that are theirs — name, logo, photographs, stock,
+  coverage area, opening hours, contact — plus a small palette of colour and
+  layout choices. No free-form HTML, no arbitrary heading structure, no
+  unmoderated outbound links. Two reasons beyond consistency. First, **a fixed
+  schema is checkable and free-form HTML is not**, which is what makes the
+  quality gate above enforceable at all. Second, and more important here:
+  **dealers must not author copy about import duty, VAT, registration tax or
+  delivery timelines.** Providence's own standing rules forbid inventing a tax
+  or duty figure and forbid blanket door-to-door claims (`business-context.md`
+  §4, `writing-angle.md` §2) — and a partner-authored page under our domain and
+  our brand is the single most likely place those rules get broken.
+- **Force real differentiation, or accept the pages are not a search asset.**
+  Two hundred pages differing only by town name is the doorway and scaled-content
+  pattern Google names explicitly, and it is what a fixed template invites.
+  Either each page carries the dealer's actual stock and photographs — in which
+  case index the ones that clear the gate — or the pages are a customer-facing
+  utility and stay `noindex`. A "generate my dealer profile with AI" button would
+  land squarely inside Google's named scaled-content examples; it is out of scope
+  by design.
+- **Self-canonical, always.** Each page declares an absolute canonical to itself
+  on the chosen host. Pointing dealer pages at a hub to consolidate authority
+  does not work — Google treats canonical as a hint and ignores obviously wrong
+  ones — and a retired handle is a 301, never a canonical.
 
 ### 6.6 Attribution from the page
 
-An inquiry submitted on `/dealers/<handle>` must land in that dealer's CRM. The
+An inquiry submitted on `dealers.providenceauto.co.uk/<handle>` must land in that dealer's CRM. The
 form already accepts an `assignedAgentId` prop and the action re-validates it
 server-side (`request-actions.ts:153-170`). The dealer page follows the same
 shape, except that the action resolves `dealerAccountId` from **the handle in the
@@ -943,7 +1236,7 @@ state (`draft` / `pending` / `live` / `rejected`) and a takedown path.
 
 ### 8.2 Where they render
 
-- **On `/dealers/<handle>`** — two clearly labelled groups. A buyer must be able to
+- **On the dealer's landing page** — two clearly labelled groups. A buyer must be able to
   tell "sourced to order by Providence" from "in this dealer's stock now", because
   the first is an import lead and the second is a local sale. Blurring them would
   be a claim the business cannot stand behind, and it is the kind of over-claim
@@ -954,9 +1247,24 @@ state (`draft` / `pending` / `live` / `rejected`) and a takedown path.
 
 ### 8.3 Structured data
 
-Vehicle listings on a public page want `Vehicle`/`Car` JSON-LD. The codebase
-already has five hand-rolled copies of the same `dangerouslySetInnerHTML` JSON-LD
-boilerplate; a sixth should not be typed by hand — extract a helper.
+**Do not build against Google's Vehicle Listing structured data.** That feature
+was retired on 12 June 2025 and its documentation removed in September 2025 —
+there is no rich result and no Search Console reporting, and Google stated the
+change does not affect ranking. It was US and English-only anyway, and
+explicitly excluded vehicle auctions and auction pricing, so it never fitted an
+import sourcing business. Anything written before mid-2025 — tutorials, schema
+generator sites, AI answers — still describes it as live.
+
+Emit schema.org `Car` / `Vehicle` JSON-LD anyway, using the archived property
+list as the field shape, but justify it as AEO and non-Google-consumer work
+rather than as a rich-result play. Two field notes: make
+`vehicleIdentificationNumber` optional, since pre-purchase auction stock often
+has a chassis number rather than an allocated VIN; and omit `offers.price`
+entirely on `isUpcoming` dossiers.
+
+The codebase already has five hand-rolled copies of the same
+`dangerouslySetInnerHTML` JSON-LD boilerplate; a sixth should not be typed by
+hand — extract a helper.
 
 ---
 
@@ -984,12 +1292,17 @@ and it is the most important one in the document.
 - [ ] Suspension revokes live sessions
 - [ ] Add staging to `trustedOrigins`
 - [ ] Reconcile the `dealerprofile` table on staging (§3.4)
-- [ ] Integration tests asserting cross-tenant and cross-role denial
+- [ ] `src/db/tenant.ts` — the scoped data-access layer, with the Biome
+      `no-restricted-imports` rule enforcing it (§3.5)
+- [ ] The cross-tenant denial matrix as a required CI job against a real Postgres
 
 ### Phase 1 — accounts and approval (requirement 1)
 
-- [ ] SQL: `dealerAccount`, `dealerMember`, `dealerInvitation`; backfill the two
+- [ ] SQL: `dealerAccount`, `dealerRequirement`, plus the plugin's own tables;
+      backfill the two
       existing dev rows; per-environment (§3.4)
+- [ ] Install and configure the Better-Auth Organization plugin, with the
+      singular→plural table mapping and the defensive invitation settings (§5.6)
 - [ ] `src/actions/dealer-application-actions.ts` — apply, resubmit, withdraw
 - [ ] `src/actions/dealer-admin-actions.ts` — the review queue, approve, request
       more information, reject, suspend (admin-gated)
@@ -1011,7 +1324,10 @@ and it is the most important one in the document.
 - [ ] `/portal` shell, `/portal/leads`, `/portal/leads/[id]`
 - [ ] `/portal/team` — invitations, roles, disable
 - [ ] `dealerCommission` ledger
-- [ ] Dealer notifications
+- [ ] ADF XML lead feed, and the endpoint configuration UI (§5.8) — **before**
+      the portal CRM screens
+- [ ] Dealer notifications over a read-receipted channel, with the 15-minute
+      first-response target instrumented (§5.7)
 
 ### Phase 3 — the embed (requirement 4)
 
@@ -1028,14 +1344,21 @@ and it is the most important one in the document.
 
 ### Phase 4 — the landing page (requirement 3)
 
-- [ ] SQL: handle, published flag, page content, alias table
-- [ ] Extend `RESERVED_SLUGS`; add the route-coverage test
-- [ ] Handle availability check
-- [ ] `/dealers/[handle]` with full metadata and JSON-LD, `force-dynamic`
-- [ ] 308 for case variants and retired handles
+- [ ] DNS, wildcard certificate and Railway config for the dealer host (§6.2)
+- [ ] SQL: handle, published flag, indexable flag, page content, alias table
+- [ ] Generate the reserved-route list from the route manifest; add the CI
+      collision check; add the curated hold list (§6.3)
+- [ ] Handle availability check — five states, debounced, unique index behind it
+- [ ] `dealers.providenceauto.co.uk/[handle]` with full metadata, self-canonical
+      and JSON-LD, `force-dynamic`
+- [ ] `noindex` by default; the quality gate that flips it; `rel="ugc nofollow"`
+      on all dealer-authored outbound links (§6.5)
+- [ ] 301 for retired handles, 308 for case variants; never re-release a handle
 - [ ] Draft preview for the owner
-- [ ] Page editor in the portal
-- [ ] Sitemap entry, gated on the indexing policy (Open question 2)
+- [ ] Fixed-template page editor — no free-form HTML, no dealer-authored tax,
+      duty or delivery copy (§6.5)
+- [ ] Register the dealer host as its own Search Console property
+- [ ] Dormancy and departure policy written into the dealer agreement (§6.4)
 
 ### Phase 5 — listings (requirement 5)
 
@@ -1063,13 +1386,36 @@ control, produces unreadable results on hostile backgrounds, and re-themes the
 form whenever the dealer restyles their site. Confirming once is more predictable
 for both sides.
 
-**2. Should dealer landing pages be indexed?**
-*Recommendation:* `noindex` until a quality threshold is met (real logo, a
-description over a minimum length, at least one listing), then index. Partner-
-authored thin pages on the main domain carry a real risk to the parent domain's
-reputation, and this domain has already had duplicate-content issues flagged in
-Search Console. A `noindex` default costs the dealer nothing while their page is
-empty, which is exactly when indexing would hurt.
+The research supports this unusually clearly: **no comparable product
+auto-detects the host page's brand.** Calendly, Cal.com, Tally, Typeform,
+HubSpot, Intercom and Turnstile all terminate in a cross-origin iframe and all
+take theming explicitly — URL parameters, a JS token object, data attributes, or
+settings in the vendor's own dashboard. Where their APIs say "auto" they mean the
+*visitor's* OS colour-scheme preference, never the embedding site's palette. And
+inside a cross-origin iframe, host-style sniffing is not even possible unless the
+loader script samples the host and forwards it.
+
+What the mature products *do* automate is contrast. Stripe exposes a derived
+`accessibleColorOnColorPrimary` token that buttons use by default; Intercom
+published its algorithm — clamp the customer's colour in HSL to roughly 0.95
+lightness for surfaces and 0.30 for text to hold 4.5:1 — and explicitly rejected
+an earlier black-text fallback because overriding the customer's colour felt
+broken. That is the half to copy, and it maps onto `contrastInk` in
+`src/lib/vehicle-colors.ts`, which already exists.
+
+**2. Do dealer pages get their own host?**
+The indexing half of this question is now answered by evidence rather than
+judgement — `noindex` by default with an earned quality gate, per Google's own
+platform guidance (§6.5). What still needs a decision is the **host**: §6.2
+recommends `dealers.providenceauto.co.uk` rather than a path on the main domain,
+on site-reputation-abuse grounds, and that is the one choice here that is
+expensive to reverse.
+*Recommendation:* take the subdomain. The operational cost is DNS, a wildcard
+certificate and Railway config; the cost of the alternative is attaching
+partner-authored commercial pages to the hostname carrying the car pages, blog
+and news. Note that this is a judgement about risk, not a certainty: Google's
+enforcement in 2024 was section-scoped, which is precisely why a separable
+section is worth having.
 
 **3. What is the commercial model, and what happens to "Free Forever"?**
 `/saas` currently ends with a CTA reading **"Sign up now — Free Forever"**, and
@@ -1080,7 +1426,21 @@ is undocumented anywhere outside the code.
 *Recommendation:* decide the model first, then rewrite both CTAs to promise
 application rather than instant access. This is a factual claim about what the
 business offers, so the answer belongs in `business-context.md` §6 — see
-Question 6.
+Question 7.
+
+For a starting point, the grammar dealers already understand from Manheim and
+BCA is **hybrid**: a modest access subscription plus a per-unit fee banded by
+vehicle value and tiered by committed volume. Pure subscription churns in a slow
+month; pure per-unit gives no predictable revenue. Auto Trader's published
+average revenue per retailer (£2,995/month, FY26) is a useful ceiling anchor for
+what a UK dealer already pays a platform — and sourcing is not the dealer's
+primary demand channel, so the number should sit well below it.
+
+One option worth weighing on brand grounds rather than commercial ones:
+**publishing the rate card.** Manheim's own buying-costs page declines to publish
+fee percentages and sends buyers to their local auction centre. Breaking that
+norm is cheap, and it aligns with the position in `brand-position.md` §8 — "one
+all-in landed figure before you commit anything" — rather than with a black box.
 
 **4. Who is accountable for dealer-authored listings on our domain?**
 Dealer stock rendered on `providenceauto.co.uk` is content we host and Google
@@ -1091,13 +1451,65 @@ stock.
 and a visible per-listing attribution line naming the dealer as the seller. Legal
 review before Phase 5 ships, not after.
 
-**5. Is a dealer's data separable on exit?**
-When a dealership leaves, who owns the leads their widget generated — and what is
-deleted versus retained? This is a UK GDPR question (controller versus processor)
-and it should be answered before the first external dealer signs anything, not
-when the first one leaves.
-*Recommendation:* answer it in the partner terms, and build export and deletion
-in Phase 2 while the data model is being written.
+**5. The embedded widget is very likely a joint controller arrangement, not a
+processor one. Has anyone checked?**
+This is the finding in this document with the widest blast radius, and it needs a
+qualified adviser rather than a specification. **Nothing here is legal advice.**
+
+The instinctive framing — Providence processes lead data on the dealer's behalf,
+so sign them onto a standard Article 28 processor DPA — appears to be wrong.
+*Fashion ID* (CJEU C-40/17) is close to the facts: a third-party widget embedded
+on another party's site, serving both parties' commercial interests, creates
+**joint controllership** over the collection and transmission of the data. A
+Providence widget on a dealer's site collects leads for Providence's own
+commercial purpose — that is the entire point of it — and the ICO is explicit
+that you cannot be both a controller and a processor for the same processing
+activity, which closes the hybrid escape route.
+
+Four consequences, if that reading holds:
+
+- **An Article 26 arrangement** is needed, with its main points published, and an
+  agreement on who fields data subject rights requests. Agreeing that the dealer
+  handles them does not discharge Providence's own obligations — all joint
+  controllers remain responsible.
+- **Scope it narrowly.** *Fashion ID* holds the opposite of the intuitive
+  reading: joint controllership covers collection and transmission **only**, not
+  what each party subsequently does. Providence is sole controller in its own
+  CRM; the dealer is sole controller in theirs. An arrangement making both
+  parties joint controllers for everything downstream creates obligations neither
+  can perform.
+- **The transparency notice goes inside the widget**, at the point of collection,
+  naming Providence as a controller with its purposes, before the customer can
+  submit. A link to the dealer's privacy policy in their page footer does not
+  discharge this.
+- **Providence needs its own lawful basis** for the collection-and-transmission
+  phase, independent of the dealer's. If legitimate interests is used, write the
+  assessment before launch, not after.
+
+Also unchecked and out of this document's scope: if the widget sets or reads
+anything on the visitor's device, PECR applies on top of UK GDPR with its own
+consent rule.
+
+The original exit question still stands underneath all this — when a dealership
+leaves, what is exported, what is deleted, what is retained. Build export and
+deletion in Phase 2 while the data model is being written, and answer the
+retention question in the partner terms rather than when the first dealer
+leaves.
+
+**6. How is trade status evidenced, rather than asserted?**
+Under the Consumer Rights Act 2015, a limited company is never a consumer — but a
+sole trader or a director buying in a personal capacity may well be one, and
+s.2(4) puts the burden of **disproving** consumer status on the seller. A `role`
+column reading `dealer` is not evidence.
+*Recommendation:* capture trade status as evidence at application and keep it —
+company number, VAT number, declared business purpose, and the trade terms
+accepted, timestamped per account and ideally per order. §4.3 already collects
+most of this for verification reasons; the point here is that it must be
+*retained as a record*, not just checked and discarded. Keep the dealer and
+consumer journeys genuinely separate — separate terms, separate forms, separate
+entry points — since one widget serving both audiences is the mechanism by which
+a trade sale gets recharacterised as a consumer sale. Legal review before the
+first external dealer signs anything.
 
 ### Source-of-truth questions
 
@@ -1105,7 +1517,7 @@ Per `brand-position.md` §11.2, questions that would change a source-of-truth
 document are raised with a recommendation, logged in that document's §11.3, and
 re-raised until answered. Two are raised by this work.
 
-**6. `business-context.md` §6 describes the dealer platform offer as immediate
+**7. `business-context.md` §6 describes the dealer platform offer as immediate
 self-serve.** The row reads "A dealer embeds Providence stock on their own site;
 Providence sources and ships, the dealer keeps the commission" — with no
 application, approval or vetting step. If requirement 1 ships, that description
@@ -1113,7 +1525,7 @@ becomes incomplete, and `/saas`'s "Free Forever" CTA becomes wrong.
 *Recommendation:* once Question 3 is answered, update §6 to state the approval
 gate and the commercial model.
 
-**7. `business-context.md` §14.2's focus-list rule does not say whether it
+**8. `business-context.md` §14.2's focus-list rule does not say whether it
 applies to dealer-facing surfaces.** §14.1 states plainly that paid **B2B**
 acquisition into Sri Lanka is *yes* while paid B2C is *no*; §14.2 then says Sri
 Lanka "does not take one of the slots" on any limited country list, without
