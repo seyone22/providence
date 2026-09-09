@@ -10,6 +10,61 @@
 
 ---
 
+## 0. Decisions taken — 2026-09-09
+
+Twelve decisions were put to the business and answered. They are recorded here
+because the sections below were drafted before them, and where a decision went
+against this document's recommendation that is stated rather than quietly
+rewritten.
+
+| # | Decision | Effect |
+|---|---|---|
+| 1 | **The platform is free.** Per-vehicle price is agreed offline, case by case | No billing build. §5.5 becomes a per-deal record, not a rate calculation |
+| 2 | **Dealer pages live at `providenceauto.co.uk/dealers/<handle>`** — the path | Against §6.2's recommendation. Mitigations become load-bearing — see below |
+| 3 | **A pending dealer gets full setup plus queued sourcing requests** | §4.4 as specified |
+| 4 | **Phase 0 and Phase 1 ship as one release** | §9 reordered |
+| 5 | **Widget theming is explicit, with a one-time detected suggestion** | §7.4, Question 1 as recommended |
+| 6 | **Both source-of-truth documents are to be updated** | Applied to `business-context.md` §6 and §14.2; logged in its §11 |
+| 7 | **Both legal questions reviewed before the first external dealer** | Article 26 arrangement and trade terms start now, in parallel with the build |
+| 8 | **A deal stores the agreed figure and its currency** | Drops `commissionRate` derivation and the `$500` fallback |
+| 9 | **Every dealer listing is moderated, every time** | §8 — no self-publication |
+| 10 | **Published turnaround: two business days** | §4.2, §4.5 |
+| 11 | **Applications round-robin across Sales** | §4.5 — with the caveat below |
+| 12 | **Approval is scoped to a named list of destination markets** | New field on `dealerAccount`; §4.5 routing |
+
+Three of these need a note.
+
+**Decision 2 went against the recommendation.** §6.2 argued for a separate host on
+Google site-reputation-abuse grounds. The path was chosen instead, which is a
+legitimate call — the operational saving is real and enforcement in 2024 was
+section-scoped rather than domain-wide. But it removes the isolation that made
+the SEO risk cheap to contain, so the three mitigations in §6.5 stop being
+prudent extras and become the actual defence: **`noindex` by default with an
+earned quality gate, `rel="ugc nofollow"` on every dealer-authored outbound
+link, and a fixed template with no dealer-authored duty, VAT or delivery copy.**
+Decision 9 (moderate everything) strengthens this considerably, since a
+human-reviewed page is much closer to the "sufficient input, editorial oversight,
+or contribution from the host site" test the policy actually applies. Keep
+`/dealers/` a cleanly separable subfolder so the section can still be amputated,
+and register it as its own Search Console property view.
+
+**Decision 8 changes the data model, not just a default.** Because price is agreed
+per case, there is no rate to multiply. `dealerCommission` stores the figure that
+was actually agreed, its ISO 4217 currency, its state and its timestamp.
+`commissionRate` stays on the record only as a conversation starting point, and
+nothing derives money from it.
+
+**Decision 11 inherits known bugs if implemented naively.** The existing
+round-robin in `request-actions.ts:225-249` has three defects: its anchor query
+does not exclude drafts, so an abandoned draft advances the rotation and
+un-advances it when swept; it is a read-then-write with no lock, so two
+concurrent submissions land on the same person; and if the anchor's owner has
+since been banned or had their role changed, `findIndex` returns `-1` and the
+rotation silently resets to the first person in the pool. Application assignment
+must not copy those. Fixing them in place would also improve lead routing.
+
+---
+
 ## 1. What this covers
 
 Five capabilities were requested. They are one product, and the order below is
@@ -265,7 +320,8 @@ dealerAccount            Providence's dealer-specific fields
   status                 draft | submitted | in_review | info_requested
                          | approved | rejected | suspended
   catalogueAccess, tradeAccess       the two capability flags (§4.1)
-  commissionRate         default 10.0
+  approvedMarkets        text[]  destinations this dealer may take delivery in
+  commissionRate         default 10.0  (a starting point only — never derives money)
   approvedAt, approvedBy, decisionNote, rejectReason
   assignedAt, firstTouchedAt, decidedAt          SLA instrumentation (§4.5)
 
@@ -471,7 +527,7 @@ draft ──submit──> submitted ──pick up──> in_review ──┬─�
 |---|---|---|
 | `draft` | dealer | A saved, editable application. Self-deletable. |
 | `submitted` | system | Acknowledgement with a reference number and the published turnaround. |
-| `in_review` | reviewer | "We're running checks. This usually takes one business day." |
+| `in_review` | reviewer | "We're running checks. This usually takes two business days." |
 | `info_requested` | dealer | **The only state that renders a form** — the exact field that is wrong, and why. |
 | `approved` | reviewer | Trade access on, setup checklist continues. |
 | `rejected` | reviewer | A reason category, and an *Apply again* action that carries the data forward. |
@@ -612,15 +668,36 @@ Better documented than expected, almost entirely through Stripe Connect.
   Sri Lanka channel policy in `business-context.md` §14 means applications from
   some markets follow a different path. That policy is a routing input and never
   appears in portal copy.
+- **Approval names the markets it covers.** Per Decision 12, an approved dealer
+  is cleared for a specific list of destinations, held in
+  `dealerAccount.approvedMarkets`, and more can be added later without a fresh
+  application. This mirrors Manheim's per-location registration, and it is the
+  clean lever for the §14 channel policy — a market simply is not on a dealer's
+  list, with nothing to explain in copy.
+
+**Applications round-robin across Sales** (Decision 11), the way leads already
+do. Two constraints on that. The queue's default view is still "needs me" rather
+than everything, or the SLA has no owner. And the existing rotation in
+`request-actions.ts:225-249` must not be copied as-is — its anchor query does not
+exclude drafts, it is a read-then-write with no lock so concurrent submissions
+collide, and a banned or re-roled anchor owner makes `findIndex` return `-1` and
+silently resets the rotation to the first person in the pool. Application
+assignment needs a correct version; fixing the lead rotation in the same pass is
+the cheaper option.
+
+Because judgement is now distributed across a team rather than held by one
+person, **the closed reject-reason enum and the immutable audit log carry more
+weight**, not less — they are what keeps decisions consistent and answerable
+six months later.
 
 **Instrument the SLA from the first application.** `assignedAt`,
 `firstTouchedAt`, `decidedAt`, plus reviewer id and reject reason on every
 decision. None of it can be backfilled. Set a tighter internal target than the
-published promise — the industry norm for document-backed dealer approval is
-roughly one to seven business days, and minutes where a machine-readable registry
-carries it, so "one business day" is achievable if Companies House lookups take
-the volume. Publish a window you can beat rather than one you miss on the third
-application.
+published two business days — the industry norm for document-backed dealer
+approval is roughly one to seven business days, and minutes where a
+machine-readable registry carries it, so two days is comfortably beatable once
+Companies House lookups take the volume. That is the point of the number:
+publish a window you beat rather than one you miss on the third application.
 
 ### 4.6 Email, batched and event-keyed
 
@@ -659,13 +736,23 @@ what happens next.
 | `/saas` closing | "Sign up now — Free Forever" → `/signup` | "Apply for a dealer account" → `/partners/apply` |
 | Header | *Begin Inquiry* only | Adds a quiet *Dealer sign in* link |
 
-Two copy notes. **"Free Forever" is a pricing claim** that an approval-gated
-product cannot make without qualification — it is raised as an open question in
-§10 rather than rewritten here. And the apply CTA states the gate rather than
-hiding it: a dealer who discovers the approval step after filling a form is a
-support ticket, while one who is told up front reads it as diligence. ACV's own
-guidance notes a verification call may be part of setup; on a relationship worth
-tens of thousands per vehicle, saying so on screen is a feature.
+Two copy notes, both settled by Decision 1.
+
+**"Free" survives; "sign up now" does not.** The platform genuinely is free —
+per-vehicle price is agreed case by case — so the free claim is accurate and
+worth keeping. What breaks is the promise of *immediate self-serve access*: an
+approval gate contradicts "Sign up now", not "Free Forever". So the CTA becomes
+something like **"Apply for a dealer account — free to join"**, and the page
+says plainly that pricing on each vehicle is agreed with you directly. That is
+also a better fit for `brand-position.md` §8 than a headline rate would be: the
+price is quoted per car, before commitment, by a person.
+
+**State the gate rather than hiding it.** A dealer who discovers the approval
+step after filling in a form is a support ticket; one told up front reads it as
+diligence. ACV's own guidance notes a verification call may be part of setup —
+on a relationship worth tens of thousands per vehicle, saying so on screen is a
+feature. With a published two-business-day turnaround (Decision 10), the
+application page can carry that number directly.
 
 All replacement copy follows `writing-angle.md` — the dealer is the subject of
 the sentence, and no line promises the removal of effort.
@@ -768,10 +855,22 @@ no persisted record, no payout state, no invoice link, and no currency —
 `agreedPrice` has no currency column and `DEAL_CURRENCY = "USD"` is a bare
 constant.
 
-A dealer being paid on these numbers needs a `dealerCommission` row per qualifying
-lead: the rate applied, the base figure, the currency, the state (`accrued` /
-`invoiced` / `paid`), and the timestamp. **A number a partner is paid on has to be
-a record, not a derivation that silently changes when someone edits the rate.**
+**Decision 8 settles the shape: there is no rate to multiply.** Price is agreed
+per vehicle, offline, case by case — so a `dealerCommission` row stores the
+figure that was *actually agreed*, its ISO 4217 currency, its state (`accrued` /
+`invoiced` / `paid`), the deal it belongs to, and the timestamp. `commissionRate`
+stays on the dealer record as a starting point for the conversation, and nothing
+derives money from it.
+
+**A number a partner is paid on has to be a record, not a derivation that
+silently changes when someone edits a rate.** That is doubly true here: with
+per-case pricing, a recomputation would not merely drift, it would be wrong from
+the first deal.
+
+The currency is stored per deal rather than fixed, because the source market and
+the settlement currency are not always the same conversation. The bare
+`DEAL_CURRENCY = "USD"` constant goes; `agreedPrice` gains a currency column
+alongside it.
 
 ### 5.6 Dealers creating their own users
 
@@ -881,9 +980,16 @@ contract:
 
 ### 6.2 Dealer pages get their own host
 
-**Recommendation: `dealers.providenceauto.co.uk/<handle>` — a separate host, not
-a path on the main domain.** This is the one decision here that is expensive to
-reverse.
+> **Decided: the path.** `providenceauto.co.uk/dealers/<handle>` (Decision 2).
+> The recommendation below was for a separate host; it was not taken. The
+> reasoning is kept because it explains why the §6.5 mitigations are now
+> load-bearing rather than optional, and what to watch for. Keep `/dealers/` a
+> cleanly separable subfolder, and give it its own Search Console property view
+> so a change there is visibly distinct from car pages, blog and news.
+
+**Recommendation as drafted: `dealers.providenceauto.co.uk/<handle>` — a separate
+host, not a path on the main domain.** This is the one decision here that is
+expensive to reverse.
 
 An earlier draft of this document recommended a path, on the operational grounds
 that a subdomain needs DNS, a wildcard certificate and an entry in
@@ -1231,8 +1337,18 @@ invisible in the gallery grid.
 
 **The dealer's own stock** — a new `dealerListing` table owned by the tenant: make,
 model, year, mileage, price with currency, photos in R2, a status, an optional VIN.
-This is partner-authored content on a Providence domain, so it needs a moderation
-state (`draft` / `pending` / `live` / `rejected`) and a takedown path.
+This is partner-authored content on a Providence domain, and **every listing is
+reviewed by a person before it goes live — every time, not just a new dealer's
+first batch** (Decision 9). So it carries a moderation state (`draft` /
+`pending` / `live` / `rejected`), a queue, and a takedown path.
+
+That is a standing operational load which grows with every dealer, and it is
+worth being clear-eyed about: it is also what makes the `noindex` quality gate
+in §6.5 enforceable, and what brings these pages closest to the "sufficient
+input, editorial oversight, or contribution from the host site" test that
+Google's site reputation policy actually applies. Given Decision 2 put dealer
+pages on the main domain, that matters more here than it would on a separate
+host.
 
 ### 8.2 Where they render
 
@@ -1273,6 +1389,13 @@ hand — extract a helper.
 Each phase is shippable and leaves the system in a coherent state. The order is
 driven by dependency, not by visibility — the phases that show up in a demo are
 the last ones.
+
+**Phases 0 and 1 ship together as Release 1** (Decision 4). Phase 0 on its own
+has nothing to demonstrate, so pairing it with accounts and approval means the
+first release ends with a working application flow rather than an invisible
+refactor. The dependency still holds inside the release: none of Phase 1's
+surfaces open to an external dealer until §2.8 passes. Note also that most of
+Phase 0 fixes holes that are live on production today, dealers or not.
 
 ### Phase 0 — close the holes (§2)
 
@@ -1372,10 +1495,28 @@ and it is the most important one in the document.
 
 ---
 
-## 10. Open questions
+## 10. The questions, and the answers given
 
-These are decisions this document cannot make. Each carries a recommendation so
-that silence defaults to something sensible rather than to nothing.
+All eight were put to the business on 2026-09-09 and answered; §0 records the
+decisions in short form. Each question is kept below with its full reasoning,
+because the reasoning is what makes a decision reviewable later — and because
+two of them (5 and 6) are answered only in the sense that they were routed to a
+qualified adviser, which is not the same as being settled.
+
+| # | Question | Answer |
+|---|---|---|
+| 1 | Widget colour: detected or configured | Explicit, with a one-time detected suggestion |
+| 2 | Dealer page host | The path on the main domain — **against the recommendation** |
+| 3 | Commercial model, and "Free Forever" | Platform free; per-vehicle price agreed offline per case |
+| 4 | Accountability for dealer listings | Every listing moderated, every time |
+| 5 | Joint controller under *Fashion ID* | To counsel, before the first external dealer |
+| 6 | Evidencing trade status under CRA s.2(4) | To counsel, before the first external dealer |
+| 7 | `business-context.md` §6 | Update it — applied |
+| 8 | `business-context.md` §14.2 | Update it — applied |
+
+Questions 5 and 6 remain genuinely open until counsel reports. Nothing in
+Phase 0 or Phase 1 depends on them, but the embed (Phase 3) and the first
+vehicle sale do.
 
 **1. Does the widget auto-detect the host site's colours, or take them from
 configuration?**
