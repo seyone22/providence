@@ -206,11 +206,30 @@ outsourcing. Full treatment in `brand-position.md` §5.
 |---|---|---|
 | **Direct import (B2C)** | `/b2c`, `/request` | A private buyer sourcing one car for themselves. |
 | **Dealer sourcing (B2B)** | `/b2b` | A dealership sourcing inventory it doesn't hold, on request. |
-| **Dealer platform (SaaS)** | `/saas` | A dealer embeds Providence stock on their own site; Providence sources and ships, the dealer keeps the commission. |
+| **Dealer platform (SaaS)** | `/saas`, `/b2b` | A dealer embeds Providence stock on their own site; Providence sources and ships, the dealer keeps the commission. **Access is by application and internal approval, not self-serve** — see below. |
 | **Source-country campaigns** | `/import-japanese-cars`, `/indian-manufactured-cars`, `/japanese-luxury-cars-lhd` | Destination-picker landing pages, one per major source proposition, config in `src/config/landing-pages.ts`. |
 | **Ireland-specific route** | `/import-cars-to-ireland`, `/import-japanese-cars-to-ireland`, `/ireland-cost-calculator` | Ireland gets dedicated pages because it's the one market with a full clear-customs claim and a live VRT calculator. |
 | **Sales-profile pages** | `/team/[slug]` | A named consultant's personal landing page; leads assigned directly to them, bypassing round-robin. Spec: `sales-profile-spec.md`. |
 | **Sourcing & Profit Analyzer** | `/admin/sourcing-calculator` | Internal tool, not customer-facing: landed cost → UK market comparables → buy/avoid verdict, used by the desk to price auction bids. Methodology: `sourcing-analyzer-methodology.md`. |
+
+### 6.1 How the dealer platform is sold
+
+Decided 2026-09-09, and the reason the `/saas` row above says "not self-serve".
+Full design: `dealer-portal-spec.md`.
+
+- **The platform itself is free.** There is no subscription and no access fee.
+- **The price on each vehicle is agreed offline, case by case**, rather than
+  from a published rate card or a fixed commission percentage. The
+  `commissionRate` field in the code is a starting point for that conversation,
+  not a figure anything is calculated from.
+- **A dealer applies and waits for approval.** Trading identity is verified
+  before trade access is granted, and approval names the destination markets
+  that dealer is cleared for — it is not global.
+- **Copy consequence:** "free" is accurate and may be said. What may *not* be
+  said is that a dealer can sign up and start immediately — that is the claim
+  currently on `/saas` ("Sign up now — Free Forever") and it will be wrong the
+  day the approval gate ships. The honest form is *apply, free to join, price
+  agreed per car.*
 
 ## 7. Who Providence sells to — and writes for
 
@@ -341,6 +360,8 @@ don't just fix the copy silently.
 | 2026-08-25 | Sri Lanka added to `DESTINATION_REGIONS` (28 → 29 destinations) | It is demonstrably a market we ship into — its own country page calls it "primarily a destination market for us", and both the Japan and India campaign pickers route there. `ca58b48` had removed it on the reasoning that it is a presence country, but presence and destination are not mutually exclusive. Resolves the contradiction logged in `brand-position.md` §11.3. |
 | 2026-08-25 | Sri Lanka's channel policy recorded here in §14, not in a separate untracked file | "Not public" means it never becomes landing-page copy, an ad or a chat reply — not that it is withheld from the team. Keeping it in the one source-of-truth document is what makes it usable when a targeting decision comes up. Note the repo is public (`github.com/seyone22/providence`), so this section is readable on GitHub. |
 | 2026-08-25 | The persist-until-answered rule narrowed to **source-of-truth documents only** | As first written it covered any recommendation, which is not what was asked and would have turned every passing suggestion into a standing obligation. Ordinary suggestions are raised once and dropped if not taken up; only a pending change to a documented truth persists. |
+| 2026-09-09 | §14.2's focus-list rule scoped explicitly to **consumer-facing** surfaces; dealer-facing and trade surfaces follow §14.1 | As written, the rule removed Sri Lanka from every limited country list without distinguishing consumer surfaces from trade ones — while §14.1 states plainly that paid B2B acquisition there is *yes*. Building the dealer portal surfaced the contradiction: the portal is precisely the B2B channel §14.1 endorses, so its own country lists were hitting a rule written to protect that channel. Raised as a question rather than edited unilaterally, per `brand-position.md` §11.2, and answered "update it". |
+| 2026-09-09 | The dealer platform recorded as **free, application-gated, with per-vehicle pricing agreed offline**; new §6.1 | §6 described the offer as immediate self-serve with the dealer keeping a commission, which was about to become wrong in two ways at once: an approval gate is being built, and there is no fixed commission — price is agreed per car. `/saas` still carries "Sign up now — Free Forever". The *free* half is accurate and stays; the *sign up now* half is the claim that breaks. Recorded here so the page copy is fixed against a documented fact rather than a recollection. |
 | 2026-09-01 | The sourcing analyzer's market median can be overridden by the operator; `sourcing-analyzer-methodology.md` §4 documents it | The desk was already moving the median by adding and removing comparables until the number looked right. That edits the evidence to reach a conclusion and leaves no record of it. An explicit override is the same judgement made visible: the comparable set stays as crawled, and every surface says the median is a desk figure. It is an operator input, so "numbers are computed, prose is generated" is untouched — no model produces it. |
 
 ## 12. Known documentation to reconcile
@@ -414,10 +435,23 @@ runs South Asia operations, and we do not source vehicles there.
 
 ### 14.2 The focus-list rule
 
-**When a surface can only carry a limited number of countries** — a hero list,
-a "top markets" strip, a campaign's featured destinations, an ad's targeting
-set, a deck slide — **Sri Lanka does not take one of the slots.** Those slots
-belong to markets we are actively acquiring in.
+**This rule governs consumer-facing surfaces.** Clarified 2026-09-09; see §11.
+
+**When a consumer-facing surface can only carry a limited number of countries** —
+a hero list, a "top markets" strip, a campaign's featured destinations, a
+consumer ad's targeting set, a deck slide — **Sri Lanka does not take one of the
+slots.** Those slots belong to markets we are actively acquiring in.
+
+**Dealer-facing and trade surfaces follow §14.1 instead**, where Sri Lanka is an
+active B2B market. So a country list on `/b2b`, on the dealer application form,
+on a dealer landing page, or in dealer-channel outreach may include Sri Lanka —
+because paid B2B acquisition there is something we do. The exclusion is about
+consumer demand generation, which is the thing that would compete with the
+dealers who already buy volume from us.
+
+The distinction is the whole point of §14.1: **no B2C acquisition, yes B2B
+acquisition.** A focus-list rule that removed Sri Lanka from trade surfaces too
+would contradict the policy it was written to serve.
 
 This is about emphasis, not erasure: Sri Lanka stays in complete lists and
 keeps its SEO.
