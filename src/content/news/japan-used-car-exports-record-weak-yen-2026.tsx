@@ -258,6 +258,21 @@ export default function JapanUsedCarExportsRecordWeakYen2026() {
         </CheckLI>
       </UL>
 
+      <Callout title="Update, 10 September 2026" tone="amber">
+        <p>
+          The currency position described above has since reversed. Japan and
+          the United States intervened jointly at the end of July, Japan
+          recorded &yen;15,399.3 billion of intervention operations in the month
+          to 26 August, and the European Central Bank&rsquo;s euro reference
+          rate for the yen fell from 186.99 on 30 July to 178.59 on 9 September
+          2026. The window this article describes has narrowed. See{" "}
+          <InlineLink href="/latest-news/yen-intervention-2026-japan-car-import-cost">
+            what the intervention did to a Japanese car&rsquo;s landed cost
+          </InlineLink>{" "}
+          for the current numbers, netted against what the auction halls did.
+        </p>
+      </Callout>
+
       <Callout title="Buying from Japan this year?" tone="emerald">
         <p>
           We bid in Japanese auctions every week and quote the full landed cost
