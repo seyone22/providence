@@ -19,13 +19,13 @@ export default function ThailandVehicleProductionExports2026DealerRead() {
   return (
     <>
       <Lead>
-        Thailand built <Strong>117,383 vehicles in July 2026</Strong>, up 6.1%
+        Thailand built <Strong>117,383 vehicles in July 2026</Strong>, up 6.12%
         on the same month last year. That headline reads like a recovery. The
-        number underneath it does not: exports over the first seven months of
-        2026 fell about <Strong>7%</Strong> to 495,313 units, and total
-        production over the same period slipped to 834,595. Thailand is
-        assembling more cars and sending fewer of them abroad &mdash; which
-        matters if your stock comes out of Laem Chabang.
+        seven-month picture does not: production was{" "}
+        <Strong>834,595 units</Strong>, down 0.09%, and exports over January to
+        May fell <Strong>8.53%</Strong> to 333,618 units. Thailand is holding
+        its build rate while its export book shrinks &mdash; which matters if
+        your stock comes out of Laem Chabang.
       </Lead>
 
       <KeyTakeaways
@@ -36,12 +36,13 @@ export default function ThailandVehicleProductionExports2026DealerRead() {
           </>,
           <>
             January to July 2026 production: <Strong>834,595 units</Strong>,
-            with exports down about 7% to <Strong>495,313 units</Strong>.
+            down 0.09% year-on-year. Exports over January to May were{" "}
+            <Strong>333,618 units</Strong>, down 8.53%.
           </>,
           <>
             July finished-vehicle exports were <Strong>74,169 units</Strong>, up
-            2.39% year-on-year &mdash; a monthly improvement inside a falling
-            seven-month total.
+            2.39% year-on-year &mdash; a monthly improvement inside a year that
+            is running well behind its export target.
           </>,
           <>
             Domestic sales rose sharply in July, up{" "}
@@ -59,8 +60,8 @@ export default function ThailandVehicleProductionExports2026DealerRead() {
 
       <StatGrid
         stats={[
-          { value: "117,383", label: "July 2026 production, +6.1% YoY" },
-          { value: "495,313", label: "Jan–Jul exports, about −7%" },
+          { value: "117,383", label: "July 2026 production, +6.12% YoY" },
+          { value: "333,618", label: "Jan–May exports, −8.53%" },
           { value: "900,000", label: "FTI full-year export target" },
         ]}
       />
@@ -70,9 +71,9 @@ export default function ThailandVehicleProductionExports2026DealerRead() {
         a respectable rate for a domestic market that has come back, while the
         export book it was built to serve shrinks. Thailand&rsquo;s automotive
         industry exists at its current scale because it exports; roughly two out
-        of every three vehicles it builds have historically gone abroad. A
-        seven-month export decline of about 7% is not a rounding error in that
-        model.
+        of every three vehicles it builds have historically gone abroad. An
+        8.53% export decline over the first five months is not a rounding error
+        in that model.
       </P>
 
       <PullQuote>

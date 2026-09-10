@@ -224,6 +224,16 @@ export default function MalaysiaCbuEvImportRulesCifPowerFloor() {
       <H2 id="timing">Move now or wait?</H2>
 
       <P>
+        Malaysia is the second Asian market this year to reprice imported
+        electric vehicles rather than ban them, after{" "}
+        <InlineLink href="/latest-news/hong-kong-ev-first-registration-tax-concession-ends">
+          Hong Kong let its first registration tax concession lapse
+        </InlineLink>
+        . Both changes work through cost rather than admissibility, which means
+        the car is still legal and simply worth less to bring in.
+      </P>
+
+      <P>
         The deadline in this story has already passed, which changes the
         question. There is nothing to beat. What there is instead is a market
         whose supply shape changed ten weeks ago and whose used values have not

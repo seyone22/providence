@@ -26,10 +26,10 @@ export default function EuEndOfLifeVehiclesRegulationUsedCarExports2031() {
         Regulation (EU) 2026/1738 &mdash; the End-of-Life Vehicles Regulation
         &mdash; entered into force on <Strong>13 August 2026</Strong>, and it
         contains a clause that matters a great deal in Mombasa, Dar es Salaam
-        and Kingston. From <Strong>mid-2031</Strong>, only roadworthy vehicles
-        may be exported out of the European Union. If you have read that as a
-        used-car export ban, it is not one. It is a roadworthiness test, and the
-        distinction is the whole story.
+        and Kingston. From <Strong>1 September 2031</Strong>, only roadworthy
+        vehicles may be exported out of the European Union. If you have read
+        that as a used-car export ban, it is not one. It is a roadworthiness
+        test, and the distinction is the whole story.
       </Lead>
 
       <KeyTakeaways
@@ -40,8 +40,8 @@ export default function EuEndOfLifeVehiclesRegulationUsedCarExports2031() {
             July 2026 and entered into force on <Strong>13 August 2026</Strong>.
           </>,
           <>
-            From <Strong>mid-2031</Strong>, only roadworthy vehicles may be
-            exported outside the EU.
+            From <Strong>1 September 2031</Strong>, only roadworthy vehicles may
+            be exported outside the EU.
           </>,
           <>
             <Strong>
@@ -62,8 +62,8 @@ export default function EuEndOfLifeVehiclesRegulationUsedCarExports2031() {
       <H2 id="what-it-says">What the Regulation actually restricts</H2>
 
       <P>
-        The European Commission&rsquo;s own description is precise: from
-        mid-2031, only roadworthy vehicles may be exported outside the EU,
+        The European Commission&rsquo;s own description is precise: from 1
+        September 2031, only roadworthy vehicles may be exported outside the EU,
         helping to protect the environment and prevent end-of-life vehicles from
         being exported as second-hand vehicles.
       </P>
@@ -112,7 +112,7 @@ export default function EuEndOfLifeVehiclesRegulationUsedCarExports2031() {
             ),
           },
           {
-            time: "Mid-2031",
+            time: "1 September 2031",
             title: "The export condition applies",
             body: (
               <>
@@ -153,7 +153,7 @@ export default function EuEndOfLifeVehiclesRegulationUsedCarExports2031() {
           ],
           [
             "Import at the very bottom of the age and condition range from the EU",
-            "This is the flow the Regulation is aimed at. Expect it to narrow from mid-2031.",
+            "This is the flow the Regulation is aimed at. Expect it to narrow from 1 September 2031.",
           ],
           [
             "Source from Japan, the UK, UAE, India, Thailand, Australia or New Zealand",
@@ -184,10 +184,11 @@ export default function EuEndOfLifeVehiclesRegulationUsedCarExports2031() {
       <H2 id="landed">What it does to a landed cost</H2>
 
       <P>
-        Nothing, today. The export condition applies from mid-2031, which is
-        nearly five years away, and the Regulation does not create a duty, a
-        levy or a charge on an importer. Anyone attaching a price increase to it
-        in 2026 is attaching a price increase to something that has not started.
+        Nothing, today. The export condition applies from 1 September 2031,
+        which is nearly five years away, and the Regulation does not create a
+        duty, a levy or a charge on an importer. Anyone attaching a price
+        increase to it in 2026 is attaching a price increase to something that
+        has not started.
       </P>
 
       <P>
@@ -203,7 +204,7 @@ export default function EuEndOfLifeVehiclesRegulationUsedCarExports2031() {
         stats={[
           { value: "2026/1738", label: "Regulation number" },
           { value: "13 Aug 2026", label: "Entered into force" },
-          { value: "Mid-2031", label: "Export condition applies" },
+          { value: "1 Sep 2031", label: "Export condition applies" },
         ]}
       />
 
@@ -223,8 +224,8 @@ export default function EuEndOfLifeVehiclesRegulationUsedCarExports2031() {
 
       <UL>
         <CheckLI>
-          <Strong>Nothing changes before mid-2031.</Strong> There is no action
-          to take this year, this quarter or this month.
+          <Strong>Nothing changes before 1 September 2031.</Strong> There is no
+          action to take this year, this quarter or this month.
         </CheckLI>
         <CheckLI>
           <Strong>
@@ -246,7 +247,7 @@ export default function EuEndOfLifeVehiclesRegulationUsedCarExports2031() {
       <ConfirmedLedger
         confirmed={[
           "Regulation (EU) 2026/1738 was adopted by the Council on 29 June 2026, published in the Official Journal on 24 July 2026 and entered into force on 13 August 2026.",
-          "From mid-2031, only roadworthy vehicles may be exported outside the EU.",
+          "From 1 September 2031, only roadworthy vehicles may be exported outside the EU.",
           "Roadworthy used vehicles may continue to be exported as normal.",
           "The Regulation replaces Directive 2000/53/EC and Directive 2005/64/EC, and sets recycled plastic content at 15% from 2032 and 25% from 2036.",
         ]}
@@ -256,7 +257,7 @@ export default function EuEndOfLifeVehiclesRegulationUsedCarExports2031() {
             applied at export, and by which authority. We have not read an
             implementing act specifying the test.
           </>,
-          "The exact commencement date within mid-2031. Reporting says five years after entry into force; we have not verified the day.",
+          "How the roadworthiness condition will be evidenced at the port of export, and by whom. The Regulation sets the condition; the operational check is not yet described.",
           "How member states will document or certify roadworthiness at the point of export.",
           "The volume of EU used-vehicle exports that would fail such a test. We have seen no reliable estimate.",
         ]}
@@ -273,8 +274,8 @@ export default function EuEndOfLifeVehiclesRegulationUsedCarExports2031() {
       <P>
         The one group with real planning work is any business whose model
         depends on moving vehicles out of the EU that would not pass a
-        roadworthiness test. That business has until mid-2031 and it should use
-        it.
+        roadworthiness test. That business has until 1 September 2031 and it
+        should use it.
       </P>
 
       <Disclaimer>

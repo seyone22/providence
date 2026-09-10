@@ -29,8 +29,8 @@ export default function ImoSolas2026RoRoEvFireRulesFreightCost() {
         amendments that entered into force on <Strong>1 January 2026</Strong>{" "}
         cover fire detection, video monitoring and water-based suppression on
         vehicle decks. They say nothing about electric vehicles. IMO regulation
-        specific to electric vehicles is not scheduled to enter into force until{" "}
-        <Strong>1 January 2028</Strong>.
+        specific to electric vehicles is still being drafted, and is expected to
+        enter into force on <Strong>1 January 2032</Strong> at the earliest.
       </Lead>
 
       <KeyTakeaways
@@ -54,9 +54,10 @@ export default function ImoSolas2026RoRoEvFireRulesFreightCost() {
             <Strong>makes no mention of electric vehicles</Strong>.
           </>,
           <>
-            Mandatory IMO regulation specific to electric vehicles is not
-            expected in force before <Strong>1 January 2028</Strong>, with
-            further SOLAS amendments under discussion for around 2032.
+            Mandatory IMO regulation specific to electric vehicles is still at
+            the drafting stage. Riviera Maritime Media reported on 8 April 2026
+            that any agreed SOLAS amendments are expected to enter into force{" "}
+            <Strong>on 1 January 2032 at the earliest</Strong>.
           </>,
           "Car-carrier freight is genuinely expensive right now. The reason is capacity and volume, not a 2026 rulebook.",
         ]}
@@ -119,11 +120,11 @@ export default function ImoSolas2026RoRoEvFireRulesFreightCost() {
       >
         <p>
           Nothing here says electric vehicles pose no fire risk at sea, or that
-          the IMO is ignoring it. The IMO is actively working on it, which is
-          why EV-specific regulation is expected from 2028 and further SOLAS
-          amendments are under discussion for around 2032. The false claim is
-          that this work already binds the ship carrying your car and already
-          justifies your surcharge.
+          the IMO is ignoring it. The IMO is actively working on it &mdash; a
+          correspondence group runs to sub-committee SSE 13 in March 2027, and
+          any resulting SOLAS amendments are expected in force on 1 January 2032
+          at the earliest. The false claim is that this work already binds the
+          ship carrying your car and already justifies your surcharge.
         </p>
       </Callout>
 
@@ -152,23 +153,13 @@ export default function ImoSolas2026RoRoEvFireRulesFreightCost() {
             ),
           },
           {
-            time: "1 January 2028",
-            title: "EV-specific regulation expected",
+            time: "March 2027, then 1 January 2032",
+            title: "The electric-vehicle work, and when it could bind",
             body: (
               <>
-                Mandatory IMO regulation addressing electric vehicles
-                specifically is not expected to enter into force before this
-                date.
-              </>
-            ),
-          },
-          {
-            time: "2027–2028, then around 2032",
-            title: "Further deliberation",
-            body: (
-              <>
-                Continued IMO discussion with a view to introducing further
-                SOLAS amendments in the early 2030s.
+                A correspondence group reports to sub-committee SSE 13 in March
+                2027. Any SOLAS amendments arising are expected to enter into
+                force on 1 January 2032 at the earliest.
               </>
             ),
           },
@@ -214,7 +205,7 @@ export default function ImoSolas2026RoRoEvFireRulesFreightCost() {
           ],
           [
             "EV fire risk is under active IMO consideration",
-            "Correct — with regulation expected from 2028.",
+            "Correct — with regulation expected from 2032 at the earliest.",
           ],
         ]}
         caption="Assessed against Lloyd's Register's summary of MSC.550(108) and MSC.555(108) and IMO reporting. Checked 10 September 2026."
@@ -265,14 +256,14 @@ export default function ImoSolas2026RoRoEvFireRulesFreightCost() {
             Lloyd&rsquo;s Register&rsquo;s summary of the amendments contains no
             provisions relating to electric or alternative-fuel vehicles.
           </>,
-          "EV-specific IMO regulation is not expected in force before 1 January 2028.",
+          "EV-specific IMO regulation is expected in force on 1 January 2032 at the earliest, per Riviera Maritime Media, 8 April 2026.",
         ]}
         unconfirmed={[
           "Whether any individual carrier has adopted stricter voluntary EV stowage practices. Some may have; that is a commercial decision, not a regulation.",
           "How much of the current freight level is attributable to capacity versus route disruption versus fuel. We have not seen a reliable decomposition.",
           <>
             The final content of any SOLAS amendments arising from the
-            2027&ndash;2028 deliberations.
+            correspondence group reporting to SSE 13 in March 2027.
           </>,
         ]}
       />
@@ -280,12 +271,23 @@ export default function ImoSolas2026RoRoEvFireRulesFreightCost() {
       <H2 id="timing">Move now or wait?</H2>
 
       <P>
+        If freight out of South East Asia is what concerns you, the real
+        pressure is in the volume rather than the rulebook &mdash; our read on{" "}
+        <InlineLink href="/latest-news/thailand-vehicle-production-exports-2026-dealer-read">
+          Thailand&rsquo;s tightening export book
+        </InlineLink>{" "}
+        covers what is actually moving through Laem Chabang this year.
+      </P>
+
+      <P>
         Freight is not on a regulatory cliff edge, so there is no rule-driven
-        reason to rush a shipment this year. There is a genuine deadline further
-        out: existing ro-ro passenger ships have to comply by the first survey
-        on or after 1 January 2028, and EV-specific regulation is expected
-        around the same time. If either produces a real cost, it will land in
-        2028, not now.
+        reason to rush a shipment this year. There is one genuine deadline in
+        the near term, and it has nothing to do with electric vehicles: existing
+        ro-ro passenger ships have to comply with the 2026 fire-safety
+        amendments by their first survey on or after 1 January 2028. The
+        electric-vehicle rules sit four years behind that again, expected on 1
+        January 2032 at the earliest. Neither is a reason to move a shipment
+        this year.
       </P>
 
       <P>

@@ -243,6 +243,17 @@ export default function HongKongEvFirstRegistrationTaxConcessionEnds() {
       <H2 id="timing">Move now or wait?</H2>
 
       <P>
+        Hong Kong is not doing anything unusual here. Ireland is running the
+        same withdrawal on a longer timetable, and the shape is worth reading
+        across &mdash; see our note on{" "}
+        <InlineLink href="/latest-news/ireland-ev-incentives-taper-2026-2028">
+          Ireland&rsquo;s electric vehicle relief taper
+        </InlineLink>
+        . An incentive introduced to seed adoption gets withdrawn once adoption
+        stops needing seeding, and the buyer who waited pays the difference.
+      </P>
+
+      <P>
         If you hold a qualifying order, move. The 24 February 2027 date is a
         submission deadline for a benefit that does not come back, and
         submission is not the same as arrival &mdash; you need the car, the

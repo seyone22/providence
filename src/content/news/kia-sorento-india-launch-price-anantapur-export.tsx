@@ -37,12 +37,13 @@ export default function KiaSorentoIndiaLaunchPriceAnantapurExport() {
             ex-showroom.
           </>,
           <>
-            Strong hybrid: 1.6-litre turbo petrol,{" "}
-            <Strong>238 PS and 380 Nm</Strong> combined, with all-wheel drive
-            available.
+            Strong hybrid: 1.6-litre turbo petrol rated{" "}
+            <Strong>180 PS and 265 Nm</Strong>, with a{" "}
+            <Strong>65 PS, 264 Nm</Strong> motor. Kia India has not published a
+            combined system output. With all-wheel drive available.
           </>,
           <>
-            Diesel: 2.2-litre turbo, <Strong>202 PS and 441 Nm</Strong>.
+            Diesel: 2.2-litre turbo, <Strong>193 PS and 442 Nm</Strong>.
           </>,
           <>
             Built at <Strong>Anantapur, Andhra Pradesh</Strong> &mdash; the
@@ -57,8 +58,8 @@ export default function KiaSorentoIndiaLaunchPriceAnantapurExport() {
       <StatGrid
         stats={[
           { value: "₹27.99 lakh", label: "Starting price, ex-showroom" },
-          { value: "238 PS", label: "Strong hybrid, 380 Nm" },
-          { value: "202 PS", label: "2.2 diesel, 441 Nm" },
+          { value: "180+65 PS", label: "Hybrid engine plus motor" },
+          { value: "193 PS", label: "2.2 diesel, 442 Nm" },
         ]}
       />
 
@@ -70,8 +71,8 @@ export default function KiaSorentoIndiaLaunchPriceAnantapurExport() {
             "1.6-litre turbo petrol with hybrid system",
             "2.2-litre turbo diesel",
           ],
-          ["Output", "238 PS combined", "202 PS"],
-          ["Torque", "380 Nm", "441 Nm"],
+          ["Output", "180 PS engine + 65 PS motor", "193 PS"],
+          ["Torque", "265 Nm engine + 264 Nm motor", "442 Nm"],
           [
             "Drivetrain",
             "All-wheel drive available",
@@ -90,7 +91,7 @@ export default function KiaSorentoIndiaLaunchPriceAnantapurExport() {
         Kia describes the Sorento as its new flagship internal-combustion model
         in India, and the all-wheel-drive hybrid is the variant carrying the
         marketing weight. For an importer, the diesel is the more interesting
-        half of the range: 441 Nm from a 2.2 in a seven-seat body is the
+        half of the range: 442 Nm from a 2.2 in a seven-seat body is the
         specification that sells into East Africa, the Caribbean and the
         Pacific, and diesel parts and service depth in those markets is
         genuinely better than hybrid parts and service depth.
@@ -213,8 +214,8 @@ export default function KiaSorentoIndiaLaunchPriceAnantapurExport() {
             India launch on 4 September 2026 at &#8377;27.99 lakh to
             &#8377;40.39 lakh ex-showroom.
           </>,
-          "1.6-litre turbo strong hybrid producing 238 PS and 380 Nm, with all-wheel drive offered.",
-          "2.2-litre turbo diesel producing 202 PS and 441 Nm.",
+          "1.6-litre turbo strong hybrid: a 180 PS, 265 Nm engine with a 65 PS, 264 Nm motor. All-wheel drive is offered.",
+          "2.2-litre turbo diesel producing 193 PS and 442 Nm.",
           <>Production commenced at Kia&rsquo;s Anantapur facility.</>,
         ]}
         unconfirmed={[

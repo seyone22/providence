@@ -2208,7 +2208,7 @@ export const NEWS_ARTICLES: NewsArticle[] = [
     h1: "No, the 2026 SOLAS Amendments Did Not Restrict Electric Vehicles at Sea",
     seoTitle: "RoRo Shipping Rules 2026: What the IMO Actually Changed",
     description:
-      "The SOLAS amendments in force from 1 January 2026 cover fire detection and suppression, not electric vehicles. EV-specific IMO rules are not due until 2028.",
+      "The SOLAS amendments in force from 1 January 2026 cover fire detection and suppression, not electric vehicles. EV-specific IMO rules are not due before 2032.",
     excerpt:
       "Lloyd's Register's summary of MSC.550(108) and MSC.555(108) contains no provisions about electric vehicles at all. If your surcharge cites them, ask which resolution.",
     category: "Market",
@@ -2244,7 +2244,7 @@ export const NEWS_ARTICLES: NewsArticle[] = [
       },
       {
         q: "When do IMO rules specific to electric vehicles take effect?",
-        a: "Mandatory IMO regulation addressing electric vehicles specifically is not expected to enter into force before 1 January 2028. Further deliberation is planned across 2027 and 2028 with a view to introducing additional SOLAS amendments in the early 2030s. Anything charged to you in 2026 as an EV compliance cost is therefore not a cost of a rule that binds today.",
+        a: "Mandatory IMO regulation addressing electric vehicles specifically is still being drafted. A correspondence group reports to the IMO sub-committee SSE 13 in March 2027, and Riviera Maritime Media reported on 8 April 2026 that any agreed SOLAS amendments are expected to enter into force on 1 January 2032 at the earliest. Anything charged to you in 2026 as an EV compliance cost is therefore not the cost of a rule that binds today.",
       },
       {
         q: "Which ships do the 2026 SOLAS amendments apply to?",
@@ -2294,7 +2294,7 @@ export const NEWS_ARTICLES: NewsArticle[] = [
     h1: "Thailand's Production Is Up and Its Export Book Is Shrinking",
     seoTitle: "Thailand Car Production and Exports 2026: Dealer Read",
     description:
-      "Thailand built 117,383 vehicles in July 2026, up 6.1%, but exports fell about 7% to 495,313 over seven months. What a tightening export book does to stock.",
+      "Thailand built 117,383 vehicles in July 2026, up 6.12%, but exports fell 8.53% over January to May. What a tightening export book does to dealer stock.",
     excerpt:
       "A domestic recovery does not replace an export book. Pickup exports fell 38.79% year-on-year in May, and pickups are the product Thailand's plant network was built around.",
     category: "Market",
@@ -2326,7 +2326,7 @@ export const NEWS_ARTICLES: NewsArticle[] = [
     faqs: [
       {
         q: "How many vehicles did Thailand build in July 2026?",
-        a: "117,383 units, up 6.1% year-on-year, according to the Federation of Thai Industries. Finished-vehicle exports that month were 74,169 units, up 2.39%. Over the first seven months of 2026 production reached 834,595 vehicles, with exports down about 7% to 495,313 units, so a positive month sits inside a falling seven-month total.",
+        a: "117,383 units, up 6.12% year-on-year, according to the Federation of Thai Industries. Finished-vehicle exports that month were 74,169 units, up 2.39%. Over the first seven months of 2026 production reached 834,595 vehicles, down 0.09%. The FTI did not publish a seven-month export total in the reports we could verify; the most recent cumulative figure we could confirm is 333,618 units exported over January to May, down 8.53%.",
       },
       {
         q: "Why are Thai pickup exports falling?",
@@ -2342,7 +2342,7 @@ export const NEWS_ARTICLES: NewsArticle[] = [
       },
       {
         q: "What is Thailand's 2026 production target?",
-        a: "The Federation of Thai Industries expects 1.45 million units for 2026, comprising 550,000 for domestic sale and 900,000 for export. The seven-month run rate of 834,595 total units, with 495,313 exported, is behind the pace implied by that export target, which is the number worth watching over the remainder of the year.",
+        a: "The Federation of Thai Industries expects 1.45 million units for 2026, comprising 550,000 for domestic sale and 900,000 for export. Seven-month production of 834,595 units is a little under 58% of the full-year target with five months to run, so the export half of that target is the number worth watching over the remainder of the year.",
       },
     ],
     sources: [
@@ -2361,6 +2361,12 @@ export const NEWS_ARTICLES: NewsArticle[] = [
         label: "Thailand's auto production rises 6.12 pct in July",
         href: "https://english.news.cn/asiapacific/20260825/63077ba9699f449a9bce0fcbadd800f5/c.html",
         publisher: "Xinhua",
+      },
+      {
+        label:
+          "Thai car exports fall as parts costs and weak demand weigh on output",
+        href: "https://www.nationthailand.com/business/automobile/40066626",
+        publisher: "The Nation (Thailand)",
       },
       {
         label: "Euro foreign exchange reference rates",
@@ -2437,6 +2443,12 @@ export const NEWS_ARTICLES: NewsArticle[] = [
           "Central Bank Tightens Vehicle Finance as Sri Lanka Moves to Contain Import-Led Currency Pressure",
         href: "https://srilankachronicle.com/central-bank-tightens-vehicle-finance-as-sri-lanka-moves-to-contain-import-led-currency-pressure/",
         publisher: "Financial Chronicle (Sri Lanka)",
+      },
+      {
+        label:
+          "Loan to Value Ratios for Credit Facilities Granted in Respect of Motor Vehicles",
+        href: "https://www.cbsl.gov.lk/en/node/18904",
+        publisher: "Central Bank of Sri Lanka",
       },
       {
         label:
@@ -2734,9 +2746,9 @@ export const NEWS_ARTICLES: NewsArticle[] = [
     h1: "Kia Launched the Sorento in India — an India-Built, Right-Hand-Drive Seven-Seater",
     seoTitle: "Kia Sorento India Price 2026 and the Import Read",
     description:
-      "Kia launched the Sorento in India on 4 September 2026 from ₹27.99 lakh, built at Anantapur. A 238 PS hybrid, a 441 Nm diesel, and what it means for sourcing.",
+      "Kia launched the Sorento in India on 4 September 2026 from ₹27.99 lakh, built at Anantapur. A 1.6 strong hybrid, a 442 Nm diesel, and what it means for sourcing.",
     excerpt:
-      "The hybrid is the headline and the diesel is the export case. 441 Nm in a seven-seat body, built in right-hand drive at Indian cost, is the specification that travels.",
+      "The hybrid is the headline and the diesel is the export case. 442 Nm in a seven-seat body, built in right-hand drive at Indian cost, is the specification that travels.",
     category: "Releases",
     dateline: "Anantapur, Andhra Pradesh",
     keywords: [
@@ -2770,7 +2782,7 @@ export const NEWS_ARTICLES: NewsArticle[] = [
       },
       {
         q: "What engines does the India-spec Kia Sorento have?",
-        a: "Two. A 1.6-litre turbo petrol with a strong hybrid system producing 238 PS and 380 Nm combined, offered with all-wheel drive, and a 2.2-litre turbo diesel producing 202 PS and 441 Nm. Both are offered in six and seven-seat layouts. Kia describes the Sorento as its new flagship internal-combustion model in India.",
+        a: "Two. A 1.6-litre turbo petrol strong hybrid, whose engine is rated 180 PS and 265 Nm and whose motor is rated 65 PS and 264 Nm, offered with all-wheel drive; and a 2.2-litre turbo diesel producing 193 PS and 442 Nm. Kia India has not published a combined system output for the hybrid, and the two peaks cannot simply be added. Both are offered in six and seven-seat layouts.",
       },
       {
         q: "Where is the India-spec Kia Sorento built?",
@@ -3165,9 +3177,9 @@ export const NEWS_ARTICLES: NewsArticle[] = [
     h1: "A Chinese Manufacturer Is Building Right-Hand-Drive Cars in a Market We Buy In",
     seoTitle: "Chinese Cars Built Right-Hand Drive in Thailand",
     description:
-      "Changan's Rayong plant opened with a right-hand-drive Deepal S05, 100,000 units of capacity rising to 200,000 by 2027. What a new RHD source corridor means.",
+      "Changan's Rayong plant has been building right-hand-drive cars since May 2025, with capacity rising to 200,000 by 2027. What a new RHD source corridor means.",
     excerpt:
-      "Thailand has spent forty years as Japan's right-hand-drive factory. It is now becoming China's as well, and that widens the supply base for every RHD destination.",
+      "Thailand has spent forty years as Japan's right-hand-drive factory. A year into Changan's Rayong output, it is becoming China's as well — which widens the supply base for every RHD destination.",
     category: "Industry",
     dateline: "Rayong, Thailand",
     keywords: [
@@ -3255,7 +3267,7 @@ export const NEWS_ARTICLES: NewsArticle[] = [
     h1: "The EU End-of-Life Vehicles Regulation Is Not a Used-Car Export Ban",
     seoTitle: "EU Used Car Export Rules: Roadworthy Only From 2031",
     description:
-      "Regulation (EU) 2026/1738 entered into force on 13 August 2026. From mid-2031 only roadworthy vehicles may be exported from the EU. What it does and does not do.",
+      "Regulation (EU) 2026/1738 entered into force on 13 August 2026. From 1 September 2031 only roadworthy vehicles may be exported from the EU. What it changes.",
     excerpt:
       "The rule does not say fewer cars may leave Europe. It says the ones that leave must be able to drive — and roadworthy used vehicles can continue to be exported as normal.",
     category: "Industry",
@@ -3287,11 +3299,11 @@ export const NEWS_ARTICLES: NewsArticle[] = [
     faqs: [
       {
         q: "Is the EU banning used car exports?",
-        a: "No. Regulation (EU) 2026/1738 provides that from mid-2031, only roadworthy vehicles may be exported outside the EU. The European Commission's own description states that roadworthy used vehicles can continue to be exported as normal. The measure targets end-of-life vehicles being sent abroad papered as second-hand cars, not the used-car trade itself.",
+        a: "No. Regulation (EU) 2026/1738 provides that from 1 September 2031, only roadworthy vehicles may be exported outside the EU. The European Commission's own description states that roadworthy used vehicles can continue to be exported as normal. The measure targets end-of-life vehicles being sent abroad papered as second-hand cars, not the used-car trade itself.",
       },
       {
         q: "When did the EU End-of-Life Vehicles Regulation take effect?",
-        a: "The Council adopted it on 29 June 2026, it was published in the Official Journal on 24 July 2026, and it entered into force on 13 August 2026. It replaces Directive 2000/53/EC and the 3R Type-Approval Directive 2005/64/EC. The export condition itself applies from mid-2031, five years after entry into force.",
+        a: "The Council adopted it on 29 June 2026, it was published in the Official Journal on 24 July 2026, and it entered into force on 13 August 2026. It replaces Directive 2000/53/EC and the 3R Type-Approval Directive 2005/64/EC. Its core obligations apply from 1 September 2028, extended producer responsibility from 1 September 2029, the export condition from 1 September 2031, and the digital circularity vehicle passport from 1 September 2032.",
       },
       {
         q: "Does this apply to cars exported from the United Kingdom?",
@@ -3299,7 +3311,7 @@ export const NEWS_ARTICLES: NewsArticle[] = [
       },
       {
         q: "Will this raise import costs in Africa or the Caribbean?",
-        a: "Not before mid-2031, and it creates no duty, levy or charge on an importer at any point. From 2031 the mechanism is indirect: removing the non-roadworthy tail of the EU export flow raises the average quality, and therefore the average price, of what leaves. For buyers of roadworthy stock that is close to neutral.",
+        a: "Not before 1 September 2031, and it creates no duty, levy or charge on an importer at any point. From 2031 the mechanism is indirect: removing the non-roadworthy tail of the EU export flow raises the average quality, and therefore the average price, of what leaves. For buyers of roadworthy stock that is close to neutral.",
       },
       {
         q: "What recycled content does the Regulation require?",

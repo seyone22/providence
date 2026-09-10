@@ -162,10 +162,10 @@ export default function YenIntervention2026JapanCarImportCost() {
           { label: "Hammer price", value: "¥3,000,000" },
           {
             label: "At EUR/JPY 186.99, 30 July 2026",
-            value: "€16,043",
+            value: "€16,044",
             green: true,
           },
-          { label: "At EUR/JPY 178.59, 9 September 2026", value: "€16,797" },
+          { label: "At EUR/JPY 178.59, 9 September 2026", value: "€16,798" },
         ]}
         total={{ label: "Cost of the currency move", value: "+€754" }}
       />
@@ -331,6 +331,17 @@ export default function YenIntervention2026JapanCarImportCost() {
       />
 
       <H2 id="timing">Move now or wait?</H2>
+
+      <P>
+        Whatever the rate does next, the currency is one line in a longer bill.
+        Our guide to the{" "}
+        <InlineLink href="/blog/cost-to-import-a-car-from-japan">
+          full cost of importing a car from Japan
+        </InlineLink>{" "}
+        sets out the auction fees, inland transport, freight and destination
+        charges that sit alongside the hammer price, and which of them move with
+        the yen and which do not.
+      </P>
 
       <P>
         We are not going to tell you the yen is about to move one way or the

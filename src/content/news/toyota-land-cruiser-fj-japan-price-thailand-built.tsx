@@ -251,6 +251,16 @@ export default function ToyotaLandCruiserFjJapanPriceThailandBuilt() {
       <H2 id="timing">Move now or wait?</H2>
 
       <P>
+        The FJ being built in Thailand rather than Japan also means its supply
+        is subject to Thai export conditions rather than Japanese ones, which
+        are not currently moving in the same direction &mdash; see our read on{" "}
+        <InlineLink href="/latest-news/thailand-vehicle-production-exports-2026-dealer-read">
+          Thai production and export volumes
+        </InlineLink>
+        .
+      </P>
+
+      <P>
         Wait, in most cases, and here is the reasoning rather than the verdict.
         A newly launched Japanese-market vehicle takes time to appear in the
         auction halls in useful numbers, and the first units through are bought

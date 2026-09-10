@@ -18,13 +18,15 @@ export default function ChanganRayongRightHandDriveThailandExportBase() {
   return (
     <>
       <Lead>
-        The first vehicle off Changan&rsquo;s Rayong production line was a{" "}
-        <Strong>right-hand-drive Deepal S05</Strong>. That single detail is the
-        story. A Chinese manufacturer has built a plant in Thailand &mdash; one
-        of the seven markets we buy in &mdash; with an initial capacity of{" "}
-        <Strong>100,000 units a year</Strong> rising toward 200,000, explicitly
-        aimed at ASEAN and the global right-hand-drive market. Thailand is
-        becoming a Chinese export base, and right-hand drive is the reason.
+        The first vehicle off Changan&rsquo;s Rayong production line, in May
+        2025, was a <Strong>right-hand-drive Deepal S05</Strong>. That single
+        detail is the story, and a year of output since then is what makes it
+        worth writing now rather than then. A Chinese manufacturer has built a
+        plant in Thailand &mdash; one of the seven markets we buy in &mdash;
+        with an initial capacity of <Strong>100,000 units a year</Strong> rising
+        toward 200,000, explicitly aimed at ASEAN and the global
+        right-hand-drive market. Thailand is becoming a Chinese export base, and
+        right-hand drive is the reason.
       </Lead>
 
       <KeyTakeaways
